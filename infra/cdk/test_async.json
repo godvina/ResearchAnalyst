@@ -1,0 +1,1 @@
+{"action":"process_batch","case_id":"ed0b6c27-3b6b-4255-b9d0-efe8f4383a99","batch_id":"test_direct","config":{"batch_size":5,"sub_batch_size":5,"source_prefixes":["bw-documents/"],"enable_entity_resolution":false,"ocr_threshold":50,"blank_threshold":10}}
