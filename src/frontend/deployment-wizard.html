@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Deployment Wizard — Research Analyst Platform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f1923; color: #e2e8f0; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #1a365d 0%, #2a4a7f 50%, #1e3a5f 100%); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #805ad5; }
+        .header h1 { font-size: 1.3em; color: #fff; }
+        .header h1 span { color: #805ad5; }
+        .nav-links { display: flex; gap: 8px; }
+        .nav-links a { color: #a0aec0; text-decoration: none; font-size: 0.75em; padding: 4px 10px; border: 1px solid #4a5568; border-radius: 6px; }
+        .nav-links a:hover { color: #fff; border-color: #805ad5; }
+        .wizard-container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+        .progress { display: flex; gap: 4px; margin-bottom: 24px; }
+        .progress-dot { flex: 1; height: 6px; border-radius: 3px; background: #2d3748; transition: background 0.3s; }
+        .progress-dot.done { background: #805ad5; }
+        .progress-dot.current { background: #d6bcfa; }
+        .step-label { text-align: center; font-size: 0.75em; color: #718096; margin-bottom: 20px; }
+        .step { display: none; }
+        .step.active { display: block; }
+        .card { background: #1a2332; border: 1px solid #2d3748; border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+        .card h2 { font-size: 1.1em; color: #805ad5; margin-bottom: 16px; }
+        .field { margin-bottom: 14px; }
+        .field label { display: block; font-size: 0.8em; color: #a0aec0; margin-bottom: 4px; font-weight: 600; }
+        .field input, .field select { width: 100%; background: #0f1923; border: 1px solid #4a5568; color: #e2e8f0; padding: 10px 12px; border-radius: 6px; font-size: 0.85em; }
+        .field input:focus, .field select:focus { outline: none; border-color: #805ad5; }
+        .field .error { color: #fc8181; font-size: 0.72em; margin-top: 2px; display: none; }
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 12px; }
+        .checkbox-item { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.03); border: 1px solid #2d3748; border-radius: 8px; padding: 12px 16px; cursor: pointer; transition: all 0.2s; flex: 1; min-width: 180px; }
+        .checkbox-item:hover { border-color: #805ad5; }
+        .checkbox-item.selected { border-color: #805ad5; background: rgba(128,90,213,0.1); }
+        .checkbox-item input { accent-color: #805ad5; }
+        .tier-badge { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 0.82em; font-weight: 700; margin: 8px 0; }
+        .tier-Small { background: rgba(72,187,120,0.2); color: #48bb78; }
+        .tier-Medium { background: rgba(246,173,85,0.2); color: #f6ad55; }
+        .tier-Large { background: rgba(229,62,62,0.2); color: #fc8181; }
+        .tier-Enterprise { background: rgba(128,90,213,0.2); color: #d6bcfa; }
+
+        .nav-bar { background:#1a2332; border-bottom:1px solid #2d3748; display:flex; gap:0; padding:0 16px; }
+        .nav-link { padding:10px 16px; font-size:0.75em; font-weight:600; color:#718096; border-bottom:2px solid transparent; text-decoration:none; transition:color 0.2s; }
+        .nav-link:hover { color:#e2e8f0; }
+        .nav-link.active { color:#48bb78; border-bottom-color:#48bb78; }
+</style>
+</head>
+<body>
+<script src="config.js"></script>
+<div class="header">
+    <h1>Customer <span>Deployment Wizard</span></h1>
+    <div class="nav-links">
+        <a href="investigator.html">Investigator</a>
+        <a href="prosecutor.html">Prosecutor</a>
+    </div>
+</div>
+<div class="nav-bar">
+    <a href="index.html" class="nav-link">🏠 Home</a>
+    <a href="investigator.html" class="nav-link">📋 Cases</a>
+    <a href="pipeline-config.html" class="nav-link">⚙️ Pipeline Config</a>
+    <a href="batch-loader.html" class="nav-link">📦 Batch Loader</a>
+    <a href="admin.html" class="nav-link">🔐 Admin</a>
+    <a href="chatbot.html" class="nav-link">💬 Chat</a>
+    <a href="wizard.html" class="nav-link">🧙 Wizard</a>
+    <a href="portfolio.html" class="nav-link">📊 Portfolio</a>
+    <a href="workbench.html" class="nav-link">🔬 Workbench</a>
+</div>
+<div class="wizard-container">
+    <div class="progress" id="progressBar"></div>
+    <div class="step-label" id="stepLabel"></div>
+
+    <!-- Step 1: Environment -->
+    <div class="step" id="step-1">
+        <div class="card">
+            <h2>1. Environment Configuration</h2>
+            <div class="field"><label>AWS Region</label><select id="awsRegion"><option value="us-east-1">US East (N. Virginia)</option><option value="us-west-2">US West (Oregon)</option><option value="us-gov-west-1">GovCloud West</option><option value="us-gov-east-1">GovCloud East</option></select></div>
+            <div class="field"><label>AWS Account ID (12 digits)</label><input id="accountId" placeholder="123456789012" maxlength="12"><div class="error" id="err-accountId">Must be exactly 12 digits</div></div>
+            <div class="field"><label>VPC CIDR</label><input id="vpcCidr" value="10.0.0.0/16" placeholder="10.0.0.0/16"><div class="error" id="err-vpcCidr">Must be valid CIDR notation</div></div>
+            <div class="field"><label>KMS Key ARN (optional)</label><input id="kmsArn" placeholder="arn:aws:kms:us-east-1:123456789012:key/..."></div>
+            <div class="field"><label>S3 Deployment Bucket Name</label><input id="s3Bucket" placeholder="my-deployment-bucket"></div>
+        </div>
+    </div>
+
+    <!-- Step 2: Modules -->
+    <div class="step" id="step-2">
+        <div class="card">
+            <h2>2. Module Selection</h2>
+            <p style="font-size:0.82em;color:#a0aec0;margin-bottom:14px;">Select which modules to deploy. At least one required.</p>
+            <div class="checkbox-group">
+                <label class="checkbox-item selected"><input type="checkbox" value="investigator" checked> Investigator (Core)</label>
+                <label class="checkbox-item"><input type="checkbox" value="prosecutor"> Prosecutor</label>
+                <label class="checkbox-item"><input type="checkbox" value="network_discovery"> Network Discovery</label>
+                <label class="checkbox-item"><input type="checkbox" value="document_assembly"> Document Assembly</label>
+            </div>
+            <div class="error" id="err-modules" style="display:none;margin-top:8px;">Select at least one module</div>
+        </div>
+    </div>
+
+    <!-- Step 3: Data Volume -->
+    <div class="step" id="step-3">
+        <div class="card">
+            <h2>3. Data Volume Sizing</h2>
+            <div class="field"><label>Expected Document Count</label><input id="docCount" type="number" value="50000" min="1"></div>
+            <div class="field"><label>Average Document Size (MB)</label><input id="avgDocSize" type="number" value="1.0" min="0.01" step="0.1"></div>
+            <div class="field"><label>Estimated Entity Count</label><input id="entityCount" type="number" value="100000" min="0"></div>
+            <div style="margin-top:14px;">
+                <span style="font-size:0.82em;color:#a0aec0;">Estimated Volume:</span> <strong id="totalVolume" style="color:#fff;">0 GB</strong>
+                <br><span style="font-size:0.82em;color:#a0aec0;">Auto-Selected Tier:</span> <span id="tierBadge" class="tier-badge tier-Small">Small</span>
+            </div>
+            <div id="tierSizing" style="margin-top:12px;font-size:0.78em;color:#718096;"></div>
+        </div>
+    </div>
+
+    <!-- Step 4: Cost Estimate -->
+    <div class="step" id="step-4">
+        <div class="card">
+            <h2>4. Cost Estimate</h2>
+            <div id="costContent" style="color:#718096;">Calculating...</div>
+        </div>
+    </div>
+
+    <!-- Step 5: Sample Test Run -->
+    <div class="step" id="step-5">
+        <div class="card">
+            <h2>5. Sample Test Run (Optional)</h2>
+            <p style="font-size:0.82em;color:#a0aec0;margin-bottom:14px;">Upload 1-5 sample documents to test the pipeline. You can skip this step.</p>
+            <input type="file" id="sampleFiles" multiple accept=".pdf,.docx,.txt" style="margin-bottom:12px;">
+            <button class="btn" onclick="runSampleTest()" style="background:#805ad5;color:#fff;padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-weight:600;">Run Sample Test</button>
+            <div id="sampleResults" style="margin-top:14px;"></div>
+        </div>
+    </div>
+
+    <!-- Step 6: Generate Package -->
+    <div class="step" id="step-6">
+        <div class="card">
+            <h2>6. Generate Deployment Package</h2>
+            <div id="summaryReview" style="margin-bottom:16px;"></div>
+            <button class="btn" onclick="generatePackage()" id="genPkgBtn" style="background:linear-gradient(135deg,#805ad5,#6b46c1);color:#fff;padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.9em;">Download Deployment Package</button>
+            <div id="genStatus" style="margin-top:10px;font-size:0.82em;color:#718096;"></div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div style="display:flex;justify-content:space-between;margin-top:20px;">
+        <button class="btn" id="prevBtn" onclick="prevStep()" style="background:#2d3748;color:#e2e8f0;padding:10px 20px;border:none;border-radius:6px;cursor:pointer;font-weight:600;">Back</button>
+        <button class="btn" id="nextBtn" onclick="nextStep()" style="background:#805ad5;color:#fff;padding:10px 20px;border:none;border-radius:6px;cursor:pointer;font-weight:600;">Next</button>
+    </div>
+</div>
+<script>
+const API_URL = window.APP_CONFIG ? window.APP_CONFIG.API_URL : '';
+const STEPS = ['Environment Configuration', 'Module Selection', 'Data Volume Sizing', 'Cost Estimate', 'Sample Test Run (Optional)', 'Generate Deployment Package'];
+let currentStep = 1;
+let wizardData = {};
+
+function renderProgress() {
+    const bar = document.getElementById('progressBar');
+    bar.innerHTML = STEPS.map((_, i) => `<div class="progress-dot ${i+1 < currentStep ? 'done' : i+1 === currentStep ? 'current' : ''}"></div>`).join('');
+    document.getElementById('stepLabel').textContent = `Step ${currentStep} of ${STEPS.length}: ${STEPS[currentStep-1]}`;
+    document.querySelectorAll('.step').forEach((s, i) => s.classList.toggle('active', i+1 === currentStep));
+    document.getElementById('prevBtn').style.display = currentStep === 1 ? 'none' : '';
+    document.getElementById('nextBtn').textContent = currentStep === STEPS.length ? 'Finish' : currentStep === 5 ? 'Skip & Continue' : 'Next';
+}
+
+function getModules() {
+    return [...document.querySelectorAll('.checkbox-item input:checked')].map(c => c.value);
+}
+
+function validateStep() {
+    if (currentStep === 1) {
+        const acct = document.getElementById('accountId').value;
+        const cidr = document.getElementById('vpcCidr').value;
+        let valid = true;
+        if (!/^\d{12}$/.test(acct)) { document.getElementById('err-accountId').style.display = 'block'; valid = false; } else { document.getElementById('err-accountId').style.display = 'none'; }
+        if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}$/.test(cidr)) { document.getElementById('err-vpcCidr').style.display = 'block'; valid = false; } else { document.getElementById('err-vpcCidr').style.display = 'none'; }
+        return valid;
+    }
+    if (currentStep === 2) {
+        const mods = getModules();
+        if (!mods.length) { document.getElementById('err-modules').style.display = 'block'; return false; }
+        document.getElementById('err-modules').style.display = 'none';
+        return true;
+    }
+    if (currentStep === 3) { return parseInt(document.getElementById('docCount').value) > 0; }
+    return true;
+}
+
+function collectData() {
+    wizardData = {
+        aws_region: document.getElementById('awsRegion').value,
+        aws_account_id: document.getElementById('accountId').value,
+        vpc_cidr: document.getElementById('vpcCidr').value,
+        kms_key_arn: document.getElementById('kmsArn').value,
+        s3_bucket_name: document.getElementById('s3Bucket').value,
+        modules: getModules(),
+        document_count: parseInt(document.getElementById('docCount').value) || 0,
+        avg_doc_size_mb: parseFloat(document.getElementById('avgDocSize').value) || 1.0,
+        entity_count: parseInt(document.getElementById('entityCount').value) || 0,
+    };
+}
+
+function updateTier() {
+    const count = parseInt(document.getElementById('docCount').value) || 0;
+    const size = parseFloat(document.getElementById('avgDocSize').value) || 1.0;
+    const vol = (count * size / 1024).toFixed(1);
+    document.getElementById('totalVolume').textContent = vol + ' GB';
+    let tier = 'Small';
+    if (count >= 10000000) tier = 'Enterprise';
+    else if (count >= 1000000) tier = 'Large';
+    else if (count >= 100000) tier = 'Medium';
+    const badge = document.getElementById('tierBadge');
+    badge.textContent = tier;
+    badge.className = 'tier-badge tier-' + tier;
+    const sizing = {Small: 'Neptune Serverless (1-4 NCU), Aurora 0.5-4 ACU, 2 OpenSearch OCU', Medium: 'Neptune r6g.xlarge, Aurora 1-8 ACU, 4 OCU', Large: 'Neptune r6g.2xlarge, Aurora 2-16 ACU, 8 OCU + parallel ingestion', Enterprise: 'Neptune r6g.4xlarge, Aurora 4-32 ACU, 16+ OCU + SQS fleet'};
+    document.getElementById('tierSizing').textContent = sizing[tier];
+}
+
+async function loadCostEstimate() {
+    collectData();
+    const el = document.getElementById('costContent');
+    el.innerHTML = '<div style="color:#805ad5;">Calculating cost estimate...</div>';
+    try {
+        const resp = await fetch(API_URL + '/deployment/cost-estimate', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(wizardData)});
+        const data = await resp.json();
+        const m = data.monthly || {};
+        el.innerHTML = `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+                ${Object.entries(m).filter(([k]) => k !== 'total').map(([k,v]) => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2d3748;"><span style="color:#a0aec0;">${k.replace('_',' ')}</span><strong>$${v.toFixed(2)}</strong></div>`).join('')}
+            </div>
+            <div style="font-size:1.1em;font-weight:700;color:#805ad5;margin-bottom:8px;">Monthly Total: $${(m.total||0).toFixed(2)}</div>
+            <div style="font-size:0.9em;color:#48bb78;">Annual: $${(data.annual||0).toFixed(2)}</div>
+            <div style="font-size:0.82em;color:#f6ad55;margin-top:8px;">One-Time Ingestion: $${(data.one_time?.total||0).toFixed(2)}</div>
+            <div style="font-size:0.72em;color:#718096;margin-top:6px;">Tier: ${data.tier} | Volume: ${data.total_data_volume_gb} GB</div>
+        `;
+    } catch(e) { el.innerHTML = '<div style="color:#fc8181;">Cost estimate unavailable. Check API connection.</div>'; }
+}
+
+async function runSampleTest() {
+    const el = document.getElementById('sampleResults');
+    el.innerHTML = '<div style="color:#805ad5;">Processing sample documents...</div>';
+    const files = document.getElementById('sampleFiles').files;
+    if (!files.length) { el.innerHTML = '<div style="color:#fc8181;">Select 1-5 files first.</div>'; return; }
+    const docs = Array.from(files).slice(0, 5).map(f => ({filename: f.name, size: f.size}));
+    try {
+        const resp = await fetch(API_URL + '/deployment/sample-run', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({documents: docs})});
+        const data = await resp.json();
+        el.innerHTML = (data.results || []).map(r => `<div style="background:rgba(255,255,255,0.03);border:1px solid #2d3748;border-radius:8px;padding:10px;margin-bottom:6px;font-size:0.82em;"><strong>${r.filename}</strong> — ${r.status} | Entities: ${r.entities_found} | Relations: ${r.relationships_found}</div>`).join('') + `<div style="margin-top:10px;font-size:0.85em;color:#48bb78;">Summary: ${data.summary?.documents_processed || 0} docs processed</div>`;
+    } catch(e) { el.innerHTML = '<div style="color:#fc8181;">Sample test failed.</div>'; }
+}
+
+function renderSummary() {
+    collectData();
+    const d = wizardData;
+    document.getElementById('summaryReview').innerHTML = `
+        <div style="font-size:0.85em;line-height:1.8;color:#a0aec0;">
+            <div><strong>Region:</strong> ${d.aws_region}</div>
+            <div><strong>Account:</strong> ${d.aws_account_id}</div>
+            <div><strong>Modules:</strong> ${d.modules.join(', ')}</div>
+            <div><strong>Documents:</strong> ${d.document_count.toLocaleString()}</div>
+            <div><strong>Volume:</strong> ${(d.document_count * d.avg_doc_size_mb / 1024).toFixed(1)} GB</div>
+            <div><strong>S3 Bucket:</strong> ${d.s3_bucket_name || 'Not specified'}</div>
+        </div>
+    `;
+}
+
+async function generatePackage() {
+    collectData();
+    const btn = document.getElementById('genPkgBtn');
+    const status = document.getElementById('genStatus');
+    btn.disabled = true; btn.textContent = 'Generating...';
+    status.textContent = 'Building deployment package...';
+    try {
+        const resp = await fetch(API_URL + '/deployment/generate-package', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(wizardData)});
+        if (resp.ok) {
+            const blob = await resp.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'deployment-package.zip'; a.click();
+            status.innerHTML = '<span style="color:#48bb78;">Package downloaded successfully.</span>';
+        } else {
+            status.innerHTML = '<span style="color:#fc8181;">Generation failed. Check API logs.</span>';
+        }
+    } catch(e) { status.innerHTML = '<span style="color:#fc8181;">Error: ' + e.message + '</span>'; }
+    btn.disabled = false; btn.textContent = 'Download Deployment Package';
+}
+
+function nextStep() {
+    if (!validateStep()) return;
+    if (currentStep === 3) updateTier();
+    if (currentStep < STEPS.length) {
+        currentStep++;
+        if (currentStep === 4) loadCostEstimate();
+        if (currentStep === 6) renderSummary();
+        renderProgress();
+    }
+}
+function prevStep() { if (currentStep > 1) { currentStep--; renderProgress(); } }
+
+// Init
+document.querySelectorAll('.checkbox-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+        if (e.target.tagName !== 'INPUT') { const cb = this.querySelector('input'); cb.checked = !cb.checked; }
+        this.classList.toggle('selected', this.querySelector('input').checked);
+    });
+});
+['docCount', 'avgDocSize'].forEach(id => document.getElementById(id).addEventListener('input', updateTier));
+renderProgress();
+updateTier();
+</script>
+</body>
+</html>
