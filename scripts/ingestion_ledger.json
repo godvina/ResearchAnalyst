@@ -1,0 +1,1188 @@
+{
+  "cases": {
+    "7f05e8d5-4492-4f19-8894-25367606db96": {
+      "name": "Epstein Main (Original)",
+      "role": "baseline",
+      "loads": [
+        {
+          "load_id": "original",
+          "timestamp": "2026-03-15T00:00:00Z",
+          "source": "DS1-5 via original pipeline",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_files_total": 3804,
+          "blanks_skipped": 442,
+          "docs_sent_to_pipeline": 3362,
+          "sfn_executions": "unknown (pre-tracking)",
+          "sfn_succeeded": "unknown",
+          "sfn_failed": "unknown",
+          "s3_docs_after": 3362,
+          "notes": "Original load before ledger existed. Counts from session notes."
+        },
+        {
+          "load_id": "batch_1",
+          "timestamp": "2026-04-03T03:29:09Z",
+          "source": "Raw PDFs batch 1",
+          "source_bucket": "research-analyst-data-lake-974220725866",
+          "source_prefixes": [
+            "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/"
+          ],
+          "source_files_total": 5000,
+          "blanks_skipped": 0,
+          "docs_sent_to_pipeline": 5000,
+          "sfn_executions": 100,
+          "sfn_succeeded": 100,
+          "sfn_failed": 0,
+          "entity_resolution_result": {
+            "error": "HTTP Error 500: Internal Server Error"
+          },
+          "textract_ocr_count": 1,
+          "extraction_method_breakdown": {
+            "cached": 100,
+            "pypdf2": 4899,
+            "textract": 1
+          },
+          "notes": "Batch 1. 0 blanks filtered from 5000 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_2",
+          "timestamp": "2026-04-03T10:45:42Z",
+          "source": "Raw PDFs batch 2",
+          "source_bucket": "research-analyst-data-lake-974220725866",
+          "source_prefixes": [
+            "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/"
+          ],
+          "source_files_total": 5000,
+          "blanks_skipped": 0,
+          "docs_sent_to_pipeline": 5000,
+          "sfn_executions": 100,
+          "sfn_succeeded": 100,
+          "sfn_failed": 0,
+          "entity_resolution_result": {
+            "error": "HTTP Error 500: Internal Server Error"
+          },
+          "textract_ocr_count": 0,
+          "extraction_method_breakdown": {
+            "pypdf2": 5000
+          },
+          "notes": "Batch 2. 0 blanks filtered from 5000 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_3",
+          "timestamp": "2026-04-13T23:31:56Z",
+          "source": "Raw PDFs batch 3",
+          "source_bucket": "research-analyst-data-lake-974220725866",
+          "source_prefixes": [
+            "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/"
+          ],
+          "source_files_total": 5000,
+          "blanks_skipped": 0,
+          "docs_sent_to_pipeline": 5000,
+          "sfn_executions": 100,
+          "sfn_succeeded": 100,
+          "sfn_failed": 0,
+          "entity_resolution_result": {
+            "error": "HTTP Error 500: Internal Server Error"
+          },
+          "textract_ocr_count": 0,
+          "extraction_method_breakdown": {
+            "pypdf2": 5000
+          },
+          "notes": "Batch 3. 0 blanks filtered from 5000 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_4",
+          "timestamp": "2026-04-14T00:58:57Z",
+          "source": "Raw PDFs batch 4",
+          "source_bucket": "research-analyst-data-lake-974220725866",
+          "source_prefixes": [
+            "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/"
+          ],
+          "source_files_total": 5000,
+          "blanks_skipped": 0,
+          "docs_sent_to_pipeline": 5000,
+          "sfn_executions": 100,
+          "sfn_succeeded": 100,
+          "sfn_failed": 0,
+          "entity_resolution_result": {
+            "error": "HTTP Error 500: Internal Server Error"
+          },
+          "textract_ocr_count": 0,
+          "extraction_method_breakdown": {
+            "pypdf2": 5000
+          },
+          "notes": "Batch 4. 0 blanks filtered from 5000 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_5",
+          "timestamp": "2026-04-14T02:03:25Z",
+          "source": "Raw PDFs batch 5",
+          "source_bucket": "research-analyst-data-lake-974220725866",
+          "source_prefixes": [
+            "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/"
+          ],
+          "source_files_total": 50,
+          "blanks_skipped": 0,
+          "docs_sent_to_pipeline": 50,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {
+            "error": "HTTP Error 500: Internal Server Error"
+          },
+          "textract_ocr_count": 0,
+          "extraction_method_breakdown": {
+            "pypdf2": 50
+          },
+          "notes": "Batch 5. 0 blanks filtered from 50 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_5",
+          "timestamp": "2026-04-14T07:13:30Z",
+          "source": "Raw PDFs batch 5",
+          "source_bucket": "research-analyst-data-lake-974220725866",
+          "source_prefixes": [
+            "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/"
+          ],
+          "source_files_total": 5000,
+          "blanks_skipped": 0,
+          "docs_sent_to_pipeline": 5000,
+          "sfn_executions": 100,
+          "sfn_succeeded": 0,
+          "sfn_failed": 100,
+          "entity_resolution_result": {
+            "error": "HTTP Error 500: Internal Server Error"
+          },
+          "textract_ocr_count": 0,
+          "extraction_method_breakdown": {
+            "cached": 50,
+            "pypdf2": 4950
+          },
+          "notes": "Batch 5. 0 blanks filtered from 5000 source files. 100 pipeline failures."
+        },
+        {
+          "load_id": "batch_6",
+          "timestamp": "2026-04-14T13:33:36Z",
+          "source": "Raw PDFs batch 6",
+          "source_bucket": "research-analyst-data-lake-974220725866",
+          "source_prefixes": [
+            "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/"
+          ],
+          "source_files_total": 5000,
+          "blanks_skipped": 0,
+          "docs_sent_to_pipeline": 5000,
+          "sfn_executions": 100,
+          "sfn_succeeded": 1,
+          "sfn_failed": 99,
+          "entity_resolution_result": {
+            "error": "HTTP Error 500: Internal Server Error"
+          },
+          "textract_ocr_count": 0,
+          "extraction_method_breakdown": {
+            "pypdf2": 5000
+          },
+          "notes": "Batch 6. 0 blanks filtered from 5000 source files. 99 pipeline failures."
+        }
+      ],
+      "running_total_s3_docs": 33412
+    },
+    "ed0b6c27-3b6b-4255-b9d0-efe8f4383a99": {
+      "name": "Epstein Combined",
+      "role": "combined_target",
+      "loads": [
+        {
+          "load_id": "phase1_ds15",
+          "timestamp": "2026-03-30T15:58:15Z",
+          "source": "DS1-5 pre-extracted text JSONs",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "textract-output/DataSet1/",
+            "textract-output/DataSet2/",
+            "textract-output/DataSet3/",
+            "textract-output/DataSet4/",
+            "textract-output/DataSet5/"
+          ],
+          "source_files_total": 3804,
+          "blanks_skipped": 2128,
+          "docs_sent_to_pipeline": 1676,
+          "sfn_executions": 34,
+          "sfn_succeeded": 34,
+          "sfn_failed": 0,
+          "s3_docs_after": 1676,
+          "notes": "Phase 1. 56% of source files were blank (<10 chars). All 34 SFN executions succeeded."
+        },
+        {
+          "load_id": "phase2_ds11",
+          "timestamp": "2026-03-30T19:26:07Z",
+          "source": "DS11 pre-extracted text JSONs",
+          "source_bucket": "research-analyst-data-lake-974220725866",
+          "source_prefix": "textract-output/DataSet11/",
+          "source_files_total": 5000,
+          "blanks_skipped": 1534,
+          "docs_sent_to_pipeline": 3466,
+          "sfn_executions": 70,
+          "sfn_succeeded": "pending",
+          "sfn_failed": "pending",
+          "s3_docs_after": 3466,
+          "notes": "Phase 2. 1534 blanks skipped from 5000 source files."
+        },
+        {
+          "load_id": "batch_1",
+          "timestamp": "2026-04-01T20:56:41Z",
+          "source": "Raw PDFs batch 1",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 104,
+          "blanks_skipped": 60,
+          "docs_sent_to_pipeline": 44,
+          "sfn_executions": 0,
+          "sfn_succeeded": 0,
+          "sfn_failed": 0,
+          "entity_resolution_result": {
+            "error": "HTTP Error 403: Forbidden"
+          },
+          "textract_ocr_count": 97,
+          "extraction_method_breakdown": {
+            "pypdf2": 7,
+            "textract": 97
+          },
+          "notes": "Batch 1. 60 blanks filtered from 104 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_2",
+          "timestamp": "2026-04-02T12:44:42Z",
+          "source": "Raw PDFs batch 2",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 5000,
+          "blanks_skipped": 2567,
+          "docs_sent_to_pipeline": 2183,
+          "sfn_executions": 44,
+          "sfn_succeeded": 0,
+          "sfn_failed": 44,
+          "entity_resolution_result": {
+            "error": "HTTP Error 500: Internal Server Error"
+          },
+          "textract_ocr_count": 3349,
+          "extraction_method_breakdown": {
+            "textract": 3349,
+            "pypdf2": 672,
+            "failed": 250,
+            "cached": 729
+          },
+          "notes": "Batch 2. 2567 blanks filtered from 5000 source files. 44 pipeline failures."
+        },
+        {
+          "load_id": "batch_3",
+          "timestamp": "2026-04-02T15:49:44Z",
+          "source": "Raw PDFs batch 3",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 62,
+          "docs_sent_to_pipeline": 38,
+          "sfn_executions": 1,
+          "sfn_succeeded": 0,
+          "sfn_failed": 1,
+          "entity_resolution_result": {
+            "error": "HTTP Error 500: Internal Server Error"
+          },
+          "textract_ocr_count": 95,
+          "extraction_method_breakdown": {
+            "textract": 95,
+            "pypdf2": 5
+          },
+          "notes": "Batch 3. 62 blanks filtered from 100 source files. 1 pipeline failures."
+        },
+        {
+          "load_id": "batch_4",
+          "timestamp": "2026-04-02T15:59:25Z",
+          "source": "Raw PDFs batch 4",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 68,
+          "docs_sent_to_pipeline": 32,
+          "sfn_executions": 1,
+          "sfn_succeeded": 0,
+          "sfn_failed": 1,
+          "entity_resolution_result": {
+            "error": "HTTP Error 500: Internal Server Error"
+          },
+          "textract_ocr_count": 94,
+          "extraction_method_breakdown": {
+            "textract": 94,
+            "pypdf2": 6
+          },
+          "notes": "Batch 4. 68 blanks filtered from 100 source files. 1 pipeline failures."
+        },
+        {
+          "load_id": "batch_5",
+          "timestamp": "2026-04-02T16:12:48Z",
+          "source": "Raw PDFs batch 5",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 79,
+          "docs_sent_to_pipeline": 21,
+          "sfn_executions": 1,
+          "sfn_succeeded": 0,
+          "sfn_failed": 1,
+          "entity_resolution_result": {
+            "error": "HTTP Error 500: Internal Server Error"
+          },
+          "textract_ocr_count": 97,
+          "extraction_method_breakdown": {
+            "textract": 97,
+            "pypdf2": 3
+          },
+          "notes": "Batch 5. 79 blanks filtered from 100 source files. 1 pipeline failures."
+        },
+        {
+          "load_id": "batch_6",
+          "timestamp": "2026-04-02T16:20:38Z",
+          "source": "Raw PDFs batch 6",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 61,
+          "docs_sent_to_pipeline": 39,
+          "sfn_executions": 1,
+          "sfn_succeeded": 0,
+          "sfn_failed": 1,
+          "entity_resolution_result": {
+            "error": "HTTP Error 500: Internal Server Error"
+          },
+          "textract_ocr_count": 98,
+          "extraction_method_breakdown": {
+            "textract": 98,
+            "pypdf2": 2
+          },
+          "notes": "Batch 6. 61 blanks filtered from 100 source files. 1 pipeline failures."
+        },
+        {
+          "load_id": "batch_1",
+          "timestamp": "2026-04-02T16:56:13Z",
+          "source": "Raw PDFs batch 1",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 58,
+          "docs_sent_to_pipeline": 42,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 97,
+          "extraction_method_breakdown": {
+            "textract": 97,
+            "pypdf2": 3
+          },
+          "notes": "Batch 1. 58 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_1",
+          "timestamp": "2026-04-02T17:09:12Z",
+          "source": "Raw PDFs batch 1",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 59,
+          "docs_sent_to_pipeline": 41,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 0,
+          "extraction_method_breakdown": {
+            "cached": 100
+          },
+          "notes": "Batch 1. 59 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_1",
+          "timestamp": "2026-04-02T17:27:04Z",
+          "source": "Raw PDFs batch 1",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 58,
+          "docs_sent_to_pipeline": 42,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 0,
+          "extraction_method_breakdown": {
+            "cached": 100
+          },
+          "notes": "Batch 1. 58 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_2",
+          "timestamp": "2026-04-02T18:02:11Z",
+          "source": "Raw PDFs batch 2",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 52,
+          "docs_sent_to_pipeline": 48,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 0,
+          "extraction_method_breakdown": {
+            "cached": 100
+          },
+          "notes": "Batch 2. 52 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_3",
+          "timestamp": "2026-04-02T18:16:00Z",
+          "source": "Raw PDFs batch 3",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 67,
+          "docs_sent_to_pipeline": 33,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 85,
+          "extraction_method_breakdown": {
+            "textract": 85,
+            "pypdf2": 15
+          },
+          "notes": "Batch 3. 67 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_4",
+          "timestamp": "2026-04-02T18:21:08Z",
+          "source": "Raw PDFs batch 4",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 72,
+          "docs_sent_to_pipeline": 28,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 96,
+          "extraction_method_breakdown": {
+            "textract": 96,
+            "pypdf2": 4
+          },
+          "notes": "Batch 4. 72 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_5",
+          "timestamp": "2026-04-02T18:28:06Z",
+          "source": "Raw PDFs batch 5",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 70,
+          "docs_sent_to_pipeline": 30,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 90,
+          "extraction_method_breakdown": {
+            "textract": 90,
+            "pypdf2": 10
+          },
+          "notes": "Batch 5. 70 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_6",
+          "timestamp": "2026-04-02T18:32:55Z",
+          "source": "Raw PDFs batch 6",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 63,
+          "docs_sent_to_pipeline": 37,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 89,
+          "extraction_method_breakdown": {
+            "textract": 89,
+            "pypdf2": 11
+          },
+          "notes": "Batch 6. 63 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_7",
+          "timestamp": "2026-04-02T18:40:07Z",
+          "source": "Raw PDFs batch 7",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 33,
+          "docs_sent_to_pipeline": 67,
+          "sfn_executions": 2,
+          "sfn_succeeded": 2,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 75,
+          "extraction_method_breakdown": {
+            "pypdf2": 25,
+            "textract": 75
+          },
+          "notes": "Batch 7. 33 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_8",
+          "timestamp": "2026-04-02T18:47:12Z",
+          "source": "Raw PDFs batch 8",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 53,
+          "docs_sent_to_pipeline": 47,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 90,
+          "extraction_method_breakdown": {
+            "textract": 90,
+            "pypdf2": 10
+          },
+          "notes": "Batch 8. 53 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_9",
+          "timestamp": "2026-04-02T18:51:48Z",
+          "source": "Raw PDFs batch 9",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 74,
+          "docs_sent_to_pipeline": 26,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 88,
+          "extraction_method_breakdown": {
+            "textract": 88,
+            "pypdf2": 12
+          },
+          "notes": "Batch 9. 74 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_10",
+          "timestamp": "2026-04-02T18:58:21Z",
+          "source": "Raw PDFs batch 10",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 52,
+          "docs_sent_to_pipeline": 48,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 86,
+          "extraction_method_breakdown": {
+            "textract": 86,
+            "pypdf2": 14
+          },
+          "notes": "Batch 10. 52 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_11",
+          "timestamp": "2026-04-02T19:05:33Z",
+          "source": "Raw PDFs batch 11",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 39,
+          "docs_sent_to_pipeline": 61,
+          "sfn_executions": 2,
+          "sfn_succeeded": 2,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 92,
+          "extraction_method_breakdown": {
+            "textract": 92,
+            "pypdf2": 8
+          },
+          "notes": "Batch 11. 39 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_12",
+          "timestamp": "2026-04-02T19:12:57Z",
+          "source": "Raw PDFs batch 12",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 53,
+          "docs_sent_to_pipeline": 47,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 96,
+          "extraction_method_breakdown": {
+            "textract": 96,
+            "pypdf2": 4
+          },
+          "notes": "Batch 12. 53 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_13",
+          "timestamp": "2026-04-02T19:19:38Z",
+          "source": "Raw PDFs batch 13",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 43,
+          "docs_sent_to_pipeline": 57,
+          "sfn_executions": 2,
+          "sfn_succeeded": 2,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 77,
+          "extraction_method_breakdown": {
+            "pypdf2": 23,
+            "textract": 77
+          },
+          "notes": "Batch 13. 43 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_14",
+          "timestamp": "2026-04-02T19:26:40Z",
+          "source": "Raw PDFs batch 14",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 52,
+          "docs_sent_to_pipeline": 48,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 89,
+          "extraction_method_breakdown": {
+            "pypdf2": 11,
+            "textract": 89
+          },
+          "notes": "Batch 14. 52 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_15",
+          "timestamp": "2026-04-02T19:33:59Z",
+          "source": "Raw PDFs batch 15",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 33,
+          "docs_sent_to_pipeline": 67,
+          "sfn_executions": 2,
+          "sfn_succeeded": 2,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 95,
+          "extraction_method_breakdown": {
+            "textract": 95,
+            "pypdf2": 5
+          },
+          "notes": "Batch 15. 33 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_16",
+          "timestamp": "2026-04-02T19:38:49Z",
+          "source": "Raw PDFs batch 16",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 64,
+          "docs_sent_to_pipeline": 36,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 88,
+          "extraction_method_breakdown": {
+            "textract": 88,
+            "pypdf2": 12
+          },
+          "notes": "Batch 16. 64 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_17",
+          "timestamp": "2026-04-02T19:43:37Z",
+          "source": "Raw PDFs batch 17",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 69,
+          "docs_sent_to_pipeline": 31,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 90,
+          "extraction_method_breakdown": {
+            "textract": 90,
+            "pypdf2": 10
+          },
+          "notes": "Batch 17. 69 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_18",
+          "timestamp": "2026-04-02T19:50:09Z",
+          "source": "Raw PDFs batch 18",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 48,
+          "docs_sent_to_pipeline": 52,
+          "sfn_executions": 2,
+          "sfn_succeeded": 2,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 77,
+          "extraction_method_breakdown": {
+            "textract": 77,
+            "pypdf2": 23
+          },
+          "notes": "Batch 18. 48 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_19",
+          "timestamp": "2026-04-02T19:56:17Z",
+          "source": "Raw PDFs batch 19",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 35,
+          "docs_sent_to_pipeline": 65,
+          "sfn_executions": 2,
+          "sfn_succeeded": 2,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 63,
+          "extraction_method_breakdown": {
+            "pypdf2": 37,
+            "textract": 63
+          },
+          "notes": "Batch 19. 35 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_20",
+          "timestamp": "2026-04-02T20:03:13Z",
+          "source": "Raw PDFs batch 20",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 62,
+          "docs_sent_to_pipeline": 38,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 87,
+          "extraction_method_breakdown": {
+            "pypdf2": 13,
+            "textract": 87
+          },
+          "notes": "Batch 20. 62 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_21",
+          "timestamp": "2026-04-02T20:11:09Z",
+          "source": "Raw PDFs batch 21",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 68,
+          "docs_sent_to_pipeline": 32,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 87,
+          "extraction_method_breakdown": {
+            "textract": 87,
+            "pypdf2": 13
+          },
+          "notes": "Batch 21. 68 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_22",
+          "timestamp": "2026-04-02T20:19:04Z",
+          "source": "Raw PDFs batch 22",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 57,
+          "docs_sent_to_pipeline": 43,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 83,
+          "extraction_method_breakdown": {
+            "textract": 83,
+            "pypdf2": 17
+          },
+          "notes": "Batch 22. 57 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_23",
+          "timestamp": "2026-04-02T20:26:25Z",
+          "source": "Raw PDFs batch 23",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 44,
+          "docs_sent_to_pipeline": 56,
+          "sfn_executions": 2,
+          "sfn_succeeded": 2,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 57,
+          "extraction_method_breakdown": {
+            "textract": 57,
+            "pypdf2": 43
+          },
+          "notes": "Batch 23. 44 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_24",
+          "timestamp": "2026-04-02T20:34:52Z",
+          "source": "Raw PDFs batch 24",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 53,
+          "docs_sent_to_pipeline": 47,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 93,
+          "extraction_method_breakdown": {
+            "textract": 93,
+            "pypdf2": 7
+          },
+          "notes": "Batch 24. 53 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_25",
+          "timestamp": "2026-04-02T20:42:45Z",
+          "source": "Raw PDFs batch 25",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 53,
+          "docs_sent_to_pipeline": 47,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 71,
+          "extraction_method_breakdown": {
+            "textract": 71,
+            "pypdf2": 29
+          },
+          "notes": "Batch 25. 53 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_26",
+          "timestamp": "2026-04-02T20:57:01Z",
+          "source": "Raw PDFs batch 26",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 2,
+          "docs_sent_to_pipeline": 98,
+          "sfn_executions": 2,
+          "sfn_succeeded": 2,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 5,
+          "extraction_method_breakdown": {
+            "pypdf2": 95,
+            "textract": 5
+          },
+          "notes": "Batch 26. 2 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_27",
+          "timestamp": "2026-04-02T21:26:10Z",
+          "source": "Raw PDFs batch 27",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 1,
+          "docs_sent_to_pipeline": 99,
+          "sfn_executions": 2,
+          "sfn_succeeded": 2,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 23,
+          "extraction_method_breakdown": {
+            "pypdf2": 77,
+            "textract": 23
+          },
+          "notes": "Batch 27. 1 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_28",
+          "timestamp": "2026-04-02T21:42:03Z",
+          "source": "Raw PDFs batch 28",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 7,
+          "docs_sent_to_pipeline": 93,
+          "sfn_executions": 2,
+          "sfn_succeeded": 2,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 39,
+          "extraction_method_breakdown": {
+            "pypdf2": 61,
+            "textract": 39
+          },
+          "notes": "Batch 28. 7 blanks filtered from 100 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_29",
+          "timestamp": "2026-04-02T21:44:49Z",
+          "source": "Raw PDFs batch 29",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 7,
+          "blanks_skipped": 0,
+          "docs_sent_to_pipeline": 7,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {},
+          "textract_ocr_count": 0,
+          "extraction_method_breakdown": {
+            "pypdf2": 7
+          },
+          "notes": "Batch 29. 0 blanks filtered from 7 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_3",
+          "timestamp": "2026-04-13T22:52:53Z",
+          "source": "Raw PDFs batch 3",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 1425,
+          "blanks_skipped": 873,
+          "docs_sent_to_pipeline": 552,
+          "sfn_executions": 12,
+          "sfn_succeeded": 12,
+          "sfn_failed": 0,
+          "entity_resolution_result": {
+            "error": "HTTP Error 500: Internal Server Error"
+          },
+          "textract_ocr_count": 1252,
+          "extraction_method_breakdown": {
+            "pypdf2": 74,
+            "textract": 1252,
+            "cached": 99
+          },
+          "notes": "Batch 3. 873 blanks filtered from 1425 source files. 0 pipeline failures."
+        },
+        {
+          "load_id": "batch_4",
+          "timestamp": "2026-04-13T22:59:07Z",
+          "source": "Raw PDFs batch 4",
+          "source_bucket": "doj-cases-974220725866-us-east-1",
+          "source_prefixes": [
+            "pdfs/",
+            "bw-documents/"
+          ],
+          "source_files_total": 100,
+          "blanks_skipped": 67,
+          "docs_sent_to_pipeline": 33,
+          "sfn_executions": 1,
+          "sfn_succeeded": 1,
+          "sfn_failed": 0,
+          "entity_resolution_result": {
+            "error": "HTTP Error 500: Internal Server Error"
+          },
+          "textract_ocr_count": 85,
+          "extraction_method_breakdown": {
+            "textract": 85,
+            "pypdf2": 15
+          },
+          "notes": "Batch 4. 67 blanks filtered from 100 source files. 0 pipeline failures."
+        }
+      ],
+      "running_total_s3_docs": 9597,
+      "pending_loads": []
+    },
+    "d72b81fc-a4e1-4de5-a4d3-8c74a1a7e7f7": {
+      "name": "Ancient Aliens Investigation",
+      "role": "demo",
+      "loads": [
+        {
+          "load_id": "original",
+          "timestamp": "2026-03-01T00:00:00Z",
+          "source": "Scraped transcripts",
+          "source_files_total": 240,
+          "blanks_skipped": 0,
+          "docs_sent_to_pipeline": 240,
+          "s3_docs_after": 240,
+          "notes": "Pre-tracking estimate."
+        }
+      ],
+      "running_total_s3_docs": 240
+    }
+  },
+  "s3_buckets": {
+    "source": {
+      "name": "doj-cases-974220725866-us-east-1",
+      "contents": "DS1-5 pre-extracted text JSONs (3,804 files across textract-output/DataSet1-5/)"
+    },
+    "main": {
+      "name": "research-analyst-data-lake-974220725866",
+      "contents": "Pipeline data lake. Cases under cases/{case_id}/. DS11 text JSONs under textract-output/DataSet11/ (5,000 files)."
+    }
+  },
+  "fragmented_v2_cases": {
+    "count": 7,
+    "docs_each": 50,
+    "total_docs": 350,
+    "status": "pending_cleanup",
+    "case_ids": [
+      "0c5c28f7-ab20-41c5-b452-16f8c58e78ec",
+      "07e1b7ea-864f-481f-9da2-c8fb8b1172f3",
+      "093b9303-4a8f-4da5-837d-cbaa6761bfad",
+      "03dfc666-0dc2-40e4-ac47-11c01f48ac09",
+      "18282e5e-6d9e-4498-b198-39dbfd5ddd3e",
+      "9c10071d-65c7-44c2-876f-ff3f10e246ca",
+      "245f5f93-8121-4392-b36b-83ddbd7382f4"
+    ],
+    "notes": "These are the fragmented v2 loads. Will be deleted after Epstein Combined is verified."
+  }
+}
