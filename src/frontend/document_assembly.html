@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Court Document Assembly — AI-Powered Legal Document Generation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f1923; color: #e2e8f0; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #1a365d 0%, #2a4a7f 50%, #1e3a5f 100%); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #f6ad55; }
+        .header h1 { font-size: 1.3em; color: #fff; }
+        .header h1 span { color: #f6ad55; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .header-badge { background: rgba(246,173,85,0.15); border: 1px solid #f6ad55; color: #f6ad55; padding: 4px 12px; border-radius: 20px; font-size: 0.72em; font-weight: 600; }
+        .nav-links a { color: #a0aec0; text-decoration: none; font-size: 0.75em; padding: 4px 10px; border: 1px solid #4a5568; border-radius: 6px; }
+        .nav-links a:hover { color: #fff; border-color: #f6ad55; }
+        .tabs { display: flex; background: #1a2332; border-bottom: 1px solid #2d3748; }
+        .tab { padding: 12px 24px; cursor: pointer; font-size: 0.82em; font-weight: 600; color: #718096; border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .tab.active { color: #f6ad55; border-bottom-color: #f6ad55; }
+        .tab-content { display: none; padding: 20px 28px; overflow-y: auto; max-height: calc(100vh - 140px); }
+        .tab-content.active { display: block; }
+        .section-card { background: #1a2332; border: 1px solid #2d3748; border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+        .section-card h3 { font-size: 0.85em; color: #f6ad55; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 0.78em; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: #f6ad55; color: #1a202c; }
+        .btn-confirm { background: #48bb78; color: #fff; }
+        .btn-override { background: #4299e1; color: #fff; }
+        .btn-export { background: #805ad5; color: #fff; }
+        .btn:hover { opacity: 0.85; }
+        .decision-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.68em; font-weight: 700; }
+        .decision-badge.ai_proposed { background: rgba(246,173,85,0.2); color: #f6ad55; }
+        .decision-badge.human_confirmed { background: rgba(72,187,120,0.2); color: #68d391; }
+        .decision-badge.human_overridden { background: rgba(66,153,225,0.2); color: #63b3ed; }
+        .doc-section { background: rgba(0,0,0,0.2); border: 1px solid #2d3748; border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+        .doc-section .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .doc-section .section-title { font-size: 0.88em; font-weight: 700; color: #e2e8f0; }
+        .doc-section .section-content { font-size: 0.82em; color: #a0aec0; line-height: 1.6; max-height: 200px; overflow-y: auto; white-space: pre-wrap; }
+        .actions { display: flex; gap: 8px; margin-top: 10px; }
+        .gen-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .gen-form select, .gen-form input { background: #0f1923; color: #e2e8f0; border: 1px solid #4a5568; border-radius: 6px; padding: 8px 12px; font-size: 0.82em; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #718096; }
+        .empty-state .icon { font-size: 3em; margin-bottom: 12px; }
+        .status-bar { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+        .status-item { background: rgba(255,255,255,0.03); border: 1px solid #2d3748; border-radius: 8px; padding: 10px 16px; text-align: center; min-width: 100px; }
+        .status-item .val { font-size: 1.4em; font-weight: 700; color: #f6ad55; }
+        .status-item .label { font-size: 0.65em; color: #718096; text-transform: uppercase; }
+
+        .nav-bar { background:#1a2332; border-bottom:1px solid #2d3748; display:flex; gap:0; padding:0 16px; }
+        .nav-link { padding:10px 16px; font-size:0.75em; font-weight:600; color:#718096; border-bottom:2px solid transparent; text-decoration:none; transition:color 0.2s; }
+        .nav-link:hover { color:#e2e8f0; }
+        .nav-link.active { color:#48bb78; border-bottom-color:#48bb78; }
+    </style>
+</head>
+<body>
+<script src="config.js"></script>
+<div class="header">
+    <h1>Court <span>Document Assembly</span></h1>
+    <div class="header-right">
+        <div class="nav-links">
+            <a href="prosecutor.html">Prosecutor</a>
+            <a href="network_discovery.html">Network Discovery</a>
+            <a href="investigator.html">Investigator</a>
+        </div>
+        <div class="header-badge">AI-Powered</div>
+        <div class="header-badge">Section-Level Review</div>
+    </div>
+</div>
+<div class="nav-bar">
+    <a href="index.html" class="nav-link">🏠 Home</a>
+    <a href="investigator.html" class="nav-link">📋 Cases</a>
+    <a href="pipeline-config.html" class="nav-link">⚙️ Pipeline Config</a>
+    <a href="batch-loader.html" class="nav-link">📦 Batch Loader</a>
+    <a href="admin.html" class="nav-link">🔐 Admin</a>
+    <a href="chatbot.html" class="nav-link">💬 Chat</a>
+    <a href="wizard.html" class="nav-link">🧙 Wizard</a>
+    <a href="portfolio.html" class="nav-link">📊 Portfolio</a>
+    <a href="workbench.html" class="nav-link">🔬 Workbench</a>
+</div>
+<div class="tabs">
+    <div class="tab active" onclick="switchTab('generate')">Generate Document</div>
+    <div class="tab" onclick="switchTab('review')">Section Review</div>
+    <div class="tab" onclick="switchTab('versions')">Version History</div>
+    <div class="tab" onclick="switchTab('discovery')">Discovery Production</div>
+</div>
+<div class="tab-content active" id="tab-generate">
+    <div class="section-card">
+        <h3>Generate Court Document</h3>
+        <div class="gen-form">
+            <select id="caseSelect" onchange="selectCase(this.value)"><option value="">Select Case...</option></select>
+            <select id="docTypeSelect">
+                <option value="indictment">Indictment</option>
+                <option value="evidence_summary">Evidence Summary</option>
+                <option value="witness_list">Witness List</option>
+                <option value="exhibit_list">Exhibit List</option>
+                <option value="sentencing_memorandum">Sentencing Memorandum</option>
+                <option value="case_brief">Case Brief</option>
+                <option value="motion_in_limine">Motion in Limine</option>
+                <option value="motion_to_compel">Motion to Compel</option>
+                <option value="response_to_motion">Response to Motion</option>
+                <option value="notice_of_evidence">Notice of Evidence</option>
+                <option value="plea_agreement">Plea Agreement</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" onclick="generateDocument()" id="genBtn">Generate Document</button>
+    </div>
+    <div id="docList"></div>
+</div>
+<div class="tab-content" id="tab-review">
+    <div id="reviewPanel">
+        <div class="empty-state"><div class="icon">📄</div><p>Select a document to review sections.</p></div>
+    </div>
+</div>
+<div class="tab-content" id="tab-versions">
+    <div id="versionPanel">
+        <div class="empty-state"><div class="icon">📋</div><p>Select a document to view version history.</p></div>
+    </div>
+</div>
+<div class="tab-content" id="tab-discovery">
+    <div id="discoveryPanel">
+        <div class="empty-state"><div class="icon">🔒</div><p>Select a case to view discovery status.</p></div>
+    </div>
+</div>
+<script>
+const API_URL = window.APP_CONFIG ? window.APP_CONFIG.API_URL : 'https://edb025my3i.execute-api.us-east-1.amazonaws.com/v1';
+let currentCaseId = null;
+let currentDocId = null;
+let currentDoc = null;
+
+async function api(path, method='GET', body=null) {
+    const opts = { method, headers: {'Content-Type':'application/json'} };
+    if (body) opts.body = JSON.stringify(body);
+    const resp = await fetch(API_URL + path, opts);
+    return resp.json();
+}
+
+async function loadCases() {
+    try {
+        const data = await api('/case-files');
+        const cases = data.case_files || [];
+        const sel = document.getElementById('caseSelect');
+        const seen = new Set();
+        cases.forEach(c => {
+            if (!seen.has(c.case_id)) {
+                seen.add(c.case_id);
+                const opt = document.createElement('option');
+                opt.value = c.case_id;
+                opt.textContent = c.topic_name || c.case_id.slice(0,8);
+                sel.appendChild(opt);
+            }
+        });
+    } catch(e) { console.error(e); }
+}
+
+async function selectCase(caseId) {
+    currentCaseId = caseId;
+    if (caseId) { await loadDocuments(); await loadDiscovery(); }
+}
+
+async function loadDocuments() {
+    if (!currentCaseId) return;
+    try {
+        const data = await api(`/case-files/${currentCaseId}/documents`);
+        const docs = data.documents || [];
+        const el = document.getElementById('docList');
+        if (!docs.length) { el.innerHTML = '<div class="empty-state"><p>No documents yet. Generate one above.</p></div>'; return; }
+        el.innerHTML = docs.map(d => `
+            <div class="section-card" style="cursor:pointer;" onclick="selectDocument('${d.draft_id}')">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div><strong style="color:#fff;">${d.title}</strong><br><span style="font-size:0.72em;color:#718096;">${d.document_type} | ${d.status}</span></div>
+                    <div>
+                        <span class="decision-badge ${d.status === 'final' ? 'human_confirmed' : 'ai_proposed'}">${d.status}</span>
+                        ${d.is_work_product ? '<span style="font-size:0.65em;color:#805ad5;margin-left:6px;">WORK PRODUCT</span>' : ''}
+                    </div>
+                </div>
+                <div class="actions" style="margin-top:8px;">
+                    <button class="btn btn-export" onclick="event.stopPropagation();exportDoc('${d.draft_id}','html')">HTML</button>
+                    <button class="btn btn-export" onclick="event.stopPropagation();exportDoc('${d.draft_id}','pdf')">PDF</button>
+                    <button class="btn btn-export" onclick="event.stopPropagation();exportDoc('${d.draft_id}','docx')">DOCX</button>
+                </div>
+            </div>
+        `).join('');
+    } catch(e) { console.error(e); }
+}
+
+async function generateDocument() {
+    if (!currentCaseId) return alert('Select a case first');
+    const btn = document.getElementById('genBtn');
+    btn.textContent = 'Generating...'; btn.disabled = true;
+    try {
+        const docType = document.getElementById('docTypeSelect').value;
+        await api(`/case-files/${currentCaseId}/documents/generate`, 'POST', { document_type: docType });
+        await loadDocuments();
+    } catch(e) { console.error(e); }
+    btn.textContent = 'Generate Document'; btn.disabled = false;
+}
+
+async function selectDocument(docId) {
+    currentDocId = docId;
+    try {
+        const doc = await api(`/case-files/${currentCaseId}/documents/${docId}`);
+        currentDoc = doc;
+        renderReview(doc);
+        switchTab('review');
+    } catch(e) { console.error(e); }
+}
+
+function renderReview(doc) {
+    const el = document.getElementById('reviewPanel');
+    const allReviewed = (doc.sections || []).every(s => s.decision_state !== 'ai_proposed');
+    el.innerHTML = `
+        <div class="section-card">
+            <h3>${doc.title}</h3>
+            <div style="font-size:0.78em;color:#718096;margin-bottom:12px;">Type: ${doc.document_type} | Status: ${doc.status} | Sections: ${(doc.sections||[]).length}</div>
+            ${allReviewed && doc.status !== 'final' ? `<button class="btn btn-primary" onclick="signOff('${doc.draft_id}')">Attorney Sign-Off</button>` : ''}
+            ${doc.status === 'final' ? `<span style="color:#48bb78;font-size:0.85em;">Signed off by ${doc.attorney_name} at ${doc.sign_off_at}</span>` : ''}
+        </div>
+        ${(doc.sections || []).map(s => `
+            <div class="doc-section">
+                <div class="section-header">
+                    <span class="section-title">${s.section_type.replace(/_/g,' ').toUpperCase()}</span>
+                    <span class="decision-badge ${s.decision_state || 'ai_proposed'}">${(s.decision_state||'ai_proposed').replace('_',' ')}</span>
+                </div>
+                <div class="section-content">${s.content || '[Empty section]'}</div>
+                <div class="actions">
+                    ${(s.decision_state||'ai_proposed')==='ai_proposed' ? `
+                        <button class="btn btn-confirm" onclick="confirmSection('${s.decision_id}')">Accept</button>
+                        <button class="btn btn-override" onclick="overrideSection('${s.decision_id}')">Override</button>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('')}
+    `;
+}
+
+async function confirmSection(decisionId) {
+    if (!decisionId) return;
+    await api(`/decisions/${decisionId}/confirm`, 'POST', { rationale: 'Confirmed' });
+    if (currentDocId) await selectDocument(currentDocId);
+}
+
+async function overrideSection(decisionId) {
+    if (!decisionId) return;
+    const rationale = prompt('Override rationale:');
+    if (!rationale) return;
+    await api(`/decisions/${decisionId}/override`, 'POST', { rationale });
+    if (currentDocId) await selectDocument(currentDocId);
+}
+
+async function signOff(docId) {
+    const name = prompt('Attorney name for sign-off:');
+    if (!name) return;
+    await api(`/case-files/${currentCaseId}/documents/${docId}/sign-off`, 'POST', { attorney_id: 'atty-001', attorney_name: name });
+    if (currentDocId) await selectDocument(currentDocId);
+}
+
+async function exportDoc(docId, fmt) {
+    window.open(`${API_URL}/case-files/${currentCaseId}/documents/${docId}/export?format=${fmt}`, '_blank');
+}
+
+async function loadDiscovery() {
+    if (!currentCaseId) return;
+    try {
+        const data = await api(`/case-files/${currentCaseId}/discovery`);
+        const el = document.getElementById('discoveryPanel');
+        el.innerHTML = `
+            <div class="status-bar">
+                <div class="status-item"><div class="val">${data.total_documents || 0}</div><div class="label">Total Documents</div></div>
+                <div class="status-item"><div class="val">${data.brady_alerts || 0}</div><div class="label" style="color:#fc8181;">Brady Alerts</div></div>
+                <div class="status-item"><div class="val">${data.waiver_flags || 0}</div><div class="label" style="color:#f6e05e;">Waiver Flags</div></div>
+            </div>
+            <div class="section-card">
+                <h3>By Privilege Category</h3>
+                ${Object.entries(data.by_privilege || {}).map(([k,v]) => `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:0.82em;"><span>${k}</span><strong>${v}</strong></div>`).join('') || '<p style="color:#718096;">No data</p>'}
+            </div>
+            <div class="section-card">
+                <h3>By Production Status</h3>
+                ${Object.entries(data.by_production_status || {}).map(([k,v]) => `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:0.82em;"><span>${k}</span><strong>${v}</strong></div>`).join('') || '<p style="color:#718096;">No data</p>'}
+            </div>
+        `;
+    } catch(e) { document.getElementById('discoveryPanel').innerHTML = '<div class="empty-state"><p>Discovery data unavailable.</p></div>'; }
+}
+
+function switchTab(name) {
+    const tabs = ['generate','review','versions','discovery'];
+    document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', tabs[i]===name));
+    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+    document.getElementById('tab-'+name).classList.add('active');
+}
+
+loadCases();
+</script>
+</body>
+</html>
+
+
+
