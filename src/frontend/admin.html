@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Control Admin — DOJ Antitrust Division</title>
+    <link rel="stylesheet" href="common.css">
+    <style>
+        /* Admin tabs */
+        .admin-tabs { display:flex; gap:0; margin-bottom:20px; border-radius:8px; overflow:hidden; border:1px solid #2d3748; }
+        .admin-tab { flex:1; padding:12px 16px; text-align:center; font-size:0.8em; font-weight:600; cursor:pointer; background:#1a2332; color:#718096; transition:all 0.2s; border:none; }
+        .admin-tab:hover { color:#e2e8f0; background:rgba(255,255,255,0.05); }
+        .admin-tab.active { background:rgba(72,187,120,0.12); color:#48bb78; }
+        .admin-content { display:none; }
+        .admin-content.active { display:block; }
+
+        /* Data table */
+        .data-table { width:100%; border-collapse:collapse; }
+        .data-table th { text-align:left; font-size:0.68em; color:#718096; text-transform:uppercase; letter-spacing:0.5px; padding:8px 10px; border-bottom:1px solid #2d3748; position:sticky; top:0; background:#1a2332; }
+        .data-table td { font-size:0.78em; padding:8px 10px; border-bottom:1px solid rgba(255,255,255,0.04); color:#e2e8f0; }
+        .data-table tr:hover td { background:rgba(72,187,120,0.04); }
+
+        /* Clearance badges */
+        .badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:0.7em; font-weight:600; }
+        .badge-public { background:rgba(113,128,150,0.2); color:#a0aec0; }
+        .badge-restricted { background:rgba(246,224,94,0.15); color:#f6e05e; }
+        .badge-confidential { background:rgba(246,173,85,0.15); color:#f6ad55; }
+        .badge-top_secret { background:rgba(252,129,129,0.15); color:#fc8181; }
+
+        /* Form */
+        .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+        .form-field label { display:block; font-size:0.72em; color:#48bb78; text-transform:uppercase; letter-spacing:0.5px; font-weight:700; margin-bottom:4px; }
+        .form-field input, .form-field select { width:100%; background:#0d1520; border:1px solid #2d3748; border-radius:8px; padding:8px 12px; color:#e2e8f0; font-size:0.85em; outline:none; }
+        .form-field input:focus, .form-field select:focus { border-color:#48bb78; }
+
+        /* Buttons */
+        .btn-primary { background:linear-gradient(135deg,#48bb78,#38a169); color:#fff; border:none; padding:8px 18px; border-radius:8px; font-weight:700; font-size:0.78em; cursor:pointer; transition:all 0.2s; }
+        .btn-primary:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(72,187,120,0.3); }
+        .btn-danger { background:rgba(252,129,129,0.15); color:#fc8181; border:1px solid rgba(252,129,129,0.3); padding:4px 12px; border-radius:6px; font-size:0.72em; font-weight:600; cursor:pointer; }
+        .btn-danger:hover { background:rgba(252,129,129,0.25); }
+        .btn-edit { background:rgba(66,153,225,0.15); color:#63b3ed; border:1px solid rgba(66,153,225,0.3); padding:4px 12px; border-radius:6px; font-size:0.72em; font-weight:600; cursor:pointer; }
+        .btn-edit:hover { background:rgba(66,153,225,0.25); }
+
+        /* Section card */
+        .section-card { background:#1a2332; border:1px solid #2d3748; border-radius:12px; padding:20px; margin-bottom:20px; }
+        .section-card h3 { font-size:0.85em; color:#48bb78; margin-bottom:12px; text-transform:uppercase; letter-spacing:1px; }
+
+        /* Filter row */
+        .filter-row { display:flex; gap:12px; margin-bottom:16px; align-items:end; flex-wrap:wrap; }
+        .filter-row .form-field { min-width:160px; }
+
+        /* Toast */
+        .toast { position:fixed; top:20px; right:20px; padding:12px 20px; border-radius:8px; font-size:0.82em; font-weight:600; z-index:9999; animation:fadeInOut 3s ease forwards; }
+        .toast.success { background:#48bb78; color:#1a202c; }
+        .toast.error { background:#fc8181; color:#1a202c; }
+        @keyframes fadeInOut { 0%{opacity:0;transform:translateY(-10px)} 10%{opacity:1;transform:translateY(0)} 80%{opacity:1} 100%{opacity:0} }
+    </style>
+</head>
+<body>
+<script src="config.js"></script>
+
+<!-- HEADER -->
+<div class="header">
+    <h1>⚖️ Access Control Admin — <span>Antitrust Division</span></h1>
+    <div class="header-right">
+        <div class="header-badge">Department of Justice</div>
+        <div class="header-badge">Security Administration</div>
+    </div>
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav-bar">
+    <a href="index.html" class="nav-link">🏠 Home</a>
+    <a href="investigator.html" class="nav-link">📋 Cases</a>
+    <a href="pipeline-config.html" class="nav-link">⚙️ Pipeline Config</a>
+    <a href="batch-loader.html" class="nav-link">📦 Batch Loader</a>
+    <a href="admin.html" class="nav-link active">🔐 Admin</a>
+    <a href="chatbot.html" class="nav-link">💬 Chat</a>
+    <a href="wizard.html" class="nav-link">🧙 Wizard</a>
+    <a href="portfolio.html" class="nav-link">📊 Portfolio</a>
+    <a href="workbench.html" class="nav-link">🔬 Workbench</a>
+</div>
+
+<div class="page-content">
+    <!-- Admin Tabs -->
+    <div class="admin-tabs">
+        <button class="admin-tab active" onclick="switchAdminTab('users')">👤 User Management</button>
+        <button class="admin-tab" onclick="switchAdminTab('labels')">🏷️ Case Labels</button>
+        <button class="admin-tab" onclick="switchAdminTab('audit')">📜 Audit Log</button>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- USER MANAGEMENT TAB -->
+    <!-- ============================================================ -->
+    <div id="tab-users" class="admin-content active">
+        <!-- Create User Form -->
+        <div class="section-card">
+            <h3>➕ Create User</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Username</label>
+                    <input type="text" id="newUsername" placeholder="e.g. jsmith">
+                </div>
+                <div class="form-field">
+                    <label>Display Name</label>
+                    <input type="text" id="newDisplayName" placeholder="e.g. John Smith">
+                </div>
+                <div class="form-field">
+                    <label>Role</label>
+                    <select id="newRole">
+                        <option value="analyst">Analyst</option>
+                        <option value="reviewer">Reviewer</option>
+                        <option value="supervisor">Supervisor</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Clearance Level</label>
+                    <select id="newClearance">
+                        <option value="public">Public</option>
+                        <option value="restricted" selected>Restricted</option>
+                        <option value="confidential">Confidential</option>
+                        <option value="top_secret">Top Secret</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn-primary" onclick="createUser()">Create User</button>
+        </div>
+
+        <!-- Users Table -->
+        <div class="section-card">
+            <h3>👥 Platform Users</h3>
+            <div style="max-height:500px;overflow-y:auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Display Name</th>
+                            <th>Role</th>
+                            <th>Clearance</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersBody">
+                        <tr><td colspan="5" style="text-align:center;color:#718096;padding:30px;">Loading users...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- CASE LABELS TAB -->
+    <!-- ============================================================ -->
+    <div id="tab-labels" class="admin-content">
+        <div class="section-card">
+            <h3>🏷️ Case Security Labels</h3>
+            <div style="max-height:500px;overflow-y:auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Case Name</th>
+                            <th>Case ID</th>
+                            <th>Current Label</th>
+                            <th>Documents</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="labelsBody">
+                        <tr><td colspan="5" style="text-align:center;color:#718096;padding:30px;">Loading cases...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- AUDIT LOG TAB -->
+    <!-- ============================================================ -->
+    <div id="tab-audit" class="admin-content">
+        <div class="section-card">
+            <h3>📜 Audit Log</h3>
+            <div class="filter-row">
+                <div class="form-field">
+                    <label>Entity Type</label>
+                    <select id="auditEntityType" onchange="loadAuditLog()">
+                        <option value="">All</option>
+                        <option value="matter">Matter</option>
+                        <option value="document">Document</option>
+                        <option value="user">User</option>
+                        <option value="access_denied">Access Denied</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Changed By</label>
+                    <input type="text" id="auditChangedBy" placeholder="username" onchange="loadAuditLog()">
+                </div>
+                <div class="form-field">
+                    <label>Date From</label>
+                    <input type="date" id="auditDateFrom" onchange="loadAuditLog()">
+                </div>
+                <div class="form-field">
+                    <label>Date To</label>
+                    <input type="date" id="auditDateTo" onchange="loadAuditLog()">
+                </div>
+            </div>
+            <div style="max-height:500px;overflow-y:auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Entity Type</th>
+                            <th>Entity ID</th>
+                            <th>Previous</th>
+                            <th>New</th>
+                            <th>Changed By</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditBody">
+                        <tr><td colspan="7" style="text-align:center;color:#718096;padding:30px;">Loading audit log...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const API_URL = typeof API_BASE_URL !== 'undefined' ? API_BASE_URL
+    : (window.APP_CONFIG ? window.APP_CONFIG.API_URL : 'https://edb025my3i.execute-api.us-east-1.amazonaws.com/v1');
+
+// =====================================================================
+// Helpers
+// =====================================================================
+async function api(method, path, body) {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body) opts.body = JSON.stringify(body);
+    const resp = await fetch(API_URL + path, opts);
+    if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error?.message || resp.statusText);
+    }
+    return resp.json();
+}
+
+function showToast(msg, isError) {
+    const t = document.createElement('div');
+    t.className = 'toast ' + (isError ? 'error' : 'success');
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+}
+
+function badgeHtml(label) {
+    const l = (label || 'restricted').toLowerCase();
+    return '<span class="badge badge-' + l + '">' + l.replace('_', ' ') + '</span>';
+}
+
+function shortId(id) { return id ? id.substring(0, 8) + '...' : '—'; }
+
+// =====================================================================
+// Tab Switching
+// =====================================================================
+function switchAdminTab(tab) {
+    document.querySelectorAll('.admin-tab').forEach((t, i) => {
+        const tabs = ['users', 'labels', 'audit'];
+        t.classList.toggle('active', tabs[i] === tab);
+    });
+    document.querySelectorAll('.admin-content').forEach(c => c.classList.remove('active'));
+    const el = document.getElementById('tab-' + tab);
+    if (el) el.classList.add('active');
+    if (tab === 'users') loadUsers();
+    if (tab === 'labels') loadCaseLabels();
+    if (tab === 'audit') loadAuditLog();
+}
+
+// =====================================================================
+// User Management
+// =====================================================================
+async function loadUsers() {
+    try {
+        const data = await api('GET', '/admin/users');
+        const users = data.users || [];
+        const tbody = document.getElementById('usersBody');
+        if (!users.length) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#718096;padding:30px;">No users found</td></tr>';
+            return;
+        }
+        tbody.innerHTML = users.map(u => `
+            <tr>
+                <td>${u.username}</td>
+                <td>${u.display_name || u.username}</td>
+                <td>${u.role}</td>
+                <td>${badgeHtml(u.clearance_level)}</td>
+                <td>
+                    <button class="btn-edit" onclick="editUser('${u.user_id}')">Edit</button>
+                    <button class="btn-danger" onclick="deleteUser('${u.user_id}')">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) { showToast('Failed to load users: ' + e.message, true); }
+}
+
+async function createUser() {
+    const username = document.getElementById('newUsername').value.trim();
+    if (!username) { showToast('Username is required', true); return; }
+    try {
+        await api('POST', '/admin/users', {
+            username,
+            display_name: document.getElementById('newDisplayName').value.trim(),
+            role: document.getElementById('newRole').value,
+            clearance_level: document.getElementById('newClearance').value,
+        });
+        showToast('User created');
+        document.getElementById('newUsername').value = '';
+        document.getElementById('newDisplayName').value = '';
+        loadUsers();
+    } catch (e) { showToast('Failed: ' + e.message, true); }
+}
+
+async function editUser(userId) {
+    const newClearance = prompt('New clearance level (public, restricted, confidential, top_secret):');
+    if (!newClearance) return;
+    try {
+        await api('PUT', '/admin/users/' + userId, { clearance_level: newClearance });
+        showToast('User updated');
+        loadUsers();
+    } catch (e) { showToast('Failed: ' + e.message, true); }
+}
+
+async function deleteUser(userId) {
+    if (!confirm('Delete this user?')) return;
+    try {
+        await api('DELETE', '/admin/users/' + userId);
+        showToast('User deleted');
+        loadUsers();
+    } catch (e) { showToast('Failed: ' + e.message, true); }
+}
+
+// =====================================================================
+// Case Labels
+// =====================================================================
+async function loadCaseLabels() {
+    try {
+        const data = await api('GET', '/case-files');
+        const cases = data.case_files || [];
+        const tbody = document.getElementById('labelsBody');
+        if (!cases.length) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#718096;padding:30px;">No cases found</td></tr>';
+            return;
+        }
+        tbody.innerHTML = cases.map(c => `
+            <tr>
+                <td>${c.topic_name || c.matter_name || '—'}</td>
+                <td title="${c.case_id || c.matter_id}">${shortId(c.case_id || c.matter_id)}</td>
+                <td>${badgeHtml(c.security_label || 'restricted')}</td>
+                <td>${c.document_count || 0}</td>
+                <td>
+                    <select onchange="updateCaseLabel('${c.case_id || c.matter_id}', this.value)" style="background:#0d1520;border:1px solid #2d3748;color:#e2e8f0;padding:4px 8px;border-radius:6px;font-size:0.82em;">
+                        <option value="">Change...</option>
+                        <option value="public">Public</option>
+                        <option value="restricted">Restricted</option>
+                        <option value="confidential">Confidential</option>
+                        <option value="top_secret">Top Secret</option>
+                    </select>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) { showToast('Failed to load cases: ' + e.message, true); }
+}
+
+async function updateCaseLabel(matterId, newLabel) {
+    if (!newLabel) return;
+    try {
+        await api('PUT', '/matters/' + matterId + '/security-label', { security_label: newLabel });
+        showToast('Label updated');
+        loadCaseLabels();
+    } catch (e) { showToast('Failed: ' + e.message, true); }
+}
+
+// =====================================================================
+// Audit Log
+// =====================================================================
+async function loadAuditLog() {
+    try {
+        let path = '/admin/audit-log?';
+        const et = document.getElementById('auditEntityType').value;
+        const cb = document.getElementById('auditChangedBy').value.trim();
+        const df = document.getElementById('auditDateFrom').value;
+        const dt = document.getElementById('auditDateTo').value;
+        if (et) path += 'entity_type=' + encodeURIComponent(et) + '&';
+        if (cb) path += 'changed_by=' + encodeURIComponent(cb) + '&';
+        if (df) path += 'date_from=' + encodeURIComponent(df + 'T00:00:00Z') + '&';
+        if (dt) path += 'date_to=' + encodeURIComponent(dt + 'T23:59:59Z') + '&';
+
+        const data = await api('GET', path);
+        const entries = data.audit_entries || [];
+        const tbody = document.getElementById('auditBody');
+        if (!entries.length) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#718096;padding:30px;">No audit entries found</td></tr>';
+            return;
+        }
+        tbody.innerHTML = entries.map(e => `
+            <tr>
+                <td>${e.changed_at ? new Date(e.changed_at).toLocaleString() : '—'}</td>
+                <td>${e.entity_type}</td>
+                <td title="${e.entity_id}">${shortId(e.entity_id)}</td>
+                <td>${e.previous_label ? badgeHtml(e.previous_label) : '—'}</td>
+                <td>${e.new_label ? badgeHtml(e.new_label) : '—'}</td>
+                <td>${e.changed_by}</td>
+                <td style="font-size:0.72em;color:#a0aec0;">${e.change_reason || '—'}</td>
+            </tr>
+        `).join('');
+    } catch (e) { showToast('Failed to load audit log: ' + e.message, true); }
+}
+
+// =====================================================================
+// Init
+// =====================================================================
+loadUsers();
+</script>
+</body>
+</html>
