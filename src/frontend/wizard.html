@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipeline Configuration Wizard — DOJ Antitrust Division</title>
+    <link rel="stylesheet" href="common.css">
+    <style>
+        .wizard-container { max-width:900px; margin:0 auto; padding:32px; }
+        .wizard-progress { display:flex; gap:4px; margin-bottom:32px; }
+        .wizard-step-indicator { flex:1; height:4px; border-radius:2px; background:#2d3748; transition:background 0.3s; }
+        .wizard-step-indicator.done { background:#48bb78; }
+        .wizard-step-indicator.active { background:#f6e05e; }
+        .wizard-section { display:none; }
+        .wizard-section.active { display:block; }
+        .wizard-section h2 { font-size:1.1em; color:#48bb78; margin-bottom:6px; }
+        .wizard-section p { font-size:0.82em; color:#a0aec0; margin-bottom:20px; }
+        .wizard-nav { display:flex; justify-content:space-between; margin-top:24px; }
+        .checkbox-group { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+        .checkbox-item { background:rgba(255,255,255,0.03); border:1px solid #2d3748; border-radius:8px; padding:8px 14px; cursor:pointer; font-size:0.78em; color:#a0aec0; transition:all 0.2s; }
+        .checkbox-item:hover { border-color:#48bb78; }
+        .checkbox-item.selected { border-color:#48bb78; background:rgba(72,187,120,0.1); color:#48bb78; }
+        .radio-group { display:flex; flex-direction:column; gap:8px; }
+        .radio-item { background:rgba(255,255,255,0.03); border:1px solid #2d3748; border-radius:8px; padding:12px 16px; cursor:pointer; transition:all 0.2s; }
+        .radio-item:hover { border-color:#48bb78; }
+        .radio-item.selected { border-color:#48bb78; background:rgba(72,187,120,0.08); }
+        .radio-item .ri-title { font-size:0.85em; font-weight:600; color:#e2e8f0; }
+        .radio-item .ri-desc { font-size:0.72em; color:#718096; margin-top:2px; }
+        .results-card { background:#1a2332; border:1px solid #2d3748; border-radius:12px; padding:20px; margin-bottom:16px; }
+        .cost-table { width:100%; border-collapse:collapse; margin:12px 0; }
+        .cost-table th, .cost-table td { padding:8px 12px; text-align:left; border-bottom:1px solid #2d3748; font-size:0.82em; }
+        .cost-table th { color:#48bb78; font-size:0.72em; text-transform:uppercase; }
+        .cost-total { font-weight:700; color:#f6e05e; font-size:1.1em; }
+        .tier-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:16px 0; }
+        .tier-card { background:rgba(255,255,255,0.03); border:2px solid #2d3748; border-radius:12px; padding:16px; text-align:center; }
+        .tier-card.recommended { border-color:#48bb78; }
+        .tier-label { font-size:0.72em; color:#718096; text-transform:uppercase; letter-spacing:1px; }
+        .tier-price { font-size:1.4em; font-weight:700; color:#e2e8f0; margin:8px 0; }
+        .tier-desc { font-size:0.72em; color:#a0aec0; }
+    </style>
+</head>
+<body>
+<script src="config.js"></script>
+<div class="header">
+    <h1>⚖️ Pipeline Configuration Wizard — <span>New Case Setup</span></h1>
+    <div class="header-right"><div class="header-badge">Guided Setup</div><div class="header-badge">AI-Powered</div></div>
+</div>
+<div class="nav-bar">
+    <a href="index.html" class="nav-link">🏠 Home</a>
+    <a href="investigator.html" class="nav-link">📋 Cases</a>
+    <a href="pipeline-config.html" class="nav-link">⚙️ Pipeline Config</a>
+    <a href="batch-loader.html" class="nav-link">📦 Batch Loader</a>
+    <a href="admin.html" class="nav-link">🔐 Admin</a>
+    <a href="chatbot.html" class="nav-link">💬 Chat</a>
+    <a href="wizard.html" class="nav-link active">🧙 Wizard</a>
+    <a href="portfolio.html" class="nav-link">📊 Portfolio</a>
+    <a href="workbench.html" class="nav-link">🔬 Workbench</a>
+</div>
+
+<div class="wizard-container">
+    <div class="wizard-progress" id="wizardProgress"></div>
+
+    <!-- STEP 1: Data Profile -->
+    <div class="wizard-section active" id="wiz-1">
+        <h2>📊 Step 1: Data Profile</h2>
+        <p>Tell us about the data you need to process.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group"><label class="form-label">Total Data Volume (TB)</label><input id="w_volume" class="form-input" type="number" value="1" min="0.01" step="0.1"></div>
+            <div class="form-group"><label class="form-label">Document Count</label><input id="w_doc_count" class="form-input" type="number" value="1000" min="1"></div>
+            <div class="form-group"><label class="form-label">Average Pages per Document</label><input id="w_avg_pages" class="form-input" type="number" value="10" min="1"></div>
+            <div class="form-group"><label class="form-label">% Scanned (requires OCR)</label><input id="w_scanned_pct" class="form-input" type="number" value="0" min="0" max="100"></div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">File Formats (select all that apply)</label>
+            <div class="checkbox-group" id="w_formats">
+                <div class="checkbox-item" onclick="toggleCheck(this)">PDF searchable</div>
+                <div class="checkbox-item" onclick="toggleCheck(this)">PDF scanned</div>
+                <div class="checkbox-item" onclick="toggleCheck(this)">Word</div>
+                <div class="checkbox-item" onclick="toggleCheck(this)">Excel</div>
+                <div class="checkbox-item" onclick="toggleCheck(this)">Email</div>
+                <div class="checkbox-item" onclick="toggleCheck(this)">Text</div>
+                <div class="checkbox-item" onclick="toggleCheck(this)">HTML</div>
+                <div class="checkbox-item" onclick="toggleCheck(this)">Images</div>
+                <div class="checkbox-item" onclick="toggleCheck(this)">Video</div>
+                <div class="checkbox-item" onclick="toggleCheck(this)">Audio</div>
+            </div>
+        </div>
+        <div class="wizard-nav"><div></div><button class="btn-primary" onclick="nextStep()">Next →</button></div>
+    </div>
+
+    <!-- STEP 2: Investigation Type -->
+    <div class="wizard-section" id="wiz-2">
+        <h2>🔍 Step 2: Investigation Type</h2>
+        <p>What type of investigation is this?</p>
+        <div class="form-group">
+            <label class="form-label">Case Type</label>
+            <select id="w_case_type" class="form-select">
+                <option value="antitrust">Antitrust</option>
+                <option value="criminal">Criminal</option>
+                <option value="financial">Financial Fraud</option>
+                <option value="drug_trafficking">Drug Trafficking</option>
+                <option value="public_corruption">Public Corruption</option>
+                <option value="cybercrime">Cybercrime</option>
+                <option value="national_security">National Security</option>
+                <option value="environmental">Environmental</option>
+                <option value="civil_rights">Civil Rights</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Investigation Goals (select all that apply)</label>
+            <div class="checkbox-group" id="w_goals">
+                <div class="checkbox-item" onclick="toggleCheck(this)">People connections</div>
+                <div class="checkbox-item" onclick="toggleCheck(this)">Financial tracking</div>
+                <div class="checkbox-item" onclick="toggleCheck(this)">Communication patterns</div>
+                <div class="checkbox-item" onclick="toggleCheck(this)">Property ownership</div>
+                <div class="checkbox-item" onclick="toggleCheck(this)">Corporate structures</div>
+                <div class="checkbox-item" onclick="toggleCheck(this)">Timeline reconstruction</div>
+                <div class="checkbox-item" onclick="toggleCheck(this)">Geographic patterns</div>
+            </div>
+        </div>
+        <div class="wizard-nav"><button class="btn-secondary" onclick="prevStep()">← Back</button><button class="btn-primary" onclick="nextStep()">Next →</button></div>
+    </div>
+
+    <!-- STEP 3: Visual Evidence -->
+    <div class="wizard-section" id="wiz-3">
+        <h2>📷 Step 3: Visual Evidence</h2>
+        <p>Do you have photos or video that need analysis?</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group"><label class="form-label">Photo Count (estimate)</label><input id="w_image_count" class="form-input" type="number" value="0" min="0"></div>
+            <div class="form-group"><label class="form-label">Video Hours (estimate)</label><input id="w_video_hours" class="form-input" type="number" value="0" min="0" step="0.5"></div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Video Processing Priority</label>
+            <div class="radio-group" id="w_video_priority">
+                <div class="radio-item selected" onclick="selectRadio(this,'w_video_priority')"><div class="ri-title">Process after document analysis (recommended)</div><div class="ri-desc">Skip video initially — build context from docs/photos first, then process video with known subjects. Lowest cost.</div></div>
+                <div class="radio-item" onclick="selectRadio(this,'w_video_priority')"><div class="ri-title">Process on demand only</div><div class="ri-desc">Only process videos explicitly flagged by investigators. Targeted and cost-effective.</div></div>
+                <div class="radio-item" onclick="selectRadio(this,'w_video_priority')"><div class="ri-title">Process with initial load</div><div class="ri-desc">Full video analysis upfront. Most expensive but comprehensive.</div></div>
+            </div>
+        </div>
+        <div class="wizard-nav"><button class="btn-secondary" onclick="prevStep()">← Back</button><button class="btn-primary" onclick="nextStep()">Next →</button></div>
+    </div>
+
+    <!-- STEP 4: Search & Analysis -->
+    <div class="wizard-section" id="wiz-4">
+        <h2>🔎 Step 4: Search & Analysis</h2>
+        <p>How will investigators use the system?</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group"><label class="form-label">Concurrent Users</label><input id="w_users" class="form-input" type="number" value="10" min="1"></div>
+            <div class="form-group">
+                <label class="form-label">Search Type</label>
+                <select id="w_search_type" class="form-select">
+                    <option value="both">Keyword + Semantic (recommended)</option>
+                    <option value="keyword">Keyword only</option>
+                    <option value="semantic">Semantic only</option>
+                </select>
+            </div>
+        </div>
+        <div class="wizard-nav"><button class="btn-secondary" onclick="prevStep()">← Back</button><button class="btn-primary" onclick="nextStep()">Next →</button></div>
+    </div>
+
+    <!-- STEP 5: Environment -->
+    <div class="wizard-section" id="wiz-5">
+        <h2>🏛️ Step 5: Environment & Compliance</h2>
+        <p>Where will this be deployed?</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+                <label class="form-label">AWS Region</label>
+                <select id="w_region" class="form-select">
+                    <option value="us-east-1">US East (N. Virginia)</option>
+                    <option value="us-west-2">US West (Oregon)</option>
+                    <option value="us-gov-west-1">GovCloud (US-West)</option>
+                    <option value="us-gov-east-1">GovCloud (US-East)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Data Classification</label>
+                <select id="w_classification" class="form-select">
+                    <option value="unclassified">Unclassified</option>
+                    <option value="cui">CUI (Controlled Unclassified)</option>
+                    <option value="secret">Secret</option>
+                </select>
+            </div>
+        </div>
+        <div class="wizard-nav"><button class="btn-secondary" onclick="prevStep()">← Back</button><button class="btn-primary" onclick="generateConfig()">🚀 Generate Configuration</button></div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="wizard-section" id="wiz-results">
+        <h2>✅ Configuration Generated</h2>
+        <div id="wizardResults"></div>
+    </div>
+</div>
+
+<script>
+const API_URL = window.APP_CONFIG ? window.APP_CONFIG.API_URL : 'https://edb025my3i.execute-api.us-east-1.amazonaws.com/v1';
+const TOTAL_STEPS = 5;
+let currentStep = 1;
+
+function updateProgress() {
+    const bar = document.getElementById('wizardProgress');
+    let h = '';
+    for (let i = 1; i <= TOTAL_STEPS; i++) {
+        const cls = i < currentStep ? 'done' : i === currentStep ? 'active' : '';
+        h += '<div class="wizard-step-indicator '+cls+'"></div>';
+    }
+    bar.innerHTML = h;
+}
+
+function nextStep() { if (currentStep < TOTAL_STEPS) { currentStep++; showStep(); } }
+function prevStep() { if (currentStep > 1) { currentStep--; showStep(); } }
+function showStep() {
+    document.querySelectorAll('.wizard-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('wiz-' + currentStep).classList.add('active');
+    updateProgress();
+}
+
+function toggleCheck(el) { el.classList.toggle('selected'); }
+function selectRadio(el, groupId) {
+    document.getElementById(groupId).querySelectorAll('.radio-item').forEach(r => r.classList.remove('selected'));
+    el.classList.add('selected');
+}
+
+function getAnswers() {
+    const formats = [];
+    document.getElementById('w_formats').querySelectorAll('.selected').forEach(el => formats.push(el.textContent));
+    const goals = [];
+    document.getElementById('w_goals').querySelectorAll('.selected').forEach(el => goals.push(el.textContent.toLowerCase().replace(/ /g,'_')));
+    const videoPriority = document.getElementById('w_video_priority').querySelector('.selected .ri-title').textContent;
+    let vpMode = 'after_docs';
+    if (videoPriority.includes('demand')) vpMode = 'on_demand';
+    else if (videoPriority.includes('initial')) vpMode = 'with_initial_load';
+
+    return {
+        total_volume_tb: parseFloat(document.getElementById('w_volume').value),
+        document_count: parseInt(document.getElementById('w_doc_count').value),
+        avg_page_count: parseInt(document.getElementById('w_avg_pages').value),
+        scanned_percentage: parseInt(document.getElementById('w_scanned_pct').value),
+        file_formats: formats,
+        investigation_type: document.getElementById('w_case_type').value,
+        investigation_goals: goals,
+        image_count: parseInt(document.getElementById('w_image_count').value),
+        video_hours: parseFloat(document.getElementById('w_video_hours').value),
+        video_processing_priority: vpMode,
+        concurrent_users: parseInt(document.getElementById('w_users').value),
+        search_type: document.getElementById('w_search_type').value,
+        aws_region: document.getElementById('w_region').value,
+        data_classification: document.getElementById('w_classification').value,
+    };
+}
+
+async function api(method, path, body) {
+    const opts = { method, headers: {'Content-Type':'application/json'} };
+    if (body) opts.body = JSON.stringify(body);
+    const resp = await fetch(API_URL + path, opts);
+    return resp.json();
+}
+
+async function generateConfig() {
+    const answers = getAnswers();
+    document.querySelectorAll('.wizard-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('wiz-results').classList.add('active');
+    document.getElementById('wizardResults').innerHTML = '<div class="loading"><span class="spinner"></span> Generating optimized pipeline configuration...</div>';
+
+    // Generate config client-side (no API needed)
+    const config = generateConfigLocal(answers);
+    const cost = estimateCostLocal(answers, config);
+
+    let h = '';
+    // Cost summary
+    h += '<div class="results-card"><h3 style="color:#48bb78;margin-bottom:12px;">💰 Cost Estimate</h3>';
+    h += '<div class="tier-grid">';
+    for (const [key, tier] of Object.entries(cost.tiers || {})) {
+        h += '<div class="tier-card'+(key==='recommended'?' recommended':'')+'"><div class="tier-label">'+tier.label+'</div>';
+        h += '<div class="tier-price">$'+(tier.one_time||0).toLocaleString()+'</div>';
+        h += '<div style="font-size:0.72em;color:#718096;">one-time processing</div>';
+        h += '<div style="font-size:1em;font-weight:600;color:#a0aec0;margin-top:4px;">$'+(tier.monthly||0).toLocaleString()+'/mo</div>';
+        h += '<div class="tier-desc">'+tier.description+'</div></div>';
+    }
+    h += '</div>';
+
+    // One-time breakdown
+    h += '<table class="cost-table"><tr><th>Service</th><th>One-Time Cost</th></tr>';
+    for (const [svc, val] of Object.entries(cost.one_time || {})) {
+        if (svc === 'total' || typeof val !== 'number') continue;
+        h += '<tr><td>'+svc.replace(/_/g,' ')+'</td><td>$'+val.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'</td></tr>';
+    }
+    h += '<tr><td class="cost-total">TOTAL ONE-TIME</td><td class="cost-total">$'+(cost.one_time?.total||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'</td></tr>';
+    h += '</table>';
+
+    // Monthly breakdown
+    h += '<table class="cost-table"><tr><th>Service</th><th>Monthly Cost</th></tr>';
+    for (const [svc, val] of Object.entries(cost.monthly || {})) {
+        if (svc === 'total' || typeof val !== 'number') continue;
+        h += '<tr><td>'+svc.replace(/_/g,' ')+'</td><td>$'+val.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'</td></tr>';
+    }
+    h += '<tr><td class="cost-total">TOTAL MONTHLY</td><td class="cost-total">$'+(cost.monthly?.total||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'</td></tr>';
+    h += '</table>';
+
+    // Optimizations
+    if (cost.optimizations && cost.optimizations.length > 0) {
+        h += '<div style="margin-top:12px;"><div style="font-size:0.72em;color:#48bb78;font-weight:700;margin-bottom:6px;">💡 OPTIMIZATION RECOMMENDATIONS</div>';
+        cost.optimizations.forEach(opt => {
+            h += '<div style="padding:6px 10px;margin-bottom:4px;background:rgba(72,187,120,0.06);border:1px solid rgba(72,187,120,0.12);border-radius:6px;font-size:0.78em;color:#e2e8f0;">'+opt+'</div>';
+        });
+        h += '</div>';
+    }
+    h += '</div>';
+
+    // Generated config
+    h += '<div class="results-card"><h3 style="color:#48bb78;margin-bottom:12px;">⚙️ Generated Pipeline Configuration</h3>';
+    h += '<pre style="background:#0d1520;border:1px solid #2d3748;border-radius:8px;padding:14px;color:#e2e8f0;font-size:0.78em;overflow-x:auto;">'+JSON.stringify(config, null, 2)+'</pre></div>';
+
+    // Actions
+    h += '<div style="display:flex;gap:12px;margin-top:16px;">';
+    h += '<button class="btn-primary" onclick="createCase()">🚀 Create Case with This Config</button>';
+    h += '<button class="btn-secondary" onclick="exportSummaryLocal()">📤 Export Summary (HTML)</button>';
+    h += '<button class="btn-secondary" onclick="generateDeployment()">📦 Generate Deployment Package</button>';
+    h += '</div>';
+
+    document.getElementById('wizardResults').innerHTML = h;
+    window._wizardConfig = config;
+    window._wizardAnswers = answers;
+    window._wizardCost = cost;
+}
+
+// Client-side config generation (mirrors WizardService.generate_config)
+function generateConfigLocal(a) {
+    const typeMap = {antitrust:'antitrust',criminal:'criminal',financial:'financial_fraud',financial_fraud:'financial_fraud',drug_trafficking:'criminal',public_corruption:'criminal',cybercrime:'criminal',national_security:'criminal',environmental:'antitrust',civil_rights:'criminal'};
+    const entityMap = {antitrust:['person','organization','financial_amount','date','event','email','address'],criminal:['person','location','date','event','phone_number','vehicle','address','organization'],financial_fraud:['person','organization','account_number','financial_amount','date','email','address']};
+    const tpl = typeMap[a.investigation_type] || 'criminal';
+    const entityTypes = [...(entityMap[tpl] || entityMap.criminal)];
+    if (a.investigation_goals?.includes('financial_tracking') && !entityTypes.includes('account_number')) entityTypes.push('account_number');
+    const scanned = a.scanned_percentage || 0;
+    const pdfMethod = scanned > 80 ? 'ocr' : scanned > 20 ? 'hybrid' : 'text';
+    const searchTier = (a.document_count > 1000000 || a.concurrent_users > 100) ? 'enterprise' : 'standard';
+    const config = {
+        parse: {pdf_method: pdfMethod, ocr_enabled: scanned > 0, table_extraction_enabled: (a.file_formats||[]).includes('Excel')},
+        extract: {prompt_template:'default_investigative_v1', entity_types:entityTypes, llm_model_id:'anthropic.claude-3-sonnet-20240229-v1:0', chunk_size_chars:8000, confidence_threshold:0.5, relationship_inference_enabled:true},
+        embed: {embedding_model_id:'amazon.titan-embed-text-v1', search_tier:searchTier},
+        graph_load: {load_strategy:'bulk_csv', batch_size:500, normalization_rules:{case_folding:true, trim_whitespace:true, alias_merging:['antitrust','financial_fraud','financial'].includes(a.investigation_type), abbreviation_expansion:['antitrust','financial_fraud','financial'].includes(a.investigation_type)}},
+        store_artifact: {artifact_format:'json', include_raw_text:false},
+    };
+    if (a.image_count > 0 || a.video_hours > 0) {
+        let vMode = 'skip';
+        if (a.video_processing_priority === 'with_initial_load') vMode = 'full';
+        else if (a.video_processing_priority === 'on_demand') vMode = 'targeted';
+        config.rekognition = {enabled:true, video_processing_mode:vMode, min_face_confidence:0.8, min_object_confidence:0.7, detect_text:true, detect_moderation_labels:false, video_segment_length_seconds:60};
+    }
+    return config;
+}
+
+// Client-side cost estimation (mirrors CostEstimationService)
+function estimateCostLocal(a, config) {
+    const P = {textract:1.5, sonnet_in:3.0, sonnet_out:15.0, haiku_in:0.25, haiku_out:1.25, titan_embed:0.10, ocu:0.24, ncu:0.22, acu:0.12, rek_img:1.0, rek_face:0.10, rek_vid:0.20, s3:0.023, lambda_req:0.20};
+    const docs = a.document_count || 0, pages = a.avg_page_count || 10, scanned = (a.scanned_percentage||0)/100, vol = a.total_volume_tb || 0;
+    const chunks = Math.max(1, Math.floor(pages * 2000 / 8000));
+    const ot = {};
+    if (scanned > 0) ot.textract = Math.round(docs * pages * scanned / 1000 * P.textract * 100) / 100;
+    const inTok = docs * chunks * 2000, outTok = docs * chunks * 500;
+    ot.bedrock_extraction = Math.round((inTok/1e6*P.sonnet_in + outTok/1e6*P.sonnet_out)*100)/100;
+    ot.bedrock_embeddings = Math.round(inTok/1e6*P.titan_embed*100)/100;
+    if (a.image_count > 0) ot.rekognition_images = Math.round(a.image_count/1000*P.rek_img*100)/100;
+    if (a.video_hours > 0) { const vm = config.rekognition?.video_processing_mode||'skip'; if (vm==='full') ot.rekognition_video = Math.round(a.video_hours*60*P.rek_vid*100)/100; else if (vm==='faces_only') ot.rekognition_video = Math.round(a.video_hours*60*0.10*100)/100; else ot.rekognition_video = 0; }
+    ot.s3_storage = Math.round(vol*1024*P.s3*100)/100;
+    ot.lambda = Math.round(docs*chunks*4/1e6*P.lambda_req*100)/100;
+    ot.total = Math.round(Object.values(ot).reduce((s,v)=>s+(typeof v==='number'?v:0),0)*100)/100;
+
+    const mo = {};
+    const tier = config.embed?.search_tier || 'standard';
+    mo.opensearch = Math.round((tier==='enterprise'?4:2)*P.ocu*730*100)/100;
+    mo.neptune = Math.round(Math.max(1,1+docs*5/100000)*P.ncu*730*100)/100;
+    mo.aurora = Math.round(Math.max(0.5, docs>1e6?4:docs>1e5?2:0.5)*P.acu*730*100)/100;
+    mo.s3 = ot.s3_storage;
+    mo.total = Math.round(Object.values(mo).reduce((s,v)=>s+v,0)*100)/100;
+
+    const opts = [];
+    if (ot.bedrock_extraction > 100) opts.push('Use Bedrock Batch Inference for entity extraction to save ~50% ($'+Math.round(ot.bedrock_extraction*0.5)+' savings)');
+    if (scanned < 0.5 && ot.textract > 0) opts.push('Use PyPDF2 instead of Textract for searchable PDFs to reduce costs');
+    opts.push('Use Haiku instead of Sonnet for entity extraction to save $'+Math.round(ot.bedrock_extraction*0.917)+' with minimal quality impact');
+
+    const tiers = {
+        economy: {label:'Economy', description:'Haiku model, standard search', one_time:Math.round(ot.total*0.15*100)/100, monthly:Math.round(mo.total*0.8*100)/100},
+        recommended: {label:'Recommended', description:'Sonnet model, balanced quality', one_time:ot.total, monthly:mo.total},
+        premium: {label:'Premium', description:'Enterprise search, max quality', one_time:Math.round(ot.total*1.1*100)/100, monthly:Math.round(mo.total*1.5*100)/100},
+    };
+    return {one_time:ot, monthly:mo, optimizations:opts, tiers};
+}
+
+function createCase() {
+    const name = prompt('Enter case name:');
+    if (!name) return;
+    api('POST', '/case-files', {topic_name: name, description: 'Created via wizard', search_tier: window._wizardConfig?.embed?.search_tier || 'standard'})
+        .then(res => alert('Case created: ' + (res.case_id||'') + '\nNavigate to Cases tab to view.'))
+        .catch(e => alert('Failed: ' + e.message));
+}
+
+function exportSummaryLocal() {
+    const a = window._wizardAnswers, c = window._wizardConfig, cost = window._wizardCost;
+    const html = '<!DOCTYPE html><html><head><title>Pipeline Config Summary</title><style>body{font-family:Arial;max-width:800px;margin:0 auto;padding:20px}h1{color:#1a365d}h2{color:#2d3748;border-bottom:1px solid #e2e8f0}table{border-collapse:collapse;width:100%;margin:10px 0}th,td{border:1px solid #e2e8f0;padding:8px;text-align:left}th{background:#f7fafc}.cost{font-weight:bold;color:#2b6cb0}</style></head><body>
+<script src="config.js"></script>'
+        +'<h1>Pipeline Configuration Summary</h1>'
+        +'<h2>Investigation Profile</h2><table><tr><th>Type</th><td>'+(a.investigation_type||'')+'</td></tr><tr><th>Documents</th><td>'+(a.document_count||0).toLocaleString()+'</td></tr><tr><th>Volume</th><td>'+(a.total_volume_tb||0)+' TB</td></tr></table>'
+        +'<h2>Cost Estimate</h2><table><tr><th>One-Time</th><td class="cost">$'+(cost.one_time?.total||0).toLocaleString()+'</td></tr><tr><th>Monthly</th><td class="cost">$'+(cost.monthly?.total||0).toLocaleString()+'</td></tr></table>'
+        +'<h2>Configuration</h2><pre>'+JSON.stringify(c,null,2)+'</pre>'
+        +'</body></html>';
+    const blob = new Blob([html], {type:'text/html'});
+    const url = URL.createObjectURL(blob);
+    const el = document.createElement('a');
+    el.href = url; el.download = 'pipeline-config-summary.html'; el.click();
+}
+
+function generateDeployment() { alert('Deployment package generation — this will produce a CloudFormation template + Lambda code zip. Coming in the next deployment.'); }
+
+updateProgress();
+</script>
+</body>
+</html>
+
+
+
