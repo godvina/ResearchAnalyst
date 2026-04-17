@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DOJ Antitrust — Pilot Kickoff</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 30%, #1a1a2e 60%, #2d1b3d 100%); color: #e2e8f0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+.deck { position: relative; width: 100vw; height: 100vh; }
+.slide { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 60px 80px; opacity: 0; pointer-events: none; transition: opacity 0.45s ease; overflow-y: auto; background: linear-gradient(160deg, #1a1a2e 0%, #16213e 35%, #1a1a2e 65%, #2d1b3d 100%); }
+.slide.active { opacity: 1; pointer-events: auto; }
+#counter { position: fixed; bottom: 24px; right: 36px; font-size: 14px; color: #718096; z-index: 100; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
+#nav-hint { position: fixed; bottom: 24px; left: 36px; font-size: 12px; color: #4a5568; z-index: 100; }
+h1 { font-size: 2.8rem; font-weight: 700; color: #FF9900; margin-bottom: 12px; line-height: 1.15; }
+h2 { font-size: 2rem; font-weight: 700; color: #FF9900; margin-bottom: 28px; letter-spacing: -0.5px; }
+h3 { font-size: 1.25rem; font-weight: 600; color: #FFB84D; margin-bottom: 10px; }
+p, li { font-size: 1rem; line-height: 1.65; color: #cbd5e0; }
+.accent { color: #FF9900; }
+.highlight { color: #FFB84D; }
+.full-w { width: 100%; max-width: 1100px; }
+.cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
+.cols-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+.text-center { text-align: center; }
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-24 { margin-bottom: 24px; }
+.card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 24px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th { background: rgba(255,153,0,0.12); color: #FF9900; text-align: left; padding: 10px 14px; font-weight: 600; border-bottom: 2px solid rgba(255,153,0,0.3); }
+td { padding: 8px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #cbd5e0; }
+tr:hover td { background: rgba(255,255,255,0.03); }
+@media print {
+  .slide { position: relative; opacity: 1; pointer-events: auto; page-break-after: always; height: 100vh; overflow: hidden; }
+  #counter, #nav-hint { display: none; }
+  body { overflow: visible; }
+  .deck { height: auto; }
+}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+<div id="counter"></div>
+<div id="nav-hint">← → arrow keys to navigate</div>
+
+<!-- ==================== SLIDE 1: TITLE ==================== -->
+<div class="slide active" data-slide="1">
+  <div style="display:flex; flex-direction:column; justify-content:center; align-items:flex-start; height:100%; padding-left:60px; max-width:800px;">
+    <h1 style="font-size:3.2rem; font-weight:300; color:#fff; margin-bottom:0; line-height:1.15;">Investigative Intelligence:</h1>
+    <h1 style="font-size:3.2rem; font-weight:700; color:#fff; margin-bottom:24px; line-height:1.15;">GenAI for Antitrust Enforcement</h1>
+    <p style="font-size:1.1rem; color:#a0aec0; margin-bottom:32px; letter-spacing:0.5px; font-weight:600;">DOJ Antitrust Pilot Kickoff 2026</p>
+    <div style="margin-bottom:40px;">
+      <p style="font-size:1rem; font-weight:600; color:#e2e8f0; margin-bottom:4px;">Department of Justice — Antitrust Division</p>
+      <p style="font-size:0.88rem; color:#718096; line-height:1.6;">How generative AI, knowledge graphs, and intelligent search transform<br>500TB of case evidence into actionable intelligence</p>
+    </div>
+    <div>
+      <p style="font-size:0.88rem; color:#FF9900; font-weight:600;">David Eyre</p>
+      <p style="font-size:0.78rem; color:#a0aec0;">Emerging Tech Solutions — Amazon Web Services</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 2: AGENDA ==================== -->
+<div class="slide" data-slide="2">
+  <div class="full-w">
+    <h2>Agenda</h2>
+    <div style="display:flex; flex-direction:column; gap:0; max-width:700px; margin:0 auto;">
+      <div style="display:flex; align-items:center; gap:20px; padding:20px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="width:48px; height:48px; border-radius:50%; background:#FF9900; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:700; color:#1a1a2e; flex-shrink:0;">1</div>
+        <div>
+          <div style="font-size:1.1rem; font-weight:600; color:#e2e8f0;">Introductions</div>
+          <div style="font-size:0.85rem; color:#718096;">Team members, roles, and responsibilities</div>
+        </div>
+        <div style="margin-left:auto; font-size:0.78rem; color:#718096;">5 min</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:20px; padding:20px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="width:48px; height:48px; border-radius:50%; background:#FF9900; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:700; color:#1a1a2e; flex-shrink:0;">2</div>
+        <div>
+          <div style="font-size:1.1rem; font-weight:600; color:#e2e8f0;">Pilot Objectives &amp; Expected Outcomes</div>
+          <div style="font-size:0.85rem; color:#718096;">What we're building, why it matters, how we measure success</div>
+        </div>
+        <div style="margin-left:auto; font-size:0.78rem; color:#718096;">10 min</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:20px; padding:20px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="width:48px; height:48px; border-radius:50%; background:#FF9900; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:700; color:#1a1a2e; flex-shrink:0;">3</div>
+        <div>
+          <div style="font-size:1.1rem; font-weight:600; color:#e2e8f0;">Live Demo — Key Platform Components</div>
+          <div style="font-size:0.85rem; color:#718096;">Walk through capabilities to help define pilot scope</div>
+        </div>
+        <div style="margin-left:auto; font-size:0.78rem; color:#718096;">20 min</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:20px; padding:20px 0;">
+        <div style="width:48px; height:48px; border-radius:50%; background:#FF9900; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:700; color:#1a1a2e; flex-shrink:0;">4</div>
+        <div>
+          <div style="font-size:1.1rem; font-weight:600; color:#e2e8f0;">PoC Questions — Business &amp; Technical</div>
+          <div style="font-size:0.85rem; color:#718096;">Scope, data, environment, timeline, and priorities</div>
+        </div>
+        <div style="margin-left:auto; font-size:0.78rem; color:#718096;">25 min</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 3: PILOT OBJECTIVES ==================== -->
+<div class="slide" data-slide="3">
+  <div class="full-w">
+    <h2>Pilot Objectives</h2>
+    <div class="cols-2" style="gap:28px;">
+      <div>
+        <div class="card" style="border-left:4px solid #FF9900; margin-bottom:16px; padding:20px;">
+          <h3 style="font-size:1rem; margin-bottom:12px;">What We're Building</h3>
+          <p style="font-size:0.92rem; line-height:1.7; color:#e2e8f0;">An AI-powered investigative intelligence platform that ingests your evidence into a centralized data lake, extracts entities and relationships, and surfaces patterns, connections, and insights that accelerate investigation resolution.</p>
+        </div>
+        <div class="card" style="border-left:4px solid #48bb78; padding:20px;">
+          <h3 style="color:#48bb78; font-size:1rem; margin-bottom:12px;">Pilot Scope</h3>
+          <table style="font-size:0.85rem;">
+            <tr><td style="color:#718096; width:110px;">Data Volume</td><td><span class="highlight">500 TB</span> of case evidence</td></tr>
+            <tr><td style="color:#718096;">Division</td><td>DOJ Antitrust Division</td></tr>
+            <tr><td style="color:#718096;">Timeline</td><td><span class="accent">12-week</span> pilot</td></tr>
+            <tr><td style="color:#718096;">Budget</td><td>~$200K (ProServe + AWS services)</td></tr>
+            <tr><td style="color:#718096;">Environment</td><td>AWS GovCloud</td></tr>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h3 style="font-size:1rem;">Key Capabilities</h3>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div class="card" style="padding:14px; border-left:3px solid #FF9900;">
+            <div style="font-size:0.88rem; color:#e2e8f0;"><span class="accent">📥</span> Document ingestion at scale — S3 data lake with AI-powered parsing</div>
+          </div>
+          <div class="card" style="padding:14px; border-left:3px solid #FFB84D;">
+            <div style="font-size:0.88rem; color:#e2e8f0;"><span class="highlight">🧠</span> AI case briefings — automated intelligence summaries per case</div>
+          </div>
+          <div class="card" style="padding:14px; border-left:3px solid #48bb78;">
+            <div style="font-size:0.88rem; color:#e2e8f0;"><span style="color:#48bb78;">🕸️</span> Entity network discovery — knowledge graph across all evidence</div>
+          </div>
+          <div class="card" style="padding:14px; border-left:3px solid #63b3ed;">
+            <div style="font-size:0.88rem; color:#e2e8f0;"><span style="color:#63b3ed;">🔍</span> Semantic search — natural language queries across 500TB</div>
+          </div>
+          <div class="card" style="padding:14px; border-left:3px solid #f6e05e;">
+            <div style="font-size:0.88rem; color:#e2e8f0;"><span style="color:#f6e05e;">📊</span> Cross-case pattern analysis — connections humans miss</div>
+          </div>
+          <div class="card" style="padding:14px; border-left:3px solid #fc8181;">
+            <div style="font-size:0.88rem; color:#e2e8f0;"><span style="color:#fc8181;">⚖️</span> Prosecution readiness scoring — case strength assessment</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 4: PILOT USE CASES ==================== -->
+<div class="slide" data-slide="4">
+  <div class="full-w">
+    <h2>Pilot Use Cases</h2>
+    <p class="mb-16" style="color:#a0aec0; font-size:0.88rem;">Three core capabilities we'll validate during the 12-week pilot</p>
+    <div style="display:flex; flex-direction:column; gap:16px;">
+
+      <!-- Use Case 1 -->
+      <div class="card" style="border-left:4px solid #FF9900; padding:18px 22px;">
+        <div style="display:flex; align-items:flex-start; gap:16px;">
+          <div style="width:36px; height:36px; border-radius:50%; background:#FF9900; display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:700; color:#1a1a2e; flex-shrink:0;">1</div>
+          <div>
+            <h3 style="font-size:1rem; color:#FF9900; margin-bottom:6px;">AI Intelligence Briefing</h3>
+            <p style="font-size:0.85rem; color:#e2e8f0; line-height:1.6; margin-bottom:8px;">Analyst selects an investigation → system generates a comprehensive intelligence assessment with 3-level progressive disclosure:</p>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+              <span style="background:rgba(255,153,0,0.1); border:1px solid rgba(255,153,0,0.2); padding:4px 12px; border-radius:6px; font-size:0.75rem; color:#FFB84D;">① Executive summary with key findings &amp; entity statistics</span>
+              <span style="background:rgba(255,153,0,0.1); border:1px solid rgba(255,153,0,0.2); padding:4px 12px; border-radius:6px; font-size:0.75rem; color:#FFB84D;">② Finding detail with confidence, graph viz, AI justification</span>
+              <span style="background:rgba(255,153,0,0.1); border:1px solid rgba(255,153,0,0.2); padding:4px 12px; border-radius:6px; font-size:0.75rem; color:#FFB84D;">③ Supporting documents with semantic search &amp; excerpts</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Use Case 2 -->
+      <div class="card" style="border-left:4px solid #48bb78; padding:18px 22px;">
+        <div style="display:flex; align-items:flex-start; gap:16px;">
+          <div style="width:36px; height:36px; border-radius:50%; background:#48bb78; display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:700; color:#1a1a2e; flex-shrink:0;">2</div>
+          <div>
+            <h3 style="font-size:1rem; color:#48bb78; margin-bottom:6px;">Cross-Case Pattern Analysis</h3>
+            <p style="font-size:0.85rem; color:#e2e8f0; line-height:1.6; margin-bottom:8px;">Neptune knowledge graph identifies entities (people, organizations, locations) appearing across multiple investigations. Surfaces connections analysts didn't know to look for.</p>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+              <span style="background:rgba(72,187,120,0.1); border:1px solid rgba(72,187,120,0.2); padding:4px 12px; border-radius:6px; font-size:0.75rem; color:#48bb78;">Entity network visualization</span>
+              <span style="background:rgba(72,187,120,0.1); border:1px solid rgba(72,187,120,0.2); padding:4px 12px; border-radius:6px; font-size:0.75rem; color:#48bb78;">Relationship types &amp; degree centrality</span>
+              <span style="background:rgba(72,187,120,0.1); border:1px solid rgba(72,187,120,0.2); padding:4px 12px; border-radius:6px; font-size:0.75rem; color:#48bb78;">AI-generated hypotheses on connections</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Use Case 3 -->
+      <div class="card" style="border-left:4px solid #63b3ed; padding:18px 22px;">
+        <div style="display:flex; align-items:flex-start; gap:16px;">
+          <div style="width:36px; height:36px; border-radius:50%; background:#63b3ed; display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:700; color:#1a1a2e; flex-shrink:0;">3</div>
+          <div>
+            <h3 style="font-size:1rem; color:#63b3ed; margin-bottom:6px;">Semantic Document Search</h3>
+            <p style="font-size:0.85rem; color:#e2e8f0; line-height:1.6; margin-bottom:8px;">Natural language queries across all ingested documents. Results ranked by semantic relevance using vector embeddings (Bedrock Titan → OpenSearch kNN). Within-investigation and cross-investigation search.</p>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+              <span style="background:rgba(99,179,237,0.1); border:1px solid rgba(99,179,237,0.2); padding:4px 12px; border-radius:6px; font-size:0.75rem; color:#63b3ed;">Natural language queries</span>
+              <span style="background:rgba(99,179,237,0.1); border:1px solid rgba(99,179,237,0.2); padding:4px 12px; border-radius:6px; font-size:0.75rem; color:#63b3ed;">Highlighted excerpts &amp; source drill-down</span>
+              <span style="background:rgba(99,179,237,0.1); border:1px solid rgba(99,179,237,0.2); padding:4px 12px; border-radius:6px; font-size:0.75rem; color:#63b3ed;">Cross-investigation relevance ranking</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 5: EXPECTED OUTCOMES ==================== -->
+<div class="slide" data-slide="5">
+  <div class="full-w">
+    <h2>Expected Outcomes</h2>
+    <div class="cols-2" style="gap:28px;">
+      <div>
+        <h3 style="font-size:1rem; margin-bottom:16px;">Success Criteria</h3>
+        <table>
+          <thead>
+            <tr><th>Criteria</th><th style="text-align:center;">Target</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Ingestion throughput</td><td style="text-align:center;"><span class="highlight">TBD docs/hr</span></td></tr>
+            <tr><td>AI summary relevance (analyst rating)</td><td style="text-align:center;">≥ 4.0 / 5</td></tr>
+            <tr><td>Cross-case pattern accuracy</td><td style="text-align:center;">SME validated</td></tr>
+            <tr><td>Search relevance (precision@10)</td><td style="text-align:center;">≥ 80%</td></tr>
+            <tr><td>Entity extraction accuracy</td><td style="text-align:center;">≥ 85%</td></tr>
+            <tr><td>End-to-end query latency</td><td style="text-align:center;">&lt; 5 seconds</td></tr>
+            <tr><td>GovCloud deployment</td><td style="text-align:center;">All services ✓</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3 style="font-size:1rem; margin-bottom:16px;">What Changes for Your Team</h3>
+        <div class="card" style="border-left:3px solid #48bb78; margin-bottom:14px; padding:16px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span style="font-size:2rem; color:#48bb78;">70%</span>
+            <span style="font-size:0.9rem;">reduction in manual document review time</span>
+          </div>
+        </div>
+        <div class="card" style="border-left:3px solid #FFB84D; margin-bottom:14px; padding:16px;">
+          <div style="font-size:0.9rem; color:#e2e8f0;">AI discovers patterns across corporate communications, financial records, and market data that keyword search can't find</div>
+        </div>
+        <div class="card" style="border-left:3px solid #63b3ed; margin-bottom:14px; padding:16px;">
+          <div style="font-size:0.9rem; color:#e2e8f0;">Cross-case intelligence surfaces entity connections across historical matters automatically</div>
+        </div>
+        <div class="card" style="border-left:3px solid #f6e05e; padding:16px;">
+          <div style="font-size:0.9rem; color:#e2e8f0;">Prosecution readiness scoring gives leadership visibility into case viability earlier in the process</div>
+        </div>
+
+        <div class="card mt-16 text-center" style="background:rgba(255,153,0,0.06); border-color:rgba(255,153,0,0.2); padding:14px;">
+          <div style="font-size:0.78rem; color:#FF9900; font-weight:600;">BETA CUSTOMER BENEFIT</div>
+          <div style="font-size:0.82rem; color:#a0aec0; margin-top:4px;">Your requirements shape the AWS OpenSearch Batch Loader roadmap</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 6: DEMO OVERVIEW ==================== -->
+<div class="slide" data-slide="6">
+  <div class="full-w">
+    <h2>Demo — Key Platform Components</h2>
+    <p class="mb-24" style="color:#a0aec0; font-size:0.9rem;">Live walkthrough of the investigative intelligence workflow</p>
+    <div style="display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:0; align-items:start;">
+      <!-- Column 1: Investigator -->
+      <div class="card" style="border-top:3px solid #48bb78; padding:18px;">
+        <h3 style="color:#48bb78; font-size:0.95rem; margin-bottom:12px;">🔍 Investigator Workflow</h3>
+        <ul style="list-style:none; padding:0; font-size:0.82rem; color:#cbd5e0;">
+          <li style="padding:4px 0;">🤖 AI Briefing &amp; Case Summary</li>
+          <li style="padding:4px 0;">🔎 Semantic &amp; Keyword Search</li>
+          <li style="padding:4px 0;">🕸️ Entity Network Graph</li>
+          <li style="padding:4px 0;">📋 Evidence Triage &amp; Library</li>
+          <li style="padding:4px 0;">📖 Investigative Playbooks</li>
+          <li style="padding:4px 0;">⏳ Timeline Intelligence</li>
+          <li style="padding:4px 0;">🗺️ Geospatial Evidence Map</li>
+          <li style="padding:4px 0;">📌 Entity Tracking &amp; Dossiers</li>
+        </ul>
+      </div>
+      <div style="display:flex; align-items:center; padding:0 8px; font-size:1.4rem; color:#FF9900;">→</div>
+      <!-- Column 2: Intelligence -->
+      <div class="card" style="border-top:3px solid #FFB84D; padding:18px;">
+        <h3 style="color:#FFB84D; font-size:0.95rem; margin-bottom:12px;">🧠 Intelligence Engine</h3>
+        <ul style="list-style:none; padding:0; font-size:0.82rem; color:#cbd5e0;">
+          <li style="padding:4px 0;">📊 Cross-Case Pattern Analysis</li>
+          <li style="padding:4px 0;">🎯 Lead Generation &amp; Scoring</li>
+          <li style="padding:4px 0;">🔗 Entity Resolution</li>
+          <li style="padding:4px 0;">📸 Photo &amp; Face Intelligence</li>
+          <li style="padding:4px 0;">📝 Research Notebook</li>
+          <li style="padding:4px 0;">💡 AI Hypothesis Testing</li>
+        </ul>
+      </div>
+      <div style="display:flex; align-items:center; padding:0 8px; font-size:1.4rem; color:#FF9900;">→</div>
+      <!-- Column 3: Prosecutor -->
+      <div class="card" style="border-top:3px solid #f6e05e; padding:18px;">
+        <h3 style="color:#f6e05e; font-size:0.95rem; margin-bottom:12px;">⚖️ Prosecutor Workflow</h3>
+        <ul style="list-style:none; padding:0; font-size:0.82rem; color:#cbd5e0;">
+          <li style="padding:4px 0;">📊 Case Strength Scorecard</li>
+          <li style="padding:4px 0;">✅ Element Assessment</li>
+          <li style="padding:4px 0;">📚 Precedent Matching</li>
+          <li style="padding:4px 0;">📄 Court Document Assembly</li>
+          <li style="padding:4px 0;">🎯 Prosecution Funnel</li>
+          <li style="padding:4px 0;">🏛️ Subject Assessment</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card mt-24 text-center" style="background:rgba(72,187,120,0.06); border-color:rgba(72,187,120,0.2); padding:14px;">
+      <p style="font-size:0.92rem;">Goal: identify which capabilities matter most for <span class="accent">your</span> antitrust workflow to define pilot scope</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 7: LIVE DEMO LAUNCH ==================== -->
+<div class="slide" data-slide="7">
+  <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;text-align:center;">
+    <div style="font-size:1.2rem;color:#718096;text-transform:uppercase;letter-spacing:3px;margin-bottom:20px;">Live Platform Demo</div>
+    <h2 style="font-size:2.8rem;font-weight:300;color:#fff;margin-bottom:12px;line-height:1.2;">Investigative Intelligence Platform</h2>
+    <p style="font-size:1.1rem;color:#a0aec0;margin-bottom:40px;max-width:600px;">30,000+ documents ingested &bull; 77,000+ entities extracted &bull; Knowledge graph with 500K+ connections</p>
+    <a href="#" id="launchDemoBtn" onclick="window.open('../../src/frontend/investigator.html','_blank');return false;" style="display:inline-block;background:linear-gradient(135deg,#48bb78,#38a169);color:#fff;padding:18px 48px;border-radius:10px;font-size:1.3rem;font-weight:700;text-decoration:none;letter-spacing:0.5px;box-shadow:0 4px 20px rgba(72,187,120,0.3);transition:transform 0.2s;cursor:pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">🚀 Launch Live Demo</a>
+    <p style="font-size:0.75rem;color:#4a5568;margin-top:20px;">Opens in a new tab &mdash; press → to continue slides when ready</p>
+    <script>
+    // Auto-detect: if opened from S3, use S3 path; if local, use relative path
+    (function(){
+      var btn = document.getElementById('launchDemoBtn');
+      if (window.location.hostname.includes('s3') || window.location.hostname.includes('amazonaws')) {
+        // S3 hosted — investigator is in same /frontend/ prefix
+        var base = window.location.href.substring(0, window.location.href.indexOf('?') > 0 ? window.location.href.indexOf('?') : window.location.href.length);
+        base = base.replace(/[^/]*$/, '');
+        btn.onclick = function(){ window.open(base + 'investigator.html', '_blank'); return false; };
+      }
+      // else: local file — default href works (../../src/frontend/investigator.html)
+    })();
+    </script>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 8: DATA INGESTION PIPELINE ==================== -->
+<div class="slide" data-slide="8">
+  <div class="full-w">
+    <h2>Data Ingestion Pipeline</h2>
+
+    <!-- TODAY: Two-Phase Custom Pipeline -->
+    <div style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <span style="background:linear-gradient(135deg,#48bb78,#38a169);color:#fff;padding:4px 14px;border-radius:5px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;">Today</span>
+        <span style="font-size:0.95rem;color:#e2e8f0;font-weight:700;">Custom Pipeline &mdash; 30,000+ Documents Loaded</span>
+        <span style="font-size:0.68rem;color:#718096;margin-left:auto;font-style:italic;">Step Functions &bull; Lambda &bull; CDK</span>
+      </div>
+
+      <!-- Phase 1 -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:0.62rem;color:#48bb78;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Phase 1 &mdash; Document Processing Pipeline</div>
+        <div style="display:flex;align-items:stretch;gap:8px;">
+          <div style="flex:1;background:rgba(72,187,120,0.07);border:1px solid rgba(72,187,120,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#48bb78;margin-bottom:3px;">📁 S3 Upload</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">Raw docs into data lake</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#FF9900;font-size:1rem;font-weight:700;">→</div>
+          <div style="flex:1;background:rgba(255,153,0,0.07);border:1px solid rgba(255,153,0,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#FF9900;margin-bottom:3px;">📄 Textract</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">OCR &amp; text extraction</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#FF9900;font-size:1rem;font-weight:700;">→</div>
+          <div style="flex:1;background:rgba(255,184,77,0.07);border:1px solid rgba(255,184,77,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#FFB84D;margin-bottom:3px;">🧠 Entity Extract</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">Bedrock AI &mdash; people, orgs, locations</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#FF9900;font-size:1rem;font-weight:700;">→</div>
+          <div style="flex:1;background:rgba(99,179,237,0.07);border:1px solid rgba(99,179,237,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#63b3ed;margin-bottom:3px;">🔢 Embeddings</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">Titan vectors for semantic search</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#FF9900;font-size:1rem;font-weight:700;">→</div>
+          <div style="flex:1;background:rgba(159,122,234,0.07);border:1px solid rgba(159,122,234,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#9f7aea;margin-bottom:3px;">🔍 OpenSearch</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">Full-text + kNN index</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#FF9900;font-size:1rem;font-weight:700;">→</div>
+          <div style="flex:1;background:rgba(252,129,129,0.07);border:1px solid rgba(252,129,129,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#fc8181;margin-bottom:3px;">📸 Rekognition</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">Face &amp; label detection</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 2 -->
+      <div>
+        <div style="font-size:0.62rem;color:#f6ad55;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Phase 2 &mdash; Knowledge Graph Build</div>
+        <div style="display:flex;align-items:stretch;gap:8px;">
+          <div style="flex:1;background:rgba(246,173,85,0.07);border:1px solid rgba(246,173,85,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#f6ad55;margin-bottom:3px;">📊 Entity Index</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">Canonical dedup across docs</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#f6ad55;font-size:1rem;font-weight:700;">→</div>
+          <div style="flex:1;background:rgba(246,173,85,0.07);border:1px solid rgba(246,173,85,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#f6ad55;margin-bottom:3px;">📝 CSV Generation</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">Nodes + edges relationship files</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#f6ad55;font-size:1rem;font-weight:700;">→</div>
+          <div style="flex:1;background:rgba(246,173,85,0.07);border:1px solid rgba(246,173,85,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#f6ad55;margin-bottom:3px;">🕸️ Neptune Load</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">CSV bulk load → knowledge graph</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#48bb78;font-size:1rem;font-weight:700;">→</div>
+          <div style="flex:1;background:rgba(72,187,120,0.1);border:2px solid rgba(72,187,120,0.35);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#48bb78;margin-bottom:3px;">✅ Intelligence Ready</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">Graph + Search + AI operational</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BRIDGE -->
+    <div style="display:flex;align-items:center;gap:14px;margin:6px 0 16px;padding:12px 20px;background:rgba(255,153,0,0.05);border:1px dashed rgba(255,153,0,0.25);border-radius:8px;">
+      <span style="font-size:1.3rem;">🔄</span>
+      <div style="flex:1;">
+        <div style="font-size:0.82rem;color:#FF9900;font-weight:700;">Alignment Path to Managed Service</div>
+        <div style="font-size:0.72rem;color:#a0aec0;line-height:1.5;">Custom pipeline code mirrors the future Batch Loader API. ATR pilot requirements feed directly into the service team roadmap. Migration is straightforward when the managed service ships in GovCloud.</div>
+      </div>
+    </div>
+
+    <!-- FUTURE: Managed Batch Loader -->
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <span style="background:linear-gradient(135deg,#63b3ed,#4299e1);color:#fff;padding:4px 14px;border-radius:5px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;">Future</span>
+        <span style="font-size:0.95rem;color:#e2e8f0;font-weight:700;">Managed Batch Loader &mdash; AWS Service</span>
+      </div>
+      <div style="background:rgba(99,179,237,0.04);border:2px solid rgba(99,179,237,0.18);border-radius:10px;padding:16px 20px;">
+        <div style="display:flex;gap:20px;align-items:center;">
+          <div style="flex:1;display:flex;align-items:stretch;gap:8px;">
+            <div style="flex:1;background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.25);border-radius:8px;padding:10px 8px;text-align:center;">
+              <div style="font-size:0.78rem;font-weight:700;color:#63b3ed;margin-bottom:3px;">⚙️ Config</div>
+              <div style="font-size:0.6rem;color:#718096;">YAML/JSON pipeline def</div>
+            </div>
+            <div style="display:flex;align-items:center;color:#63b3ed;font-size:1rem;">→</div>
+            <div style="flex:1;background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.25);border-radius:8px;padding:10px 8px;text-align:center;">
+              <div style="font-size:0.78rem;font-weight:700;color:#63b3ed;margin-bottom:3px;">📥 Ingest</div>
+              <div style="font-size:0.6rem;color:#718096;">Managed bulk loading</div>
+            </div>
+            <div style="display:flex;align-items:center;color:#63b3ed;font-size:1rem;">→</div>
+            <div style="flex:1;background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.25);border-radius:8px;padding:10px 8px;text-align:center;">
+              <div style="font-size:0.78rem;font-weight:700;color:#63b3ed;margin-bottom:3px;">🔄 Transform</div>
+              <div style="font-size:0.6rem;color:#718096;">Built-in enrichment</div>
+            </div>
+            <div style="display:flex;align-items:center;color:#63b3ed;font-size:1rem;">→</div>
+            <div style="flex:1;background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.25);border-radius:8px;padding:10px 8px;text-align:center;">
+              <div style="font-size:0.78rem;font-weight:700;color:#63b3ed;margin-bottom:3px;">🔍 Index</div>
+              <div style="font-size:0.6rem;color:#718096;">Auto-index to OpenSearch</div>
+            </div>
+          </div>
+          <div style="width:1px;background:rgba(99,179,237,0.2);align-self:stretch;"></div>
+          <div style="width:160px;flex-shrink:0;">
+            <div style="font-size:0.65rem;color:#63b3ed;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">Status</div>
+            <div style="font-size:0.75rem;color:#a0aec0;line-height:1.7;">
+              ✅ In development<br>
+              ⏳ GovCloud: TBD<br>
+              🎯 ATR = beta customer
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 9: PROJECT TEAM ==================== -->
+<div class="slide" data-slide="9">
+  <div class="full-w">
+    <h2>Project Team</h2>
+
+    <!-- === ROW 1: Executive Sponsors (Account Team ↔ CIO) === -->
+    <div style="display:grid; grid-template-columns:1fr 40px 1fr; gap:0; align-items:center; margin-bottom:10px;">
+      <!-- AWS Account Team -->
+      <div class="card" style="border:2px solid #63b3ed; padding:12px 16px; text-align:center;">
+        <div style="font-size:0.6rem; color:#63b3ed; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px;">AWS — DOJ Account Team</div>
+        <div style="display:flex; justify-content:center; gap:18px; flex-wrap:wrap;">
+          <div>
+            <div style="font-size:0.62rem; color:#718096;">Account Mgr</div>
+            <div style="font-size:0.72rem; color:#e2e8f0;">Jack Lan / Brittany Carr</div>
+          </div>
+          <div>
+            <div style="font-size:0.62rem; color:#718096;">Account SA</div>
+            <div style="font-size:0.72rem; color:#e2e8f0;">Mike Reeves</div>
+          </div>
+          <div>
+            <div style="font-size:0.62rem; color:#718096;">CSM</div>
+            <div style="font-size:0.72rem; color:#e2e8f0;">MJ Yenser</div>
+          </div>
+        </div>
+      </div>
+      <!-- Horizontal connector -->
+      <div style="display:flex; align-items:center; justify-content:center;">
+        <div style="width:100%; height:2px; background:rgba(255,255,255,0.15);"></div>
+      </div>
+      <!-- DOJ CIO -->
+      <div class="card" style="border:2px solid #f6e05e; padding:12px 16px; text-align:center;">
+        <div style="font-size:0.6rem; color:#f6e05e; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px;">DOJ Antitrust (ATR) — Executive Sponsor</div>
+        <div style="font-size:0.62rem; color:#718096;">CIO</div>
+        <div style="font-size:0.82rem; color:#e2e8f0; font-weight:600;">Carlos Azuero</div>
+      </div>
+    </div>
+
+    <!-- Vertical connectors -->
+    <div style="display:grid; grid-template-columns:1fr 40px 1fr; gap:0; margin-bottom:10px;">
+      <div style="display:flex; justify-content:center;"><div style="width:2px; height:18px; background:rgba(99,179,237,0.4);"></div></div>
+      <div></div>
+      <div style="display:flex; justify-content:center;"><div style="width:2px; height:18px; background:rgba(246,224,94,0.4);"></div></div>
+    </div>
+
+    <!-- === ROW 2: Project Leads (AWS ↔ Customer) === -->
+    <div style="display:grid; grid-template-columns:1fr 40px 1fr; gap:0; align-items:center; margin-bottom:10px;">
+      <!-- AWS Project Lead -->
+      <div class="card text-center" style="border:2px solid #FF9900; padding:12px 16px;">
+        <div style="font-size:0.6rem; color:#FF9900; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:4px;">AWS Project Lead</div>
+        <div style="font-size:0.88rem; color:#e2e8f0; font-weight:600;">Emerging Tech Solutions</div>
+        <div style="font-size:0.75rem; color:#a0aec0; margin-top:3px;">David Eyre &bull; Gabriel Nguyen</div>
+      </div>
+      <!-- Horizontal connector -->
+      <div style="display:flex; align-items:center; justify-content:center;">
+        <div style="width:100%; height:2px; background:rgba(255,255,255,0.15);"></div>
+      </div>
+      <!-- Customer Project Lead -->
+      <div class="card text-center" style="border:2px solid #f6e05e; padding:12px 16px;">
+        <div style="font-size:0.6rem; color:#f6e05e; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:4px;">ATR Project Lead</div>
+        <div style="font-size:0.75rem; color:#718096; font-style:italic;">TBD</div>
+        <div style="font-size:0.65rem; color:#a0aec0; margin-top:3px;">Technical Decision Maker &amp; Day-to-Day POC</div>
+      </div>
+    </div>
+
+    <!-- Vertical connectors -->
+    <div style="display:grid; grid-template-columns:1fr 40px 1fr; gap:0; margin-bottom:10px;">
+      <div style="display:flex; justify-content:center;"><div style="width:2px; height:18px; background:rgba(255,153,0,0.4);"></div></div>
+      <div></div>
+      <div style="display:flex; justify-content:center;"><div style="width:2px; height:18px; background:rgba(246,224,94,0.4);"></div></div>
+    </div>
+
+    <!-- === ROW 3: Implementation Teams (AWS ↔ Customer) === -->
+    <div style="display:grid; grid-template-columns:1fr 40px 1fr; gap:0; align-items:start;">
+      <!-- AWS Teams (left) -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <div class="card" style="border-top:3px solid #FF9900; padding:10px 8px; text-align:center;">
+          <div style="font-size:0.58rem; color:#FF9900; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">OpenSearch Service</div>
+          <div style="font-size:0.68rem; color:#FFB84D; font-weight:600; margin-bottom:2px;">Bulk Loader</div>
+          <div style="font-size:0.7rem; color:#e2e8f0;">Karl Meadows</div>
+          <div style="font-size:0.7rem; color:#e2e8f0;">Sarat Vemulapalli</div>
+        </div>
+        <div class="card" style="border-top:3px solid #FFB84D; padding:10px 8px; text-align:center;">
+          <div style="font-size:0.58rem; color:#FFB84D; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Neptune Service</div>
+          <div style="font-size:0.68rem; color:#FFB84D; font-weight:600; margin-bottom:2px;">Graph &amp; Analytics</div>
+          <div style="font-size:0.7rem; color:#e2e8f0;">Mridula Grandhi</div>
+        </div>
+        <div class="card" style="border-top:3px solid #48bb78; padding:10px 8px; text-align:center;">
+          <div style="font-size:0.58rem; color:#48bb78; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">SSA</div>
+          <div style="font-size:0.65rem; color:#48bb78; font-weight:600;">OS:</div>
+          <div style="font-size:0.7rem; color:#e2e8f0;">Kevin Fallis / Aruna G.</div>
+          <div style="font-size:0.65rem; color:#48bb78; font-weight:600; margin-top:3px;">Neptune:</div>
+          <div style="font-size:0.7rem; color:#e2e8f0;">Renuka Uttarala</div>
+        </div>
+        <div class="card" style="border-top:3px solid #9f7aea; padding:10px 8px; text-align:center;">
+          <div style="font-size:0.58rem; color:#9f7aea; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">ProServe</div>
+          <div style="font-size:0.65rem; color:#9f7aea; font-weight:600;">OpenSearch:</div>
+          <div style="font-size:0.7rem; color:#718096; font-style:italic;">TBD</div>
+          <div style="font-size:0.65rem; color:#9f7aea; font-weight:600; margin-top:3px;">Neptune:</div>
+          <div style="font-size:0.7rem; color:#718096; font-style:italic;">TBD</div>
+        </div>
+      </div>
+      <!-- Horizontal connector -->
+      <div style="display:flex; align-items:center; justify-content:center; padding-top:40px;">
+        <div style="width:100%; height:2px; background:rgba(255,255,255,0.15);"></div>
+      </div>
+      <!-- Customer Teams (right) -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <div class="card" style="border-top:3px solid #f6e05e; padding:10px 8px; text-align:center;">
+          <div style="font-size:0.58rem; color:#f6e05e; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">ATR Engineering</div>
+          <div style="font-size:0.7rem; color:#718096; font-style:italic;">TBD</div>
+          <div style="font-size:0.62rem; color:#a0aec0; margin-top:3px;">Infrastructure &amp; DevOps</div>
+        </div>
+        <div class="card" style="border-top:3px solid #f6e05e; padding:10px 8px; text-align:center;">
+          <div style="font-size:0.58rem; color:#f6e05e; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">ATR Analysts / SMEs</div>
+          <div style="font-size:0.7rem; color:#718096; font-style:italic;">TBD</div>
+          <div style="font-size:0.62rem; color:#a0aec0; margin-top:3px;">Domain expertise &amp; UAT</div>
+        </div>
+        <div class="card" style="border-top:3px solid #f6e05e; padding:10px 8px; text-align:center;">
+          <div style="font-size:0.58rem; color:#f6e05e; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">ATR Data Team</div>
+          <div style="font-size:0.7rem; color:#718096; font-style:italic;">TBD</div>
+          <div style="font-size:0.62rem; color:#a0aec0; margin-top:3px;">Data access &amp; pilot dataset</div>
+        </div>
+        <div class="card" style="border-top:3px solid #f6e05e; padding:10px 8px; text-align:center;">
+          <div style="font-size:0.58rem; color:#f6e05e; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">ATR Security</div>
+          <div style="font-size:0.7rem; color:#718096; font-style:italic;">TBD</div>
+          <div style="font-size:0.62rem; color:#a0aec0; margin-top:3px;">GovCloud &amp; compliance</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Column labels -->
+    <div style="display:grid; grid-template-columns:1fr 40px 1fr; gap:0; margin-top:12px;">
+      <div style="text-align:center; font-size:0.68rem; color:#FF9900; font-weight:600; text-transform:uppercase; letter-spacing:1px;">Amazon Web Services</div>
+      <div></div>
+      <div style="text-align:center; font-size:0.68rem; color:#f6e05e; font-weight:600; text-transform:uppercase; letter-spacing:1px;">DOJ Antitrust Division</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 10: PROJECT TEAM (SIMPLIFIED) ==================== -->
+<div class="slide" data-slide="10">
+  <div class="full-w">
+    <h2>Project Team — Roles &amp; Engagement</h2>
+    <div style="display:grid; grid-template-columns:1fr 60px 1fr; gap:0; align-items:start;">
+
+      <!-- AWS Side -->
+      <div>
+        <div style="font-size:0.72rem; color:#FF9900; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:16px; text-align:center;">Amazon Web Services</div>
+
+        <div class="card" style="border-left:3px solid #63b3ed; margin-bottom:12px; padding:14px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-size:0.88rem; font-weight:600; color:#e2e8f0;">Account Team</div>
+              <div style="font-size:0.75rem; color:#a0aec0; margin-top:2px;">Jack Lan / Brittany Carr &bull; Mike Reeves &bull; MJ Yenser</div>
+            </div>
+            <span style="font-size:0.65rem; color:#63b3ed; background:rgba(99,179,237,0.12); padding:3px 8px; border-radius:4px;">Exec Sponsor</span>
+          </div>
+        </div>
+
+        <div class="card" style="border-left:3px solid #FF9900; margin-bottom:12px; padding:14px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-size:0.88rem; font-weight:600; color:#e2e8f0;">Emerging Tech Solutions</div>
+              <div style="font-size:0.75rem; color:#a0aec0; margin-top:2px;">David Eyre &bull; Gabriel Nguyen</div>
+            </div>
+            <span style="font-size:0.65rem; color:#FF9900; background:rgba(255,153,0,0.12); padding:3px 8px; border-radius:4px;">Project Lead</span>
+          </div>
+        </div>
+
+        <div class="card" style="border-left:3px solid #FFB84D; margin-bottom:12px; padding:14px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-size:0.88rem; font-weight:600; color:#e2e8f0;">Service Teams</div>
+              <div style="font-size:0.75rem; color:#a0aec0; margin-top:2px;">OpenSearch: Karl Meadows, Sarat Vemulapalli &bull; Neptune: Mridula Grandhi</div>
+            </div>
+            <span style="font-size:0.65rem; color:#FFB84D; background:rgba(255,184,77,0.12); padding:3px 8px; border-radius:4px;">Build &amp; Advise</span>
+          </div>
+        </div>
+
+        <div class="card" style="border-left:3px solid #48bb78; margin-bottom:12px; padding:14px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-size:0.88rem; font-weight:600; color:#e2e8f0;">SSA</div>
+              <div style="font-size:0.75rem; color:#a0aec0; margin-top:2px;">OS: Kevin Fallis / Aruna G. &bull; Neptune: Renuka Uttarala</div>
+            </div>
+            <span style="font-size:0.65rem; color:#48bb78; background:rgba(72,187,120,0.12); padding:3px 8px; border-radius:4px;">Technical Depth</span>
+          </div>
+        </div>
+
+        <div class="card" style="border-left:3px solid #9f7aea; padding:14px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-size:0.88rem; font-weight:600; color:#e2e8f0;">ProServe</div>
+              <div style="font-size:0.75rem; color:#a0aec0; margin-top:2px;">OpenSearch &amp; Neptune — TBD</div>
+            </div>
+            <span style="font-size:0.65rem; color:#9f7aea; background:rgba(159,122,234,0.12); padding:3px 8px; border-radius:4px;">Implementation</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center connector -->
+      <div style="display:flex; align-items:center; justify-content:center; height:100%; padding-top:40px;">
+        <div style="width:2px; height:80%; background:rgba(255,255,255,0.1);"></div>
+      </div>
+
+      <!-- Customer Side -->
+      <div>
+        <div style="font-size:0.72rem; color:#f6e05e; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:16px; text-align:center;">DOJ Antitrust Division</div>
+
+        <div class="card" style="border-left:3px solid #f6e05e; margin-bottom:12px; padding:14px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-size:0.88rem; font-weight:600; color:#e2e8f0;">Executive Sponsor — Carlos Azuero (CIO)</div>
+            </div>
+            <span style="font-size:0.65rem; color:#f6e05e; background:rgba(246,224,94,0.12); padding:3px 8px; border-radius:4px;">Exec Sponsor</span>
+          </div>
+        </div>
+
+        <div class="card" style="border-left:3px solid #f6e05e; margin-bottom:12px; padding:14px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-size:0.88rem; font-weight:600; color:#e2e8f0;">Project Lead — TBD</div>
+              <div style="font-size:0.75rem; color:#a0aec0; margin-top:2px;">Technical decision maker &amp; day-to-day POC</div>
+            </div>
+            <span style="font-size:0.65rem; color:#f6e05e; background:rgba(246,224,94,0.12); padding:3px 8px; border-radius:4px;">Day-to-Day</span>
+          </div>
+        </div>
+
+        <div class="card" style="border-left:3px solid #f6e05e; margin-bottom:12px; padding:14px 18px;">
+          <div>
+            <div style="font-size:0.88rem; font-weight:600; color:#e2e8f0;">Data Engineer / Pipeline — TBD</div>
+            <div style="font-size:0.75rem; color:#a0aec0; margin-top:2px;">Data access, pilot dataset, ingestion pipeline support</div>
+          </div>
+          <div style="font-size:0.72rem; color:#48bb78; margin-top:6px; font-style:italic;">⬆ Key role — ongoing engagement throughout pilot</div>
+        </div>
+
+        <div class="card" style="border-left:3px solid #f6e05e; margin-bottom:12px; padding:14px 18px;">
+          <div>
+            <div style="font-size:0.88rem; font-weight:600; color:#e2e8f0;">Functional SMEs / Analysts — TBD</div>
+            <div style="font-size:0.75rem; color:#a0aec0; margin-top:2px;">Domain expertise, use case validation, UAT feedback</div>
+          </div>
+          <div style="font-size:0.72rem; color:#48bb78; margin-top:6px; font-style:italic;">⬆ Key role — guides what we build and validates output</div>
+        </div>
+
+        <div class="card" style="border-left:3px solid #f6e05e; padding:14px 18px;">
+          <div>
+            <div style="font-size:0.88rem; font-weight:600; color:#e2e8f0;">Security / Compliance — TBD</div>
+            <div style="font-size:0.75rem; color:#a0aec0; margin-top:2px;">GovCloud access, ATO guidance, encryption requirements</div>
+          </div>
+          <div style="font-size:0.72rem; color:#718096; margin-top:6px; font-style:italic;">Light touch — a few hours for initial setup &amp; approvals</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom: Engagement model question -->
+    <div class="card mt-24" style="background:rgba(255,153,0,0.06); border-color:rgba(255,153,0,0.2); padding:14px;">
+      <div style="font-size:0.78rem; color:#FF9900; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">📋 Scoping Question — Implementation Model</div>
+      <div style="display:flex; gap:24px;">
+        <div style="flex:1; font-size:0.82rem; color:#cbd5e0;"><span style="color:#FFB84D; font-weight:600;">Option A:</span> ProServe builds, ATR team maintains and extends</div>
+        <div style="flex:1; font-size:0.82rem; color:#cbd5e0;"><span style="color:#FFB84D; font-weight:600;">Option B:</span> ATR team implements with AWS guidance (depends on AWS experience)</div>
+        <div style="flex:1; font-size:0.82rem; color:#cbd5e0;"><span style="color:#FFB84D; font-weight:600;">Option C:</span> Hybrid — ProServe leads complex components, ATR handles the rest</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 11: POC QUESTIONS - BUSINESS ==================== -->
+<div class="slide" data-slide="11">
+  <div class="full-w">
+    <h2>PoC Questions — Business</h2>
+    <p class="mb-16" style="color:#a0aec0; font-size:0.88rem;">Help us understand your priorities so we can scope the pilot correctly</p>
+    <div class="cols-2" style="gap:24px;">
+      <div>
+        <div class="card" style="border-left:3px solid #FF9900; margin-bottom:14px; padding:18px;">
+          <h3 style="font-size:0.9rem; margin-bottom:8px;">🎯 Mission Outcome</h3>
+          <p style="font-size:0.85rem; color:#a0aec0;">What is the primary outcome you want from this pilot? Faster case resolution? Cross-case pattern detection? Analyst productivity?</p>
+        </div>
+        <div class="card" style="border-left:3px solid #FFB84D; margin-bottom:14px; padding:18px;">
+          <h3 style="font-size:0.9rem; margin-bottom:8px;">👥 End Users</h3>
+          <p style="font-size:0.85rem; color:#a0aec0;">Who will use this? Investigators, analysts, prosecutors, leadership? How many users?</p>
+        </div>
+        <div class="card" style="border-left:3px solid #48bb78; padding:18px;">
+          <h3 style="font-size:0.9rem; margin-bottom:8px;">✅ Success Definition</h3>
+          <p style="font-size:0.85rem; color:#a0aec0;">What would make you say "let's go to production"? What does success look like at the end of 12 weeks?</p>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="border-left:3px solid #63b3ed; margin-bottom:14px; padding:18px;">
+          <h3 style="font-size:0.9rem; margin-bottom:8px;">📋 Case Type</h3>
+          <p style="font-size:0.85rem; color:#a0aec0;">Is there a specific case or investigation type you want to pilot with first?</p>
+        </div>
+        <div class="card" style="border-left:3px solid #f6e05e; margin-bottom:14px; padding:18px;">
+          <h3 style="font-size:0.9rem; margin-bottom:8px;">⭐ Top Capabilities</h3>
+          <p style="font-size:0.85rem; color:#a0aec0;">From the demo — which 3 capabilities matter most? (cross-case analysis, AI summaries, pattern discovery, entity graph, search, other)</p>
+        </div>
+        <div class="card" style="border-left:3px solid #fc8181; padding:18px;">
+          <h3 style="font-size:0.9rem; margin-bottom:8px;">⏰ Timeline Driver</h3>
+          <p style="font-size:0.85rem; color:#a0aec0;">Is there a budget cycle, leadership review, or active investigation driving the timeline?</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 12: POC QUESTIONS - TECHNICAL ==================== -->
+<div class="slide" data-slide="12">
+  <div class="full-w">
+    <h2>PoC Questions — Technical</h2>
+    <p class="mb-16" style="color:#a0aec0; font-size:0.88rem;">Data landscape, environment, and implementation details</p>
+    <div class="cols-3" style="gap:16px;">
+      <div>
+        <div class="card" style="border-top:3px solid #FF9900; padding:16px; margin-bottom:14px;">
+          <div style="font-size:0.72rem; color:#FF9900; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">📦 Data</div>
+          <ul style="list-style:none; padding:0; font-size:0.82rem; color:#a0aec0; line-height:1.8;">
+            <li>File types? (PDF, Word, Excel, images, email)</li>
+            <li>Machine-readable or scanned (OCR)?</li>
+            <li>Already in S3 or needs migration?</li>
+            <li>Existing hierarchy? (Matter → Case → Doc)</li>
+            <li>Existing metadata fields?</li>
+            <li>Sensitivity level? (CUI, LES, PII)</li>
+            <li>Pilot subset size? (1TB, 10TB, 50TB)</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="border-top:3px solid #48bb78; padding:16px; margin-bottom:14px;">
+          <div style="font-size:0.72rem; color:#48bb78; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">🏗️ Environment</div>
+          <ul style="list-style:none; padding:0; font-size:0.82rem; color:#a0aec0; line-height:1.8;">
+            <li>GovCloud? Which region?</li>
+            <li>Existing AWS services in use?</li>
+            <li>VPC / networking setup?</li>
+            <li>Auth requirements? (PIV/CAC, SAML)</li>
+            <li>FedRAMP / FISMA / ATO for pilot?</li>
+            <li>Encryption requirements?</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="border-top:3px solid #63b3ed; padding:16px; margin-bottom:14px;">
+          <div style="font-size:0.72rem; color:#63b3ed; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">👷 Implementation</div>
+          <ul style="list-style:none; padding:0; font-size:0.82rem; color:#a0aec0; line-height:1.8;">
+            <li>Internal team or ProServe?</li>
+            <li>Team size &amp; AWS familiarity?</li>
+            <li>Preferred model? (AWS builds, hybrid)</li>
+            <li>Technical decision maker?</li>
+            <li>Existing tools to integrate?</li>
+            <li>Budget flexibility beyond $200K?</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="card mt-16" style="background:rgba(255,153,0,0.06); border-color:rgba(255,153,0,0.2); padding:16px;">
+      <div style="font-size:0.78rem; color:#FF9900; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Scope Priorities — Rank 1-5 for the Pilot</div>
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <span style="background:rgba(255,153,0,0.1); padding:6px 14px; border-radius:6px; font-size:0.78rem; border:1px solid rgba(255,153,0,0.2);">Document Ingestion &amp; Search</span>
+        <span style="background:rgba(255,153,0,0.1); padding:6px 14px; border-radius:6px; font-size:0.78rem; border:1px solid rgba(255,153,0,0.2);">Entity Extraction &amp; Graph</span>
+        <span style="background:rgba(255,153,0,0.1); padding:6px 14px; border-radius:6px; font-size:0.78rem; border:1px solid rgba(255,153,0,0.2);">AI Case Summaries</span>
+        <span style="background:rgba(255,153,0,0.1); padding:6px 14px; border-radius:6px; font-size:0.78rem; border:1px solid rgba(255,153,0,0.2);">Cross-Case Patterns</span>
+        <span style="background:rgba(255,153,0,0.1); padding:6px 14px; border-radius:6px; font-size:0.78rem; border:1px solid rgba(255,153,0,0.2);">Geospatial Mapping</span>
+        <span style="background:rgba(255,153,0,0.1); padding:6px 14px; border-radius:6px; font-size:0.78rem; border:1px solid rgba(255,153,0,0.2);">Access Control</span>
+        <span style="background:rgba(255,153,0,0.1); padding:6px 14px; border-radius:6px; font-size:0.78rem; border:1px solid rgba(255,153,0,0.2);">Custom Batch Loader</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 13: NEXT STEPS ==================== -->
+<div class="slide" data-slide="13">
+  <div class="full-w">
+    <h2>Next Steps</h2>
+    <div class="cols-2" style="gap:36px;">
+      <div>
+        <div style="display:flex; flex-direction:column; gap:0; max-width:500px;">
+          <div style="display:flex; gap:16px; position:relative; padding-bottom:24px;">
+            <div style="position:absolute; left:15px; top:36px; bottom:0; width:2px; background:rgba(255,153,0,0.3);"></div>
+            <div style="width:32px; height:32px; border-radius:50%; background:rgba(255,153,0,0.15); border:2px solid #FF9900; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.7rem; font-weight:700; color:#FF9900;">1</div>
+            <div>
+              <div style="font-size:0.85rem; font-weight:700; color:#FFB84D;">This Week</div>
+              <div style="font-size:0.88rem; color:#cbd5e0; margin-top:2px;">Compile answers from today's session. Finalize PoC Success Plan.</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:16px; position:relative; padding-bottom:24px;">
+            <div style="position:absolute; left:15px; top:36px; bottom:0; width:2px; background:rgba(255,153,0,0.3);"></div>
+            <div style="width:32px; height:32px; border-radius:50%; background:rgba(255,153,0,0.15); border:2px solid #FF9900; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.7rem; font-weight:700; color:#FF9900;">2</div>
+            <div>
+              <div style="font-size:0.85rem; font-weight:700; color:#FFB84D;">Week 2</div>
+              <div style="font-size:0.88rem; color:#cbd5e0; margin-top:2px;">Data assessment. Select pilot dataset. Confirm ProServe engagement.</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:16px; position:relative; padding-bottom:24px;">
+            <div style="position:absolute; left:15px; top:36px; bottom:0; width:2px; background:rgba(255,153,0,0.3);"></div>
+            <div style="width:32px; height:32px; border-radius:50%; background:rgba(255,153,0,0.15); border:2px solid #FF9900; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.7rem; font-weight:700; color:#FF9900;">3</div>
+            <div>
+              <div style="font-size:0.85rem; font-weight:700; color:#FFB84D;">Week 3</div>
+              <div style="font-size:0.88rem; color:#cbd5e0; margin-top:2px;">Technical deep-dive with engineering team. Environment setup begins.</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:16px; position:relative;">
+            <div style="width:32px; height:32px; border-radius:50%; background:rgba(255,153,0,0.15); border:2px solid #FF9900; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.7rem; font-weight:700; color:#FF9900;">4</div>
+            <div>
+              <div style="font-size:0.85rem; font-weight:700; color:#FFB84D;">Week 4</div>
+              <div style="font-size:0.88rem; color:#cbd5e0; margin-top:2px;">Ingestion pipeline build begins. First data flowing through the platform.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; justify-content:center; gap:20px;">
+        <div class="card text-center" style="border:2px solid #48bb78; padding:20px;">
+          <div style="font-size:2rem; margin-bottom:8px;">📋</div>
+          <h3 style="color:#48bb78; font-size:1rem;">Action Items from Today</h3>
+          <ul style="list-style:none; padding:0; font-size:0.88rem; color:#cbd5e0; text-align:left; margin-top:12px;">
+            <li style="padding:4px 0;">→ Compile questionnaire answers into Project Statement</li>
+            <li style="padding:4px 0;">→ Identify pilot dataset and begin data assessment</li>
+            <li style="padding:4px 0;">→ Confirm customer technical POC and day-to-day contact</li>
+            <li style="padding:4px 0;">→ Schedule technical deep-dive (Week 3)</li>
+            <li style="padding:4px 0;">→ Finalize ProServe resource allocation</li>
+          </ul>
+        </div>
+        <div class="card text-center" style="background:rgba(255,153,0,0.06); border-color:rgba(255,153,0,0.2); padding:14px;">
+          <p style="font-size:0.92rem; color:#FF9900; font-weight:600;">12 weeks to prove the platform.</p>
+          <p style="font-size:0.82rem; color:#a0aec0; margin-top:4px;">Solution is built. Code is free. You pay only for AWS services.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end .deck -->
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.getElementById('counter');
+  const total = slides.length;
+  let current = 0;
+
+  function show(idx) {
+    if (idx < 0 || idx >= total) return;
+    slides[current].classList.remove('active');
+    current = idx;
+    slides[current].classList.add('active');
+    counter.textContent = (current + 1) + ' / ' + total;
+    slides[current].scrollTop = 0;
+  }
+
+  counter.textContent = '1 / ' + total;
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); show(current + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); show(current - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(total - 1); }
+  });
+
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('a, button, input, select, textarea')) return;
+    if (e.clientX < window.innerWidth / 2) show(current - 1);
+    else show(current + 1);
+  });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', function(e) { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    const diff = touchStartX - e.changedTouches[0].screenX;
+    if (Math.abs(diff) > 50) { if (diff > 0) show(current + 1); else show(current - 1); }
+  }, { passive: true });
+})();
+</script>
+</body>
+</html>
