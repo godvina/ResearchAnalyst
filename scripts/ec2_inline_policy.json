@@ -1,0 +1,20 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["lambda:InvokeFunction"],
+      "Resource": "arn:aws:lambda:us-east-1:974220725866:function:ResearchAnalystStack-CaseFilesLambda*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["ec2:TerminateInstances"],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["s3:GetObject"],
+      "Resource": "arn:aws:s3:::research-analyst-data-lake-974220725866/*"
+    }
+  ]
+}
