@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Discovery — Conspiracy Network Analysis</title>
+    <script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f1923; color: #e2e8f0; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #1a365d 0%, #2a4a7f 50%, #1e3a5f 100%); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #e53e3e; }
+        .header h1 { font-size: 1.35em; color: #fff; }
+        .header h1 span { color: #e53e3e; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .header-badge { background: rgba(229,62,62,0.15); border: 1px solid #e53e3e; color: #e53e3e; padding: 4px 12px; border-radius: 20px; font-size: 0.72em; font-weight: 600; }
+        .nav-links { display: flex; gap: 8px; }
+        .nav-links a { color: #a0aec0; text-decoration: none; font-size: 0.75em; padding: 4px 10px; border: 1px solid #4a5568; border-radius: 6px; transition: all 0.2s; }
+        .nav-links a:hover { color: #fff; border-color: #e53e3e; }
+        .tabs { display: flex; background: #1a2332; border-bottom: 1px solid #2d3748; }
+        .tab { padding: 12px 24px; cursor: pointer; font-size: 0.82em; font-weight: 600; color: #718096; border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .tab:hover { color: #e2e8f0; }
+        .tab.active { color: #e53e3e; border-bottom-color: #e53e3e; }
+        .tab-content { display: none; padding: 20px; }
+        .tab-content.active { display: block; }
+        .main-layout { display: flex; height: calc(100vh - 100px); }
+        .sidebar { width: 300px; background: #1a2332; border-right: 1px solid #2d3748; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-title { padding: 14px 16px; font-weight: 700; color: #e53e3e; border-bottom: 1px solid #2d3748; text-transform: uppercase; letter-spacing: 1px; font-size: 0.75em; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-title .count { background: rgba(229,62,62,0.2); color: #e53e3e; padding: 2px 8px; border-radius: 10px; font-size: 0.9em; }
+        .case-list { flex: 1; overflow-y: auto; }
+        .case-card { padding: 12px 16px; cursor: pointer; border-left: 4px solid transparent; border-bottom: 1px solid rgba(255,255,255,0.03); transition: all 0.2s; }
+        .case-card:hover { background: rgba(229,62,62,0.08); }
+        .case-card.active { background: rgba(229,62,62,0.12); border-left-color: #e53e3e; }
+        .case-card .name { font-size: 0.88em; font-weight: 700; color: #e2e8f0; }
+        .case-card .meta { font-size: 0.7em; color: #718096; margin-top: 2px; }
+        .content-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+
+        /* Graph panel */
+        #tab-graph { flex: 1; position: relative; }
+        #networkGraph { width: 100%; height: 100%; min-height: 500px; }
+        .graph-controls { position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; z-index: 10; }
+        .graph-controls select, .graph-controls input { background: #1a2332; color: #e2e8f0; border: 1px solid #4a5568; border-radius: 6px; padding: 6px 10px; font-size: 0.75em; }
+        .graph-legend { position: absolute; bottom: 12px; left: 12px; background: rgba(26,35,50,0.95); border: 1px solid #4a5568; border-radius: 8px; padding: 10px 14px; font-size: 0.72em; z-index: 10; }
+        .legend-item { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        /* Profile cards */
+        .profile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; padding: 20px; }
+        .profile-card { background: #1a2332; border: 1px solid #2d3748; border-radius: 12px; padding: 18px; transition: all 0.2s; }
+        .profile-card:hover { border-color: #e53e3e; }
+        .profile-card .name { font-size: 1.05em; font-weight: 700; color: #fff; margin-bottom: 6px; }
+        .profile-card .score-bar { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+        .score-fill { height: 6px; border-radius: 3px; transition: width 0.3s; }
+        .risk-high { background: #e53e3e; border: 1px solid #e53e3e; }
+        .risk-medium { background: #d69e2e; border: 1px solid #d69e2e; }
+        .risk-low { background: #48bb78; border: 1px solid #48bb78; }
+        .risk-badge { padding: 2px 10px; border-radius: 12px; font-size: 0.7em; font-weight: 700; text-transform: uppercase; }
+        .risk-badge.high { background: rgba(229,62,62,0.2); color: #fc8181; }
+        .risk-badge.medium { background: rgba(214,158,46,0.2); color: #f6e05e; }
+        .risk-badge.low { background: rgba(72,187,120,0.2); color: #68d391; }
+        .decision-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.68em; font-weight: 700; }
+        .decision-badge.ai_proposed { background: rgba(214,158,46,0.2); color: #f6e05e; }
+        .decision-badge.human_confirmed { background: rgba(72,187,120,0.2); color: #68d391; }
+        .decision-badge.human_overridden { background: rgba(66,153,225,0.2); color: #63b3ed; }
+        .profile-detail { font-size: 0.78em; color: #a0aec0; margin: 4px 0; }
+        .btn { padding: 6px 14px; border: none; border-radius: 6px; font-size: 0.75em; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-confirm { background: #48bb78; color: #fff; }
+        .btn-override { background: #4299e1; color: #fff; }
+        .btn-subcase { background: #e53e3e; color: #fff; }
+        .btn:hover { opacity: 0.85; }
+        .actions { display: flex; gap: 8px; margin-top: 10px; }
+
+        /* Patterns panel */
+        .pattern-tabs { display: flex; gap: 8px; padding: 16px 20px 0; }
+        .pattern-tab { padding: 6px 14px; border-radius: 20px; font-size: 0.75em; font-weight: 600; cursor: pointer; border: 1px solid #4a5568; color: #a0aec0; transition: all 0.2s; }
+        .pattern-tab.active { border-color: #e53e3e; color: #e53e3e; background: rgba(229,62,62,0.1); }
+        .pattern-list { padding: 16px 20px; }
+        .pattern-card { background: #1a2332; border: 1px solid #2d3748; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+        .pattern-card .type-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.68em; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
+        .type-financial { background: rgba(229,62,62,0.15); color: #fc8181; }
+        .type-communication { background: rgba(66,153,225,0.15); color: #63b3ed; }
+        .type-geographic { background: rgba(72,187,120,0.15); color: #68d391; }
+        .type-temporal { background: rgba(214,158,46,0.15); color: #f6e05e; }
+        .confidence-bar { width: 100%; height: 4px; background: #2d3748; border-radius: 2px; margin: 8px 0; }
+        .confidence-fill { height: 100%; border-radius: 2px; background: #e53e3e; }
+
+        /* Sub-cases panel */
+        .subcase-list { padding: 20px; }
+        .subcase-card { background: #1a2332; border: 1px solid #2d3748; border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #718096; }
+        .empty-state .icon { font-size: 3em; margin-bottom: 12px; }
+        .reasoning-text { font-size: 0.78em; color: #a0aec0; line-height: 1.5; margin-top: 8px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; max-height: 120px; overflow-y: auto; }
+        .filter-bar { display: flex; gap: 10px; padding: 12px 20px; background: #1a2332; border-bottom: 1px solid #2d3748; align-items: center; }
+        .filter-bar label { font-size: 0.72em; color: #718096; }
+        .filter-bar select, .filter-bar input { background: #0f1923; color: #e2e8f0; border: 1px solid #4a5568; border-radius: 6px; padding: 5px 8px; font-size: 0.75em; }
+
+        .nav-bar { background:#1a2332; border-bottom:1px solid #2d3748; display:flex; gap:0; padding:0 16px; }
+        .nav-link { padding:10px 16px; font-size:0.75em; font-weight:600; color:#718096; border-bottom:2px solid transparent; text-decoration:none; transition:color 0.2s; }
+        .nav-link:hover { color:#e2e8f0; }
+        .nav-link.active { color:#48bb78; border-bottom-color:#48bb78; }
+</style>
+</head>
+<body>
+    <div class="header">
+        <h1>Network <span>Discovery</span> — Conspiracy Network Analysis</h1>
+        <div class="header-right">
+            <div class="nav-links">
+                <a href="investigator.html">Investigator</a>
+                <a href="prosecutor.html">Prosecutor</a>
+            </div>
+            <div class="header-badge">AI-POWERED</div>
+            <div class="header-badge" id="analysisStatus">NO ANALYSIS</div>
+        </div>
+    </div>
+    <div class="nav-bar">
+        <a href="index.html" class="nav-link">🏠 Home</a>
+        <a href="investigator.html" class="nav-link">📋 Cases</a>
+        <a href="pipeline-config.html" class="nav-link">⚙️ Pipeline Config</a>
+        <a href="batch-loader.html" class="nav-link">📦 Batch Loader</a>
+        <a href="admin.html" class="nav-link">🔐 Admin</a>
+        <a href="chatbot.html" class="nav-link">💬 Chat</a>
+        <a href="wizard.html" class="nav-link">🧙 Wizard</a>
+        <a href="portfolio.html" class="nav-link">📊 Portfolio</a>
+        <a href="workbench.html" class="nav-link">🔬 Workbench</a>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="sidebar-title">Case Files <span class="count" id="caseCount">0</span></div>
+            <div class="case-list" id="caseList"></div>
+            <div style="padding:12px 16px; border-top:1px solid #2d3748;">
+                <button onclick="triggerAnalysis()" id="analyzeBtn" style="width:100%; padding:10px; background:#e53e3e; color:#fff; border:none; border-radius:8px; font-weight:700; cursor:pointer; font-size:0.85em;">Run Network Analysis</button>
+            </div>
+        </div>
+        <div class="content-area">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('graph')">Network Graph</div>
+                <div class="tab" onclick="switchTab('profiles')">Persons of Interest</div>
+                <div class="tab" onclick="switchTab('patterns')">Hidden Patterns</div>
+                <div class="tab" onclick="switchTab('subcases')">Sub-Cases</div>
+            </div>
+            <div class="tab-content active" id="tab-graph">
+                <div class="graph-controls">
+                    <select id="layoutSelect" onchange="changeLayout()">
+                        <option value="force">Force-Directed</option>
+                        <option value="hierarchical">Hierarchical</option>
+                    </select>
+                    <select id="riskFilter" onchange="filterGraph()">
+                        <option value="">All Risk Levels</option>
+                        <option value="high">High Risk</option>
+                        <option value="medium">Medium Risk</option>
+                        <option value="low">Low Risk</option>
+                    </select>
+                    <input type="number" id="minScoreFilter" placeholder="Min Score" min="0" max="100" value="0" onchange="filterGraph()" style="width:90px;">
+                </div>
+                <div id="networkGraph"></div>
+                <div class="graph-legend">
+                    <div class="legend-item"><div class="legend-dot" style="background:#e53e3e;"></div> High Risk</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#d69e2e;"></div> Medium Risk</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#48bb78;"></div> Low Risk</div>
+                    <div style="margin-top:6px; border-top:1px solid #4a5568; padding-top:6px;">
+                        <div class="legend-item"><div class="legend-dot" style="background:#f6e05e; border:2px solid #d69e2e;"></div> AI Proposed</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:#68d391; border:2px solid #48bb78;"></div> Confirmed</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:#63b3ed; border:2px solid #4299e1;"></div> Overridden</div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="tab-profiles">
+                <div class="filter-bar">
+                    <label>Risk Level:</label>
+                    <select id="profileRiskFilter" onchange="renderProfiles()">
+                        <option value="">All</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                    <label>Min Score:</label>
+                    <input type="number" id="profileMinScore" min="0" max="100" value="0" onchange="renderProfiles()" style="width:70px;">
+                </div>
+                <div class="profile-grid" id="profileGrid"></div>
+            </div>
+            <div class="tab-content" id="tab-patterns">
+                <div class="pattern-tabs" id="patternTabs"></div>
+                <div class="pattern-list" id="patternList"></div>
+            </div>
+            <div class="tab-content" id="tab-subcases">
+                <div class="subcase-list" id="subcaseList"></div>
+            </div>
+        </div>
+    </div>
+<script src="config.js"></script>
+<script>
+const API_URL = window.APP_CONFIG.API_URL;
+let currentCaseId = null;
+let analysisData = null;
+let network = null;
+let allPersons = [];
+let allPatterns = [];
+
+// === API HELPER ===
+async function api(path, method='GET', body=null) {
+    const opts = { method, headers: {'Content-Type':'application/json'} };
+    if (body) opts.body = JSON.stringify(body);
+    const resp = await fetch(API_URL + path, opts);
+    return resp.json();
+}
+
+// === CASE LIST ===
+async function loadCases() {
+    try {
+        const data = await api('/case-files');
+        const cases = data.case_files || [];
+        const seen = new Map();
+        cases.forEach(c => { if (!seen.has(c.case_id)) seen.set(c.case_id, c); });
+        const unique = [...seen.values()];
+        document.getElementById('caseCount').textContent = unique.length;
+        const list = document.getElementById('caseList');
+        list.innerHTML = unique.map(c => `
+            <div class="case-card" onclick="selectCase('${c.case_id}')" id="case-${c.case_id}">
+                <div class="name">${c.topic_name || c.case_id.slice(0,8)}</div>
+                <div class="meta">${c.document_count || 0} docs | ${c.entity_count || 0} entities</div>
+            </div>
+        `).join('');
+        if (unique.length > 0) selectCase(unique[0].case_id);
+    } catch(e) { console.error('Failed to load cases:', e); }
+}
+
+async function selectCase(caseId) {
+    currentCaseId = caseId;
+    document.querySelectorAll('.case-card').forEach(c => c.classList.remove('active'));
+    const el = document.getElementById('case-' + caseId);
+    if (el) el.classList.add('active');
+    await loadAnalysis();
+}
+
+// === ANALYSIS ===
+async function loadAnalysis() {
+    if (!currentCaseId) return;
+    try {
+        const data = await api(`/case-files/${currentCaseId}/network-analysis`);
+        if (data.error) {
+            document.getElementById('analysisStatus').textContent = 'NO ANALYSIS';
+            analysisData = null;
+            allPersons = [];
+            renderGraph();
+            renderProfiles();
+            renderPatterns();
+            renderSubcases();
+            return;
+        }
+        analysisData = data;
+        allPersons = data.persons_of_interest || [];
+        document.getElementById('analysisStatus').textContent = (data.analysis_status || 'completed').toUpperCase();
+        renderGraph();
+        renderProfiles();
+        await loadPatterns();
+        renderSubcases();
+    } catch(e) {
+        document.getElementById('analysisStatus').textContent = 'NO ANALYSIS';
+        analysisData = null;
+        allPersons = [];
+    }
+}
+
+async function triggerAnalysis() {
+    if (!currentCaseId) return;
+    const btn = document.getElementById('analyzeBtn');
+    btn.textContent = 'Analyzing...';
+    btn.disabled = true;
+    try {
+        const data = await api(`/case-files/${currentCaseId}/network-analysis`, 'POST');
+        analysisData = data;
+        allPersons = data.persons_of_interest || [];
+        document.getElementById('analysisStatus').textContent = (data.analysis_status || 'completed').toUpperCase();
+        renderGraph();
+        renderProfiles();
+        await loadPatterns();
+        renderSubcases();
+    } catch(e) { console.error('Analysis failed:', e); }
+    btn.textContent = 'Run Network Analysis';
+    btn.disabled = false;
+}
+
+// === GRAPH ===
+function renderGraph() {
+    const container = document.getElementById('networkGraph');
+    const riskFilter = document.getElementById('riskFilter').value;
+    const minScore = parseInt(document.getElementById('minScoreFilter').value) || 0;
+
+    let persons = allPersons;
+    if (riskFilter) persons = persons.filter(p => p.risk_level === riskFilter);
+    if (minScore > 0) persons = persons.filter(p => (p.involvement_score?.total || 0) >= minScore);
+
+    if (!persons.length) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">🕸️</div><p>No network data. Run analysis to discover connections.</p></div>';
+        return;
+    }
+
+    const riskColors = { high: '#e53e3e', medium: '#d69e2e', low: '#48bb78' };
+    const decisionBorders = { ai_proposed: '#f6e05e', human_confirmed: '#48bb78', human_overridden: '#4299e1' };
+
+    const nodes = new vis.DataSet(persons.map(p => ({
+        id: p.profile_id,
+        label: p.entity_name,
+        size: 10 + (p.involvement_score?.total || 0) / 3,
+        color: {
+            background: riskColors[p.risk_level] || '#718096',
+            border: decisionBorders[p.decision_state] || '#4a5568',
+            highlight: { background: '#fff', border: riskColors[p.risk_level] || '#718096' }
+        },
+        borderWidth: 3,
+        font: { color: '#e2e8f0', size: 11 },
+        title: `${p.entity_name}\nScore: ${p.involvement_score?.total || 0}\nRisk: ${p.risk_level}\nStrength: ${p.connection_strength}`
+    })));
+
+    // Build edges from relationship maps
+    const edgeSet = new Set();
+    const edges = new vis.DataSet();
+    persons.forEach(p => {
+        (p.relationship_map || []).forEach(r => {
+            const target = persons.find(pp => pp.entity_name === r.entity_name);
+            if (target) {
+                const key = [p.profile_id, target.profile_id].sort().join('-');
+                if (!edgeSet.has(key)) {
+                    edgeSet.add(key);
+                    edges.add({ from: p.profile_id, to: target.profile_id, color: { color: '#4a5568', opacity: 0.6 }, width: Math.max(1, r.edge_weight) });
+                }
+            }
+        });
+    });
+
+    const layout = document.getElementById('layoutSelect').value;
+    const options = {
+        nodes: { shape: 'dot' },
+        edges: { smooth: { type: 'continuous' } },
+        physics: layout === 'hierarchical' ? false : { stabilization: { iterations: 100 }, barnesHut: { gravitationalConstant: -3000 } },
+        layout: layout === 'hierarchical' ? { hierarchical: { direction: 'UD', sortMethod: 'hubsize' } } : {},
+        interaction: { hover: true, tooltipDelay: 200 }
+    };
+
+    if (network) network.destroy();
+    network = new vis.Network(container, { nodes, edges }, options);
+
+    network.on('click', function(params) {
+        if (params.nodes.length > 0) {
+            const person = persons.find(p => p.profile_id === params.nodes[0]);
+            if (person) showProfileDetail(person);
+        }
+    });
+}
+
+function changeLayout() { renderGraph(); }
+function filterGraph() { renderGraph(); }
+
+// === PROFILES ===
+function renderProfiles() {
+    const grid = document.getElementById('profileGrid');
+    const riskFilter = document.getElementById('profileRiskFilter').value;
+    const minScore = parseInt(document.getElementById('profileMinScore').value) || 0;
+
+    let persons = allPersons;
+    if (riskFilter) persons = persons.filter(p => p.risk_level === riskFilter);
+    if (minScore > 0) persons = persons.filter(p => (p.involvement_score?.total || 0) >= minScore);
+
+    if (!persons.length) {
+        grid.innerHTML = '<div class="empty-state"><div class="icon">👤</div><p>No persons of interest found.</p></div>';
+        return;
+    }
+
+    grid.innerHTML = persons.map(p => {
+        const score = p.involvement_score?.total || 0;
+        const ds = p.decision_state || 'ai_proposed';
+        return `
+        <div class="profile-card" onclick="showProfileDetail(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="name">${p.entity_name}</div>
+                <span class="risk-badge ${p.risk_level}">${p.risk_level}</span>
+            </div>
+            <div class="score-bar">
+                <span style="font-size:0.7em; color:#718096; width:80px;">Score: ${score}</span>
+                <div style="flex:1; height:6px; background:#2d3748; border-radius:3px;">
+                    <div class="score-fill" style="width:${score}%; background:${score>70?'#e53e3e':score>40?'#d69e2e':'#48bb78'};"></div>
+                </div>
+            </div>
+            <div class="profile-detail">Strength: ${p.connection_strength} | Docs: ${(p.evidence_summary||[]).length} | Relations: ${(p.relationship_map||[]).length}</div>
+            <div style="margin-top:6px;">
+                <span class="decision-badge ${ds}">${ds.replace('_',' ')}</span>
+            </div>
+            <div class="actions">
+                ${ds === 'ai_proposed' ? `<button class="btn btn-confirm" onclick="event.stopPropagation(); confirmDecision('${p.decision_id}')">Accept</button><button class="btn btn-override" onclick="event.stopPropagation(); overrideDecision('${p.decision_id}')">Override</button>` : ''}
+                ${p.risk_level === 'high' && ds === 'human_confirmed' ? `<button class="btn btn-subcase" onclick="event.stopPropagation(); proposeSubCase('${p.profile_id}')">Propose Sub-Case</button>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function showProfileDetail(person) {
+    const p = typeof person === 'string' ? JSON.parse(person) : person;
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:1000;display:flex;align-items:center;justify-content:center;';
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+    const score = p.involvement_score || {};
+    modal.innerHTML = `
+    <div style="background:#1a2332;border:1px solid #2d3748;border-radius:14px;padding:28px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h2 style="color:#fff;font-size:1.2em;">${p.entity_name}</h2>
+            <span class="risk-badge ${p.risk_level}" style="font-size:0.8em;">${p.risk_level}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+            <div class="profile-detail">Involvement Score: <strong style="color:#fff;">${score.total || 0}</strong></div>
+            <div class="profile-detail">Connection Strength: <strong style="color:#fff;">${p.connection_strength}</strong></div>
+            <div class="profile-detail">Connections: ${score.connections || 0} | Co-occur: ${score.co_occurrence || 0}</div>
+            <div class="profile-detail">Financial: ${score.financial || 0} | Comm: ${score.communication || 0} | Geo: ${score.geographic || 0}</div>
+        </div>
+        <div style="margin-bottom:12px;">
+            <strong style="color:#a0aec0;font-size:0.78em;">AI Legal Reasoning</strong>
+            <div class="reasoning-text">${p.ai_legal_reasoning || 'No reasoning available.'}</div>
+        </div>
+        <div style="margin-bottom:12px;">
+            <strong style="color:#a0aec0;font-size:0.78em;">Evidence (${(p.evidence_summary||[]).length} documents)</strong>
+            <div style="max-height:100px;overflow-y:auto;font-size:0.75em;color:#718096;margin-top:4px;">
+                ${(p.evidence_summary||[]).map(e => `<div>${e.document_name || e.document_id}</div>`).join('') || 'None'}
+            </div>
+        </div>
+        <div class="actions">
+            <button class="btn btn-confirm" onclick="confirmDecision('${p.decision_id}');this.closest('div[style]').parentElement.remove();">Accept</button>
+            <button class="btn btn-override" onclick="overrideDecision('${p.decision_id}');this.closest('div[style]').parentElement.remove();">Override</button>
+            <button class="btn" style="background:#4a5568;color:#e2e8f0;" onclick="this.closest('div[style]').parentElement.remove();">Close</button>
+        </div>
+    </div>`;
+    document.body.appendChild(modal);
+}
+
+// === PATTERNS ===
+async function loadPatterns() {
+    if (!currentCaseId) return;
+    try {
+        const data = await api(`/case-files/${currentCaseId}/network-patterns`);
+        allPatterns = data.patterns || [];
+        renderPatterns();
+    } catch(e) { allPatterns = []; renderPatterns(); }
+}
+
+function renderPatterns(filterType = '') {
+    const types = ['all', 'financial', 'communication', 'geographic', 'temporal'];
+    document.getElementById('patternTabs').innerHTML = types.map(t =>
+        `<div class="pattern-tab ${(filterType||'all')===t?'active':''}" onclick="renderPatterns('${t}')">${t.charAt(0).toUpperCase()+t.slice(1)}</div>`
+    ).join('');
+
+    let patterns = allPatterns;
+    if (filterType && filterType !== 'all') patterns = patterns.filter(p => p.pattern_type === filterType);
+
+    const list = document.getElementById('patternList');
+    if (!patterns.length) {
+        list.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>No patterns detected. Run analysis first.</p></div>';
+        return;
+    }
+
+    list.innerHTML = patterns.map(p => `
+        <div class="pattern-card">
+            <span class="type-badge type-${p.pattern_type}">${p.pattern_type}</span>
+            <span class="decision-badge ${p.decision_state || 'ai_proposed'}" style="margin-left:8px;">${(p.decision_state||'ai_proposed').replace('_',' ')}</span>
+            <div style="font-size:0.88em;color:#e2e8f0;margin:8px 0;">${p.description}</div>
+            <div class="confidence-bar"><div class="confidence-fill" style="width:${p.confidence_score}%;"></div></div>
+            <div style="font-size:0.7em;color:#718096;">Confidence: ${p.confidence_score}% | Entities: ${(p.entities_involved||[]).length} | Docs: ${(p.evidence_documents||[]).length}</div>
+            ${p.ai_reasoning ? `<div class="reasoning-text">${p.ai_reasoning}</div>` : ''}
+            <div class="actions">
+                ${(p.decision_state||'ai_proposed')==='ai_proposed' ? `<button class="btn btn-confirm" onclick="confirmDecision('${p.decision_id}')">Accept</button><button class="btn btn-override" onclick="overrideDecision('${p.decision_id}')">Override</button>` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+// === SUB-CASES ===
+function renderSubcases() {
+    const list = document.getElementById('subcaseList');
+    const proposals = analysisData?.sub_case_proposals || [];
+    if (!proposals.length) {
+        list.innerHTML = '<div class="empty-state"><div class="icon">📂</div><p>No sub-case proposals yet. Confirm high-risk persons to propose sub-cases.</p></div>';
+        return;
+    }
+    list.innerHTML = proposals.map(sc => `
+        <div class="subcase-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="name" style="font-size:1em;font-weight:700;color:#fff;">Sub-Case: ${sc.profile_id?.slice(0,8)}</div>
+                <span class="decision-badge ${sc.status === 'confirmed' ? 'human_confirmed' : 'ai_proposed'}">${sc.status}</span>
+            </div>
+            ${sc.brief ? `<div class="reasoning-text" style="margin-top:10px;">${sc.brief.full_brief || sc.brief.evidence_summary || ''}</div>` : ''}
+            <div class="actions">
+                ${sc.status === 'proposed' ? `<button class="btn btn-confirm" onclick="confirmDecision('${sc.decision_id}')">Approve Sub-Case</button>` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+async function proposeSubCase(profileId) {
+    if (!currentCaseId) return;
+    try {
+        await api(`/case-files/${currentCaseId}/sub-cases`, 'POST', { person_id: profileId });
+        await loadAnalysis();
+        switchTab('subcases');
+    } catch(e) { console.error('Sub-case proposal failed:', e); }
+}
+
+// === DECISION WORKFLOW ===
+async function confirmDecision(decisionId) {
+    if (!decisionId) return;
+    try {
+        await api(`/decisions/${decisionId}/confirm`, 'POST', { rationale: 'Confirmed by analyst' });
+        await loadAnalysis();
+    } catch(e) { console.error('Confirm failed:', e); }
+}
+
+async function overrideDecision(decisionId) {
+    if (!decisionId) return;
+    const rationale = prompt('Override rationale:');
+    if (!rationale) return;
+    try {
+        await api(`/decisions/${decisionId}/override`, 'POST', { rationale });
+        await loadAnalysis();
+    } catch(e) { console.error('Override failed:', e); }
+}
+
+// === TAB SWITCHING ===
+function switchTab(name) {
+    document.querySelectorAll('.tab').forEach((t,i) => {
+        const tabs = ['graph','profiles','patterns','subcases'];
+        t.classList.toggle('active', tabs[i] === name);
+    });
+    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    if (name === 'graph') renderGraph();
+}
+
+// === INIT ===
+loadCases();
+</script>
+</body>
+</html>
+
