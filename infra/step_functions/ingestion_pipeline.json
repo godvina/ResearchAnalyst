@@ -1,0 +1,539 @@
+{
+  "Comment": "Research Analyst Platform — Document Ingestion Pipeline. Orchestrates config resolution, upload, per-document processing (parse, extract, embed, store artifact), graph loading (bulk CSV or Gremlin), and case status update. Supports sample_mode for running against a subset of documents.",
+  "StartAt": "ResolveConfig",
+  "States": {
+    "ResolveConfig": {
+      "Type": "Task",
+      "Resource": "${ResolveConfigLambdaArn}",
+      "Parameters": {
+        "case_id.$": "$.case_id"
+      },
+      "ResultPath": "$.effective_config",
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed", "Lambda.ServiceException"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error_info",
+          "Next": "SetStatusError"
+        }
+      ],
+      "Next": "CheckSampleMode"
+    },
+
+    "CheckSampleMode": {
+      "Type": "Choice",
+      "Comment": "If sample_mode is true, skip upload and use provided document_ids directly.",
+      "Choices": [
+        {
+          "Variable": "$.sample_mode",
+          "BooleanEquals": true,
+          "Next": "PrepareSampleDocuments"
+        }
+      ],
+      "Default": "CheckUploadResult"
+    },
+
+    "PrepareSampleDocuments": {
+      "Type": "Pass",
+      "Comment": "Reshape sample run document_ids into upload_result format for downstream compatibility.",
+      "Parameters": {
+        "case_id.$": "$.case_id",
+        "effective_config.$": "$.effective_config",
+        "sample_mode.$": "$.sample_mode",
+        "document_ids.$": "$.document_ids",
+        "upload_result": {
+          "document_ids.$": "$.document_ids",
+          "document_count.$": "States.ArrayLength($.document_ids)"
+        }
+      },
+      "Next": "ProcessDocuments"
+    },
+
+    "CheckUploadResult": {
+      "Type": "Choice",
+      "Comment": "Skip upload if upload_result already provided by the API handler.",
+      "Choices": [
+        {
+          "Variable": "$.upload_result.document_ids[0]",
+          "IsPresent": true,
+          "Next": "ProcessDocuments"
+        }
+      ],
+      "Default": "UploadRawData"
+    },
+    "UploadRawData": {
+      "Type": "Task",
+      "Resource": "${IngestionUploadLambdaArn}",
+      "Parameters": {
+        "case_id.$": "$.case_id",
+        "files.$": "$.files",
+        "effective_config.$": "$.effective_config"
+      },
+      "ResultPath": "$.upload_result",
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed", "Lambda.ServiceException"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error_info",
+          "Next": "SetStatusError"
+        }
+      ],
+      "Next": "ProcessDocuments"
+    },
+
+    "ProcessDocuments": {
+      "Type": "Map",
+      "ItemsPath": "$.upload_result.document_ids",
+      "MaxConcurrency": 5,
+      "Parameters": {
+        "case_id.$": "$.case_id",
+        "document_id.$": "$$.Map.Item.Value",
+        "effective_config.$": "$.effective_config"
+      },
+      "Iterator": {
+        "StartAt": "ParseDocument",
+        "States": {
+          "ParseDocument": {
+            "Type": "Task",
+            "Resource": "${IngestionParseLambdaArn}",
+            "Parameters": {
+              "case_id.$": "$.case_id",
+              "document_id.$": "$.document_id",
+              "effective_config.$": "$.effective_config"
+            },
+            "ResultPath": "$.parse_result",
+            "Retry": [
+              {
+                "ErrorEquals": ["States.TaskFailed", "Lambda.ServiceException"],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 3,
+                "BackoffRate": 2.0
+              }
+            ],
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.error_info",
+                "Next": "LogDocumentFailure"
+              }
+            ],
+            "Next": "ClassifyDocument"
+          },
+
+          "ClassifyDocument": {
+            "Type": "Pass",
+            "Comment": "Classification skipped — no dedicated classification Lambda. Pass through to ExtractEntities.",
+            "Result": {"action": "skipped", "reason": "no_classification_lambda"},
+            "ResultPath": "$.classification_result",
+            "Next": "ExtractEntities"
+          },
+
+          "ExtractEntities": {
+            "Type": "Task",
+            "Resource": "${IngestionExtractLambdaArn}",
+            "Parameters": {
+              "case_id.$": "$.case_id",
+              "document_id.$": "$.document_id",
+              "raw_text.$": "$.parse_result.raw_text",
+              "effective_config.$": "$.effective_config"
+            },
+            "ResultPath": "$.extraction_result",
+            "Retry": [
+              {
+                "ErrorEquals": ["States.TaskFailed", "Lambda.ServiceException"],
+                "IntervalSeconds": 3,
+                "MaxAttempts": 3,
+                "BackoffRate": 2.0
+              }
+            ],
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.error_info",
+                "Next": "LogDocumentFailure"
+              }
+            ],
+            "Next": "GenerateEmbedding"
+          },
+
+          "GenerateEmbedding": {
+            "Type": "Task",
+            "Resource": "${IngestionEmbedLambdaArn}",
+            "Parameters": {
+              "case_id.$": "$.case_id",
+              "document_id.$": "$.document_id",
+              "raw_text.$": "$.parse_result.raw_text",
+              "sections.$": "$.parse_result.sections",
+              "source_metadata.$": "$.parse_result.source_metadata",
+              "effective_config.$": "$.effective_config"
+            },
+            "ResultPath": "$.embed_result",
+            "Retry": [
+              {
+                "ErrorEquals": ["States.TaskFailed", "Lambda.ServiceException"],
+                "IntervalSeconds": 3,
+                "MaxAttempts": 3,
+                "BackoffRate": 2.0
+              }
+            ],
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.error_info",
+                "Next": "LogDocumentFailure"
+              }
+            ],
+            "Next": "StoreExtractionArtifact"
+          },
+
+          "StoreExtractionArtifact": {
+            "Type": "Task",
+            "Resource": "${IngestionStoreArtifactLambdaArn}",
+            "Parameters": {
+              "case_id.$": "$.case_id",
+              "document_id.$": "$.document_id",
+              "entities.$": "$.extraction_result.entities",
+              "relationships.$": "$.extraction_result.relationships",
+              "effective_config.$": "$.effective_config"
+            },
+            "ResultPath": "$.artifact_result",
+            "Retry": [
+              {
+                "ErrorEquals": ["States.TaskFailed", "Lambda.ServiceException"],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 3,
+                "BackoffRate": 2.0
+              }
+            ],
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.error_info",
+                "Next": "LogDocumentFailure"
+              }
+            ],
+            "Next": "DocumentSuccess"
+          },
+
+          "LogDocumentFailure": {
+            "Type": "Pass",
+            "Parameters": {
+              "case_id.$": "$.case_id",
+              "document_id.$": "$.document_id",
+              "status": "failed",
+              "error.$": "$.error_info"
+            },
+            "End": true
+          },
+
+          "DocumentSuccess": {
+            "Type": "Pass",
+            "Parameters": {
+              "case_id.$": "$.case_id",
+              "document_id.$": "$.document_id",
+              "status": "success"
+            },
+            "End": true
+          }
+        }
+      },
+      "ResultPath": "$.document_results",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error_info",
+          "Next": "SetStatusError"
+        }
+      ],
+      "Next": "CheckRekognitionEnabled"
+    },
+
+    "CheckRekognitionEnabled": {
+      "Type": "Choice",
+      "Comment": "If Rekognition is enabled in the effective config, run the Rekognition step for image/video analysis before graph loading.",
+      "Choices": [
+        {
+          "And": [
+            {
+              "Variable": "$.effective_config.rekognition",
+              "IsPresent": true
+            },
+            {
+              "Variable": "$.effective_config.rekognition.enabled",
+              "BooleanEquals": true
+            }
+          ],
+          "Next": "RekognitionStep"
+        }
+      ],
+      "Default": "ChooseGraphLoadStrategy"
+    },
+
+    "RekognitionStep": {
+      "Type": "Task",
+      "Resource": "${RekognitionLambdaArn}",
+      "Parameters": {
+        "case_id.$": "$.case_id",
+        "effective_config.$": "$.effective_config",
+        "document_ids.$": "$.upload_result.document_ids"
+      },
+      "ResultPath": "$.rekognition_result",
+      "TimeoutSeconds": 900,
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed", "Lambda.ServiceException"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error_info",
+          "Next": "SetStatusError"
+        }
+      ],
+      "Next": "CheckFaceCropEnabled"
+    },
+
+    "CheckFaceCropEnabled": {
+      "Type": "Choice",
+      "Comment": "If face_crop is enabled in the effective config, run the FaceCropStep for face thumbnail generation. Uses IsPresent guard before BooleanEquals per Lesson Learned #24.",
+      "Choices": [
+        {
+          "And": [
+            {
+              "Variable": "$.effective_config.face_crop",
+              "IsPresent": true
+            },
+            {
+              "Variable": "$.effective_config.face_crop.enabled",
+              "BooleanEquals": true
+            }
+          ],
+          "Next": "FaceCropStep"
+        }
+      ],
+      "Default": "CheckImageDescriptionEnabled"
+    },
+
+    "FaceCropStep": {
+      "Type": "Task",
+      "Resource": "${FaceCropLambdaArn}",
+      "Parameters": {
+        "case_id.$": "$.case_id",
+        "rekognition_result.$": "$.rekognition_result",
+        "effective_config.$": "$.effective_config"
+      },
+      "ResultPath": "$.face_crop_result",
+      "TimeoutSeconds": 300,
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed", "Lambda.ServiceException"],
+          "IntervalSeconds": 3,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.face_crop_error",
+          "Next": "CheckImageDescriptionEnabled"
+        }
+      ],
+      "Next": "CheckImageDescriptionEnabled"
+    },
+
+    "CheckImageDescriptionEnabled": {
+      "Type": "Choice",
+      "Comment": "If image_description is enabled in the effective config, run the ImageDescriptionStep for AI scene description. Uses IsPresent guard before BooleanEquals per Lesson Learned #24.",
+      "Choices": [
+        {
+          "And": [
+            {
+              "Variable": "$.effective_config.image_description",
+              "IsPresent": true
+            },
+            {
+              "Variable": "$.effective_config.image_description.enabled",
+              "BooleanEquals": true
+            }
+          ],
+          "Next": "ImageDescriptionStep"
+        }
+      ],
+      "Default": "ChooseGraphLoadStrategy"
+    },
+
+    "ImageDescriptionStep": {
+      "Type": "Task",
+      "Resource": "${ImageDescriptionLambdaArn}",
+      "Parameters": {
+        "case_id.$": "$.case_id",
+        "rekognition_result.$": "$.rekognition_result",
+        "effective_config.$": "$.effective_config"
+      },
+      "ResultPath": "$.image_description_result",
+      "TimeoutSeconds": 900,
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed", "Lambda.ServiceException"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.image_description_error",
+          "Next": "ChooseGraphLoadStrategy"
+        }
+      ],
+      "Next": "ChooseGraphLoadStrategy"
+    },
+
+    "ChooseGraphLoadStrategy": {
+      "Type": "Choice",
+      "Comment": "Route to bulk CSV loading when document count >= 20, otherwise use Gremlin for incremental loading.",
+      "Choices": [
+        {
+          "Variable": "$.upload_result.document_count",
+          "NumericGreaterThanEquals": 20,
+          "Next": "BulkCSVLoad"
+        }
+      ],
+      "Default": "GremlinLoad"
+    },
+
+    "BulkCSVLoad": {
+      "Type": "Task",
+      "Resource": "${IngestionGraphLoadLambdaArn}",
+      "Parameters": {
+        "case_id.$": "$.case_id",
+        "load_strategy": "bulk",
+        "extraction_results.$": "$.document_results",
+        "effective_config.$": "$.effective_config"
+      },
+      "ResultPath": "$.graph_load_result",
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed", "Lambda.ServiceException"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error_info",
+          "Next": "SetStatusError"
+        }
+      ],
+      "Next": "UpdateCaseStatusIndexed"
+    },
+
+    "GremlinLoad": {
+      "Type": "Task",
+      "Resource": "${IngestionGraphLoadLambdaArn}",
+      "Parameters": {
+        "case_id.$": "$.case_id",
+        "load_strategy": "gremlin",
+        "extraction_results.$": "$.document_results",
+        "effective_config.$": "$.effective_config"
+      },
+      "ResultPath": "$.graph_load_result",
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed", "Lambda.ServiceException"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error_info",
+          "Next": "SetStatusError"
+        }
+      ],
+      "Next": "UpdateCaseStatusIndexed"
+    },
+
+    "UpdateCaseStatusIndexed": {
+      "Type": "Task",
+      "Resource": "${IngestionUpdateStatusLambdaArn}",
+      "Parameters": {
+        "case_id.$": "$.case_id",
+        "status": "indexed",
+        "document_count.$": "$.upload_result.document_count",
+        "effective_config.$": "$.effective_config"
+      },
+      "ResultPath": "$.status_result",
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed", "Lambda.ServiceException"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error_info",
+          "Next": "SetStatusError"
+        }
+      ],
+      "Next": "PipelineComplete"
+    },
+
+    "SetStatusError": {
+      "Type": "Task",
+      "Resource": "${IngestionUpdateStatusLambdaArn}",
+      "Parameters": {
+        "case_id.$": "$.case_id",
+        "status": "error",
+        "error_details.$": "States.Format('Unrecoverable pipeline error: {}', $.error_info)"
+      },
+      "ResultPath": "$.error_status_result",
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Next": "PipelineFailed"
+    },
+
+    "PipelineFailed": {
+      "Type": "Fail",
+      "Error": "IngestionPipelineError",
+      "Cause": "The ingestion pipeline encountered an unrecoverable error. Case status set to error."
+    },
+
+    "PipelineComplete": {
+      "Type": "Succeed"
+    }
+  }
+}
