@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOJ Prosecutor Case Review — AI-Powered Analysis</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f1923; color: #e2e8f0; min-height: 100vh; }
+
+        /* === HEADER === */
+        .header { background: linear-gradient(135deg, #1a365d 0%, #2a4a7f 50%, #1e3a5f 100%); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #f6ad55; }
+        .header h1 { font-size: 1.35em; color: #fff; }
+        .header h1 span { color: #f6ad55; }
+        .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .header-badge { background: rgba(246,173,85,0.15); border: 1px solid #f6ad55; color: #f6ad55; padding: 4px 12px; border-radius: 20px; font-size: 0.72em; font-weight: 600; }
+
+        /* === TABS === */
+        .tabs { display: flex; background: #1a2332; border-bottom: 1px solid #2d3748; }
+        .tab { padding: 12px 24px; cursor: pointer; font-size: 0.82em; font-weight: 600; color: #718096; border-bottom: 3px solid transparent; transition: all 0.2s; letter-spacing: 0.5px; }
+        .tab:hover { color: #e2e8f0; background: rgba(255,255,255,0.03); }
+        .tab.active { color: #f6ad55; border-bottom-color: #f6ad55; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* === LAYOUT === */
+        .main-layout { display: flex; height: calc(100vh - 100px); }
+        .sidebar { width: 300px; background: #1a2332; border-right: 1px solid #2d3748; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-title { padding: 16px 18px; font-weight: 700; color: #f6ad55; border-bottom: 1px solid #2d3748; text-transform: uppercase; letter-spacing: 1px; font-size: 0.78em; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-title .case-count { background: rgba(246,173,85,0.2); color: #f6ad55; padding: 2px 8px; border-radius: 10px; font-size: 0.9em; }
+        .case-list { flex: 1; overflow-y: auto; }
+        .case-list::-webkit-scrollbar { width: 6px; }
+        .case-list::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 3px; }
+        .case-card { padding: 12px 18px; cursor: pointer; border-left: 4px solid transparent; transition: all 0.2s; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .case-card:hover { background: rgba(246,173,85,0.08); }
+        .case-card.active { background: rgba(246,173,85,0.12); border-left-color: #f6ad55; }
+        .case-card .case-name { font-size: 0.9em; font-weight: 700; color: #e2e8f0; margin-bottom: 2px; }
+        .case-card .case-meta { font-size: 0.7em; color: #718096; }
+        .content-area { flex: 1; overflow-y: auto; padding: 24px 32px; }
+        .content-area::-webkit-scrollbar { width: 8px; }
+        .content-area::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 4px; }
+
+        /* === CASE HEADER === */
+        .case-header { background: linear-gradient(135deg, #1a2332, #243447); border: 1px solid #2d3748; border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+        .case-header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .case-header-top h2 { font-size: 1.3em; color: #fff; }
+        .case-status { background: rgba(246,173,85,0.15); border: 1px solid #f6ad55; color: #f6ad55; padding: 5px 14px; border-radius: 20px; font-size: 0.75em; font-weight: 600; }
+        .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .meta-item { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; }
+        .meta-item .meta-label { font-size: 0.65em; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; }
+        .meta-item .meta-value { font-size: 0.88em; color: #e2e8f0; margin-top: 2px; font-weight: 600; }
+
+        /* === SECTION CARD === */
+        .section-card { background: #1a2332; border: 1px solid #2d3748; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .section-card h3 { font-size: 0.85em; color: #f6ad55; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* === READINESS BAR === */
+        .readiness-bar { background: rgba(255,255,255,0.05); border-radius: 8px; height: 28px; overflow: hidden; margin-bottom: 16px; position: relative; }
+        .readiness-fill { height: 100%; border-radius: 8px; transition: width 0.6s ease; }
+        .readiness-fill.high { background: linear-gradient(90deg, #48bb78, #38a169); }
+        .readiness-fill.medium { background: linear-gradient(90deg, #f6ad55, #dd6b20); }
+        .readiness-fill.low { background: linear-gradient(90deg, #fc8181, #e53e3e); }
+        .readiness-label { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 0.75em; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+
+        /* === EVIDENCE MATRIX === */
+        .statute-selector { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .statute-selector label { font-size: 0.82em; color: #a0aec0; font-weight: 600; }
+        .statute-selector select { background: #0d1520; border: 1px solid #2d3748; color: #e2e8f0; padding: 8px 12px; border-radius: 6px; font-size: 0.82em; min-width: 300px; }
+        .statute-selector select:focus { outline: none; border-color: #f6ad55; }
+        .matrix-grid { overflow-x: auto; margin-top: 12px; }
+        .matrix-grid table { width: 100%; border-collapse: collapse; font-size: 0.78em; }
+        .matrix-grid th { background: #0d1520; color: #a0aec0; padding: 10px 8px; text-align: left; border: 1px solid #2d3748; font-weight: 600; white-space: nowrap; }
+        .matrix-grid td { padding: 8px; border: 1px solid #2d3748; vertical-align: top; min-width: 140px; }
+        .matrix-cell { border-radius: 6px; padding: 8px; cursor: pointer; transition: all 0.2s; }
+        .matrix-cell:hover { transform: scale(1.02); }
+        .matrix-cell.green { background: rgba(72,187,120,0.15); border: 1px solid rgba(72,187,120,0.3); }
+        .matrix-cell.yellow { background: rgba(246,173,85,0.15); border: 1px solid rgba(246,173,85,0.3); }
+        .matrix-cell.red { background: rgba(252,129,129,0.15); border: 1px solid rgba(252,129,129,0.3); }
+        .matrix-cell .rating-text { font-weight: 600; font-size: 0.9em; margin-bottom: 4px; }
+        .matrix-cell.green .rating-text { color: #48bb78; }
+        .matrix-cell.yellow .rating-text { color: #f6ad55; }
+        .matrix-cell.red .rating-text { color: #fc8181; }
+        .matrix-cell .confidence { font-size: 0.75em; color: #718096; }
+
+        /* === DECISION STATE BADGES === */
+        .state-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 12px; font-size: 0.7em; font-weight: 600; }
+        .state-badge .dot { width: 8px; height: 8px; border-radius: 50%; }
+        .state-badge.ai-proposed { background: rgba(246,173,85,0.15); color: #f6ad55; }
+        .state-badge.ai-proposed .dot { background: #f6ad55; }
+        .state-badge.human-confirmed { background: rgba(72,187,120,0.15); color: #48bb78; }
+        .state-badge.human-confirmed .dot { background: #48bb78; }
+        .state-badge.human-overridden { background: rgba(99,179,237,0.15); color: #63b3ed; }
+        .state-badge.human-overridden .dot { background: #63b3ed; }
+
+        /* === CONFIDENCE BADGES === */
+        .confidence-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.65em; font-weight: 600; }
+        .confidence-badge.high { background: rgba(72,187,120,0.2); color: #48bb78; }
+        .confidence-badge.medium { background: rgba(246,173,85,0.2); color: #f6ad55; }
+        .confidence-badge.low { background: rgba(252,129,129,0.2); color: #fc8181; }
+
+        /* === DECISION ACTIONS === */
+        .decision-actions { display: flex; gap: 6px; margin-top: 8px; }
+        .btn-accept { background: rgba(72,187,120,0.15); color: #48bb78; border: 1px solid #48bb78; padding: 4px 12px; border-radius: 6px; font-size: 0.72em; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-accept:hover { background: rgba(72,187,120,0.3); }
+        .btn-override { background: rgba(99,179,237,0.15); color: #63b3ed; border: 1px solid rgba(99,179,237,0.3); padding: 4px 12px; border-radius: 6px; font-size: 0.72em; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-override:hover { background: rgba(99,179,237,0.3); }
+        .btn-action { background: linear-gradient(135deg, #f6ad55, #dd6b20); color: #1a202c; border: none; padding: 8px 18px; border-radius: 8px; font-weight: 700; font-size: 0.8em; cursor: pointer; transition: all 0.2s; }
+        .btn-action:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(246,173,85,0.3); }
+
+        /* === LEGAL REASONING EXPANDABLE === */
+        .legal-reasoning { margin-top: 6px; }
+        .legal-reasoning-toggle { font-size: 0.72em; color: #f6ad55; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .legal-reasoning-toggle:hover { text-decoration: underline; }
+        .legal-reasoning-content { display: none; margin-top: 6px; padding: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; font-size: 0.78em; color: #a0aec0; line-height: 1.6; }
+        .legal-reasoning-content.open { display: block; }
+
+        /* === OVERRIDE MODAL === */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #1a2332; border: 1px solid #f6ad55; border-radius: 14px; padding: 24px; width: 500px; max-width: 90%; }
+        .modal h3 { color: #f6ad55; margin-bottom: 16px; font-size: 1em; }
+        .modal textarea { width: 100%; background: #0d1520; border: 1px solid #2d3748; color: #e2e8f0; padding: 10px; border-radius: 6px; font-size: 0.85em; min-height: 100px; resize: vertical; font-family: inherit; }
+        .modal textarea:focus { outline: none; border-color: #f6ad55; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+        .btn-cancel { background: rgba(255,255,255,0.05); color: #a0aec0; border: 1px solid #2d3748; padding: 6px 16px; border-radius: 6px; font-size: 0.8em; cursor: pointer; }
+        .btn-cancel:hover { border-color: #718096; }
+        .btn-submit { background: #f6ad55; color: #1a202c; border: none; padding: 6px 16px; border-radius: 6px; font-size: 0.8em; font-weight: 700; cursor: pointer; }
+        .btn-submit:hover { background: #dd6b20; }
+
+        /* === WEAKNESS CARDS === */
+        .weakness-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 16px; margin-bottom: 12px; transition: all 0.2s; }
+        .weakness-card:hover { border-color: rgba(246,173,85,0.3); }
+        .weakness-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .weakness-title { font-size: 0.9em; font-weight: 600; color: #e2e8f0; }
+        .severity-badge { padding: 3px 10px; border-radius: 10px; font-size: 0.68em; font-weight: 700; text-transform: uppercase; }
+        .severity-badge.critical { background: rgba(252,129,129,0.2); color: #fc8181; }
+        .severity-badge.warning { background: rgba(246,173,85,0.2); color: #f6ad55; }
+        .severity-badge.info { background: rgba(99,179,237,0.2); color: #63b3ed; }
+        .weakness-desc { font-size: 0.82em; color: #a0aec0; line-height: 1.6; margin-bottom: 8px; }
+        .weakness-affected { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+        .affected-tag { padding: 2px 8px; border-radius: 8px; font-size: 0.65em; font-weight: 600; background: rgba(255,255,255,0.05); color: #a0aec0; }
+        .remediation-box { margin-top: 10px; padding: 10px; background: rgba(252,129,129,0.06); border: 1px solid rgba(252,129,129,0.2); border-radius: 6px; }
+        .remediation-box .rem-label { font-size: 0.7em; color: #fc8181; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+        .remediation-box .rem-text { font-size: 0.8em; color: #e2e8f0; line-height: 1.5; }
+
+        /* === PRECEDENT CARDS === */
+        .precedent-card { background: #1a2332; border: 1px solid #2d3748; border-radius: 12px; padding: 18px 22px; margin-bottom: 12px; display: grid; grid-template-columns: 60px 1fr 140px 120px; gap: 18px; align-items: center; transition: all 0.2s; cursor: pointer; }
+        .precedent-card:hover { border-color: #f6ad55; background: #1e2a3a; }
+        .match-score { text-align: center; }
+        .match-score .score { font-size: 1.3em; font-weight: 700; }
+        .match-score .score-label { font-size: 0.62em; color: #718096; text-transform: uppercase; }
+        .score-high { color: #68d391; }
+        .score-med { color: #f6ad55; }
+        .score-low { color: #fc8181; }
+        .precedent-info .p-case-id { font-size: 0.72em; color: #718096; }
+        .precedent-info .p-title { font-size: 0.92em; font-weight: 600; color: #e2e8f0; margin: 3px 0; }
+        .precedent-info .p-summary { font-size: 0.78em; color: #a0aec0; line-height: 1.5; }
+        .precedent-ruling { text-align: center; }
+        .ruling-badge { display: inline-block; padding: 4px 12px; border-radius: 8px; font-size: 0.78em; font-weight: 700; }
+        .ruling-badge.guilty { background: rgba(252,129,129,0.15); color: #fc8181; border: 1px solid rgba(252,129,129,0.3); }
+        .ruling-badge.not-guilty { background: rgba(104,211,145,0.15); color: #68d391; border: 1px solid rgba(104,211,145,0.3); }
+        .ruling-badge.plea-deal { background: rgba(246,173,85,0.15); color: #f6ad55; border: 1px solid rgba(246,173,85,0.3); }
+        .ruling-badge.dismissed { background: rgba(144,205,244,0.15); color: #90cdf4; border: 1px solid rgba(144,205,244,0.3); }
+        .ruling-badge.settled { background: rgba(214,188,250,0.15); color: #d6bcfa; border: 1px solid rgba(214,188,250,0.3); }
+        .ruling-sentence { font-size: 0.72em; color: #a0aec0; margin-top: 4px; }
+        .precedent-meta { text-align: right; font-size: 0.75em; color: #718096; }
+        .precedent-meta div { margin-bottom: 2px; }
+
+        /* === RULING DISTRIBUTION === */
+        .dist-bars { display: flex; flex-direction: column; gap: 10px; }
+        .dist-row { display: flex; align-items: center; gap: 12px; }
+        .dist-label { width: 110px; font-size: 0.82em; color: #cbd5e0; text-align: right; }
+        .dist-bar-bg { flex: 1; height: 24px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
+        .dist-bar-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+        .dist-count { width: 80px; font-size: 0.82em; color: #a0aec0; font-weight: 600; }
+
+        /* === SENTENCING ADVISORY === */
+        .sentencing-panel { background: linear-gradient(135deg, rgba(99,179,237,0.08), rgba(99,179,237,0.03)); border: 1px solid rgba(99,179,237,0.3); border-radius: 12px; padding: 22px; margin-bottom: 20px; }
+        .sentencing-panel h3 { font-size: 0.9em; color: #63b3ed; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .sentencing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+        .sent-item { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px; }
+        .sent-item .sent-label { font-size: 0.68em; text-transform: uppercase; letter-spacing: 0.5px; color: #a0aec0; margin-bottom: 5px; }
+        .sent-item .sent-value { font-size: 1em; font-weight: 700; color: #fff; }
+        .sent-justification { font-size: 0.85em; line-height: 1.7; color: #cbd5e0; padding-top: 12px; border-top: 1px solid rgba(99,179,237,0.15); }
+
+        /* === CHARGING DECISION === */
+        .charge-card { background: linear-gradient(135deg, rgba(246,173,85,0.08), rgba(246,173,85,0.03)); border: 1px solid rgba(246,173,85,0.3); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+        .charge-card h4 { font-size: 0.95em; color: #f6ad55; margin-bottom: 10px; }
+        .charge-card .rec-text { font-size: 0.88em; line-height: 1.7; color: #e2e8f0; }
+        .risk-flags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .risk-flag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 8px; font-size: 0.72em; font-weight: 600; }
+        .risk-flag.brady { background: rgba(252,129,129,0.15); color: #fc8181; }
+        .risk-flag.suppression { background: rgba(246,173,85,0.15); color: #f6ad55; }
+        .risk-flag.credibility { background: rgba(214,188,250,0.15); color: #d6bcfa; }
+
+        /* === EMPTY STATE === */
+        .empty-state { text-align: center; padding: 60px 32px; color: #4a5568; }
+        .empty-state .empty-icon { font-size: 3em; margin-bottom: 16px; }
+        .empty-state .empty-text { font-size: 1.1em; color: #718096; }
+        .empty-state .empty-sub { font-size: 0.85em; margin-top: 8px; color: #4a5568; }
+
+        /* === LOADING === */
+        .loading { text-align: center; padding: 30px; color: #718096; font-size: 0.82em; }
+        .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #2d3748; border-top-color: #f6ad55; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* === TOAST === */
+        .toast { position: fixed; top: 20px; right: 20px; background: #f6ad55; color: #1a202c; padding: 12px 20px; border-radius: 8px; font-size: 0.82em; font-weight: 600; z-index: 9999; display: none; }
+        .toast.show { display: block; animation: fadeInOut 3s ease; }
+        @keyframes fadeInOut { 0%{opacity:0;transform:translateY(-10px)} 10%{opacity:1;transform:translateY(0)} 80%{opacity:1} 100%{opacity:0} }
+
+        .nav-bar { background:#1a2332; border-bottom:1px solid #2d3748; display:flex; gap:0; padding:0 16px; }
+        .nav-link { padding:10px 16px; font-size:0.75em; font-weight:600; color:#718096; border-bottom:2px solid transparent; text-decoration:none; transition:color 0.2s; }
+        .nav-link:hover { color:#e2e8f0; }
+        .nav-link.active { color:#48bb78; border-bottom-color:#48bb78; }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <h1>&#9878; DOJ <span>Prosecutor Case Review</span></h1>
+    <div class="header-right">
+        <a href="network_discovery.html" style="color:#e53e3e;text-decoration:none;font-size:0.75em;padding:4px 10px;border:1px solid #e53e3e;border-radius:6px;">Network Discovery</a>
+        <a href="document_assembly.html" style="color:#805ad5;text-decoration:none;font-size:0.75em;padding:4px 10px;border:1px solid #805ad5;border-radius:6px;">Document Assembly</a>
+        <a href="investigator.html" style="color:#48bb78;text-decoration:none;font-size:0.75em;padding:4px 10px;border:1px solid #48bb78;border-radius:6px;">Investigator</a>
+        <div class="header-badge">AI-Powered Analysis</div>
+        <div class="header-badge">Human-in-the-Loop</div>
+    </div>
+</div>
+<div class="nav-bar">
+    <a href="index.html" class="nav-link">🏠 Home</a>
+    <a href="investigator.html" class="nav-link">📋 Cases</a>
+    <a href="pipeline-config.html" class="nav-link">⚙️ Pipeline Config</a>
+    <a href="batch-loader.html" class="nav-link">📦 Batch Loader</a>
+    <a href="admin.html" class="nav-link">🔐 Admin</a>
+    <a href="chatbot.html" class="nav-link">💬 Chat</a>
+    <a href="wizard.html" class="nav-link">🧙 Wizard</a>
+    <a href="portfolio.html" class="nav-link">📊 Portfolio</a>
+    <a href="workbench.html" class="nav-link">🔬 Workbench</a>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+    <div class="tab active" onclick="switchTab('evidence')">&#128202; Evidence Matrix</div>
+    <div class="tab" onclick="switchTab('charging')">&#9878; Charging Decisions</div>
+    <div class="tab" onclick="switchTab('weaknesses')">&#9888; Case Weaknesses</div>
+    <div class="tab" onclick="switchTab('precedent')">&#128218; Precedent Analysis</div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="main-layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-title">
+            &#128203; Cases <span class="case-count" id="caseCount">0</span>
+        </div>
+        <div class="case-list" id="caseList">
+            <div class="loading"><span class="spinner"></span> Loading cases...</div>
+        </div>
+    </div>
+
+    <!-- CONTENT AREA -->
+    <div class="content-area" id="contentArea">
+        <!-- Evidence Matrix Tab -->
+        <div class="tab-content active" id="tab-evidence">
+            <div id="evidenceContent">
+                <div class="empty-state">
+                    <div class="empty-icon">&#128202;</div>
+                    <div class="empty-text">Select a case to view the Evidence Matrix</div>
+                    <div class="empty-sub">Choose a case from the sidebar to begin prosecution analysis</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charging Decisions Tab -->
+        <div class="tab-content" id="tab-charging">
+            <div id="chargingContent">
+                <div class="empty-state">
+                    <div class="empty-icon">&#9878;</div>
+                    <div class="empty-text">Select a case to view Charging Decisions</div>
+                    <div class="empty-sub">AI-drafted charging recommendations will appear here</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Case Weaknesses Tab -->
+        <div class="tab-content" id="tab-weaknesses">
+            <div id="weaknessesContent">
+                <div class="empty-state">
+                    <div class="empty-icon">&#9888;</div>
+                    <div class="empty-text">Select a case to view Case Weaknesses</div>
+                    <div class="empty-sub">Automated weakness analysis will appear here</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Precedent Analysis Tab -->
+        <div class="tab-content" id="tab-precedent">
+            <div id="precedentContent">
+                <div class="empty-state">
+                    <div class="empty-icon">&#128218;</div>
+                    <div class="empty-text">Select a case to view Precedent Analysis</div>
+                    <div class="empty-sub">Similar cases and sentencing advisories will appear here</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- OVERRIDE MODAL -->
+<div class="modal-overlay" id="overrideModal" onclick="if(event.target===this)closeOverrideModal()">
+    <div class="modal">
+        <h3>&#9998; Override AI Recommendation</h3>
+        <p style="font-size:0.82em;color:#a0aec0;margin-bottom:12px;">Provide your rationale for overriding this recommendation:</p>
+        <textarea id="overrideRationale" placeholder="Enter your override rationale..."></textarea>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeOverrideModal()">Cancel</button>
+            <button class="btn-submit" onclick="submitOverride()">Submit Override</button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="config.js"></script>
+<script>
+const API_URL = window.APP_CONFIG.API_URL;
+const ATTORNEY_ID = 'prosecutor-default';
+
+// === STATE ===
+let cases = [];
+let selectedCaseId = null;
+let selectedCase = null;
+let statutes = [];
+let selectedStatuteId = null;
+let currentOverrideDecisionId = null;
+let currentTab = 'evidence';
+
+// === API HELPERS ===
+async function api(method, path, body) {
+    const opts = { method, headers: {'Content-Type':'application/json'} };
+    if (body) opts.body = JSON.stringify(body);
+    const resp = await fetch(API_URL + path, opts);
+    return resp.json();
+}
+
+// === TOAST ===
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// === TAB SWITCHING ===
+function switchTab(tab) {
+    currentTab = tab;
+    const tabs = ['evidence','charging','weaknesses','precedent'];
+    document.querySelectorAll('.tab').forEach((t, i) => {
+        t.classList.toggle('active', tabs[i] === tab);
+    });
+    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    if (selectedCaseId) {
+        if (tab === 'evidence') loadEvidenceMatrix();
+        if (tab === 'charging') loadChargingDecisions();
+        if (tab === 'weaknesses') loadWeaknesses();
+        if (tab === 'precedent') loadPrecedentAnalysis();
+    }
+}
+
+// === LOAD CASES ===
+async function loadCases() {
+    try {
+        const data = await api('GET', '/case-files');
+        cases = data.case_files || [];
+        renderCaseList();
+    } catch(e) {
+        document.getElementById('caseList').innerHTML = '<div class="empty-state" style="padding:30px 16px;"><div style="font-size:0.82em;color:#fc8181;">Failed to load cases</div></div>';
+    }
+}
+
+function renderCaseList() {
+    // Deduplicate cases by case_id (API may return duplicates)
+    const seen = new Set();
+    const uniqueCases = [];
+    cases.forEach(c => {
+        if (!seen.has(c.case_id)) {
+            seen.add(c.case_id);
+            uniqueCases.push(c);
+        }
+    });
+    cases = uniqueCases;
+
+    document.getElementById('caseCount').textContent = cases.length;
+    let h = '';
+    cases.forEach(c => {
+        const active = c.case_id === selectedCaseId ? ' active' : '';
+        const shortId = c.case_id.substring(0, 8);
+        const name = c.topic_name || c.case_id;
+        const docs = c.document_count || 0;
+        const entities = c.entity_count || 0;
+        h += '<div class="case-card' + active + '" onclick="selectCase(\'' + c.case_id + '\')">';
+        h += '<div class="case-name">' + escapeHtml(name) + '</div>';
+        h += '<div class="case-meta">' + (c.status || 'active') + ' &middot; ' + docs + ' docs';
+        if (entities > 0) h += ' &middot; ' + entities.toLocaleString() + ' entities';
+        h += '</div>';
+        h += '<div class="case-meta" style="font-size:0.6em;color:#4a5568;margin-top:2px;">' + shortId + '</div>';
+        h += '</div>';
+    });
+    document.getElementById('caseList').innerHTML = h || '<div class="empty-state" style="padding:30px 16px;"><div style="font-size:0.82em;color:#718096;">No cases found</div></div>';
+}
+
+// === SELECT CASE ===
+async function selectCase(caseId) {
+    selectedCaseId = caseId;
+    selectedCase = cases.find(x => x.case_id === caseId);
+    renderCaseList();
+    await loadStatutes();
+    switchTab(currentTab);
+}
+
+// === LOAD STATUTES ===
+async function loadStatutes() {
+    try {
+        const data = await api('GET', '/statutes');
+        statutes = data.statutes || data || [];
+        if (statutes.length > 0 && !selectedStatuteId) {
+            selectedStatuteId = statutes[0].statute_id;
+        }
+    } catch(e) {
+        statutes = [];
+    }
+}
+
+// === HELPER: State badge HTML ===
+function stateBadgeHtml(state) {
+    const map = {
+        'ai_proposed': { cls: 'ai-proposed', label: 'AI Proposed' },
+        'human_confirmed': { cls: 'human-confirmed', label: 'Confirmed' },
+        'human_overridden': { cls: 'human-overridden', label: 'Overridden' }
+    };
+    const s = map[state] || map['ai_proposed'];
+    return '<span class="state-badge ' + s.cls + '"><span class="dot"></span>' + s.label + '</span>';
+}
+
+function confidenceBadgeHtml(confidence) {
+    const c = (confidence || 'medium').toLowerCase();
+    return '<span class="confidence-badge ' + c + '">' + c.charAt(0).toUpperCase() + c.slice(1) + '</span>';
+}
+
+function decisionActionsHtml(decisionId, state) {
+    if (state === 'human_confirmed' || state === 'human_overridden') return '';
+    return '<div class="decision-actions">' +
+        '<button class="btn-accept" onclick="event.stopPropagation();confirmDecision(\'' + decisionId + '\')">&#10003; Accept</button>' +
+        '<button class="btn-override" onclick="event.stopPropagation();openOverrideModal(\'' + decisionId + '\')">&#9998; Override</button>' +
+        '</div>';
+}
+
+function legalReasoningHtml(id, reasoning) {
+    if (!reasoning) return '';
+    return '<div class="legal-reasoning">' +
+        '<div class="legal-reasoning-toggle" onclick="event.stopPropagation();toggleReasoning(\'' + id + '\')">&#9660; Legal Reasoning</div>' +
+        '<div class="legal-reasoning-content" id="reasoning-' + id + '">' + escapeHtml(reasoning) + '</div>' +
+        '</div>';
+}
+
+function toggleReasoning(id) {
+    const el = document.getElementById('reasoning-' + id);
+    if (el) el.classList.toggle('open');
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// === EVIDENCE MATRIX TAB ===
+async function loadEvidenceMatrix() {
+    const container = document.getElementById('evidenceContent');
+    if (!selectedCaseId) return;
+
+    // Build statute selector
+    let statuteOpts = statutes.map(s =>
+        '<option value="' + s.statute_id + '"' + (s.statute_id === selectedStatuteId ? ' selected' : '') + '>' +
+        escapeHtml(s.citation + ' — ' + s.title) + '</option>'
+    ).join('');
+
+    container.innerHTML =
+        '<div class="case-header">' +
+            '<div class="case-header-top">' +
+                '<div><h2>' + escapeHtml(selectedCase ? selectedCase.topic_name : selectedCaseId) + '</h2></div>' +
+                '<div class="case-status">Prosecution Review</div>' +
+            '</div>' +
+            (selectedCase ? '<div class="meta-grid">' +
+                '<div class="meta-item"><div class="meta-label">Status</div><div class="meta-value">' + (selectedCase.status || 'Active') + '</div></div>' +
+                '<div class="meta-item"><div class="meta-label">Documents</div><div class="meta-value">' + (selectedCase.document_count || 0) + '</div></div>' +
+                '<div class="meta-item"><div class="meta-label">Created</div><div class="meta-value">' + new Date(selectedCase.created_at).toLocaleDateString() + '</div></div>' +
+                '<div class="meta-item"><div class="meta-label">Case ID</div><div class="meta-value" style="font-size:0.72em;word-break:break-all;">' + selectedCaseId + '</div></div>' +
+            '</div>' : '') +
+        '</div>' +
+        '<div class="section-card">' +
+            '<h3>&#128202; Evidence Matrix</h3>' +
+            '<div class="statute-selector">' +
+                '<label>Statute:</label>' +
+                '<select id="statuteSelect" onchange="onStatuteChange(this.value)">' +
+                    (statuteOpts || '<option>No statutes available</option>') +
+                '</select>' +
+            '</div>' +
+            '<div id="readinessBar"></div>' +
+            '<div id="matrixContainer"><div class="loading"><span class="spinner"></span> Loading evidence matrix...</div></div>' +
+        '</div>';
+
+    if (selectedStatuteId) {
+        await fetchEvidenceMatrix();
+    }
+}
+
+function onStatuteChange(statuteId) {
+    selectedStatuteId = statuteId;
+    fetchEvidenceMatrix();
+}
+
+async function fetchEvidenceMatrix() {
+    const matrixEl = document.getElementById('matrixContainer');
+    const readinessEl = document.getElementById('readinessBar');
+    if (!matrixEl) return;
+    matrixEl.innerHTML = '<div class="loading"><span class="spinner"></span> Loading evidence matrix...</div>';
+
+    try {
+        const data = await api('GET', '/case-files/' + selectedCaseId + '/element-assessment?statute_id=' + selectedStatuteId);
+        renderEvidenceMatrix(data, matrixEl, readinessEl);
+    } catch(e) {
+        matrixEl.innerHTML = '<div style="color:#fc8181;font-size:0.85em;padding:16px;">Failed to load evidence matrix. The API may not be connected.</div>';
+        if (readinessEl) readinessEl.innerHTML = '';
+    }
+}
+
+function renderEvidenceMatrix(data, matrixEl, readinessEl) {
+    // Render readiness score
+    const score = data.readiness_score || data.readiness || 0;
+    const scoreClass = score >= 70 ? 'high' : score >= 40 ? 'medium' : 'low';
+    if (readinessEl) {
+        readinessEl.innerHTML =
+            '<div class="readiness-bar">' +
+                '<div class="readiness-fill ' + scoreClass + '" style="width:' + score + '%"></div>' +
+                '<div class="readiness-label">Prosecution Readiness: ' + score + '%</div>' +
+            '</div>';
+    }
+
+    // Get elements and evidence
+    const elements = data.elements || [];
+    const evidence = data.evidence_items || data.evidence || [];
+    const ratings = data.ratings || data.matrix || [];
+
+    if (elements.length === 0) {
+        matrixEl.innerHTML = '<div style="color:#718096;font-size:0.85em;padding:16px;">No statutory elements found for this statute.</div>';
+        return;
+    }
+
+    // Build matrix table
+    let h = '<div class="matrix-grid"><table>';
+    h += '<thead><tr><th style="min-width:180px;">Statutory Element</th>';
+    evidence.forEach(ev => {
+        const name = ev.title || ev.name || ev.evidence_id || 'Evidence';
+        h += '<th>' + escapeHtml(name.substring(0, 30)) + '</th>';
+    });
+    h += '</tr></thead><tbody>';
+
+    elements.forEach(elem => {
+        h += '<tr>';
+        h += '<td style="font-weight:600;color:#e2e8f0;font-size:0.82em;">' + escapeHtml(elem.display_name || elem.name) + '</td>';
+
+        evidence.forEach(ev => {
+            const rating = findRating(ratings, elem.element_id, ev.evidence_id || ev.id);
+            if (rating) {
+                const color = rating.rating || 'red';
+                const uid = 'r-' + (rating.assessment_id || elem.element_id + '-' + (ev.evidence_id || ev.id));
+                const state = rating.decision_state || 'ai_proposed';
+                h += '<td><div class="matrix-cell ' + color + '">';
+                h += '<div class="rating-text">' + color.toUpperCase() + '</div>';
+                h += '<div class="confidence">Confidence: ' + (rating.confidence || 0) + '%</div>';
+                h += stateBadgeHtml(state);
+                if (rating.decision_id) {
+                    h += decisionActionsHtml(rating.decision_id, state);
+                }
+                h += legalReasoningHtml(uid, rating.reasoning || rating.legal_justification);
+                h += '</div></td>';
+            } else {
+                h += '<td><div class="matrix-cell red"><div class="rating-text">—</div><div class="confidence">Not assessed</div></div></td>';
+            }
+        });
+        h += '</tr>';
+    });
+
+    h += '</tbody></table></div>';
+    matrixEl.innerHTML = h;
+}
+
+function findRating(ratings, elementId, evidenceId) {
+    return ratings.find(r =>
+        (r.element_id === elementId) && (r.evidence_id === evidenceId)
+    ) || null;
+}
+
+// === CHARGING DECISIONS TAB ===
+async function loadChargingDecisions() {
+    const container = document.getElementById('chargingContent');
+    if (!selectedCaseId) return;
+    container.innerHTML = '<div class="loading"><span class="spinner"></span> Loading charging decisions...</div>';
+
+    try {
+        const decisions = await api('GET', '/case-files/' + selectedCaseId + '/decisions?decision_type=charging_recommendation');
+        const decisionList = decisions.decisions || decisions || [];
+        renderChargingDecisions(container, decisionList);
+    } catch(e) {
+        renderChargingDecisions(container, []);
+    }
+}
+
+function renderChargingDecisions(container, decisions) {
+    let h = '<div class="section-card"><h3>&#9878; AI Charging Recommendations</h3>';
+
+    if (decisions.length === 0) {
+        h += '<div style="color:#718096;font-size:0.85em;padding:12px;">No charging recommendations yet. Run element assessment first to generate AI recommendations.</div>';
+    } else {
+        decisions.forEach(d => {
+            h += '<div class="charge-card">';
+            h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
+            h += '<h4>' + escapeHtml(d.decision_type || 'Charging Recommendation') + '</h4>';
+            h += '<div style="display:flex;gap:8px;align-items:center;">' + confidenceBadgeHtml(d.confidence) + stateBadgeHtml(d.state) + '</div>';
+            h += '</div>';
+            h += '<div class="rec-text">' + escapeHtml(d.recommendation_text || '') + '</div>';
+
+            // Risk flags
+            if (d.risk_flags && d.risk_flags.length > 0) {
+                h += '<div class="risk-flags">';
+                d.risk_flags.forEach(f => {
+                    const flagType = (f.type || f || '').toLowerCase();
+                    const cls = flagType.includes('brady') ? 'brady' : flagType.includes('suppression') ? 'suppression' : 'credibility';
+                    h += '<span class="risk-flag ' + cls + '">&#9888; ' + escapeHtml(typeof f === 'string' ? f : f.description || f.type) + '</span>';
+                });
+                h += '</div>';
+            }
+
+            h += legalReasoningHtml('charge-' + d.decision_id, d.legal_reasoning);
+            h += decisionActionsHtml(d.decision_id, d.state);
+            h += '</div>';
+        });
+    }
+
+    h += '</div>';
+
+    // Alternative charges section
+    h += '<div class="section-card"><h3>&#128269; Alternative Charges</h3>';
+    h += '<div id="altChargesContainer" style="color:#718096;font-size:0.85em;">Select a statute in the Evidence Matrix tab to see alternative charge suggestions.</div>';
+    h += '</div>';
+
+    // Generate Memo button
+    h += '<div class="section-card">';
+    h += '<h3>&#128196; Charging Memo</h3>';
+    h += '<p style="font-size:0.82em;color:#a0aec0;margin-bottom:12px;">Generate a formal charging memo document for this case.</p>';
+    h += '<button class="btn-action" onclick="generateChargingMemo()">&#128196; Generate Charging Memo</button>';
+    h += '<div id="memoResult" style="margin-top:12px;"></div>';
+    h += '</div>';
+
+    container.innerHTML = h;
+}
+
+async function generateChargingMemo() {
+    const resultEl = document.getElementById('memoResult');
+    if (!resultEl) return;
+    resultEl.innerHTML = '<div class="loading"><span class="spinner"></span> Generating charging memo...</div>';
+
+    try {
+        const data = await api('POST', '/case-files/' + selectedCaseId + '/charging-memo', {
+            statute_id: selectedStatuteId,
+            attorney_id: ATTORNEY_ID
+        });
+        resultEl.innerHTML = '<div style="background:rgba(72,187,120,0.1);border:1px solid rgba(72,187,120,0.3);border-radius:8px;padding:14px;">' +
+            '<div style="font-size:0.82em;color:#48bb78;font-weight:700;margin-bottom:6px;">&#10003; Memo Generated</div>' +
+            '<div style="font-size:0.8em;color:#a0aec0;line-height:1.6;white-space:pre-wrap;">' + escapeHtml(data.memo || data.content || JSON.stringify(data, null, 2)) + '</div>' +
+            '</div>';
+        showToast('Charging memo generated successfully');
+    } catch(e) {
+        resultEl.innerHTML = '<div style="color:#fc8181;font-size:0.82em;">Failed to generate charging memo.</div>';
+    }
+}
+
+// === CASE WEAKNESSES TAB ===
+async function loadWeaknesses() {
+    const container = document.getElementById('weaknessesContent');
+    if (!selectedCaseId) return;
+    container.innerHTML = '<div class="loading"><span class="spinner"></span> Analyzing case weaknesses...</div>';
+
+    try {
+        const data = await api('GET', '/case-files/' + selectedCaseId + '/case-weaknesses');
+        const weaknesses = data.weaknesses || data || [];
+        renderWeaknesses(container, weaknesses);
+    } catch(e) {
+        renderWeaknesses(container, []);
+    }
+}
+
+function renderWeaknesses(container, weaknesses) {
+    let h = '<div class="section-card"><h3>&#9888; Case Weakness Analysis</h3>';
+
+    if (weaknesses.length === 0) {
+        h += '<div style="color:#718096;font-size:0.85em;padding:12px;">No weaknesses detected, or analysis has not been run yet.</div>';
+    } else {
+        // Group by severity
+        const critical = weaknesses.filter(w => w.severity === 'critical');
+        const warning = weaknesses.filter(w => w.severity === 'warning');
+        const info = weaknesses.filter(w => w.severity === 'info');
+
+        const renderGroup = (items) => {
+            items.forEach(w => {
+                h += '<div class="weakness-card">';
+                h += '<div class="weakness-header">';
+                h += '<div class="weakness-title">' + escapeHtml(w.weakness_type || w.type || 'Unknown') + '</div>';
+                h += '<span class="severity-badge ' + (w.severity || 'info') + '">' + (w.severity || 'info') + '</span>';
+                h += '</div>';
+                h += '<div class="weakness-desc">' + escapeHtml(w.description || '') + '</div>';
+
+                // Legal reasoning with case law citations
+                h += legalReasoningHtml('weak-' + w.weakness_id, w.legal_reasoning);
+
+                // Affected elements and evidence
+                const affectedElems = w.affected_elements || [];
+                const affectedEvidence = w.affected_evidence || [];
+                if (affectedElems.length > 0 || affectedEvidence.length > 0) {
+                    h += '<div class="weakness-affected">';
+                    affectedElems.forEach(e => {
+                        h += '<span class="affected-tag" style="border:1px solid rgba(246,173,85,0.3);">Element: ' + escapeHtml(e) + '</span>';
+                    });
+                    affectedEvidence.forEach(e => {
+                        h += '<span class="affected-tag" style="border:1px solid rgba(144,205,244,0.3);">Evidence: ' + escapeHtml(e) + '</span>';
+                    });
+                    h += '</div>';
+                }
+
+                // Remediation for critical
+                if (w.severity === 'critical' && w.remediation) {
+                    h += '<div class="remediation-box">';
+                    h += '<div class="rem-label">&#128296; Recommended Remediation</div>';
+                    h += '<div class="rem-text">' + escapeHtml(w.remediation) + '</div>';
+                    h += '</div>';
+                }
+
+                h += '</div>';
+            });
+        };
+
+        if (critical.length > 0) {
+            h += '<div style="font-size:0.78em;color:#fc8181;font-weight:700;margin:12px 0 8px;text-transform:uppercase;letter-spacing:1px;">Critical (' + critical.length + ')</div>';
+            renderGroup(critical);
+        }
+        if (warning.length > 0) {
+            h += '<div style="font-size:0.78em;color:#f6ad55;font-weight:700;margin:12px 0 8px;text-transform:uppercase;letter-spacing:1px;">Warning (' + warning.length + ')</div>';
+            renderGroup(warning);
+        }
+        if (info.length > 0) {
+            h += '<div style="font-size:0.78em;color:#63b3ed;font-weight:700;margin:12px 0 8px;text-transform:uppercase;letter-spacing:1px;">Info (' + info.length + ')</div>';
+            renderGroup(info);
+        }
+    }
+
+    h += '</div>';
+    container.innerHTML = h;
+}
+
+// === PRECEDENT ANALYSIS TAB ===
+async function loadPrecedentAnalysis() {
+    const container = document.getElementById('precedentContent');
+    if (!selectedCaseId) return;
+    container.innerHTML = '<div class="loading"><span class="spinner"></span> Running precedent analysis...</div>';
+
+    try {
+        const statute = statutes.find(s => s.statute_id === selectedStatuteId);
+        const chargeType = statute ? statute.citation : 'general';
+        const data = await api('POST', '/case-files/' + selectedCaseId + '/precedent-analysis', {
+            charge_type: chargeType,
+            top_k: 10
+        });
+        renderPrecedentAnalysis(container, data);
+    } catch(e) {
+        container.innerHTML = '<div class="section-card"><h3>&#128218; Precedent Analysis</h3>' +
+            '<div style="color:#fc8181;font-size:0.85em;padding:12px;">Failed to load precedent analysis. The API may not be connected.</div></div>';
+    }
+}
+
+function renderPrecedentAnalysis(container, data) {
+    const matches = data.matches || data.precedents || [];
+    const distribution = data.ruling_distribution || {};
+    const advisory = data.sentencing_advisory || {};
+
+    let h = '';
+
+    // Ruling Distribution
+    h += '<div class="section-card">';
+    h += '<h3>&#128202; Ruling Distribution</h3>';
+    if (distribution && Object.keys(distribution).length > 0) {
+        h += '<div class="dist-bars">';
+        const distColors = {
+            guilty: '#fc8181', not_guilty: '#68d391', plea_deal: '#f6ad55',
+            dismissed: '#90cdf4', settled: '#d6bcfa'
+        };
+        const distLabels = {
+            guilty: 'Guilty', not_guilty: 'Not Guilty', plea_deal: 'Plea Deal',
+            dismissed: 'Dismissed', settled: 'Settled'
+        };
+        Object.entries(distribution).forEach(([key, pct]) => {
+            const label = distLabels[key] || key;
+            const color = distColors[key] || '#a0aec0';
+            const percent = typeof pct === 'number' ? pct : (pct.percentage || 0);
+            h += '<div class="dist-row">';
+            h += '<div class="dist-label">' + label + '</div>';
+            h += '<div class="dist-bar-bg"><div class="dist-bar-fill" style="width:' + percent + '%;background:' + color + ';"></div></div>';
+            h += '<div class="dist-count">' + percent + '%</div>';
+            h += '</div>';
+        });
+        h += '</div>';
+    } else {
+        h += '<div style="color:#718096;font-size:0.85em;">No ruling distribution data available.</div>';
+    }
+    h += '</div>';
+
+    // Sentencing Advisory
+    h += '<div class="sentencing-panel">';
+    h += '<h3>&#9878; Sentencing Advisory</h3>';
+    if (advisory && (advisory.likely_sentence || advisory.text)) {
+        h += '<div class="sentencing-grid">';
+        h += '<div class="sent-item"><div class="sent-label">Likely Sentence</div><div class="sent-value">' + escapeHtml(advisory.likely_sentence || 'N/A') + '</div></div>';
+        h += '<div class="sent-item"><div class="sent-label">Fine / Penalty</div><div class="sent-value">' + escapeHtml(advisory.fine_penalty || advisory.fine || 'N/A') + '</div></div>';
+        h += '<div class="sent-item"><div class="sent-label">Supervised Release</div><div class="sent-value">' + escapeHtml(advisory.supervised_release || 'N/A') + '</div></div>';
+        h += '<div class="sent-item"><div class="sent-label">Precedent Match</div><div class="sent-value">' + escapeHtml(advisory.precedent_match || 'N/A') + '</div></div>';
+        h += '</div>';
+        if (advisory.justification || advisory.text) {
+            h += '<div class="sent-justification">' + escapeHtml(advisory.justification || advisory.text) + '</div>';
+        }
+        if (advisory.disclaimer) {
+            h += '<div style="margin-top:10px;padding:8px;background:rgba(246,173,85,0.1);border:1px solid rgba(246,173,85,0.2);border-radius:6px;font-size:0.78em;color:#f6ad55;">&#9888; ' + escapeHtml(advisory.disclaimer) + '</div>';
+        }
+    } else {
+        h += '<div style="color:#718096;font-size:0.85em;">No sentencing advisory available.</div>';
+    }
+    h += '</div>';
+
+    // Precedent Cases
+    h += '<div class="section-card">';
+    h += '<h3>&#128218; Matching Precedent Cases (' + matches.length + ')</h3>';
+    if (matches.length === 0) {
+        h += '<div style="color:#718096;font-size:0.85em;">No matching precedent cases found.</div>';
+    } else {
+        matches.forEach(m => {
+            const score = m.similarity_score || m.score || 0;
+            const scoreClass = score >= 70 ? 'score-high' : score >= 40 ? 'score-med' : 'score-low';
+            const ruling = (m.ruling || '').toLowerCase().replace(/\s+/g, '-');
+            const rulingLabel = m.ruling || 'Unknown';
+
+            h += '<div class="precedent-card">';
+            h += '<div class="match-score"><div class="score ' + scoreClass + '">' + score + '</div><div class="score-label">Match</div></div>';
+            h += '<div class="precedent-info">';
+            h += '<div class="p-case-id">' + escapeHtml(m.case_reference || m.case_id || '') + '</div>';
+            h += '<div class="p-title">' + escapeHtml(m.title || m.case_reference || 'Precedent Case') + '</div>';
+            h += '<div class="p-summary">' + escapeHtml((m.case_summary || m.summary || '').substring(0, 150)) + '</div>';
+            h += '</div>';
+            h += '<div class="precedent-ruling"><span class="ruling-badge ' + ruling + '">' + escapeHtml(rulingLabel) + '</span>';
+            if (m.sentence) h += '<div class="ruling-sentence">' + escapeHtml(m.sentence) + '</div>';
+            h += '</div>';
+            h += '<div class="precedent-meta">';
+            if (m.judge) h += '<div>' + escapeHtml(m.judge) + '</div>';
+            if (m.jurisdiction) h += '<div>' + escapeHtml(m.jurisdiction) + '</div>';
+            if (m.filed_date || m.date) h += '<div>' + escapeHtml(m.filed_date || m.date) + '</div>';
+            h += '</div>';
+            h += '</div>';
+        });
+    }
+    h += '</div>';
+
+    container.innerHTML = h;
+}
+
+// === DECISION WORKFLOW ===
+async function confirmDecision(decisionId) {
+    try {
+        await api('POST', '/decisions/' + decisionId + '/confirm', {
+            attorney_id: ATTORNEY_ID
+        });
+        showToast('Decision confirmed');
+        refreshCurrentTab();
+    } catch(e) {
+        showToast('Failed to confirm decision');
+    }
+}
+
+function openOverrideModal(decisionId) {
+    currentOverrideDecisionId = decisionId;
+    document.getElementById('overrideRationale').value = '';
+    document.getElementById('overrideModal').classList.add('active');
+}
+
+function closeOverrideModal() {
+    currentOverrideDecisionId = null;
+    document.getElementById('overrideModal').classList.remove('active');
+}
+
+async function submitOverride() {
+    const rationale = document.getElementById('overrideRationale').value.trim();
+    if (!rationale) {
+        showToast('Override rationale is required');
+        return;
+    }
+    if (!currentOverrideDecisionId) return;
+
+    try {
+        await api('POST', '/decisions/' + currentOverrideDecisionId + '/override', {
+            attorney_id: ATTORNEY_ID,
+            override_rationale: rationale
+        });
+        closeOverrideModal();
+        showToast('Decision overridden');
+        refreshCurrentTab();
+    } catch(e) {
+        showToast('Failed to override decision');
+    }
+}
+
+function refreshCurrentTab() {
+    if (currentTab === 'evidence') loadEvidenceMatrix();
+    else if (currentTab === 'charging') loadChargingDecisions();
+    else if (currentTab === 'weaknesses') loadWeaknesses();
+    else if (currentTab === 'precedent') loadPrecedentAnalysis();
+}
+
+// === INIT ===
+document.addEventListener('DOMContentLoaded', () => {
+    loadCases();
+});
+</script>
+</body>
+</html>
+
