@@ -1,0 +1,41 @@
+{
+  "environment_name": "dev",
+  "account": "974220725866",
+  "region": "us-east-1",
+  "partition": "aws",
+  "vpc": {
+    "create_new": false,
+    "existing_vpc_id": "default"
+  },
+  "aurora": {
+    "min_capacity": 0.5,
+    "max_capacity": 8,
+    "subnet_type": "PUBLIC"
+  },
+  "neptune": {
+    "enabled": true,
+    "min_capacity": 1,
+    "max_capacity": 8,
+    "subnet_type": "PUBLIC"
+  },
+  "opensearch": {
+    "mode": "serverless"
+  },
+  "encryption": {
+    "kms_key_arn": null,
+    "enforce_tls": false
+  },
+  "bedrock": {
+    "llm_model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+    "embedding_model_id": "amazon.titan-embed-text-v2:0",
+    "excluded_providers": []
+  },
+  "features": {
+    "pipeline_only": false,
+    "rekognition": true
+  },
+  "tags": {},
+  "logging": {
+    "vpc_flow_logs": false
+  }
+}
