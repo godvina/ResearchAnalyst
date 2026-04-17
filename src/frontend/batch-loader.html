@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Loader — DOJ Antitrust Division</title>
+    <link rel="stylesheet" href="common.css">
+    <style>
+        /* Sub-tabs */
+        .sub-tabs { display:flex; gap:0; margin-bottom:20px; border-radius:8px; overflow:hidden; border:1px solid #2d3748; }
+        .sub-tab { flex:1; padding:10px 16px; text-align:center; font-size:0.78em; font-weight:600; cursor:pointer; background:#1a2332; color:#718096; transition:all 0.2s; border:none; }
+        .sub-tab:hover { color:#e2e8f0; background:rgba(255,255,255,0.05); }
+        .sub-tab.active { background:rgba(72,187,120,0.12); color:#48bb78; }
+        .sub-content { display:none; }
+        .sub-content.active { display:block; }
+
+        /* Config controls */
+        .config-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:20px; }
+        .config-item { display:flex; flex-direction:column; gap:4px; }
+        .config-item label { font-size:0.72em; color:#48bb78; text-transform:uppercase; letter-spacing:0.5px; font-weight:700; }
+        .config-item input, .config-item select { background:#0d1520; border:1px solid #2d3748; border-radius:8px; padding:8px 12px; color:#e2e8f0; font-size:0.85em; outline:none; }
+        .config-item input:focus { border-color:#48bb78; }
+
+        /* Slider */
+        .slider-row { display:flex; align-items:center; gap:12px; }
+        .slider-row input[type=range] { flex:1; accent-color:#48bb78; }
+        .slider-val { font-size:0.85em; color:#e2e8f0; font-weight:700; min-width:36px; text-align:right; }
+
+        /* Toggle switch */
+        .toggle-wrap { display:flex; align-items:center; gap:10px; }
+        .toggle { position:relative; width:44px; height:24px; cursor:pointer; }
+        .toggle input { opacity:0; width:0; height:0; }
+        .toggle .slider { position:absolute; top:0; left:0; right:0; bottom:0; background:#2d3748; border-radius:12px; transition:0.3s; }
+        .toggle .slider:before { content:''; position:absolute; height:18px; width:18px; left:3px; bottom:3px; background:#718096; border-radius:50%; transition:0.3s; }
+        .toggle input:checked + .slider { background:rgba(72,187,120,0.3); }
+        .toggle input:checked + .slider:before { transform:translateX(20px); background:#48bb78; }
+
+        /* Discovery preview */
+        .preview-card { background:linear-gradient(135deg,#1a2332,#243447); border:1px solid #2d3748; border-radius:12px; padding:20px; margin-top:16px; }
+        .preview-card h4 { font-size:0.82em; color:#48bb78; margin-bottom:12px; }
+        .preview-stat { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.82em; }
+        .preview-stat:last-child { border-bottom:none; }
+        .preview-stat .ps-label { color:#a0aec0; }
+        .preview-stat .ps-value { color:#e2e8f0; font-weight:700; }
+        .cost-table { width:100%; border-collapse:collapse; margin-top:12px; }
+        .cost-table th { text-align:left; font-size:0.68em; color:#718096; text-transform:uppercase; letter-spacing:0.5px; padding:6px 8px; border-bottom:1px solid #2d3748; }
+        .cost-table td { font-size:0.82em; padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.04); }
+        .cost-table td:last-child { text-align:right; color:#48bb78; font-weight:600; }
+        .all-processed { background:rgba(72,187,120,0.1); border:1px solid rgba(72,187,120,0.3); border-radius:10px; padding:20px; text-align:center; margin-top:16px; }
+        .all-processed .ap-icon { font-size:2em; margin-bottom:8px; }
+        .all-processed .ap-text { font-size:0.92em; color:#48bb78; font-weight:700; }
+
+        /* Phase indicator bar */
+        .phase-bar { display:flex; align-items:center; gap:4px; margin-bottom:20px; flex-wrap:wrap; }
+        .phase-step { display:flex; align-items:center; gap:4px; }
+        .phase-dot { width:10px; height:10px; border-radius:50%; background:#2d3748; border:2px solid #2d3748; transition:all 0.3s; flex-shrink:0; }
+        .phase-dot.completed { background:#48bb78; border-color:#48bb78; }
+        .phase-dot.active { background:#f6e05e; border-color:#f6e05e; animation:pulse 1s infinite; }
+        .phase-dot.failed { background:#fc8181; border-color:#fc8181; }
+        .phase-label { font-size:0.7em; color:#718096; font-weight:600; transition:color 0.3s; }
+        .phase-label.completed { color:#48bb78; }
+        .phase-label.active { color:#f6e05e; }
+        .phase-label.failed { color:#fc8181; }
+        .phase-arrow { color:#4a5568; font-size:0.8em; margin:0 2px; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+        /* Progress bar */
+        .progress-bar-wrap { background:#2d3748; border-radius:8px; height:24px; overflow:hidden; position:relative; margin-bottom:16px; }
+        .progress-bar-fill { height:100%; background:linear-gradient(90deg,#48bb78,#38a169); border-radius:8px; transition:width 0.5s; min-width:0; }
+        .progress-bar-text { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; font-size:0.72em; font-weight:700; color:#fff; }
+
+        /* Stats cards */
+        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin-bottom:16px; }
+        .stat-card-sm { background:rgba(255,255,255,0.03); border:1px solid #2d3748; border-radius:10px; padding:14px; }
+        .stat-card-sm .sc-label { font-size:0.65em; color:#718096; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+        .stat-card-sm .sc-value { font-size:1.3em; font-weight:800; color:#e2e8f0; }
+        .stat-card-sm .sc-detail { font-size:0.7em; color:#a0aec0; margin-top:4px; }
+
+        /* Connection lost banner */
+        .conn-banner { background:rgba(252,129,129,0.1); border:1px solid rgba(252,129,129,0.3); border-radius:8px; padding:10px 16px; font-size:0.82em; color:#fc8181; display:none; align-items:center; gap:8px; margin-bottom:12px; }
+        .conn-banner.visible { display:flex; }
+
+        /* History table */
+        .data-table { width:100%; border-collapse:collapse; }
+        .data-table th { text-align:left; font-size:0.68em; color:#718096; text-transform:uppercase; letter-spacing:0.5px; padding:8px 10px; border-bottom:1px solid #2d3748; position:sticky; top:0; background:#1a2332; }
+        .data-table td { font-size:0.78em; padding:8px 10px; border-bottom:1px solid rgba(255,255,255,0.04); color:#e2e8f0; }
+        .data-table tr:hover td { background:rgba(72,187,120,0.04); }
+        .data-table tr.clickable { cursor:pointer; }
+        .data-table th.sortable { cursor:pointer; user-select:none; }
+        .data-table th.sortable:hover { color:#48bb78; }
+
+        /* Manifest viewer */
+        .manifest-viewer { margin-top:16px; }
+        .manifest-summary-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+        .ms-badge { padding:4px 12px; border-radius:16px; font-size:0.72em; font-weight:600; }
+        .manifest-filters { display:flex; gap:12px; margin-bottom:12px; align-items:center; }
+        .manifest-filters select { background:#0d1520; border:1px solid #2d3748; border-radius:6px; padding:6px 10px; color:#e2e8f0; font-size:0.78em; }
+        .manifest-table-wrap { max-height:400px; overflow-y:auto; border:1px solid #2d3748; border-radius:8px; }
+
+        /* Quarantine search */
+        .search-row { display:flex; gap:8px; margin-bottom:16px; }
+        .search-row input { flex:1; background:#0d1520; border:1px solid #2d3748; border-radius:8px; padding:8px 14px; color:#e2e8f0; font-size:0.82em; outline:none; }
+        .search-row input:focus { border-color:#48bb78; }
+
+        /* Spinner overlay on button */
+        .btn-spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.8s linear infinite; margin-right:6px; vertical-align:middle; }
+        .btn-primary:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+    </style>
+</head>
+<body>
+<script src="config.js"></script>
+
+<!-- HEADER -->
+<div class="header">
+    <h1>⚖️ Batch Loader — <span>Antitrust Division</span></h1>
+    <div class="header-right">
+        <div class="header-badge">Department of Justice</div>
+        <div class="header-badge">Incremental Batch Loader</div>
+    </div>
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav-bar">
+    <a href="index.html" class="nav-link">🏠 Home</a>
+    <a href="investigator.html" class="nav-link">📋 Cases</a>
+    <a href="pipeline-config.html" class="nav-link">⚙️ Pipeline Config</a>
+    <a href="batch-loader.html" class="nav-link active">📦 Batch Loader</a>
+    <a href="admin.html" class="nav-link">🔐 Admin</a>
+    <a href="chatbot.html" class="nav-link">💬 Chat</a>
+    <a href="wizard.html" class="nav-link">🧙 Wizard</a>
+    <a href="portfolio.html" class="nav-link">📊 Portfolio</a>
+    <a href="workbench.html" class="nav-link">🔬 Workbench</a>
+</div>
+
+<div class="page-content">
+    <!-- Case selector -->
+    <div class="section-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h3>📦 Batch Loader</h3>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <label style="font-size:0.72em;color:#718096;">Case:</label>
+                <select id="caseSelect" class="form-select" style="width:340px;" onchange="onCaseChange()">
+                    <option value="">Select a case...</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sub-tabs -->
+    <div class="sub-tabs">
+        <button class="sub-tab active" onclick="switchSubTab('sources')">📂 Source Data</button>
+        <button class="sub-tab" onclick="switchSubTab('pipeline')">🔄 Pipeline</button>
+        <button class="sub-tab" onclick="switchSubTab('discover')">🔍 Discovery &amp; Launch</button>
+        <button class="sub-tab" onclick="switchSubTab('progress')">📊 Live Progress</button>
+        <button class="sub-tab" onclick="switchSubTab('history')">📋 Batch History</button>
+        <button class="sub-tab" onclick="switchSubTab('quarantine')">🚫 Quarantine</button>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SOURCE BROWSER TAB -->
+    <!-- ============================================================ -->
+    <div id="sub-sources" class="sub-content active">
+        <!-- Summary row -->
+        <div class="section-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3>📂 Source Bucket Inventory</h3>
+                <button class="btn-secondary" onclick="loadSourceBrowser()" id="btnRefreshSources">🔄 Refresh</button>
+            </div>
+            <div class="stats-grid" id="sourceSummaryStats">
+                <div class="stat-card-sm"><div class="sc-label">Total Files</div><div class="sc-value" id="srcTotalFiles">—</div></div>
+                <div class="stat-card-sm"><div class="sc-label">Extracted PDFs Ready</div><div class="sc-value" id="srcExtractedPdfs">—</div></div>
+                <div class="stat-card-sm"><div class="sc-label">Already Processed</div><div class="sc-value" id="srcProcessed">—</div></div>
+                <div class="stat-card-sm"><div class="sc-label">Remaining Unprocessed</div><div class="sc-value" id="srcRemaining">—</div></div>
+            </div>
+        </div>
+
+        <!-- Prefix inventory table -->
+        <div class="section-card">
+            <div style="max-height:500px;overflow-y:auto;">
+                <table class="data-table" id="prefixTable">
+                    <thead>
+                        <tr>
+                            <th style="width:30px;"></th>
+                            <th>Prefix</th>
+                            <th>Total Objects</th>
+                            <th>Total Size</th>
+                            <th>PDFs</th>
+                            <th>Zips</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prefixBody">
+                        <tr><td colspan="6" style="text-align:center;color:#718096;padding:30px;">Click Refresh to load source inventory</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Extraction progress panel (hidden by default) -->
+        <div class="section-card" id="extractionProgressPanel" style="display:none;">
+            <h3>📦 Zip Extraction Progress</h3>
+            <div class="stats-grid" style="margin-bottom:12px;">
+                <div class="stat-card-sm"><div class="sc-label">Job ID</div><div class="sc-value" id="extJobId" style="font-size:0.85em;">—</div></div>
+                <div class="stat-card-sm"><div class="sc-label">Current Zip</div><div class="sc-value" id="extCurrentZip" style="font-size:0.85em;">—</div></div>
+                <div class="stat-card-sm"><div class="sc-label">Elapsed</div><div class="sc-value" id="extElapsed">—</div></div>
+            </div>
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" id="extProgressBar" style="width:0%"></div>
+                <div class="progress-bar-text" id="extProgressText">0%</div>
+            </div>
+            <div style="font-size:0.78em;color:#a0aec0;margin-top:8px;" id="extDetail"></div>
+            <div id="extErrors" style="margin-top:8px;"></div>
+        </div>
+
+        <!-- S3 error display -->
+        <div class="section-card" id="sourceErrorPanel" style="display:none;border-color:rgba(252,129,129,0.3);">
+            <div style="color:#fc8181;font-size:0.92em;font-weight:600;" id="sourceErrorMsg">S3 Error</div>
+            <button class="btn-secondary" style="margin-top:8px;" onclick="loadSourceBrowser()">🔄 Retry</button>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- PIPELINE DASHBOARD TAB -->
+    <!-- ============================================================ -->
+    <div id="sub-pipeline" class="sub-content">
+        <div class="section-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3>🔄 Pipeline Dashboard</h3>
+                <button class="btn-secondary" onclick="loadPipelineSummary()">🔄 Refresh</button>
+            </div>
+
+            <!-- Visual flow diagram -->
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;padding:20px 0;" id="pipelineFlow">
+                <div class="stat-card-sm" style="text-align:center;min-width:140px;" id="pipeStageZip">
+                    <div class="sc-label">Source Archives</div>
+                    <div class="sc-value" id="pipeZipCount">—</div>
+                    <div class="sc-detail">zip files</div>
+                </div>
+                <span style="font-size:1.5em;color:#4a5568;">→</span>
+                <div class="stat-card-sm" style="text-align:center;min-width:140px;" id="pipeStageExtract">
+                    <div class="sc-label">Raw PDFs</div>
+                    <div class="sc-value" id="pipePdfCount">—</div>
+                    <div class="sc-detail">extracted</div>
+                </div>
+                <span style="font-size:1.5em;color:#4a5568;">→</span>
+                <div class="stat-card-sm" style="text-align:center;min-width:140px;" id="pipeStageBlank">
+                    <div class="sc-label">Blank Filtered</div>
+                    <div class="sc-value" id="pipeBlankCount">—</div>
+                    <div class="sc-detail">removed</div>
+                </div>
+                <span style="font-size:1.5em;color:#4a5568;">→</span>
+                <div class="stat-card-sm" style="text-align:center;min-width:140px;" id="pipeStageIngest">
+                    <div class="sc-label">Ingested</div>
+                    <div class="sc-value" id="pipeIngestCount">—</div>
+                    <div class="sc-detail">in graph</div>
+                </div>
+            </div>
+
+            <!-- Selected prefixes -->
+            <div style="margin-top:16px;padding-top:12px;border-top:1px solid #2d3748;">
+                <span style="font-size:0.72em;color:#718096;font-weight:600;">SELECTED PREFIXES: </span>
+                <span style="font-size:0.82em;color:#a0aec0;" id="pipeSelectedPrefixes">—</span>
+                <a href="#" onclick="switchSubTab('discover');return false;" style="font-size:0.72em;color:#48bb78;margin-left:12px;">Edit in Discovery →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- DISCOVERY & LAUNCH TAB -->
+    <!-- ============================================================ -->
+    <div id="sub-discover" class="sub-content">
+        <div class="section-card">
+            <h3>⚙️ Batch Configuration</h3>
+            <div class="config-grid">
+                <div class="config-item">
+                    <label>Batch Size</label>
+                    <input type="number" id="cfgBatchSize" value="4000" min="1" max="50000">
+                </div>
+                <div class="config-item">
+                    <label>Sub-Batch Size</label>
+                    <input type="number" id="cfgSubBatchSize" value="50" min="1" max="200">
+                </div>
+                <div class="config-item">
+                    <label>Source Prefixes</label>
+                    <div id="prefixSelectorWrap" style="background:#0d1520;border:1px solid #2d3748;border-radius:8px;padding:8px 12px;max-height:120px;overflow-y:auto;">
+                        <div id="prefixCheckboxes" style="font-size:0.82em;color:#a0aec0;">Loading prefixes...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+                <div class="config-item">
+                    <label>OCR Threshold (chars)</label>
+                    <div class="slider-row">
+                        <input type="range" id="cfgOcrThreshold" min="10" max="200" value="50" oninput="document.getElementById('ocrVal').textContent=this.value">
+                        <span class="slider-val" id="ocrVal">50</span>
+                    </div>
+                </div>
+                <div class="config-item">
+                    <label>Blank Threshold (chars)</label>
+                    <div class="slider-row">
+                        <input type="range" id="cfgBlankThreshold" min="1" max="100" value="10" oninput="document.getElementById('blankVal').textContent=this.value">
+                        <span class="slider-val" id="blankVal">10</span>
+                    </div>
+                </div>
+                <div class="config-item">
+                    <label>Entity Resolution</label>
+                    <div class="toggle-wrap" style="margin-top:4px;">
+                        <label class="toggle">
+                            <input type="checkbox" id="cfgEntityResolution" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span style="font-size:0.78em;color:#a0aec0;" id="erLabel">Enabled</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Blank page rate slider (8.5) -->
+            <div style="display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:16px;">
+                <div class="config-item">
+                    <label>Estimated Blank Page Rate</label>
+                    <div class="slider-row">
+                        <input type="range" id="cfgBlankPageRate" min="0" max="100" value="40" oninput="document.getElementById('blankRateVal').textContent=this.value+'%'; recalcNetEstimates();">
+                        <span class="slider-val" id="blankRateVal">40%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:12px;">
+                <button class="btn-primary" onclick="previewBatch()" id="btnPreview">🔍 Preview Batch</button>
+                <button class="btn-primary" onclick="startBatch()" id="btnStart" style="background:linear-gradient(135deg,#f6e05e,#d69e2e);color:#1a202c;" disabled>🚀 Start Batch</button>
+            </div>
+        </div>
+
+        <!-- Discovery preview area -->
+        <div id="discoveryPreview"></div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- LIVE PROGRESS TAB -->
+    <!-- ============================================================ -->
+    <div id="sub-progress" class="sub-content">
+        <div class="section-card">
+            <h3>📊 Batch Progress</h3>
+
+            <!-- Connection lost banner -->
+            <div class="conn-banner" id="connBanner">
+                <span class="spinner" style="width:14px;height:14px;border-width:2px;margin:0;"></span>
+                Connection lost — retrying...
+            </div>
+
+            <!-- Phase indicator bar -->
+            <div class="phase-bar" id="phaseBar">
+                <div class="phase-step"><div class="phase-dot" data-phase="discovery"></div><span class="phase-label" data-phase="discovery">Discovery</span></div>
+                <span class="phase-arrow">→</span>
+                <div class="phase-step"><div class="phase-dot" data-phase="extracting"></div><span class="phase-label" data-phase="extracting">Extraction</span></div>
+                <span class="phase-arrow">→</span>
+                <div class="phase-step"><div class="phase-dot" data-phase="filtering"></div><span class="phase-label" data-phase="filtering">Filtering</span></div>
+                <span class="phase-arrow">→</span>
+                <div class="phase-step"><div class="phase-dot" data-phase="ingesting"></div><span class="phase-label" data-phase="ingesting">Ingestion</span></div>
+                <span class="phase-arrow">→</span>
+                <div class="phase-step"><div class="phase-dot" data-phase="polling_sfn"></div><span class="phase-label" data-phase="polling_sfn">SFN Polling</span></div>
+                <span class="phase-arrow">→</span>
+                <div class="phase-step"><div class="phase-dot" data-phase="entity_resolution"></div><span class="phase-label" data-phase="entity_resolution">Entity Resolution</span></div>
+                <span class="phase-arrow">→</span>
+                <div class="phase-step"><div class="phase-dot" data-phase="completed"></div><span class="phase-label" data-phase="completed">Complete</span></div>
+            </div>
+
+            <!-- Phase progress counter -->
+            <div id="phaseCounter" style="font-size:0.92em;color:#e2e8f0;margin-bottom:12px;font-weight:600;">
+                Waiting for batch...
+            </div>
+
+            <!-- Overall progress bar -->
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" id="overallBar" style="width:0%"></div>
+                <div class="progress-bar-text" id="overallBarText">0%</div>
+            </div>
+
+            <!-- Elapsed time -->
+            <div id="elapsedTime" style="font-size:0.72em;color:#718096;margin-bottom:16px;"></div>
+
+            <!-- Real-time stats cards -->
+            <div class="stats-grid" id="progressStats">
+                <div class="stat-card-sm">
+                    <div class="sc-label">Extraction Breakdown</div>
+                    <div class="sc-value" id="statExtraction">—</div>
+                    <div class="sc-detail" id="statExtractionDetail"></div>
+                </div>
+                <div class="stat-card-sm">
+                    <div class="sc-label">Blank Filtered</div>
+                    <div class="sc-value" id="statBlanks">—</div>
+                    <div class="sc-detail" id="statBlanksDetail"></div>
+                </div>
+                <div class="stat-card-sm">
+                    <div class="sc-label">Sub-Batches</div>
+                    <div class="sc-value" id="statSubBatches">—</div>
+                    <div class="sc-detail" id="statSubBatchesDetail"></div>
+                </div>
+                <div class="stat-card-sm">
+                    <div class="sc-label">SFN Status</div>
+                    <div class="sc-value" id="statSfn">—</div>
+                    <div class="sc-detail" id="statSfnDetail"></div>
+                </div>
+            </div>
+
+            <!-- Completion / Error summary -->
+            <div id="progressSummary"></div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- BATCH HISTORY TAB -->
+    <!-- ============================================================ -->
+    <div id="sub-history" class="sub-content">
+        <!-- Cumulative stats -->
+        <div class="section-card" id="cumulativeStatsCard">
+            <h3>📈 Cumulative Statistics</h3>
+            <div class="stats-grid" id="cumulativeStats">
+                <div class="stat-card-sm"><div class="sc-label">Total Processed</div><div class="sc-value" id="cumProcessed">—</div></div>
+                <div class="stat-card-sm"><div class="sc-label">Total Blanks Filtered</div><div class="sc-value" id="cumBlanks">—</div></div>
+                <div class="stat-card-sm"><div class="sc-label">Total Estimated Cost</div><div class="sc-value" id="cumCost">—</div></div>
+            </div>
+        </div>
+
+        <!-- Batch history table -->
+        <div class="section-card">
+            <h3>📋 Batch History</h3>
+            <div style="max-height:400px;overflow-y:auto;">
+                <table class="data-table" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>Batch</th>
+                            <th>Timestamp</th>
+                            <th>Source Files</th>
+                            <th>Blanks</th>
+                            <th>Docs Sent</th>
+                            <th>SFN ✓</th>
+                            <th>SFN ✗</th>
+                            <th>Textract OCR</th>
+                            <th>ER Result</th>
+                            <th>Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr><td colspan="10" style="text-align:center;color:#718096;padding:30px;">Select a case to view batch history</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Manifest viewer (inline) -->
+        <div id="manifestViewer" class="manifest-viewer" style="display:none;">
+            <div class="section-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <h3 id="manifestTitle">📄 Manifest — batch_001</h3>
+                    <button class="btn-secondary" onclick="closeManifest()">✕ Close</button>
+                </div>
+
+                <!-- Summary bar -->
+                <div class="manifest-summary-bar" id="manifestSummary"></div>
+
+                <!-- Filters -->
+                <div class="manifest-filters">
+                    <label style="font-size:0.72em;color:#718096;">Filter:</label>
+                    <select id="mfFilterStatus" onchange="applyManifestFilters()">
+                        <option value="">All Statuses</option>
+                        <option value="succeeded">Succeeded</option>
+                        <option value="failed">Failed</option>
+                        <option value="quarantined">Quarantined</option>
+                    </select>
+                    <select id="mfFilterMethod" onchange="applyManifestFilters()">
+                        <option value="">All Methods</option>
+                        <option value="pypdf2">PyPDF2</option>
+                        <option value="textract">Textract</option>
+                        <option value="cached">Cached</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+
+                <!-- File table -->
+                <div class="manifest-table-wrap">
+                    <table class="data-table" id="manifestTable">
+                        <thead>
+                            <tr>
+                                <th>S3 Key</th>
+                                <th>Extraction Method</th>
+                                <th>Char Count</th>
+                                <th>Blank</th>
+                                <th>Pipeline Status</th>
+                                <th>SFN ARN</th>
+                                <th>Error</th>
+                            </tr>
+                        </thead>
+                        <tbody id="manifestBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- QUARANTINE TAB -->
+    <!-- ============================================================ -->
+    <div id="sub-quarantine" class="sub-content">
+        <!-- Summary card -->
+        <div class="section-card">
+            <h3>🚫 Quarantine Summary</h3>
+            <div class="stats-grid" id="quarantineStats">
+                <div class="stat-card-sm"><div class="sc-label">Total Quarantined</div><div class="sc-value" id="qTotal">—</div></div>
+                <div class="stat-card-sm"><div class="sc-label">By Reason</div><div class="sc-value" id="qByReason">—</div><div class="sc-detail" id="qByReasonDetail"></div></div>
+                <div class="stat-card-sm"><div class="sc-label">Most Recent</div><div class="sc-value" id="qMostRecent">—</div></div>
+            </div>
+        </div>
+
+        <!-- Search / filter -->
+        <div class="section-card">
+            <div class="search-row">
+                <input type="text" id="quarantineSearch" placeholder="Search by S3 key or failure reason..." oninput="filterQuarantineTable()">
+            </div>
+
+            <div style="max-height:500px;overflow-y:auto;">
+                <table class="data-table" id="quarantineTable">
+                    <thead>
+                        <tr>
+                            <th class="sortable" onclick="sortQuarantine('s3_key')">S3 Key ↕</th>
+                            <th class="sortable" onclick="sortQuarantine('reason')">Reason ↕</th>
+                            <th class="sortable" onclick="sortQuarantine('failed_at')">Failed At ↕</th>
+                            <th class="sortable" onclick="sortQuarantine('retry_count')">Retry Count ↕</th>
+                            <th class="sortable" onclick="sortQuarantine('batch_number')">Batch # ↕</th>
+                        </tr>
+                    </thead>
+                    <tbody id="quarantineBody">
+                        <tr><td colspan="5" style="text-align:center;color:#718096;padding:30px;">Select a case to view quarantine</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// =====================================================================
+// Configuration & State
+// =====================================================================
+const API_URL = typeof API_BASE_URL !== 'undefined' ? API_BASE_URL
+    : (window.APP_CONFIG ? window.APP_CONFIG.API_URL : 'https://edb025my3i.execute-api.us-east-1.amazonaws.com/v1');
+
+let selectedCaseId = null;
+let pollTimer = null;
+let pollInterval = 5000;
+let pollBackoff = 1;
+let maxBackoff = 60000;
+let currentManifestFiles = [];
+let quarantineData = [];
+let quarantineSortField = 'failed_at';
+let quarantineSortAsc = false;
+
+// =====================================================================
+// Helpers
+// =====================================================================
+async function api(method, path, body) {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body) opts.body = JSON.stringify(body);
+    const resp = await fetch(API_URL + path, opts);
+    if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        const e = new Error(err.error?.message || resp.statusText);
+        e.status = resp.status;
+        e.data = err;
+        throw e;
+    }
+    return resp.json();
+}
+
+function showToast(msg, isError) {
+    const t = document.createElement('div');
+    t.className = 'toast' + (isError ? ' error' : '');
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 4000);
+}
+
+function fmt(n) { return n != null ? Number(n).toLocaleString() : '—'; }
+function fmtCost(n) { return n != null ? '$' + Number(n).toFixed(2) : '—'; }
+function fmtTime(seconds) {
+    if (!seconds) return '—';
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return m > 0 ? m + 'm ' + s + 's' : s + 's';
+}
+function shortKey(key) {
+    if (!key) return '—';
+    return key.length > 50 ? '...' + key.slice(-47) : key;
+}
+function shortArn(arn) {
+    if (!arn) return '—';
+    const parts = arn.split(':');
+    return parts.length > 0 ? parts[parts.length - 1].substring(0, 30) + '...' : arn.substring(0, 30);
+}
+
+// =====================================================================
+// Tab Switching
+// =====================================================================
+const TAB_NAMES = ['sources', 'pipeline', 'discover', 'progress', 'history', 'quarantine'];
+
+function switchSubTab(tab) {
+    document.querySelectorAll('.sub-tab').forEach((t, i) => {
+        t.classList.toggle('active', TAB_NAMES[i] === tab);
+    });
+    document.querySelectorAll('.sub-content').forEach(c => c.classList.remove('active'));
+    const el = document.getElementById('sub-' + tab);
+    if (el) el.classList.add('active');
+
+    // Load data on tab activation
+    if (tab === 'sources') loadSourceBrowser();
+    if (tab === 'pipeline') loadPipelineSummary();
+    if (tab === 'discover') loadPrefixCheckboxes();
+    if (tab === 'history' && selectedCaseId) loadHistory();
+    if (tab === 'quarantine' && selectedCaseId) loadQuarantine();
+    if (tab === 'progress' && selectedCaseId) startPolling();
+}
+
+// =====================================================================
+// Case Loading
+// =====================================================================
+async function loadCases() {
+    try {
+        const data = await api('GET', '/case-files');
+        const sel = document.getElementById('caseSelect');
+        const cases = data.case_files || [];
+        cases.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.case_id;
+            opt.textContent = c.topic_name + ' (' + (c.document_count || 0) + ' docs)';
+            if (c.case_id === 'ed0b6c27-3b6b-4255-b9d0-efe8f4383a99') opt.selected = true;
+            sel.appendChild(opt);
+        });
+        // Auto-select default
+        if (sel.value) onCaseChange();
+    } catch (e) { showToast('Failed to load cases', true); }
+}
+
+function onCaseChange() {
+    selectedCaseId = document.getElementById('caseSelect').value;
+    if (!selectedCaseId) return;
+    document.getElementById('btnStart').disabled = false;
+    // Reset views
+    document.getElementById('discoveryPreview').innerHTML = '';
+    document.getElementById('manifestViewer').style.display = 'none';
+    stopPolling();
+}
+
+// =====================================================================
+// Entity Resolution toggle label
+// =====================================================================
+document.getElementById('cfgEntityResolution').addEventListener('change', function() {
+    document.getElementById('erLabel').textContent = this.checked ? 'Enabled' : 'Disabled';
+});
+
+// =====================================================================
+// Discovery & Launch
+// =====================================================================
+function getConfig() {
+    const checked = document.querySelectorAll('#prefixCheckboxes input[type=checkbox]:checked');
+    const prefixes = Array.from(checked).map(cb => cb.value);
+    return {
+        batch_size: parseInt(document.getElementById('cfgBatchSize').value) || 4000,
+        sub_batch_size: parseInt(document.getElementById('cfgSubBatchSize').value) || 50,
+        source_prefixes: prefixes,
+        enable_entity_resolution: document.getElementById('cfgEntityResolution').checked,
+        ocr_threshold: parseInt(document.getElementById('cfgOcrThreshold').value) || 50,
+        blank_threshold: parseInt(document.getElementById('cfgBlankThreshold').value) || 10,
+        blank_page_rate: parseInt(document.getElementById('cfgBlankPageRate').value) / 100,
+    };
+}
+
+async function previewBatch() {
+    if (!selectedCaseId) { showToast('Select a case first', true); return; }
+    const cfg = getConfig();
+    if (cfg.source_prefixes.length === 0) { showToast('Select at least one source prefix', true); return; }
+    const btn = document.getElementById('btnPreview');
+    btn.disabled = true; btn.textContent = '⏳ Loading...';
+
+    try {
+        const prefixes = cfg.source_prefixes.join(',');
+        const data = await api('GET', '/batch-loader/discover?case_id=' + encodeURIComponent(selectedCaseId)
+            + '&batch_size=' + cfg.batch_size
+            + '&source_prefixes=' + encodeURIComponent(prefixes)
+            + '&blank_page_rate=' + cfg.blank_page_rate);
+        lastDiscoveryData = data;
+        renderDiscoveryPreview(data);
+    } catch (e) {
+        showToast('Discovery failed: ' + e.message, true);
+    } finally {
+        btn.disabled = false; btn.textContent = '🔍 Preview Batch';
+    }
+}
+
+function renderDiscoveryPreview(data) {
+    const container = document.getElementById('discoveryPreview');
+
+    if (data.total_unprocessed_count === 0) {
+        let html = '<div class="all-processed">';
+        html += '<div class="ap-icon">✅</div>';
+        html += '<div class="ap-text">All files processed!</div>';
+        if (data.cumulative_stats) {
+            html += '<div style="margin-top:12px;font-size:0.82em;color:#a0aec0;">';
+            html += 'Total processed: ' + fmt(data.cumulative_stats.total_processed);
+            html += ' · Blanks: ' + fmt(data.cumulative_stats.total_blanks_filtered);
+            html += ' · Cost: ' + fmtCost(data.cumulative_stats.total_estimated_cost);
+            html += '</div>';
+        }
+        html += '</div>';
+        container.innerHTML = html;
+        document.getElementById('btnStart').disabled = true;
+        return;
+    }
+
+    let html = '<div class="preview-card">';
+    html += '<h4>📊 Discovery Preview</h4>';
+    html += '<div class="preview-stat"><span class="ps-label">Unprocessed Files</span><span class="ps-value">' + fmt(data.total_unprocessed_count) + '</span></div>';
+    html += '<div class="preview-stat"><span class="ps-label">Requested Batch Size</span><span class="ps-value">' + fmt(data.requested_batch_size) + '</span></div>';
+    html += '<div class="preview-stat"><span class="ps-label">Actual Batch Size</span><span class="ps-value">' + fmt(data.actual_batch_size) + '</span></div>';
+
+    // Source prefix breakdown
+    if (data.source_prefix_breakdown) {
+        html += '<div style="margin-top:12px;font-size:0.72em;color:#718096;font-weight:600;">SOURCE PREFIX BREAKDOWN</div>';
+        for (const [prefix, count] of Object.entries(data.source_prefix_breakdown)) {
+            html += '<div class="preview-stat"><span class="ps-label">' + prefix + '</span><span class="ps-value">' + fmt(count) + '</span></div>';
+        }
+    }
+
+    // Dual cost breakdown (gross / net side by side)
+    const blankRate = parseInt(document.getElementById('cfgBlankPageRate').value);
+    const gross = data.gross_estimate || data.cost_preview;
+    const net = data.net_estimate;
+
+    if (gross) {
+        html += '<div style="margin-top:16px;font-size:0.72em;color:#718096;font-weight:600;">COST ESTIMATES</div>';
+        html += '<div style="font-size:0.72em;color:#a0aec0;margin-bottom:8px;">Blank page rate: ' + blankRate + '%</div>';
+        html += '<table class="cost-table" id="dualCostTable">';
+        html += '<thead><tr><th>Cost Component</th><th>Gross</th><th>Net (blank-adjusted)</th></tr></thead><tbody>';
+
+        if (gross.textract_ocr_cost != null) {
+            html += '<tr><td>Textract OCR (' + fmt(gross.estimated_ocr_pages) + ' pages)</td>';
+            html += '<td>' + fmtCost(gross.textract_ocr_cost) + '</td>';
+            html += '<td style="color:#48bb78;">' + fmtCost(net ? net.textract_ocr_cost : gross.textract_ocr_cost * (1 - blankRate/100)) + '</td></tr>';
+        }
+        if (gross.bedrock_entity_cost != null) {
+            html += '<tr><td>Bedrock Entity Extraction</td>';
+            html += '<td>' + fmtCost(gross.bedrock_entity_cost) + '</td>';
+            html += '<td style="color:#48bb78;">' + fmtCost(net ? net.bedrock_entity_cost : gross.bedrock_entity_cost * (1 - blankRate/100)) + '</td></tr>';
+        }
+        if (gross.bedrock_embedding_cost != null) {
+            html += '<tr><td>Bedrock Embedding</td>';
+            html += '<td>' + fmtCost(gross.bedrock_embedding_cost) + '</td>';
+            html += '<td style="color:#48bb78;">' + fmtCost(net ? net.bedrock_embedding_cost : gross.bedrock_embedding_cost * (1 - blankRate/100)) + '</td></tr>';
+        }
+        if (gross.neptune_write_cost != null) {
+            html += '<tr><td>Neptune Graph Writes</td>';
+            html += '<td>' + fmtCost(gross.neptune_write_cost) + '</td>';
+            html += '<td style="color:#48bb78;">' + fmtCost(net ? net.neptune_write_cost : gross.neptune_write_cost * (1 - blankRate/100)) + '</td></tr>';
+        }
+
+        const grossTotal = gross.total_estimated;
+        const netTotal = net ? net.total_estimated : grossTotal * (1 - blankRate/100);
+        html += '<tr style="border-top:2px solid #2d3748;"><td style="font-weight:700;color:#e2e8f0;">Total Estimated</td>';
+        html += '<td style="font-weight:700;">' + fmtCost(grossTotal) + '</td>';
+        html += '<td style="font-size:1.1em;color:#48bb78;font-weight:700;">' + fmtCost(netTotal) + '</td></tr>';
+        html += '</tbody></table>';
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+    document.getElementById('btnStart').disabled = false;
+}
+
+async function startBatch() {
+    if (!selectedCaseId) { showToast('Select a case first', true); return; }
+    const cfg = getConfig();
+
+    // Validate
+    if (cfg.batch_size <= 0) { showToast('Batch size must be positive', true); return; }
+    if (cfg.source_prefixes.length === 0) { showToast('Source prefixes cannot be empty', true); return; }
+
+    const btn = document.getElementById('btnStart');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="btn-spinner"></span>Starting...';
+
+    try {
+        const data = await api('POST', '/batch-loader/start', {
+            case_id: selectedCaseId,
+            batch_size: cfg.batch_size,
+            sub_batch_size: cfg.sub_batch_size,
+            source_prefixes: cfg.source_prefixes,
+            enable_entity_resolution: cfg.enable_entity_resolution,
+            ocr_threshold: cfg.ocr_threshold,
+            blank_threshold: cfg.blank_threshold,
+        });
+        showToast('Batch ' + data.batch_id + ' started!');
+        // Auto-switch to Live Progress tab
+        switchSubTab('progress');
+    } catch (e) {
+        if (e.status === 409) {
+            const activeId = e.data?.active_batch_id || e.data?.error?.message || '';
+            document.getElementById('discoveryPreview').innerHTML =
+                '<div class="section-card" style="border-color:rgba(246,224,94,0.3);">' +
+                '<div style="color:#f6e05e;font-size:0.92em;font-weight:600;">⚠️ Batch already running</div>' +
+                '<div style="color:#a0aec0;font-size:0.82em;margin-top:6px;">' + (e.message || '') + '</div>' +
+                '<button class="btn-secondary" style="margin-top:12px;" onclick="switchSubTab(\'progress\')">View Live Progress →</button>' +
+                '</div>';
+        } else {
+            showToast('Start failed: ' + e.message, true);
+        }
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '🚀 Start Batch';
+    }
+}
+
+// =====================================================================
+// Live Progress — Polling
+// =====================================================================
+const PHASE_ORDER = ['discovery', 'extracting', 'filtering', 'ingesting', 'polling_sfn', 'entity_resolution', 'completed'];
+
+function startPolling() {
+    stopPolling();
+    pollBackoff = 1;
+    pollStatus();
+}
+
+function stopPolling() {
+    if (pollTimer) { clearTimeout(pollTimer); pollTimer = null; }
+}
+
+async function pollStatus() {
+    if (!selectedCaseId) return;
+    try {
+        const data = await api('GET', '/batch-loader/status?case_id=' + encodeURIComponent(selectedCaseId));
+        document.getElementById('connBanner').classList.remove('visible');
+        pollBackoff = 1;
+        renderProgress(data);
+
+        // Determine next poll interval
+        if (data.status === 'completed' || data.status === 'failed') {
+            stopPolling();
+            return;
+        }
+        pollInterval = data.current_phase === 'entity_resolution' ? 15000 : 5000;
+        pollTimer = setTimeout(pollStatus, pollInterval);
+    } catch (e) {
+        if (e.status === 404) {
+            // No batch running
+            document.getElementById('phaseCounter').textContent = 'No active batch. Start one from the Discovery tab.';
+            stopPolling();
+            return;
+        }
+        // Network error — show banner and backoff
+        document.getElementById('connBanner').classList.add('visible');
+        const delay = Math.min(pollInterval * pollBackoff, maxBackoff);
+        pollBackoff = Math.min(pollBackoff * 2, 12);
+        pollTimer = setTimeout(pollStatus, delay);
+    }
+}
+
+function renderProgress(data) {
+    const status = data.status || 'discovery';
+    const phase = data.current_phase || status;
+
+    // Update phase bar
+    const phaseIdx = PHASE_ORDER.indexOf(phase);
+    document.querySelectorAll('.phase-dot').forEach(dot => {
+        const p = dot.dataset.phase;
+        const idx = PHASE_ORDER.indexOf(p);
+        dot.className = 'phase-dot';
+        if (status === 'failed' && p === phase) dot.classList.add('failed');
+        else if (idx < phaseIdx) dot.classList.add('completed');
+        else if (idx === phaseIdx) dot.classList.add(status === 'completed' ? 'completed' : 'active');
+    });
+    document.querySelectorAll('.phase-label').forEach(lbl => {
+        const p = lbl.dataset.phase;
+        const idx = PHASE_ORDER.indexOf(p);
+        lbl.className = 'phase-label';
+        if (status === 'failed' && p === phase) lbl.classList.add('failed');
+        else if (idx < phaseIdx) lbl.classList.add('completed');
+        else if (idx === phaseIdx) lbl.classList.add(status === 'completed' ? 'completed' : 'active');
+    });
+
+    // Phase counter
+    const pp = data.phase_progress || {};
+    const phaseNames = { discovery:'Discovering', extracting:'Extracting', filtering:'Filtering', ingesting:'Ingesting', polling_sfn:'Polling SFN', entity_resolution:'Entity Resolution', completed:'Completed' };
+    if (status === 'completed') {
+        document.getElementById('phaseCounter').innerHTML = '<span style="color:#48bb78;">✅ Batch completed</span>';
+    } else if (status === 'failed') {
+        document.getElementById('phaseCounter').innerHTML = '<span style="color:#fc8181;">❌ Batch failed</span>';
+    } else if (status === 'paused') {
+        document.getElementById('phaseCounter').innerHTML = '<span style="color:#f6e05e;">⏸ Batch paused</span>';
+    } else {
+        document.getElementById('phaseCounter').textContent =
+            'Phase: ' + (phaseNames[phase] || phase) + ' — ' + fmt(pp.items_completed) + ' / ' + fmt(pp.items_total);
+    }
+
+    // Overall progress bar
+    const op = data.overall_progress || {};
+    const pct = op.batch_size > 0 ? Math.round((op.files_processed / op.batch_size) * 100) : 0;
+    document.getElementById('overallBar').style.width = pct + '%';
+    document.getElementById('overallBarText').textContent = pct + '% (' + fmt(op.files_processed) + ' / ' + fmt(op.batch_size) + ')';
+
+    // Elapsed time
+    if (data.elapsed_time_seconds) {
+        document.getElementById('elapsedTime').textContent = 'Elapsed: ' + fmtTime(data.elapsed_time_seconds);
+    }
+
+    // Stats cards
+    const stats = data.per_phase_stats || {};
+
+    // Extraction
+    const ext = stats.extraction || stats.extracting;
+    if (ext) {
+        document.getElementById('statExtraction').textContent = fmt((ext.pypdf2 || 0) + (ext.textract || 0) + (ext.cached || 0));
+        document.getElementById('statExtractionDetail').textContent =
+            'PyPDF2: ' + fmt(ext.pypdf2) + ' · Textract: ' + fmt(ext.textract) + ' · Failed: ' + fmt(ext.failed) + ' · Cached: ' + fmt(ext.cached);
+    }
+
+    // Blanks
+    const filt = stats.filtering;
+    if (filt) {
+        document.getElementById('statBlanks').textContent = fmt(filt.blank_count);
+        document.getElementById('statBlanksDetail').textContent = 'Non-blank: ' + fmt(filt.non_blank_count);
+    }
+
+    // Sub-batches
+    const ing = stats.ingesting;
+    if (ing) {
+        document.getElementById('statSubBatches').textContent = fmt(ing.sub_batches_sent) + ' / ' + fmt(ing.sub_batches_total);
+        document.getElementById('statSubBatchesDetail').textContent = ing.duration_seconds != null ? fmtTime(ing.duration_seconds) : '';
+    }
+
+    // SFN
+    const sfn = stats.polling_sfn;
+    if (sfn) {
+        document.getElementById('statSfn').textContent = fmt(sfn.succeeded) + ' ✓ / ' + fmt(sfn.failed) + ' ✗';
+        document.getElementById('statSfnDetail').textContent = 'Total: ' + fmt(sfn.executions_total) + ' · Running: ' + fmt(sfn.running);
+    }
+
+    // Completion / Error summary
+    const summaryEl = document.getElementById('progressSummary');
+    if (status === 'completed') {
+        summaryEl.innerHTML =
+            '<div class="section-card" style="border-color:#48bb78;">' +
+            '<div style="color:#48bb78;font-size:1em;font-weight:700;margin-bottom:8px;">✅ Batch Completed Successfully</div>' +
+            '<div style="font-size:0.82em;color:#a0aec0;">Batch ID: ' + (data.batch_id || '—') + '</div>' +
+            '<button class="btn-primary" style="margin-top:12px;" onclick="switchSubTab(\'history\')">View Batch History →</button>' +
+            '</div>';
+    } else if (status === 'failed') {
+        summaryEl.innerHTML =
+            '<div class="section-card" style="border-color:#fc8181;">' +
+            '<div style="color:#fc8181;font-size:1em;font-weight:700;margin-bottom:8px;">❌ Batch Failed</div>' +
+            '<div style="font-size:0.82em;color:#a0aec0;">' + (data.error_reason || 'Unknown error') + '</div>' +
+            '</div>';
+    } else if (status === 'paused') {
+        summaryEl.innerHTML =
+            '<div class="section-card" style="border-color:#f6e05e;">' +
+            '<div style="color:#f6e05e;font-size:1em;font-weight:700;margin-bottom:8px;">⏸ Batch Paused</div>' +
+            '<div style="font-size:0.82em;color:#a0aec0;">' + (data.error_reason || 'Paused due to high failure rate') + '</div>' +
+            '<button class="btn-warning" style="margin-top:12px;" onclick="resumeBatch()">▶ Resume Batch</button>' +
+            '</div>';
+    } else {
+        summaryEl.innerHTML = '';
+    }
+}
+
+async function resumeBatch() {
+    // Resume is a re-start — the backend handles it
+    showToast('Resume not yet implemented — restart from Discovery tab');
+}
+
+// =====================================================================
+// Batch History
+// =====================================================================
+async function loadHistory() {
+    if (!selectedCaseId) return;
+    try {
+        const data = await api('GET', '/batch-loader/history?case_id=' + encodeURIComponent(selectedCaseId));
+
+        // Cumulative stats
+        const cs = data.cumulative_stats;
+        if (cs) {
+            document.getElementById('cumProcessed').textContent = fmt(cs.total_processed);
+            document.getElementById('cumBlanks').textContent = fmt(cs.total_blanks_filtered);
+            document.getElementById('cumCost').textContent = fmtCost(cs.total_estimated_cost);
+        }
+
+        // Batch table
+        const batches = data.batches || [];
+        const tbody = document.getElementById('historyBody');
+        if (batches.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#718096;padding:30px;">No batch history yet</td></tr>';
+            return;
+        }
+
+        let html = '';
+        batches.forEach(b => {
+            const erResult = b.entity_resolution_result
+                ? (b.entity_resolution_result.clusters_merged != null ? b.entity_resolution_result.clusters_merged + ' merged' : JSON.stringify(b.entity_resolution_result).substring(0, 30))
+                : '—';
+            html += '<tr class="clickable" onclick="viewManifest(\'' + (b.load_id || b.batch_id || '') + '\')">';
+            html += '<td style="color:#48bb78;font-weight:600;">' + (b.load_id || b.batch_id || '—') + '</td>';
+            html += '<td>' + (b.timestamp ? new Date(b.timestamp).toLocaleString() : '—') + '</td>';
+            html += '<td>' + fmt(b.source_files_total) + '</td>';
+            html += '<td>' + fmt(b.blanks_skipped) + '</td>';
+            html += '<td>' + fmt(b.docs_sent_to_pipeline) + '</td>';
+            html += '<td style="color:#48bb78;">' + fmt(b.sfn_succeeded) + '</td>';
+            html += '<td style="color:#fc8181;">' + fmt(b.sfn_failed) + '</td>';
+            html += '<td>' + fmt(b.textract_ocr_count) + '</td>';
+            html += '<td>' + erResult + '</td>';
+            html += '<td>' + fmtCost(b.cost_actual) + '</td>';
+            html += '</tr>';
+        });
+        tbody.innerHTML = html;
+    } catch (e) {
+        showToast('Failed to load history: ' + e.message, true);
+    }
+}
+
+// =====================================================================
+// Manifest Viewer
+// =====================================================================
+async function viewManifest(batchId) {
+    if (!selectedCaseId || !batchId) return;
+    try {
+        const data = await api('GET', '/batch-loader/manifests/' + encodeURIComponent(batchId) + '?case_id=' + encodeURIComponent(selectedCaseId));
+        currentManifestFiles = data.files || [];
+        document.getElementById('manifestTitle').textContent = '📄 Manifest — ' + batchId;
+        document.getElementById('manifestViewer').style.display = 'block';
+
+        // Reset filters
+        document.getElementById('mfFilterStatus').value = '';
+        document.getElementById('mfFilterMethod').value = '';
+
+        renderManifestSummary(currentManifestFiles);
+        renderManifestTable(currentManifestFiles);
+
+        // Scroll to manifest
+        document.getElementById('manifestViewer').scrollIntoView({ behavior: 'smooth' });
+    } catch (e) {
+        if (e.status === 404) {
+            showToast('Manifest not found for ' + batchId, true);
+        } else {
+            showToast('Failed to load manifest: ' + e.message, true);
+        }
+    }
+}
+
+function renderManifestSummary(files) {
+    const counts = {};
+    files.forEach(f => {
+        const s = f.pipeline_status || 'unknown';
+        counts[s] = (counts[s] || 0) + 1;
+    });
+
+    const colors = { succeeded: '#48bb78', failed: '#fc8181', quarantined: '#f6e05e', unknown: '#718096' };
+    const bgColors = { succeeded: 'rgba(72,187,120,0.15)', failed: 'rgba(252,129,129,0.15)', quarantined: 'rgba(246,224,94,0.15)', unknown: 'rgba(113,128,150,0.15)' };
+
+    let html = '';
+    for (const [status, count] of Object.entries(counts)) {
+        html += '<span class="ms-badge" style="background:' + (bgColors[status] || bgColors.unknown) + ';color:' + (colors[status] || colors.unknown) + ';">' + status + ': ' + count + '</span>';
+    }
+    html += '<span class="ms-badge" style="background:rgba(144,205,244,0.15);color:#90cdf4;">Total: ' + files.length + '</span>';
+    document.getElementById('manifestSummary').innerHTML = html;
+}
+
+function renderManifestTable(files) {
+    const tbody = document.getElementById('manifestBody');
+    if (files.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#718096;padding:20px;">No files match filters</td></tr>';
+        return;
+    }
+
+    let html = '';
+    files.forEach(f => {
+        const statusColor = f.pipeline_status === 'succeeded' ? '#48bb78' : f.pipeline_status === 'failed' ? '#fc8181' : '#f6e05e';
+        html += '<tr>';
+        html += '<td title="' + (f.s3_key || '') + '">' + shortKey(f.s3_key) + '</td>';
+        html += '<td>' + (f.extraction_method || '—') + '</td>';
+        html += '<td>' + fmt(f.char_count) + '</td>';
+        html += '<td>' + (f.blank_filtered ? '✓' : '') + '</td>';
+        html += '<td style="color:' + statusColor + ';font-weight:600;">' + (f.pipeline_status || '—') + '</td>';
+        html += '<td title="' + (f.sfn_arn || '') + '">' + shortArn(f.sfn_arn) + '</td>';
+        html += '<td style="color:#fc8181;">' + (f.error || '') + '</td>';
+        html += '</tr>';
+    });
+    tbody.innerHTML = html;
+}
+
+function applyManifestFilters() {
+    const statusFilter = document.getElementById('mfFilterStatus').value;
+    const methodFilter = document.getElementById('mfFilterMethod').value;
+
+    let filtered = currentManifestFiles;
+    if (statusFilter) filtered = filtered.filter(f => f.pipeline_status === statusFilter);
+    if (methodFilter) filtered = filtered.filter(f => f.extraction_method === methodFilter);
+
+    renderManifestSummary(filtered);
+    renderManifestTable(filtered);
+}
+
+function closeManifest() {
+    document.getElementById('manifestViewer').style.display = 'none';
+}
+
+// =====================================================================
+// Quarantine
+// =====================================================================
+async function loadQuarantine() {
+    if (!selectedCaseId) return;
+    try {
+        const data = await api('GET', '/batch-loader/quarantine?case_id=' + encodeURIComponent(selectedCaseId));
+        quarantineData = data.quarantined_files || [];
+        const summary = data.summary || {};
+
+        // Summary cards
+        document.getElementById('qTotal').textContent = fmt(summary.total_quarantined);
+
+        const byReason = summary.by_reason || {};
+        const reasonParts = Object.entries(byReason).map(([k, v]) => k.replace(/_/g, ' ') + ': ' + v);
+        document.getElementById('qByReason').textContent = fmt(summary.total_quarantined);
+        document.getElementById('qByReasonDetail').textContent = reasonParts.join(' · ') || '—';
+
+        document.getElementById('qMostRecent').textContent = summary.most_recent
+            ? new Date(summary.most_recent).toLocaleString()
+            : '—';
+        document.getElementById('qMostRecent').style.fontSize = '0.82em';
+
+        renderQuarantineTable(quarantineData);
+    } catch (e) {
+        showToast('Failed to load quarantine: ' + e.message, true);
+    }
+}
+
+function renderQuarantineTable(entries) {
+    const tbody = document.getElementById('quarantineBody');
+    if (entries.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#718096;padding:30px;">No quarantined files</td></tr>';
+        return;
+    }
+
+    let html = '';
+    entries.forEach(e => {
+        html += '<tr>';
+        html += '<td title="' + (e.s3_key || '') + '">' + shortKey(e.s3_key) + '</td>';
+        html += '<td style="color:#fc8181;">' + (e.reason || '—') + '</td>';
+        html += '<td>' + (e.failed_at ? new Date(e.failed_at).toLocaleString() : '—') + '</td>';
+        html += '<td>' + (e.retry_count != null ? e.retry_count : '—') + '</td>';
+        html += '<td>' + (e.batch_number != null ? e.batch_number : '—') + '</td>';
+        html += '</tr>';
+    });
+    tbody.innerHTML = html;
+}
+
+function filterQuarantineTable() {
+    const search = document.getElementById('quarantineSearch').value.toLowerCase();
+    if (!search) {
+        renderQuarantineTable(quarantineData);
+        return;
+    }
+    const filtered = quarantineData.filter(e =>
+        (e.s3_key || '').toLowerCase().includes(search) ||
+        (e.reason || '').toLowerCase().includes(search)
+    );
+    renderQuarantineTable(filtered);
+}
+
+function sortQuarantine(field) {
+    if (quarantineSortField === field) {
+        quarantineSortAsc = !quarantineSortAsc;
+    } else {
+        quarantineSortField = field;
+        quarantineSortAsc = true;
+    }
+
+    quarantineData.sort((a, b) => {
+        let va = a[field] || '';
+        let vb = b[field] || '';
+        if (typeof va === 'number' && typeof vb === 'number') {
+            return quarantineSortAsc ? va - vb : vb - va;
+        }
+        va = String(va).toLowerCase();
+        vb = String(vb).toLowerCase();
+        if (va < vb) return quarantineSortAsc ? -1 : 1;
+        if (va > vb) return quarantineSortAsc ? 1 : -1;
+        return 0;
+    });
+
+    // Re-apply search filter
+    filterQuarantineTable();
+}
+
+// =====================================================================
+// Source Browser (8.1, 8.2)
+// =====================================================================
+let sourceData = null;
+let extractPollTimer = null;
+let pipelinePollTimer = null;
+let lastDiscoveryData = null;
+
+async function loadSourceBrowser() {
+    const btn = document.getElementById('btnRefreshSources');
+    btn.disabled = true; btn.textContent = '⏳ Loading...';
+    document.getElementById('sourceErrorPanel').style.display = 'none';
+
+    try {
+        const data = await api('GET', '/batch-loader/sources');
+        sourceData = data;
+
+        // Summary stats
+        const s = data.summary || {};
+        document.getElementById('srcTotalFiles').textContent = fmt(s.total_files);
+        document.getElementById('srcExtractedPdfs').textContent = fmt(s.total_extracted_pdfs);
+        document.getElementById('srcProcessed').textContent = fmt(s.already_processed);
+        document.getElementById('srcRemaining').textContent = fmt(s.remaining_unprocessed);
+
+        // Prefix table
+        renderPrefixTable(data.prefixes || []);
+    } catch (e) {
+        document.getElementById('sourceErrorPanel').style.display = 'block';
+        document.getElementById('sourceErrorMsg').textContent = 'S3 Error: ' + (e.data?.error?.code || '') + ' — ' + e.message;
+    } finally {
+        btn.disabled = false; btn.textContent = '🔄 Refresh';
+    }
+}
+
+function fmtBytes(bytes) {
+    if (bytes == null) return '—';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
+    return (bytes / 1073741824).toFixed(2) + ' GB';
+}
+
+function renderPrefixTable(prefixes) {
+    const tbody = document.getElementById('prefixBody');
+    if (prefixes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#718096;padding:30px;">No prefixes found</td></tr>';
+        return;
+    }
+
+    let html = '';
+    prefixes.forEach((p, idx) => {
+        const hasZips = p.zip_count > 0 && p.zip_files && p.zip_files.length > 0;
+        html += '<tr>';
+        html += '<td>' + (hasZips ? '<span style="cursor:pointer;color:#48bb78;" onclick="toggleZipRows(' + idx + ')">▶</span>' : '') + '</td>';
+        html += '<td style="font-weight:600;color:#e2e8f0;">' + (p.prefix || '—') + '</td>';
+        html += '<td>' + fmt(p.total_objects) + '</td>';
+        html += '<td>' + fmtBytes(p.total_size_bytes) + '</td>';
+        html += '<td>' + fmt(p.pdf_count) + '</td>';
+        html += '<td>' + fmt(p.zip_count) + '</td>';
+        html += '</tr>';
+
+        // Zip detail rows (hidden by default)
+        if (hasZips) {
+            p.zip_files.forEach(z => {
+                const extracted = z.already_extracted;
+                html += '<tr class="zip-detail-' + idx + '" style="display:none;background:rgba(72,187,120,0.03);">';
+                html += '<td style="text-align:center;"><input type="checkbox" class="zip-cb" value="' + z.key + '"' + (extracted ? ' disabled' : '') + '></td>';
+                html += '<td style="padding-left:30px;font-size:0.78em;color:#a0aec0;">📦 ' + (z.key || '—') + '</td>';
+                html += '<td colspan="2">' + fmtBytes(z.size_bytes) + '</td>';
+                html += '<td>' + fmt(z.estimated_file_count) + ' files</td>';
+                html += '<td>' + (extracted
+                    ? '<span style="color:#48bb78;font-size:0.78em;font-weight:600;">✅ Already Extracted</span>'
+                    : '<span style="color:#f6e05e;font-size:0.78em;">Pending</span>') + '</td>';
+                html += '</tr>';
+            });
+        }
+    });
+
+    // Extract button row
+    html += '<tr><td colspan="6" style="padding:12px;">';
+    html += '<button class="btn-primary" onclick="extractSelectedZips()" id="btnExtractZips">📦 Extract Selected Zips</button>';
+    html += '</td></tr>';
+
+    tbody.innerHTML = html;
+}
+
+function toggleZipRows(idx) {
+    const rows = document.querySelectorAll('.zip-detail-' + idx);
+    const toggle = rows.length > 0 && rows[0].style.display === 'none';
+    rows.forEach(r => r.style.display = toggle ? '' : 'none');
+    // Update arrow
+    const arrows = document.querySelectorAll('#prefixBody tr');
+    if (arrows[0]) {
+        const arrow = arrows[idx]?.querySelector('span');
+        if (arrow) arrow.textContent = toggle ? '▼' : '▶';
+    }
+}
+
+// =====================================================================
+// Zip Extraction (8.2)
+// =====================================================================
+async function extractSelectedZips() {
+    const checked = document.querySelectorAll('.zip-cb:checked');
+    if (checked.length === 0) { showToast('Select at least one zip to extract', true); return; }
+
+    const zipKeys = Array.from(checked).map(cb => cb.value);
+    const btn = document.getElementById('btnExtractZips');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="btn-spinner"></span>Starting...';
+
+    try {
+        const data = await api('POST', '/batch-loader/extract', { zip_keys: zipKeys });
+        showToast('Extraction started: ' + data.job_id);
+        showExtractionProgress(data.job_id);
+    } catch (e) {
+        showToast('Extract failed: ' + e.message, true);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '📦 Extract Selected Zips';
+    }
+}
+
+function showExtractionProgress(jobId) {
+    document.getElementById('extractionProgressPanel').style.display = 'block';
+    document.getElementById('extJobId').textContent = jobId;
+    document.getElementById('extCurrentZip').textContent = '—';
+    document.getElementById('extElapsed').textContent = '—';
+    document.getElementById('extProgressBar').style.width = '0%';
+    document.getElementById('extProgressText').textContent = '0%';
+    document.getElementById('extDetail').textContent = '';
+    document.getElementById('extErrors').innerHTML = '';
+
+    // Start polling
+    if (extractPollTimer) clearInterval(extractPollTimer);
+    extractPollTimer = setInterval(() => pollExtractionStatus(jobId), 5000);
+    pollExtractionStatus(jobId);
+}
+
+async function pollExtractionStatus(jobId) {
+    try {
+        const data = await api('GET', '/batch-loader/extract-status?job_id=' + encodeURIComponent(jobId));
+        if (!data) return;
+
+        document.getElementById('extCurrentZip').textContent = data.current_zip || '—';
+        document.getElementById('extElapsed').textContent = fmtTime(data.elapsed_seconds);
+
+        const total = data.files_total || 1;
+        const extracted = data.files_extracted || 0;
+        const pct = Math.round((extracted / total) * 100);
+        document.getElementById('extProgressBar').style.width = pct + '%';
+        document.getElementById('extProgressText').textContent = pct + '% (' + fmt(extracted) + ' / ' + fmt(total) + ')';
+        document.getElementById('extDetail').textContent =
+            'Extracted: ' + fmt(extracted) + ' · Skipped: ' + fmt(data.files_skipped) + ' · Uploaded: ' + fmtBytes(data.bytes_uploaded);
+
+        // Show errors if any
+        if (data.errors && data.errors.length > 0) {
+            let errHtml = '<div style="font-size:0.72em;color:#fc8181;margin-top:4px;">';
+            errHtml += 'Errors (' + data.errors.length + '): ';
+            data.errors.slice(0, 5).forEach(e => { errHtml += e.file + ' — ' + e.error + '; '; });
+            if (data.errors.length > 5) errHtml += '...and ' + (data.errors.length - 5) + ' more';
+            errHtml += '</div>';
+            document.getElementById('extErrors').innerHTML = errHtml;
+        }
+
+        // Stop polling on completion or failure
+        if (data.status === 'completed' || data.status === 'failed') {
+            clearInterval(extractPollTimer);
+            extractPollTimer = null;
+            if (data.status === 'completed') {
+                showToast('Extraction completed! ' + fmt(extracted) + ' files extracted.');
+                loadSourceBrowser(); // Refresh the table
+            } else {
+                showToast('Extraction failed', true);
+            }
+        }
+    } catch (e) {
+        // Silently retry on poll failure
+    }
+}
+
+// =====================================================================
+// Pipeline Dashboard (8.3)
+// =====================================================================
+async function loadPipelineSummary() {
+    try {
+        const data = await api('GET', '/batch-loader/pipeline-summary');
+        const stages = data.stages || {};
+
+        // Update stage counts
+        const zipStage = stages.zip_archives || {};
+        const pdfStage = stages.extracted_pdfs || {};
+        const blankStage = stages.blank_filtered || {};
+        const ingestStage = stages.ingested || {};
+
+        document.getElementById('pipeZipCount').textContent = fmt(zipStage.count);
+        document.getElementById('pipePdfCount').textContent = fmt(pdfStage.count);
+        document.getElementById('pipeBlankCount').textContent = fmt(blankStage.count);
+        document.getElementById('pipeIngestCount').textContent = fmt(ingestStage.count);
+
+        // Grey out zero-count stages
+        ['pipeStageZip', 'pipeStageExtract', 'pipeStageBlank', 'pipeStageIngest'].forEach((id, i) => {
+            const count = [zipStage, pdfStage, blankStage, ingestStage][i].count || 0;
+            const el = document.getElementById(id);
+            el.style.opacity = count === 0 ? '0.4' : '1';
+        });
+
+        // Selected prefixes
+        const prefixes = data.selected_prefixes || [];
+        document.getElementById('pipeSelectedPrefixes').textContent = prefixes.length > 0 ? prefixes.join(', ') : 'None';
+
+        // Auto-refresh if batch is active
+        if (data.active_batch) {
+            if (!pipelinePollTimer) {
+                pipelinePollTimer = setInterval(loadPipelineSummary, 5000);
+            }
+        } else {
+            if (pipelinePollTimer) { clearInterval(pipelinePollTimer); pipelinePollTimer = null; }
+        }
+    } catch (e) {
+        // Silently handle — dashboard is informational
+    }
+}
+
+// =====================================================================
+// Multi-Prefix Selector (8.4)
+// =====================================================================
+let prefixCheckboxesLoaded = false;
+
+async function loadPrefixCheckboxes() {
+    if (prefixCheckboxesLoaded) return;
+    try {
+        const data = await api('GET', '/batch-loader/sources');
+        const prefixes = (data.prefixes || []).filter(p => p.pdf_count > 0);
+        const container = document.getElementById('prefixCheckboxes');
+
+        if (prefixes.length === 0) {
+            container.innerHTML = '<span style="color:#718096;">No PDF-containing prefixes found</span>';
+            return;
+        }
+
+        const defaults = ['pdfs/', 'bw-documents/'];
+        let html = '';
+        prefixes.forEach(p => {
+            const checked = defaults.includes(p.prefix) ? ' checked' : '';
+            const unprocessed = (p.total_objects || 0);
+            html += '<label style="display:flex;align-items:center;gap:6px;padding:3px 0;cursor:pointer;">';
+            html += '<input type="checkbox" class="prefix-cb" value="' + p.prefix + '"' + checked + ' onchange="onPrefixSelectionChange()">';
+            html += '<span style="color:#e2e8f0;">' + p.prefix + '</span>';
+            html += '<span style="font-size:0.72em;color:#718096;margin-left:auto;">' + fmt(unprocessed) + ' files</span>';
+            html += '</label>';
+        });
+        container.innerHTML = html;
+        prefixCheckboxesLoaded = true;
+        onPrefixSelectionChange();
+    } catch (e) {
+        document.getElementById('prefixCheckboxes').innerHTML = '<span style="color:#fc8181;">Failed to load prefixes</span>';
+    }
+}
+
+function onPrefixSelectionChange() {
+    const checked = document.querySelectorAll('#prefixCheckboxes input[type=checkbox]:checked');
+    const noneSelected = checked.length === 0;
+    document.getElementById('btnPreview').disabled = noneSelected;
+    document.getElementById('btnStart').disabled = noneSelected;
+    if (noneSelected) {
+        document.getElementById('discoveryPreview').innerHTML =
+            '<div style="color:#f6e05e;font-size:0.82em;padding:12px;">⚠️ Select at least one source prefix to continue.</div>';
+    }
+}
+
+// =====================================================================
+// Blank-Adjusted Cost Recalculation (8.5)
+// =====================================================================
+function recalcNetEstimates() {
+    if (!lastDiscoveryData) return;
+    // Re-render the preview with updated blank rate (client-side recalc)
+    renderDiscoveryPreview(lastDiscoveryData);
+}
+
+// =====================================================================
+// Init
+// =====================================================================
+loadCases();
+</script>
+</body>
+</html>
