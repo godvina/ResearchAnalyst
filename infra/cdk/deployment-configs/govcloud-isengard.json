@@ -1,0 +1,53 @@
+{
+  "environment_name": "govcloud-test",
+  "account": "CDK_DEFAULT_ACCOUNT",
+  "region": "us-gov-west-1",
+  "partition": "aws-us-gov",
+  "vpc": {
+    "create_new": true,
+    "cidr": "10.0.0.0/16"
+  },
+  "aurora": {
+    "min_capacity": 0.5,
+    "max_capacity": 4,
+    "subnet_type": "PRIVATE_WITH_EGRESS"
+  },
+  "neptune": {
+    "enabled": false
+  },
+  "opensearch": {
+    "mode": "disabled"
+  },
+  "encryption": {
+    "kms_key_arn": null,
+    "enforce_tls": true
+  },
+  "api": {
+    "throttle_burst_limit": 100,
+    "throttle_rate_limit": 50,
+    "access_logging": true
+  },
+  "s3": {
+    "removal_policy": "RETAIN"
+  },
+  "monitoring": {
+    "alarm_sns_topic_arn": ""
+  },
+  "bedrock": {
+    "llm_model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+    "embedding_model_id": "amazon.titan-embed-text-v2:0",
+    "excluded_providers": []
+  },
+  "features": {
+    "pipeline_only": false,
+    "rekognition": false
+  },
+  "tags": {
+    "Compliance": "FedRAMP-High",
+    "Project": "InvestigativeIntelligence"
+  },
+  "logging": {
+    "vpc_flow_logs": true,
+    "cloudtrail": true
+  }
+}
