@@ -1,0 +1,6847 @@
+{
+ "Description": "Research Analyst Platform \u2014 config-driven multi-environment deployment",
+ "Parameters": {
+  "EnvironmentName": {
+   "Type": "String",
+   "Default": "dev",
+   "Description": "Deployment environment name"
+  },
+  "AWSRegion": {
+   "Type": "String",
+   "Default": "us-east-1",
+   "Description": "AWS region for deployment"
+  },
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Resources": {
+  "SecurityDataLakeBucketC8F981C8": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "BucketEncryption": {
+     "ServerSideEncryptionConfiguration": [
+      {
+       "ServerSideEncryptionByDefault": {
+        "SSEAlgorithm": "AES256"
+       }
+      }
+     ]
+    },
+    "BucketName": {
+     "Fn::Sub": "research-analyst-data-lake-${AWS::AccountId}"
+    },
+    "LifecycleConfiguration": {
+     "Rules": [
+      {
+       "Id": "TransitionToIA",
+       "Status": "Enabled",
+       "Transitions": [
+        {
+         "StorageClass": "STANDARD_IA",
+         "TransitionInDays": 90
+        }
+       ]
+      }
+     ]
+    },
+    "PublicAccessBlockConfiguration": {
+     "BlockPublicAcls": true,
+     "BlockPublicPolicy": true,
+     "IgnorePublicAcls": true,
+     "RestrictPublicBuckets": true
+    },
+    "Tags": [
+     {
+      "Key": "aws-cdk:auto-delete-objects",
+      "Value": "true"
+     },
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VersioningConfiguration": {
+     "Status": "Enabled"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Security/DataLakeBucket/Resource"
+   }
+  },
+  "SecurityDataLakeBucketPolicyB16C5DCF": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "SecurityDataLakeBucketC8F981C8"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:PutBucketPolicy",
+        "s3:GetBucket*",
+        "s3:List*",
+        "s3:DeleteObject*"
+       ],
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::GetAtt": [
+          "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+          "Arn"
+         ]
+        }
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SecurityDataLakeBucketC8F981C8",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SecurityDataLakeBucketC8F981C8",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Security/DataLakeBucket/Policy/Resource"
+   }
+  },
+  "SecurityDataLakeBucketAutoDeleteObjectsCustomResourceB6A86462": {
+   "Type": "Custom::S3AutoDeleteObjects",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F",
+      "Arn"
+     ]
+    },
+    "BucketName": {
+     "Ref": "SecurityDataLakeBucketC8F981C8"
+    }
+   },
+   "DependsOn": [
+    "SecurityDataLakeBucketPolicyB16C5DCF"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Security/DataLakeBucket/AutoDeleteObjectsCustomResource/Default"
+   }
+  },
+  "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ]
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Role"
+   }
+  },
+  "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-974220725866-us-east-1",
+     "S3Key": "faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip"
+    },
+    "Timeout": 900,
+    "MemorySize": 128,
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs22.x",
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       "Lambda function for auto-deleting objects in ",
+       {
+        "Ref": "SecurityDataLakeBucketC8F981C8"
+       },
+       " S3 bucket."
+      ]
+     ]
+    }
+   },
+   "DependsOn": [
+    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Handler",
+    "aws:asset:path": "asset.faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6",
+    "aws:asset:property": "Code"
+   }
+  },
+  "AuroraAuroraSG11215CBC": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Aurora Serverless v2 security group",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "255.255.255.255/32",
+      "Description": "Disallow all traffic",
+      "FromPort": 252,
+      "IpProtocol": "icmp",
+      "ToPort": 86
+     }
+    ],
+    "SecurityGroupIngress": [
+     {
+      "CidrIp": "172.31.0.0/16",
+      "Description": "Allow PostgreSQL from VPC",
+      "FromPort": 5432,
+      "IpProtocol": "tcp",
+      "ToPort": 5432
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Aurora/AuroraSG/Resource"
+   }
+  },
+  "AuroraAuroraSGfromResearchAnalystStackAuroraAuroraProxyProxySecurityGroupA75F770DIndirectPortB5FD9652": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow connections to the database Cluster from the Proxy",
+    "FromPort": {
+     "Fn::GetAtt": [
+      "AuroraAuroraCluster557FDB85",
+      "Endpoint.Port"
+     ]
+    },
+    "GroupId": {
+     "Fn::GetAtt": [
+      "AuroraAuroraSG11215CBC",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "AuroraAuroraProxyProxySecurityGroup1BCEFF19",
+      "GroupId"
+     ]
+    },
+    "ToPort": {
+     "Fn::GetAtt": [
+      "AuroraAuroraCluster557FDB85",
+      "Endpoint.Port"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Aurora/AuroraSG/from ResearchAnalystStackAuroraAuroraProxyProxySecurityGroupA75F770D:{IndirectPort}"
+   }
+  },
+  "AuroraAuroraClusterSubnets5E3C5430": {
+   "Type": "AWS::RDS::DBSubnetGroup",
+   "Properties": {
+    "DBSubnetGroupDescription": "Subnets for AuroraCluster database",
+    "SubnetIds": [
+     "subnet-07cffe5b0b84b3499",
+     "subnet-0d4d796be847de3b0",
+     "subnet-08c5dc41e84a46eb5",
+     "subnet-08daeb0b5e4e1bf85",
+     "subnet-023e2e0e7b9bd70c6",
+     "subnet-037765830e6460aff"
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Aurora/AuroraCluster/Subnets/Default"
+   }
+  },
+  "AuroraAuroraClusterSecret20EE0729": {
+   "Type": "AWS::SecretsManager::Secret",
+   "Properties": {
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       "Generated by the CDK for stack: ",
+       {
+        "Ref": "AWS::StackName"
+       }
+      ]
+     ]
+    },
+    "GenerateSecretString": {
+     "ExcludeCharacters": " %+~`#$&*()|[]{}:;<>?!'/@\"\\",
+     "GenerateStringKey": "password",
+     "PasswordLength": 30,
+     "SecretStringTemplate": "{\"username\":\"postgres\"}"
+    },
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Aurora/AuroraCluster/Secret/Resource"
+   }
+  },
+  "AuroraAuroraClusterSecretAttachment47B4605C": {
+   "Type": "AWS::SecretsManager::SecretTargetAttachment",
+   "Properties": {
+    "SecretId": {
+     "Ref": "AuroraAuroraClusterSecret20EE0729"
+    },
+    "TargetId": {
+     "Ref": "AuroraAuroraCluster557FDB85"
+    },
+    "TargetType": "AWS::RDS::DBCluster"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Aurora/AuroraCluster/Secret/Attachment/Resource"
+   }
+  },
+  "AuroraAuroraCluster557FDB85": {
+   "Type": "AWS::RDS::DBCluster",
+   "Properties": {
+    "CopyTagsToSnapshot": true,
+    "DBClusterParameterGroupName": "default.aurora-postgresql16",
+    "DBSubnetGroupName": {
+     "Ref": "AuroraAuroraClusterSubnets5E3C5430"
+    },
+    "DatabaseName": "research_analyst",
+    "Engine": "aurora-postgresql",
+    "EngineVersion": "16.4",
+    "MasterUserPassword": {
+     "Fn::Join": [
+      "",
+      [
+       "{{resolve:secretsmanager:",
+       {
+        "Ref": "AuroraAuroraClusterSecret20EE0729"
+       },
+       ":SecretString:password::}}"
+      ]
+     ]
+    },
+    "MasterUsername": {
+     "Fn::Join": [
+      "",
+      [
+       "{{resolve:secretsmanager:",
+       {
+        "Ref": "AuroraAuroraClusterSecret20EE0729"
+       },
+       ":SecretString:username::}}"
+      ]
+     ]
+    },
+    "Port": 5432,
+    "ServerlessV2ScalingConfiguration": {
+     "MaxCapacity": 8,
+     "MinCapacity": 0.5
+    },
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcSecurityGroupIds": [
+     {
+      "Fn::GetAtt": [
+       "AuroraAuroraSG11215CBC",
+       "GroupId"
+      ]
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Aurora/AuroraCluster/Resource"
+   }
+  },
+  "AuroraAuroraClusterWriterC1877242": {
+   "Type": "AWS::RDS::DBInstance",
+   "Properties": {
+    "DBClusterIdentifier": {
+     "Ref": "AuroraAuroraCluster557FDB85"
+    },
+    "DBInstanceClass": "db.serverless",
+    "Engine": "aurora-postgresql",
+    "PromotionTier": 0,
+    "PubliclyAccessible": true,
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Aurora/AuroraCluster/Writer/Resource"
+   }
+  },
+  "AuroraAuroraProxyIAMRole81398D3F": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "rds.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Aurora/AuroraProxy/IAMRole/Resource"
+   }
+  },
+  "AuroraAuroraProxyIAMRoleDefaultPolicyC31D1133": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AuroraAuroraProxyIAMRoleDefaultPolicyC31D1133",
+    "Roles": [
+     {
+      "Ref": "AuroraAuroraProxyIAMRole81398D3F"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Aurora/AuroraProxy/IAMRole/DefaultPolicy/Resource"
+   }
+  },
+  "AuroraAuroraProxyProxySecurityGroup1BCEFF19": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "SecurityGroup for Database Proxy",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Aurora/AuroraProxy/ProxySecurityGroup/Resource"
+   }
+  },
+  "AuroraAuroraProxyF9A388F6": {
+   "Type": "AWS::RDS::DBProxy",
+   "Properties": {
+    "Auth": [
+     {
+      "AuthScheme": "SECRETS",
+      "IAMAuth": "DISABLED",
+      "SecretArn": {
+       "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+      }
+     }
+    ],
+    "DBProxyName": "research-analyst-proxy",
+    "EngineFamily": "POSTGRESQL",
+    "RequireTLS": true,
+    "RoleArn": {
+     "Fn::GetAtt": [
+      "AuroraAuroraProxyIAMRole81398D3F",
+      "Arn"
+     ]
+    },
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcSecurityGroupIds": [
+     {
+      "Fn::GetAtt": [
+       "AuroraAuroraProxyProxySecurityGroup1BCEFF19",
+       "GroupId"
+      ]
+     }
+    ],
+    "VpcSubnetIds": [
+     "subnet-07cffe5b0b84b3499",
+     "subnet-0d4d796be847de3b0",
+     "subnet-08c5dc41e84a46eb5",
+     "subnet-08daeb0b5e4e1bf85",
+     "subnet-023e2e0e7b9bd70c6",
+     "subnet-037765830e6460aff"
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Aurora/AuroraProxy/Resource"
+   }
+  },
+  "AuroraAuroraProxyProxyTargetGroup6ED06006": {
+   "Type": "AWS::RDS::DBProxyTargetGroup",
+   "Properties": {
+    "ConnectionPoolConfigurationInfo": {},
+    "DBClusterIdentifiers": [
+     {
+      "Ref": "AuroraAuroraCluster557FDB85"
+     }
+    ],
+    "DBProxyName": {
+     "Ref": "AuroraAuroraProxyF9A388F6"
+    },
+    "TargetGroupName": "default"
+   },
+   "DependsOn": [
+    "AuroraAuroraCluster557FDB85",
+    "AuroraAuroraClusterWriterC1877242"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Aurora/AuroraProxy/ProxyTargetGroup"
+   }
+  },
+  "NeptuneNeptuneSG74CE1647": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Neptune Serverless security group",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "255.255.255.255/32",
+      "Description": "Disallow all traffic",
+      "FromPort": 252,
+      "IpProtocol": "icmp",
+      "ToPort": 86
+     }
+    ],
+    "SecurityGroupIngress": [
+     {
+      "CidrIp": "172.31.0.0/16",
+      "Description": "Allow Neptune from VPC",
+      "FromPort": 8182,
+      "IpProtocol": "tcp",
+      "ToPort": 8182
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Neptune/NeptuneSG/Resource"
+   }
+  },
+  "NeptuneNeptuneClusterSubnets37A90D12": {
+   "Type": "AWS::Neptune::DBSubnetGroup",
+   "Properties": {
+    "DBSubnetGroupDescription": "Subnets for NeptuneCluster database",
+    "SubnetIds": [
+     "subnet-07cffe5b0b84b3499",
+     "subnet-0d4d796be847de3b0",
+     "subnet-08c5dc41e84a46eb5",
+     "subnet-08daeb0b5e4e1bf85",
+     "subnet-023e2e0e7b9bd70c6",
+     "subnet-037765830e6460aff"
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Neptune/NeptuneCluster/Subnets/Resource"
+   }
+  },
+  "NeptuneNeptuneCluster76655737": {
+   "Type": "AWS::Neptune::DBCluster",
+   "Properties": {
+    "DBSubnetGroupName": {
+     "Ref": "NeptuneNeptuneClusterSubnets37A90D12"
+    },
+    "ServerlessScalingConfiguration": {
+     "MaxCapacity": 8,
+     "MinCapacity": 1
+    },
+    "StorageEncrypted": true,
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcSecurityGroupIds": [
+     {
+      "Fn::GetAtt": [
+       "NeptuneNeptuneSG74CE1647",
+       "GroupId"
+      ]
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Neptune/NeptuneCluster/Resource"
+   }
+  },
+  "NeptuneNeptuneClusterInstance1979C5B71": {
+   "Type": "AWS::Neptune::DBInstance",
+   "Properties": {
+    "AutoMinorVersionUpgrade": false,
+    "DBClusterIdentifier": {
+     "Ref": "NeptuneNeptuneCluster76655737"
+    },
+    "DBInstanceClass": "db.serverless",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Neptune/NeptuneCluster/Instance1"
+   }
+  },
+  "OpenSearchOSSEncryptionPolicy45C020EA": {
+   "Type": "AWS::OpenSearchServerless::SecurityPolicy",
+   "Properties": {
+    "Name": "research-analyst-search-enc",
+    "Policy": "{\"Rules\": [{\"ResourceType\": \"collection\", \"Resource\": [\"collection/research-analyst-search\"]}], \"AWSOwnedKey\": true}",
+    "Type": "encryption"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSEncryptionPolicy"
+   }
+  },
+  "OpenSearchOSSVpcEndpointSG391CD7A0": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Security group for OpenSearch Serverless VPC endpoint",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "SecurityGroupIngress": [
+     {
+      "CidrIp": "172.31.0.0/16",
+      "Description": "Allow HTTPS from VPC to AOSS endpoint",
+      "FromPort": 443,
+      "IpProtocol": "tcp",
+      "ToPort": 443
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSVpcEndpointSG/Resource"
+   }
+  },
+  "OpenSearchOSSVpcEndpointSGfromResearchAnalystStackLambdaCaseFilesLambdaSecurityGroup082DAE284431DD73D21": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow HTTPS from CaseFilesLambda to AOSS VPC endpoint",
+    "FromPort": 443,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "OpenSearchOSSVpcEndpointSG391CD7A0",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "LambdaCaseFilesLambdaSecurityGroup12FA05E7",
+      "GroupId"
+     ]
+    },
+    "ToPort": 443
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSVpcEndpointSG/from ResearchAnalystStackLambdaCaseFilesLambdaSecurityGroup082DAE28:443"
+   }
+  },
+  "OpenSearchOSSVpcEndpointSGfromResearchAnalystStackLambdaIngestionUploadLambdaSecurityGroup888B40A8443D5D5CB5F": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow HTTPS from IngestionUploadLambda to AOSS VPC endpoint",
+    "FromPort": 443,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "OpenSearchOSSVpcEndpointSG391CD7A0",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "LambdaIngestionUploadLambdaSecurityGroupDD8736F0",
+      "GroupId"
+     ]
+    },
+    "ToPort": 443
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSVpcEndpointSG/from ResearchAnalystStackLambdaIngestionUploadLambdaSecurityGroup888B40A8:443"
+   }
+  },
+  "OpenSearchOSSVpcEndpointSGfromResearchAnalystStackLambdaIngestionParseLambdaSecurityGroup9E96CB9F4431E86088F": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow HTTPS from IngestionParseLambda to AOSS VPC endpoint",
+    "FromPort": 443,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "OpenSearchOSSVpcEndpointSG391CD7A0",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "LambdaIngestionParseLambdaSecurityGroup3902504F",
+      "GroupId"
+     ]
+    },
+    "ToPort": 443
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSVpcEndpointSG/from ResearchAnalystStackLambdaIngestionParseLambdaSecurityGroup9E96CB9F:443"
+   }
+  },
+  "OpenSearchOSSVpcEndpointSGfromResearchAnalystStackLambdaIngestionExtractLambdaSecurityGroupBCEEC6134438766AFC8": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow HTTPS from IngestionExtractLambda to AOSS VPC endpoint",
+    "FromPort": 443,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "OpenSearchOSSVpcEndpointSG391CD7A0",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "LambdaIngestionExtractLambdaSecurityGroup213C6C92",
+      "GroupId"
+     ]
+    },
+    "ToPort": 443
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSVpcEndpointSG/from ResearchAnalystStackLambdaIngestionExtractLambdaSecurityGroupBCEEC613:443"
+   }
+  },
+  "OpenSearchOSSVpcEndpointSGfromResearchAnalystStackLambdaIngestionEmbedLambdaSecurityGroup63351AF3443A39E3E4C": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow HTTPS from IngestionEmbedLambda to AOSS VPC endpoint",
+    "FromPort": 443,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "OpenSearchOSSVpcEndpointSG391CD7A0",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "LambdaIngestionEmbedLambdaSecurityGroup298048FD",
+      "GroupId"
+     ]
+    },
+    "ToPort": 443
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSVpcEndpointSG/from ResearchAnalystStackLambdaIngestionEmbedLambdaSecurityGroup63351AF3:443"
+   }
+  },
+  "OpenSearchOSSVpcEndpointSGfromResearchAnalystStackLambdaIngestionStoreArtifactLambdaSecurityGroup6E72C3824434C4857DA": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow HTTPS from IngestionStoreArtifactLambda to AOSS VPC endpoint",
+    "FromPort": 443,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "OpenSearchOSSVpcEndpointSG391CD7A0",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "LambdaIngestionStoreArtifactLambdaSecurityGroup827269B0",
+      "GroupId"
+     ]
+    },
+    "ToPort": 443
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSVpcEndpointSG/from ResearchAnalystStackLambdaIngestionStoreArtifactLambdaSecurityGroup6E72C382:443"
+   }
+  },
+  "OpenSearchOSSVpcEndpointSGfromResearchAnalystStackLambdaIngestionGraphLoadLambdaSecurityGroup9B0510E2443715BD1C1": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow HTTPS from IngestionGraphLoadLambda to AOSS VPC endpoint",
+    "FromPort": 443,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "OpenSearchOSSVpcEndpointSG391CD7A0",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "LambdaIngestionGraphLoadLambdaSecurityGroup216D4181",
+      "GroupId"
+     ]
+    },
+    "ToPort": 443
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSVpcEndpointSG/from ResearchAnalystStackLambdaIngestionGraphLoadLambdaSecurityGroup9B0510E2:443"
+   }
+  },
+  "OpenSearchOSSVpcEndpointSGfromResearchAnalystStackLambdaIngestionUpdateStatusLambdaSecurityGroup34A1100E443CCF9A60F": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow HTTPS from IngestionUpdateStatusLambda to AOSS VPC endpoint",
+    "FromPort": 443,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "OpenSearchOSSVpcEndpointSG391CD7A0",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "LambdaIngestionUpdateStatusLambdaSecurityGroup1ACAEB26",
+      "GroupId"
+     ]
+    },
+    "ToPort": 443
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSVpcEndpointSG/from ResearchAnalystStackLambdaIngestionUpdateStatusLambdaSecurityGroup34A1100E:443"
+   }
+  },
+  "OpenSearchOSSVpcEndpointSGfromResearchAnalystStackLambdaIngestionResolveConfigLambdaSecurityGroupF086C9E444324EB36BB": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow HTTPS from IngestionResolveConfigLambda to AOSS VPC endpoint",
+    "FromPort": 443,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "OpenSearchOSSVpcEndpointSG391CD7A0",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "LambdaIngestionResolveConfigLambdaSecurityGroup5FD6F2C3",
+      "GroupId"
+     ]
+    },
+    "ToPort": 443
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSVpcEndpointSG/from ResearchAnalystStackLambdaIngestionResolveConfigLambdaSecurityGroupF086C9E4:443"
+   }
+  },
+  "OpenSearchOSSVpcEndpointSGfromResearchAnalystStackLambdaEntityResolutionLambdaSecurityGroupC6E2563944359E78A6D": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow HTTPS from EntityResolutionLambda to AOSS VPC endpoint",
+    "FromPort": 443,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "OpenSearchOSSVpcEndpointSG391CD7A0",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "LambdaEntityResolutionLambdaSecurityGroupCE34D6FD",
+      "GroupId"
+     ]
+    },
+    "ToPort": 443
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSVpcEndpointSG/from ResearchAnalystStackLambdaEntityResolutionLambdaSecurityGroupC6E25639:443"
+   }
+  },
+  "OpenSearchOSSVpcEndpointSGfromResearchAnalystStackLambdaIngestionImageDescriptionLambdaSecurityGroup91D4F69344383BA3A92": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow HTTPS from IngestionImageDescriptionLambda to AOSS VPC endpoint",
+    "FromPort": 443,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "OpenSearchOSSVpcEndpointSG391CD7A0",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "LambdaIngestionImageDescriptionLambdaSecurityGroupB665B1A8",
+      "GroupId"
+     ]
+    },
+    "ToPort": 443
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSVpcEndpointSG/from ResearchAnalystStackLambdaIngestionImageDescriptionLambdaSecurityGroup91D4F693:443"
+   }
+  },
+  "OpenSearchOSSVpcEndpointSGfromResearchAnalystStackLambdaIngestionRekognitionLambdaSecurityGroupA16270C9443429B9B06": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow HTTPS from IngestionRekognitionLambda to AOSS VPC endpoint",
+    "FromPort": 443,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "OpenSearchOSSVpcEndpointSG391CD7A0",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "LambdaIngestionRekognitionLambdaSecurityGroup8AFE2B24",
+      "GroupId"
+     ]
+    },
+    "ToPort": 443
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSVpcEndpointSG/from ResearchAnalystStackLambdaIngestionRekognitionLambdaSecurityGroupA16270C9:443"
+   }
+  },
+  "OpenSearchOSSVpcEndpointSGfromResearchAnalystStackLambdaIngestionFaceCropLambdaSecurityGroup2F61CB9C44379475D4C": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow HTTPS from IngestionFaceCropLambda to AOSS VPC endpoint",
+    "FromPort": 443,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "OpenSearchOSSVpcEndpointSG391CD7A0",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "LambdaIngestionFaceCropLambdaSecurityGroup3EEDF021",
+      "GroupId"
+     ]
+    },
+    "ToPort": 443
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSVpcEndpointSG/from ResearchAnalystStackLambdaIngestionFaceCropLambdaSecurityGroup2F61CB9C:443"
+   }
+  },
+  "OpenSearchOSSVpcEndpointDFA347B5": {
+   "Type": "AWS::EC2::VPCEndpoint",
+   "Properties": {
+    "PrivateDnsEnabled": true,
+    "SecurityGroupIds": [
+     {
+      "Fn::GetAtt": [
+       "OpenSearchOSSVpcEndpointSG391CD7A0",
+       "GroupId"
+      ]
+     }
+    ],
+    "ServiceName": {
+     "Fn::Sub": "com.amazonaws.${AWS::Region}.aoss"
+    },
+    "SubnetIds": [
+     "subnet-07cffe5b0b84b3499",
+     "subnet-0d4d796be847de3b0",
+     "subnet-08c5dc41e84a46eb5",
+     "subnet-08daeb0b5e4e1bf85",
+     "subnet-023e2e0e7b9bd70c6",
+     "subnet-037765830e6460aff"
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcEndpointType": "Interface",
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSVpcEndpoint/Resource"
+   }
+  },
+  "OpenSearchOSSNetworkPolicy45EF38FE": {
+   "Type": "AWS::OpenSearchServerless::SecurityPolicy",
+   "Properties": {
+    "Name": "research-analyst-search-net",
+    "Policy": {
+     "Fn::Join": [
+      "",
+      [
+       "[{\"Rules\": [{\"ResourceType\": \"collection\", \"Resource\": [\"collection/research-analyst-search\"]}, {\"ResourceType\": \"dashboard\", \"Resource\": [\"collection/research-analyst-search\"]}], \"AllowFromPublic\": false, \"SourceVPCEs\": [\"",
+       {
+        "Ref": "OpenSearchOSSVpcEndpointDFA347B5"
+       },
+       "\"]}]"
+      ]
+     ]
+    },
+    "Type": "network"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSNetworkPolicy"
+   }
+  },
+  "OpenSearchOSSDataAccessPolicy9BB11B3E": {
+   "Type": "AWS::OpenSearchServerless::AccessPolicy",
+   "Properties": {
+    "Name": "research-analyst-search-dap",
+    "Policy": {
+     "Fn::Sub": "[{\"Rules\": [{\"ResourceType\": \"index\", \"Resource\": [\"index/research-analyst-search/*\"], \"Permission\": [\"aoss:CreateIndex\", \"aoss:UpdateIndex\", \"aoss:DescribeIndex\", \"aoss:ReadDocument\", \"aoss:WriteDocument\"]}, {\"ResourceType\": \"collection\", \"Resource\": [\"collection/research-analyst-search\"], \"Permission\": [\"aoss:CreateCollectionItems\", \"aoss:UpdateCollectionItems\", \"aoss:DescribeCollectionItems\"]}], \"Principal\": [\"arn:aws:iam::${AWS::AccountId}:root\"], \"Description\": \"Lambda access to OpenSearch Serverless collection\"}]"
+    },
+    "Type": "data"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSDataAccessPolicy"
+   }
+  },
+  "OpenSearchOSSCollectionF2BCA4E1": {
+   "Type": "AWS::OpenSearchServerless::Collection",
+   "Properties": {
+    "Description": "Enterprise tier vector + full-text search for Research Analyst Platform",
+    "Name": "research-analyst-search",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Type": "VECTORSEARCH"
+   },
+   "DependsOn": [
+    "OpenSearchOSSDataAccessPolicy9BB11B3E",
+    "OpenSearchOSSEncryptionPolicy45C020EA",
+    "OpenSearchOSSNetworkPolicy45EF38FE"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/OpenSearch/OSSCollection"
+   }
+  },
+  "LambdaLambdaDLQ66938329": {
+   "Type": "AWS::SQS::Queue",
+   "Properties": {
+    "MessageRetentionPeriod": 1209600,
+    "QueueName": "research-analyst-dlq",
+    "SqsManagedSseEnabled": true,
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/LambdaDLQ/Resource"
+   }
+  },
+  "LambdaIngestionUploadLambdaServiceRoleFE47FD96": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionUploadLambda/ServiceRole/Resource"
+   }
+  },
+  "LambdaIngestionUploadLambdaServiceRoleDefaultPolicy557FCD62": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sqs:SendMessage",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "LambdaLambdaDLQ66938329",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+       }
+      },
+      {
+       "Action": "rds-db:connect",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/*"
+       }
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*",
+        "s3:DeleteObject*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging",
+        "s3:Abort*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SecurityDataLakeBucketC8F981C8",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SecurityDataLakeBucketC8F981C8",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "neptune-db:ReadDataViaQuery",
+        "neptune-db:WriteDataViaQuery",
+        "neptune-db:GetQueryStatus",
+        "neptune-db:CancelQuery"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:neptune-db:${AWS::Region}:${AWS::AccountId}:*/*"
+       }
+      },
+      {
+       "Action": "aoss:APIAccessAll",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":aoss:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":collection/",
+          {
+           "Fn::GetAtt": [
+            "OpenSearchOSSCollectionF2BCA4E1",
+            "Id"
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LambdaIngestionUploadLambdaServiceRoleDefaultPolicy557FCD62",
+    "Roles": [
+     {
+      "Ref": "LambdaIngestionUploadLambdaServiceRoleFE47FD96"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionUploadLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LambdaIngestionUploadLambdaSecurityGroupDD8736F0": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatic security group for Lambda Function ResearchAnalystStackLambdaIngestionUploadLambda872937DF",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionUploadLambda/SecurityGroup/Resource"
+   }
+  },
+  "LambdaIngestionUploadLambdaE2B7B52E": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-974220725866-us-east-1",
+     "S3Key": "ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910.zip"
+    },
+    "DeadLetterConfig": {
+     "TargetArn": {
+      "Fn::GetAtt": [
+       "LambdaLambdaDLQ66938329",
+       "Arn"
+      ]
+     }
+    },
+    "Environment": {
+     "Variables": {
+      "AURORA_PROXY_ENDPOINT": {
+       "Fn::GetAtt": [
+        "AuroraAuroraProxyF9A388F6",
+        "Endpoint"
+       ]
+      },
+      "AURORA_SECRET_ARN": {
+       "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+      },
+      "AURORA_DB_NAME": "research_analyst",
+      "S3_DATA_BUCKET": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "S3_BUCKET_NAME": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "NEPTUNE_PORT": "8182",
+      "BULK_LOAD_THRESHOLD": "20",
+      "ACCESS_CONTROL_ENABLED": "false",
+      "BEDROCK_LLM_MODEL_ID": "anthropic.claude-3-haiku-20240307-v1:0",
+      "BEDROCK_EMBEDDING_MODEL_ID": "amazon.titan-embed-text-v2:0",
+      "NEPTUNE_ENABLED": "true",
+      "OPENSEARCH_ENABLED": "true",
+      "REKOGNITION_ENABLED": "true",
+      "NEPTUNE_ENDPOINT": {
+       "Fn::GetAtt": [
+        "NeptuneNeptuneCluster76655737",
+        "Endpoint"
+       ]
+      },
+      "OPENSEARCH_ENDPOINT": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "CollectionEndpoint"
+       ]
+      },
+      "OPENSEARCH_COLLECTION_ID": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "Id"
+       ]
+      }
+     }
+    },
+    "Handler": "lambdas.ingestion.upload_handler.handler",
+    "MemorySize": 512,
+    "Role": {
+     "Fn::GetAtt": [
+      "LambdaIngestionUploadLambdaServiceRoleFE47FD96",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.12",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Timeout": 300,
+    "TracingConfig": {
+     "Mode": "Active"
+    },
+    "VpcConfig": {
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "LambdaIngestionUploadLambdaSecurityGroupDD8736F0",
+        "GroupId"
+       ]
+      }
+     ],
+     "SubnetIds": [
+      "subnet-07cffe5b0b84b3499",
+      "subnet-0d4d796be847de3b0",
+      "subnet-08c5dc41e84a46eb5",
+      "subnet-08daeb0b5e4e1bf85",
+      "subnet-023e2e0e7b9bd70c6",
+      "subnet-037765830e6460aff"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LambdaIngestionUploadLambdaServiceRoleFE47FD96"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionUploadLambda/Resource",
+    "aws:asset:path": "asset.ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "LambdaIngestionParseLambdaServiceRoleA92B0EB9": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionParseLambda/ServiceRole/Resource"
+   }
+  },
+  "LambdaIngestionParseLambdaServiceRoleDefaultPolicy7F97B1B5": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sqs:SendMessage",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "LambdaLambdaDLQ66938329",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+       }
+      },
+      {
+       "Action": "rds-db:connect",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/*"
+       }
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SecurityDataLakeBucketC8F981C8",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SecurityDataLakeBucketC8F981C8",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "s3:DeleteObject*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging",
+        "s3:Abort*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SecurityDataLakeBucketC8F981C8",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SecurityDataLakeBucketC8F981C8",
+             "Arn"
+            ]
+           },
+           "/cases/*/extracted-images/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "neptune-db:ReadDataViaQuery",
+        "neptune-db:WriteDataViaQuery",
+        "neptune-db:GetQueryStatus",
+        "neptune-db:CancelQuery"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:neptune-db:${AWS::Region}:${AWS::AccountId}:*/*"
+       }
+      },
+      {
+       "Action": "aoss:APIAccessAll",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":aoss:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":collection/",
+          {
+           "Fn::GetAtt": [
+            "OpenSearchOSSCollectionF2BCA4E1",
+            "Id"
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LambdaIngestionParseLambdaServiceRoleDefaultPolicy7F97B1B5",
+    "Roles": [
+     {
+      "Ref": "LambdaIngestionParseLambdaServiceRoleA92B0EB9"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionParseLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LambdaIngestionParseLambdaSecurityGroup3902504F": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatic security group for Lambda Function ResearchAnalystStackLambdaIngestionParseLambda12A40E9E",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionParseLambda/SecurityGroup/Resource"
+   }
+  },
+  "LambdaIngestionParseLambda2EBE042A": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-974220725866-us-east-1",
+     "S3Key": "ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910.zip"
+    },
+    "DeadLetterConfig": {
+     "TargetArn": {
+      "Fn::GetAtt": [
+       "LambdaLambdaDLQ66938329",
+       "Arn"
+      ]
+     }
+    },
+    "Environment": {
+     "Variables": {
+      "AURORA_PROXY_ENDPOINT": {
+       "Fn::GetAtt": [
+        "AuroraAuroraProxyF9A388F6",
+        "Endpoint"
+       ]
+      },
+      "AURORA_SECRET_ARN": {
+       "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+      },
+      "AURORA_DB_NAME": "research_analyst",
+      "S3_DATA_BUCKET": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "S3_BUCKET_NAME": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "NEPTUNE_PORT": "8182",
+      "BULK_LOAD_THRESHOLD": "20",
+      "ACCESS_CONTROL_ENABLED": "false",
+      "BEDROCK_LLM_MODEL_ID": "anthropic.claude-3-haiku-20240307-v1:0",
+      "BEDROCK_EMBEDDING_MODEL_ID": "amazon.titan-embed-text-v2:0",
+      "NEPTUNE_ENABLED": "true",
+      "OPENSEARCH_ENABLED": "true",
+      "REKOGNITION_ENABLED": "true",
+      "NEPTUNE_ENDPOINT": {
+       "Fn::GetAtt": [
+        "NeptuneNeptuneCluster76655737",
+        "Endpoint"
+       ]
+      },
+      "OPENSEARCH_ENDPOINT": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "CollectionEndpoint"
+       ]
+      },
+      "OPENSEARCH_COLLECTION_ID": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "Id"
+       ]
+      }
+     }
+    },
+    "Handler": "lambdas.ingestion.parse_handler.handler",
+    "MemorySize": 512,
+    "Role": {
+     "Fn::GetAtt": [
+      "LambdaIngestionParseLambdaServiceRoleA92B0EB9",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.12",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Timeout": 300,
+    "TracingConfig": {
+     "Mode": "Active"
+    },
+    "VpcConfig": {
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "LambdaIngestionParseLambdaSecurityGroup3902504F",
+        "GroupId"
+       ]
+      }
+     ],
+     "SubnetIds": [
+      "subnet-07cffe5b0b84b3499",
+      "subnet-0d4d796be847de3b0",
+      "subnet-08c5dc41e84a46eb5",
+      "subnet-08daeb0b5e4e1bf85",
+      "subnet-023e2e0e7b9bd70c6",
+      "subnet-037765830e6460aff"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LambdaIngestionParseLambdaServiceRoleA92B0EB9"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionParseLambda/Resource",
+    "aws:asset:path": "asset.ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "LambdaIngestionExtractLambdaServiceRole3B6A8DE2": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionExtractLambda/ServiceRole/Resource"
+   }
+  },
+  "LambdaIngestionExtractLambdaServiceRoleDefaultPolicyB4B7F196": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sqs:SendMessage",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "LambdaLambdaDLQ66938329",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+       }
+      },
+      {
+       "Action": "rds-db:connect",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/*"
+       }
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SecurityDataLakeBucketC8F981C8",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SecurityDataLakeBucketC8F981C8",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "neptune-db:ReadDataViaQuery",
+        "neptune-db:WriteDataViaQuery",
+        "neptune-db:GetQueryStatus",
+        "neptune-db:CancelQuery"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:neptune-db:${AWS::Region}:${AWS::AccountId}:*/*"
+       }
+      },
+      {
+       "Action": "bedrock:InvokeModel",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
+       }
+      },
+      {
+       "Action": "aoss:APIAccessAll",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":aoss:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":collection/",
+          {
+           "Fn::GetAtt": [
+            "OpenSearchOSSCollectionF2BCA4E1",
+            "Id"
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LambdaIngestionExtractLambdaServiceRoleDefaultPolicyB4B7F196",
+    "Roles": [
+     {
+      "Ref": "LambdaIngestionExtractLambdaServiceRole3B6A8DE2"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionExtractLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LambdaIngestionExtractLambdaSecurityGroup213C6C92": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatic security group for Lambda Function ResearchAnalystStackLambdaIngestionExtractLambda117FD9B1",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionExtractLambda/SecurityGroup/Resource"
+   }
+  },
+  "LambdaIngestionExtractLambdaDE5A138C": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-974220725866-us-east-1",
+     "S3Key": "ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910.zip"
+    },
+    "DeadLetterConfig": {
+     "TargetArn": {
+      "Fn::GetAtt": [
+       "LambdaLambdaDLQ66938329",
+       "Arn"
+      ]
+     }
+    },
+    "Environment": {
+     "Variables": {
+      "AURORA_PROXY_ENDPOINT": {
+       "Fn::GetAtt": [
+        "AuroraAuroraProxyF9A388F6",
+        "Endpoint"
+       ]
+      },
+      "AURORA_SECRET_ARN": {
+       "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+      },
+      "AURORA_DB_NAME": "research_analyst",
+      "S3_DATA_BUCKET": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "S3_BUCKET_NAME": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "NEPTUNE_PORT": "8182",
+      "BULK_LOAD_THRESHOLD": "20",
+      "ACCESS_CONTROL_ENABLED": "false",
+      "BEDROCK_LLM_MODEL_ID": "anthropic.claude-3-haiku-20240307-v1:0",
+      "BEDROCK_EMBEDDING_MODEL_ID": "amazon.titan-embed-text-v2:0",
+      "NEPTUNE_ENABLED": "true",
+      "OPENSEARCH_ENABLED": "true",
+      "REKOGNITION_ENABLED": "true",
+      "NEPTUNE_ENDPOINT": {
+       "Fn::GetAtt": [
+        "NeptuneNeptuneCluster76655737",
+        "Endpoint"
+       ]
+      },
+      "OPENSEARCH_ENDPOINT": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "CollectionEndpoint"
+       ]
+      },
+      "OPENSEARCH_COLLECTION_ID": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "Id"
+       ]
+      }
+     }
+    },
+    "Handler": "lambdas.ingestion.extract_handler.handler",
+    "MemorySize": 512,
+    "Role": {
+     "Fn::GetAtt": [
+      "LambdaIngestionExtractLambdaServiceRole3B6A8DE2",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.12",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Timeout": 300,
+    "TracingConfig": {
+     "Mode": "Active"
+    },
+    "VpcConfig": {
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "LambdaIngestionExtractLambdaSecurityGroup213C6C92",
+        "GroupId"
+       ]
+      }
+     ],
+     "SubnetIds": [
+      "subnet-07cffe5b0b84b3499",
+      "subnet-0d4d796be847de3b0",
+      "subnet-08c5dc41e84a46eb5",
+      "subnet-08daeb0b5e4e1bf85",
+      "subnet-023e2e0e7b9bd70c6",
+      "subnet-037765830e6460aff"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LambdaIngestionExtractLambdaServiceRole3B6A8DE2"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionExtractLambda/Resource",
+    "aws:asset:path": "asset.ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "LambdaIngestionEmbedLambdaServiceRoleB6CE58E7": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionEmbedLambda/ServiceRole/Resource"
+   }
+  },
+  "LambdaIngestionEmbedLambdaServiceRoleDefaultPolicyE92F46A0": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sqs:SendMessage",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "LambdaLambdaDLQ66938329",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+       }
+      },
+      {
+       "Action": "rds-db:connect",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/*"
+       }
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SecurityDataLakeBucketC8F981C8",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SecurityDataLakeBucketC8F981C8",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "neptune-db:ReadDataViaQuery",
+        "neptune-db:WriteDataViaQuery",
+        "neptune-db:GetQueryStatus",
+        "neptune-db:CancelQuery"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:neptune-db:${AWS::Region}:${AWS::AccountId}:*/*"
+       }
+      },
+      {
+       "Action": "bedrock:InvokeModel",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/amazon.titan-embed-text-v2:0"
+       }
+      },
+      {
+       "Action": "aoss:APIAccessAll",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":aoss:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":collection/",
+          {
+           "Fn::GetAtt": [
+            "OpenSearchOSSCollectionF2BCA4E1",
+            "Id"
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LambdaIngestionEmbedLambdaServiceRoleDefaultPolicyE92F46A0",
+    "Roles": [
+     {
+      "Ref": "LambdaIngestionEmbedLambdaServiceRoleB6CE58E7"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionEmbedLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LambdaIngestionEmbedLambdaSecurityGroup298048FD": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatic security group for Lambda Function ResearchAnalystStackLambdaIngestionEmbedLambdaE6772F5B",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionEmbedLambda/SecurityGroup/Resource"
+   }
+  },
+  "LambdaIngestionEmbedLambda3E12B453": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-974220725866-us-east-1",
+     "S3Key": "ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910.zip"
+    },
+    "DeadLetterConfig": {
+     "TargetArn": {
+      "Fn::GetAtt": [
+       "LambdaLambdaDLQ66938329",
+       "Arn"
+      ]
+     }
+    },
+    "Environment": {
+     "Variables": {
+      "AURORA_PROXY_ENDPOINT": {
+       "Fn::GetAtt": [
+        "AuroraAuroraProxyF9A388F6",
+        "Endpoint"
+       ]
+      },
+      "AURORA_SECRET_ARN": {
+       "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+      },
+      "AURORA_DB_NAME": "research_analyst",
+      "S3_DATA_BUCKET": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "S3_BUCKET_NAME": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "NEPTUNE_PORT": "8182",
+      "BULK_LOAD_THRESHOLD": "20",
+      "ACCESS_CONTROL_ENABLED": "false",
+      "BEDROCK_LLM_MODEL_ID": "anthropic.claude-3-haiku-20240307-v1:0",
+      "BEDROCK_EMBEDDING_MODEL_ID": "amazon.titan-embed-text-v2:0",
+      "NEPTUNE_ENABLED": "true",
+      "OPENSEARCH_ENABLED": "true",
+      "REKOGNITION_ENABLED": "true",
+      "NEPTUNE_ENDPOINT": {
+       "Fn::GetAtt": [
+        "NeptuneNeptuneCluster76655737",
+        "Endpoint"
+       ]
+      },
+      "OPENSEARCH_ENDPOINT": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "CollectionEndpoint"
+       ]
+      },
+      "OPENSEARCH_COLLECTION_ID": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "Id"
+       ]
+      }
+     }
+    },
+    "Handler": "lambdas.ingestion.embed_handler.handler",
+    "MemorySize": 512,
+    "Role": {
+     "Fn::GetAtt": [
+      "LambdaIngestionEmbedLambdaServiceRoleB6CE58E7",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.12",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Timeout": 300,
+    "TracingConfig": {
+     "Mode": "Active"
+    },
+    "VpcConfig": {
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "LambdaIngestionEmbedLambdaSecurityGroup298048FD",
+        "GroupId"
+       ]
+      }
+     ],
+     "SubnetIds": [
+      "subnet-07cffe5b0b84b3499",
+      "subnet-0d4d796be847de3b0",
+      "subnet-08c5dc41e84a46eb5",
+      "subnet-08daeb0b5e4e1bf85",
+      "subnet-023e2e0e7b9bd70c6",
+      "subnet-037765830e6460aff"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LambdaIngestionEmbedLambdaServiceRoleB6CE58E7"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionEmbedLambda/Resource",
+    "aws:asset:path": "asset.ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "LambdaIngestionStoreArtifactLambdaServiceRole95F1BFC2": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionStoreArtifactLambda/ServiceRole/Resource"
+   }
+  },
+  "LambdaIngestionStoreArtifactLambdaServiceRoleDefaultPolicy5FE7A5F2": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sqs:SendMessage",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "LambdaLambdaDLQ66938329",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+       }
+      },
+      {
+       "Action": "rds-db:connect",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/*"
+       }
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*",
+        "s3:DeleteObject*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging",
+        "s3:Abort*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SecurityDataLakeBucketC8F981C8",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SecurityDataLakeBucketC8F981C8",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "neptune-db:ReadDataViaQuery",
+        "neptune-db:WriteDataViaQuery",
+        "neptune-db:GetQueryStatus",
+        "neptune-db:CancelQuery"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:neptune-db:${AWS::Region}:${AWS::AccountId}:*/*"
+       }
+      },
+      {
+       "Action": "aoss:APIAccessAll",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":aoss:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":collection/",
+          {
+           "Fn::GetAtt": [
+            "OpenSearchOSSCollectionF2BCA4E1",
+            "Id"
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LambdaIngestionStoreArtifactLambdaServiceRoleDefaultPolicy5FE7A5F2",
+    "Roles": [
+     {
+      "Ref": "LambdaIngestionStoreArtifactLambdaServiceRole95F1BFC2"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionStoreArtifactLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LambdaIngestionStoreArtifactLambdaSecurityGroup827269B0": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatic security group for Lambda Function ResearchAnalystStackLambdaIngestionStoreArtifactLambdaDB55D709",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionStoreArtifactLambda/SecurityGroup/Resource"
+   }
+  },
+  "LambdaIngestionStoreArtifactLambda096A088F": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-974220725866-us-east-1",
+     "S3Key": "ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910.zip"
+    },
+    "DeadLetterConfig": {
+     "TargetArn": {
+      "Fn::GetAtt": [
+       "LambdaLambdaDLQ66938329",
+       "Arn"
+      ]
+     }
+    },
+    "Environment": {
+     "Variables": {
+      "AURORA_PROXY_ENDPOINT": {
+       "Fn::GetAtt": [
+        "AuroraAuroraProxyF9A388F6",
+        "Endpoint"
+       ]
+      },
+      "AURORA_SECRET_ARN": {
+       "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+      },
+      "AURORA_DB_NAME": "research_analyst",
+      "S3_DATA_BUCKET": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "S3_BUCKET_NAME": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "NEPTUNE_PORT": "8182",
+      "BULK_LOAD_THRESHOLD": "20",
+      "ACCESS_CONTROL_ENABLED": "false",
+      "BEDROCK_LLM_MODEL_ID": "anthropic.claude-3-haiku-20240307-v1:0",
+      "BEDROCK_EMBEDDING_MODEL_ID": "amazon.titan-embed-text-v2:0",
+      "NEPTUNE_ENABLED": "true",
+      "OPENSEARCH_ENABLED": "true",
+      "REKOGNITION_ENABLED": "true",
+      "NEPTUNE_ENDPOINT": {
+       "Fn::GetAtt": [
+        "NeptuneNeptuneCluster76655737",
+        "Endpoint"
+       ]
+      },
+      "OPENSEARCH_ENDPOINT": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "CollectionEndpoint"
+       ]
+      },
+      "OPENSEARCH_COLLECTION_ID": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "Id"
+       ]
+      }
+     }
+    },
+    "Handler": "lambdas.ingestion.store_artifact_handler.handler",
+    "MemorySize": 512,
+    "Role": {
+     "Fn::GetAtt": [
+      "LambdaIngestionStoreArtifactLambdaServiceRole95F1BFC2",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.12",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Timeout": 300,
+    "TracingConfig": {
+     "Mode": "Active"
+    },
+    "VpcConfig": {
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "LambdaIngestionStoreArtifactLambdaSecurityGroup827269B0",
+        "GroupId"
+       ]
+      }
+     ],
+     "SubnetIds": [
+      "subnet-07cffe5b0b84b3499",
+      "subnet-0d4d796be847de3b0",
+      "subnet-08c5dc41e84a46eb5",
+      "subnet-08daeb0b5e4e1bf85",
+      "subnet-023e2e0e7b9bd70c6",
+      "subnet-037765830e6460aff"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LambdaIngestionStoreArtifactLambdaServiceRole95F1BFC2"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionStoreArtifactLambda/Resource",
+    "aws:asset:path": "asset.ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "LambdaIngestionGraphLoadLambdaServiceRole0D0DC36D": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionGraphLoadLambda/ServiceRole/Resource"
+   }
+  },
+  "LambdaIngestionGraphLoadLambdaServiceRoleDefaultPolicyE1E52B17": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sqs:SendMessage",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "LambdaLambdaDLQ66938329",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+       }
+      },
+      {
+       "Action": "rds-db:connect",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/*"
+       }
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*",
+        "s3:DeleteObject*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging",
+        "s3:Abort*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SecurityDataLakeBucketC8F981C8",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SecurityDataLakeBucketC8F981C8",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "neptune-db:ReadDataViaQuery",
+        "neptune-db:WriteDataViaQuery",
+        "neptune-db:GetQueryStatus",
+        "neptune-db:CancelQuery"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:neptune-db:${AWS::Region}:${AWS::AccountId}:*/*"
+       }
+      },
+      {
+       "Action": [
+        "neptune-db:StartLoaderJob",
+        "neptune-db:GetLoaderJobStatus"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "aoss:APIAccessAll",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":aoss:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":collection/",
+          {
+           "Fn::GetAtt": [
+            "OpenSearchOSSCollectionF2BCA4E1",
+            "Id"
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LambdaIngestionGraphLoadLambdaServiceRoleDefaultPolicyE1E52B17",
+    "Roles": [
+     {
+      "Ref": "LambdaIngestionGraphLoadLambdaServiceRole0D0DC36D"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionGraphLoadLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LambdaIngestionGraphLoadLambdaSecurityGroup216D4181": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatic security group for Lambda Function ResearchAnalystStackLambdaIngestionGraphLoadLambda7903DC15",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionGraphLoadLambda/SecurityGroup/Resource"
+   }
+  },
+  "LambdaIngestionGraphLoadLambdaE97733AE": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-974220725866-us-east-1",
+     "S3Key": "ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910.zip"
+    },
+    "DeadLetterConfig": {
+     "TargetArn": {
+      "Fn::GetAtt": [
+       "LambdaLambdaDLQ66938329",
+       "Arn"
+      ]
+     }
+    },
+    "Environment": {
+     "Variables": {
+      "AURORA_PROXY_ENDPOINT": {
+       "Fn::GetAtt": [
+        "AuroraAuroraProxyF9A388F6",
+        "Endpoint"
+       ]
+      },
+      "AURORA_SECRET_ARN": {
+       "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+      },
+      "AURORA_DB_NAME": "research_analyst",
+      "S3_DATA_BUCKET": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "S3_BUCKET_NAME": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "NEPTUNE_PORT": "8182",
+      "BULK_LOAD_THRESHOLD": "20",
+      "ACCESS_CONTROL_ENABLED": "false",
+      "BEDROCK_LLM_MODEL_ID": "anthropic.claude-3-haiku-20240307-v1:0",
+      "BEDROCK_EMBEDDING_MODEL_ID": "amazon.titan-embed-text-v2:0",
+      "NEPTUNE_ENABLED": "true",
+      "OPENSEARCH_ENABLED": "true",
+      "REKOGNITION_ENABLED": "true",
+      "NEPTUNE_ENDPOINT": {
+       "Fn::GetAtt": [
+        "NeptuneNeptuneCluster76655737",
+        "Endpoint"
+       ]
+      },
+      "OPENSEARCH_ENDPOINT": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "CollectionEndpoint"
+       ]
+      },
+      "OPENSEARCH_COLLECTION_ID": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "Id"
+       ]
+      }
+     }
+    },
+    "Handler": "lambdas.ingestion.graph_load_handler.handler",
+    "MemorySize": 1024,
+    "Role": {
+     "Fn::GetAtt": [
+      "LambdaIngestionGraphLoadLambdaServiceRole0D0DC36D",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.12",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Timeout": 900,
+    "TracingConfig": {
+     "Mode": "Active"
+    },
+    "VpcConfig": {
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "LambdaIngestionGraphLoadLambdaSecurityGroup216D4181",
+        "GroupId"
+       ]
+      }
+     ],
+     "SubnetIds": [
+      "subnet-07cffe5b0b84b3499",
+      "subnet-0d4d796be847de3b0",
+      "subnet-08c5dc41e84a46eb5",
+      "subnet-08daeb0b5e4e1bf85",
+      "subnet-023e2e0e7b9bd70c6",
+      "subnet-037765830e6460aff"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LambdaIngestionGraphLoadLambdaServiceRole0D0DC36D"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionGraphLoadLambda/Resource",
+    "aws:asset:path": "asset.ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "LambdaIngestionUpdateStatusLambdaServiceRole587376DA": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionUpdateStatusLambda/ServiceRole/Resource"
+   }
+  },
+  "LambdaIngestionUpdateStatusLambdaServiceRoleDefaultPolicy54F806FC": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sqs:SendMessage",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "LambdaLambdaDLQ66938329",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+       }
+      },
+      {
+       "Action": "rds-db:connect",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/*"
+       }
+      },
+      {
+       "Action": [
+        "neptune-db:ReadDataViaQuery",
+        "neptune-db:WriteDataViaQuery",
+        "neptune-db:GetQueryStatus",
+        "neptune-db:CancelQuery"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:neptune-db:${AWS::Region}:${AWS::AccountId}:*/*"
+       }
+      },
+      {
+       "Action": "aoss:APIAccessAll",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":aoss:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":collection/",
+          {
+           "Fn::GetAtt": [
+            "OpenSearchOSSCollectionF2BCA4E1",
+            "Id"
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LambdaIngestionUpdateStatusLambdaServiceRoleDefaultPolicy54F806FC",
+    "Roles": [
+     {
+      "Ref": "LambdaIngestionUpdateStatusLambdaServiceRole587376DA"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionUpdateStatusLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LambdaIngestionUpdateStatusLambdaSecurityGroup1ACAEB26": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatic security group for Lambda Function ResearchAnalystStackLambdaIngestionUpdateStatusLambdaDED04167",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionUpdateStatusLambda/SecurityGroup/Resource"
+   }
+  },
+  "LambdaIngestionUpdateStatusLambda06272738": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-974220725866-us-east-1",
+     "S3Key": "ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910.zip"
+    },
+    "DeadLetterConfig": {
+     "TargetArn": {
+      "Fn::GetAtt": [
+       "LambdaLambdaDLQ66938329",
+       "Arn"
+      ]
+     }
+    },
+    "Environment": {
+     "Variables": {
+      "AURORA_PROXY_ENDPOINT": {
+       "Fn::GetAtt": [
+        "AuroraAuroraProxyF9A388F6",
+        "Endpoint"
+       ]
+      },
+      "AURORA_SECRET_ARN": {
+       "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+      },
+      "AURORA_DB_NAME": "research_analyst",
+      "S3_DATA_BUCKET": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "S3_BUCKET_NAME": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "NEPTUNE_PORT": "8182",
+      "BULK_LOAD_THRESHOLD": "20",
+      "ACCESS_CONTROL_ENABLED": "false",
+      "BEDROCK_LLM_MODEL_ID": "anthropic.claude-3-haiku-20240307-v1:0",
+      "BEDROCK_EMBEDDING_MODEL_ID": "amazon.titan-embed-text-v2:0",
+      "NEPTUNE_ENABLED": "true",
+      "OPENSEARCH_ENABLED": "true",
+      "REKOGNITION_ENABLED": "true",
+      "NEPTUNE_ENDPOINT": {
+       "Fn::GetAtt": [
+        "NeptuneNeptuneCluster76655737",
+        "Endpoint"
+       ]
+      },
+      "OPENSEARCH_ENDPOINT": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "CollectionEndpoint"
+       ]
+      },
+      "OPENSEARCH_COLLECTION_ID": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "Id"
+       ]
+      }
+     }
+    },
+    "Handler": "lambdas.ingestion.update_status_handler.handler",
+    "MemorySize": 512,
+    "Role": {
+     "Fn::GetAtt": [
+      "LambdaIngestionUpdateStatusLambdaServiceRole587376DA",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.12",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Timeout": 300,
+    "TracingConfig": {
+     "Mode": "Active"
+    },
+    "VpcConfig": {
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "LambdaIngestionUpdateStatusLambdaSecurityGroup1ACAEB26",
+        "GroupId"
+       ]
+      }
+     ],
+     "SubnetIds": [
+      "subnet-07cffe5b0b84b3499",
+      "subnet-0d4d796be847de3b0",
+      "subnet-08c5dc41e84a46eb5",
+      "subnet-08daeb0b5e4e1bf85",
+      "subnet-023e2e0e7b9bd70c6",
+      "subnet-037765830e6460aff"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LambdaIngestionUpdateStatusLambdaServiceRole587376DA"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionUpdateStatusLambda/Resource",
+    "aws:asset:path": "asset.ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "LambdaIngestionResolveConfigLambdaServiceRole036445B7": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionResolveConfigLambda/ServiceRole/Resource"
+   }
+  },
+  "LambdaIngestionResolveConfigLambdaServiceRoleDefaultPolicy53D8BFD7": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sqs:SendMessage",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "LambdaLambdaDLQ66938329",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+       }
+      },
+      {
+       "Action": "rds-db:connect",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/*"
+       }
+      },
+      {
+       "Action": [
+        "neptune-db:ReadDataViaQuery",
+        "neptune-db:WriteDataViaQuery",
+        "neptune-db:GetQueryStatus",
+        "neptune-db:CancelQuery"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:neptune-db:${AWS::Region}:${AWS::AccountId}:*/*"
+       }
+      },
+      {
+       "Action": "aoss:APIAccessAll",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":aoss:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":collection/",
+          {
+           "Fn::GetAtt": [
+            "OpenSearchOSSCollectionF2BCA4E1",
+            "Id"
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LambdaIngestionResolveConfigLambdaServiceRoleDefaultPolicy53D8BFD7",
+    "Roles": [
+     {
+      "Ref": "LambdaIngestionResolveConfigLambdaServiceRole036445B7"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionResolveConfigLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LambdaIngestionResolveConfigLambdaSecurityGroup5FD6F2C3": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatic security group for Lambda Function ResearchAnalystStackLambdaIngestionResolveConfigLambdaAF3C3BF4",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionResolveConfigLambda/SecurityGroup/Resource"
+   }
+  },
+  "LambdaIngestionResolveConfigLambda8CE7AA47": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-974220725866-us-east-1",
+     "S3Key": "ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910.zip"
+    },
+    "DeadLetterConfig": {
+     "TargetArn": {
+      "Fn::GetAtt": [
+       "LambdaLambdaDLQ66938329",
+       "Arn"
+      ]
+     }
+    },
+    "Environment": {
+     "Variables": {
+      "AURORA_PROXY_ENDPOINT": {
+       "Fn::GetAtt": [
+        "AuroraAuroraProxyF9A388F6",
+        "Endpoint"
+       ]
+      },
+      "AURORA_SECRET_ARN": {
+       "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+      },
+      "AURORA_DB_NAME": "research_analyst",
+      "S3_DATA_BUCKET": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "S3_BUCKET_NAME": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "NEPTUNE_PORT": "8182",
+      "BULK_LOAD_THRESHOLD": "20",
+      "ACCESS_CONTROL_ENABLED": "false",
+      "BEDROCK_LLM_MODEL_ID": "anthropic.claude-3-haiku-20240307-v1:0",
+      "BEDROCK_EMBEDDING_MODEL_ID": "amazon.titan-embed-text-v2:0",
+      "NEPTUNE_ENABLED": "true",
+      "OPENSEARCH_ENABLED": "true",
+      "REKOGNITION_ENABLED": "true",
+      "NEPTUNE_ENDPOINT": {
+       "Fn::GetAtt": [
+        "NeptuneNeptuneCluster76655737",
+        "Endpoint"
+       ]
+      },
+      "OPENSEARCH_ENDPOINT": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "CollectionEndpoint"
+       ]
+      },
+      "OPENSEARCH_COLLECTION_ID": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "Id"
+       ]
+      }
+     }
+    },
+    "Handler": "lambdas.ingestion.resolve_config_handler.handler",
+    "MemorySize": 512,
+    "Role": {
+     "Fn::GetAtt": [
+      "LambdaIngestionResolveConfigLambdaServiceRole036445B7",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.12",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Timeout": 300,
+    "TracingConfig": {
+     "Mode": "Active"
+    },
+    "VpcConfig": {
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "LambdaIngestionResolveConfigLambdaSecurityGroup5FD6F2C3",
+        "GroupId"
+       ]
+      }
+     ],
+     "SubnetIds": [
+      "subnet-07cffe5b0b84b3499",
+      "subnet-0d4d796be847de3b0",
+      "subnet-08c5dc41e84a46eb5",
+      "subnet-08daeb0b5e4e1bf85",
+      "subnet-023e2e0e7b9bd70c6",
+      "subnet-037765830e6460aff"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LambdaIngestionResolveConfigLambdaServiceRole036445B7"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionResolveConfigLambda/Resource",
+    "aws:asset:path": "asset.ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "LambdaEntityResolutionLambdaServiceRole7A16E3A1": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/EntityResolutionLambda/ServiceRole/Resource"
+   }
+  },
+  "LambdaEntityResolutionLambdaServiceRoleDefaultPolicy20DA6102": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sqs:SendMessage",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "LambdaLambdaDLQ66938329",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+       }
+      },
+      {
+       "Action": "rds-db:connect",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/*"
+       }
+      },
+      {
+       "Action": [
+        "neptune-db:ReadDataViaQuery",
+        "neptune-db:WriteDataViaQuery",
+        "neptune-db:GetQueryStatus",
+        "neptune-db:CancelQuery"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:neptune-db:${AWS::Region}:${AWS::AccountId}:*/*"
+       }
+      },
+      {
+       "Action": "aoss:APIAccessAll",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":aoss:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":collection/",
+          {
+           "Fn::GetAtt": [
+            "OpenSearchOSSCollectionF2BCA4E1",
+            "Id"
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LambdaEntityResolutionLambdaServiceRoleDefaultPolicy20DA6102",
+    "Roles": [
+     {
+      "Ref": "LambdaEntityResolutionLambdaServiceRole7A16E3A1"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/EntityResolutionLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LambdaEntityResolutionLambdaSecurityGroupCE34D6FD": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatic security group for Lambda Function ResearchAnalystStackLambdaEntityResolutionLambdaB61CD042",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/EntityResolutionLambda/SecurityGroup/Resource"
+   }
+  },
+  "LambdaEntityResolutionLambda4DF5D37A": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-974220725866-us-east-1",
+     "S3Key": "ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910.zip"
+    },
+    "DeadLetterConfig": {
+     "TargetArn": {
+      "Fn::GetAtt": [
+       "LambdaLambdaDLQ66938329",
+       "Arn"
+      ]
+     }
+    },
+    "Environment": {
+     "Variables": {
+      "AURORA_PROXY_ENDPOINT": {
+       "Fn::GetAtt": [
+        "AuroraAuroraProxyF9A388F6",
+        "Endpoint"
+       ]
+      },
+      "AURORA_SECRET_ARN": {
+       "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+      },
+      "AURORA_DB_NAME": "research_analyst",
+      "S3_DATA_BUCKET": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "S3_BUCKET_NAME": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "NEPTUNE_PORT": "8182",
+      "BULK_LOAD_THRESHOLD": "20",
+      "ACCESS_CONTROL_ENABLED": "false",
+      "BEDROCK_LLM_MODEL_ID": "anthropic.claude-3-haiku-20240307-v1:0",
+      "BEDROCK_EMBEDDING_MODEL_ID": "amazon.titan-embed-text-v2:0",
+      "NEPTUNE_ENABLED": "true",
+      "OPENSEARCH_ENABLED": "true",
+      "REKOGNITION_ENABLED": "true",
+      "NEPTUNE_ENDPOINT": {
+       "Fn::GetAtt": [
+        "NeptuneNeptuneCluster76655737",
+        "Endpoint"
+       ]
+      },
+      "OPENSEARCH_ENDPOINT": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "CollectionEndpoint"
+       ]
+      },
+      "OPENSEARCH_COLLECTION_ID": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "Id"
+       ]
+      }
+     }
+    },
+    "Handler": "lambdas.ingestion.entity_resolution_handler.handler",
+    "MemorySize": 1024,
+    "Role": {
+     "Fn::GetAtt": [
+      "LambdaEntityResolutionLambdaServiceRole7A16E3A1",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.12",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Timeout": 900,
+    "TracingConfig": {
+     "Mode": "Active"
+    },
+    "VpcConfig": {
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "LambdaEntityResolutionLambdaSecurityGroupCE34D6FD",
+        "GroupId"
+       ]
+      }
+     ],
+     "SubnetIds": [
+      "subnet-07cffe5b0b84b3499",
+      "subnet-0d4d796be847de3b0",
+      "subnet-08c5dc41e84a46eb5",
+      "subnet-08daeb0b5e4e1bf85",
+      "subnet-023e2e0e7b9bd70c6",
+      "subnet-037765830e6460aff"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LambdaEntityResolutionLambdaServiceRole7A16E3A1"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/EntityResolutionLambda/Resource",
+    "aws:asset:path": "asset.ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "LambdaIngestionImageDescriptionLambdaServiceRole9967A780": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionImageDescriptionLambda/ServiceRole/Resource"
+   }
+  },
+  "LambdaIngestionImageDescriptionLambdaServiceRoleDefaultPolicy610A019A": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sqs:SendMessage",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "LambdaLambdaDLQ66938329",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+       }
+      },
+      {
+       "Action": "rds-db:connect",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/*"
+       }
+      },
+      {
+       "Action": [
+        "neptune-db:ReadDataViaQuery",
+        "neptune-db:WriteDataViaQuery",
+        "neptune-db:GetQueryStatus",
+        "neptune-db:CancelQuery"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:neptune-db:${AWS::Region}:${AWS::AccountId}:*/*"
+       }
+      },
+      {
+       "Action": "aoss:APIAccessAll",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":aoss:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":collection/",
+          {
+           "Fn::GetAtt": [
+            "OpenSearchOSSCollectionF2BCA4E1",
+            "Id"
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LambdaIngestionImageDescriptionLambdaServiceRoleDefaultPolicy610A019A",
+    "Roles": [
+     {
+      "Ref": "LambdaIngestionImageDescriptionLambdaServiceRole9967A780"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionImageDescriptionLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LambdaIngestionImageDescriptionLambdaSecurityGroupB665B1A8": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatic security group for Lambda Function ResearchAnalystStackLambdaIngestionImageDescriptionLambda64C6D632",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionImageDescriptionLambda/SecurityGroup/Resource"
+   }
+  },
+  "LambdaIngestionImageDescriptionLambdaA9AE78EB": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-974220725866-us-east-1",
+     "S3Key": "ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910.zip"
+    },
+    "DeadLetterConfig": {
+     "TargetArn": {
+      "Fn::GetAtt": [
+       "LambdaLambdaDLQ66938329",
+       "Arn"
+      ]
+     }
+    },
+    "Environment": {
+     "Variables": {
+      "AURORA_PROXY_ENDPOINT": {
+       "Fn::GetAtt": [
+        "AuroraAuroraProxyF9A388F6",
+        "Endpoint"
+       ]
+      },
+      "AURORA_SECRET_ARN": {
+       "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+      },
+      "AURORA_DB_NAME": "research_analyst",
+      "S3_DATA_BUCKET": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "S3_BUCKET_NAME": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "NEPTUNE_PORT": "8182",
+      "BULK_LOAD_THRESHOLD": "20",
+      "ACCESS_CONTROL_ENABLED": "false",
+      "BEDROCK_LLM_MODEL_ID": "anthropic.claude-3-haiku-20240307-v1:0",
+      "BEDROCK_EMBEDDING_MODEL_ID": "amazon.titan-embed-text-v2:0",
+      "NEPTUNE_ENABLED": "true",
+      "OPENSEARCH_ENABLED": "true",
+      "REKOGNITION_ENABLED": "true",
+      "NEPTUNE_ENDPOINT": {
+       "Fn::GetAtt": [
+        "NeptuneNeptuneCluster76655737",
+        "Endpoint"
+       ]
+      },
+      "OPENSEARCH_ENDPOINT": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "CollectionEndpoint"
+       ]
+      },
+      "OPENSEARCH_COLLECTION_ID": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "Id"
+       ]
+      }
+     }
+    },
+    "Handler": "lambdas.ingestion.image_description_handler.handler",
+    "MemorySize": 1024,
+    "Role": {
+     "Fn::GetAtt": [
+      "LambdaIngestionImageDescriptionLambdaServiceRole9967A780",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.12",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Timeout": 900,
+    "TracingConfig": {
+     "Mode": "Active"
+    },
+    "VpcConfig": {
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "LambdaIngestionImageDescriptionLambdaSecurityGroupB665B1A8",
+        "GroupId"
+       ]
+      }
+     ],
+     "SubnetIds": [
+      "subnet-07cffe5b0b84b3499",
+      "subnet-0d4d796be847de3b0",
+      "subnet-08c5dc41e84a46eb5",
+      "subnet-08daeb0b5e4e1bf85",
+      "subnet-023e2e0e7b9bd70c6",
+      "subnet-037765830e6460aff"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LambdaIngestionImageDescriptionLambdaServiceRole9967A780"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionImageDescriptionLambda/Resource",
+    "aws:asset:path": "asset.ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "LambdaIngestionRekognitionLambdaServiceRole9D68A733": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionRekognitionLambda/ServiceRole/Resource"
+   }
+  },
+  "LambdaIngestionRekognitionLambdaServiceRoleDefaultPolicyB9580D0C": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sqs:SendMessage",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "LambdaLambdaDLQ66938329",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+       }
+      },
+      {
+       "Action": "rds-db:connect",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/*"
+       }
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*",
+        "s3:DeleteObject*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging",
+        "s3:Abort*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SecurityDataLakeBucketC8F981C8",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SecurityDataLakeBucketC8F981C8",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "neptune-db:ReadDataViaQuery",
+        "neptune-db:WriteDataViaQuery",
+        "neptune-db:GetQueryStatus",
+        "neptune-db:CancelQuery"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:neptune-db:${AWS::Region}:${AWS::AccountId}:*/*"
+       }
+      },
+      {
+       "Action": [
+        "rekognition:DetectFaces",
+        "rekognition:DetectLabels",
+        "rekognition:DetectText",
+        "rekognition:SearchFacesByImage",
+        "rekognition:StartLabelDetection",
+        "rekognition:StartFaceDetection",
+        "rekognition:GetLabelDetection",
+        "rekognition:GetFaceDetection"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "aoss:APIAccessAll",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":aoss:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":collection/",
+          {
+           "Fn::GetAtt": [
+            "OpenSearchOSSCollectionF2BCA4E1",
+            "Id"
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LambdaIngestionRekognitionLambdaServiceRoleDefaultPolicyB9580D0C",
+    "Roles": [
+     {
+      "Ref": "LambdaIngestionRekognitionLambdaServiceRole9D68A733"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionRekognitionLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LambdaIngestionRekognitionLambdaSecurityGroup8AFE2B24": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatic security group for Lambda Function ResearchAnalystStackLambdaIngestionRekognitionLambdaFC53BE4C",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionRekognitionLambda/SecurityGroup/Resource"
+   }
+  },
+  "LambdaIngestionRekognitionLambdaE9E5301E": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-974220725866-us-east-1",
+     "S3Key": "ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910.zip"
+    },
+    "DeadLetterConfig": {
+     "TargetArn": {
+      "Fn::GetAtt": [
+       "LambdaLambdaDLQ66938329",
+       "Arn"
+      ]
+     }
+    },
+    "Environment": {
+     "Variables": {
+      "AURORA_PROXY_ENDPOINT": {
+       "Fn::GetAtt": [
+        "AuroraAuroraProxyF9A388F6",
+        "Endpoint"
+       ]
+      },
+      "AURORA_SECRET_ARN": {
+       "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+      },
+      "AURORA_DB_NAME": "research_analyst",
+      "S3_DATA_BUCKET": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "S3_BUCKET_NAME": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "NEPTUNE_PORT": "8182",
+      "BULK_LOAD_THRESHOLD": "20",
+      "ACCESS_CONTROL_ENABLED": "false",
+      "BEDROCK_LLM_MODEL_ID": "anthropic.claude-3-haiku-20240307-v1:0",
+      "BEDROCK_EMBEDDING_MODEL_ID": "amazon.titan-embed-text-v2:0",
+      "NEPTUNE_ENABLED": "true",
+      "OPENSEARCH_ENABLED": "true",
+      "REKOGNITION_ENABLED": "true",
+      "NEPTUNE_ENDPOINT": {
+       "Fn::GetAtt": [
+        "NeptuneNeptuneCluster76655737",
+        "Endpoint"
+       ]
+      },
+      "OPENSEARCH_ENDPOINT": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "CollectionEndpoint"
+       ]
+      },
+      "OPENSEARCH_COLLECTION_ID": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "Id"
+       ]
+      }
+     }
+    },
+    "Handler": "lambdas.ingestion.rekognition_handler.handler",
+    "MemorySize": 1024,
+    "Role": {
+     "Fn::GetAtt": [
+      "LambdaIngestionRekognitionLambdaServiceRole9D68A733",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.12",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Timeout": 900,
+    "TracingConfig": {
+     "Mode": "Active"
+    },
+    "VpcConfig": {
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "LambdaIngestionRekognitionLambdaSecurityGroup8AFE2B24",
+        "GroupId"
+       ]
+      }
+     ],
+     "SubnetIds": [
+      "subnet-07cffe5b0b84b3499",
+      "subnet-0d4d796be847de3b0",
+      "subnet-08c5dc41e84a46eb5",
+      "subnet-08daeb0b5e4e1bf85",
+      "subnet-023e2e0e7b9bd70c6",
+      "subnet-037765830e6460aff"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LambdaIngestionRekognitionLambdaServiceRole9D68A733"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionRekognitionLambda/Resource",
+    "aws:asset:path": "asset.ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "LambdaIngestionFaceCropLambdaServiceRoleF05F1299": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionFaceCropLambda/ServiceRole/Resource"
+   }
+  },
+  "LambdaIngestionFaceCropLambdaServiceRoleDefaultPolicyCD33C0C1": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sqs:SendMessage",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "LambdaLambdaDLQ66938329",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+       }
+      },
+      {
+       "Action": "rds-db:connect",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/*"
+       }
+      },
+      {
+       "Action": [
+        "neptune-db:ReadDataViaQuery",
+        "neptune-db:WriteDataViaQuery",
+        "neptune-db:GetQueryStatus",
+        "neptune-db:CancelQuery"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:neptune-db:${AWS::Region}:${AWS::AccountId}:*/*"
+       }
+      },
+      {
+       "Action": "aoss:APIAccessAll",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":aoss:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":collection/",
+          {
+           "Fn::GetAtt": [
+            "OpenSearchOSSCollectionF2BCA4E1",
+            "Id"
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LambdaIngestionFaceCropLambdaServiceRoleDefaultPolicyCD33C0C1",
+    "Roles": [
+     {
+      "Ref": "LambdaIngestionFaceCropLambdaServiceRoleF05F1299"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionFaceCropLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LambdaIngestionFaceCropLambdaSecurityGroup3EEDF021": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatic security group for Lambda Function ResearchAnalystStackLambdaIngestionFaceCropLambda7E809E48",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionFaceCropLambda/SecurityGroup/Resource"
+   }
+  },
+  "LambdaIngestionFaceCropLambda8A6D3CD3": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-974220725866-us-east-1",
+     "S3Key": "ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910.zip"
+    },
+    "DeadLetterConfig": {
+     "TargetArn": {
+      "Fn::GetAtt": [
+       "LambdaLambdaDLQ66938329",
+       "Arn"
+      ]
+     }
+    },
+    "Environment": {
+     "Variables": {
+      "AURORA_PROXY_ENDPOINT": {
+       "Fn::GetAtt": [
+        "AuroraAuroraProxyF9A388F6",
+        "Endpoint"
+       ]
+      },
+      "AURORA_SECRET_ARN": {
+       "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+      },
+      "AURORA_DB_NAME": "research_analyst",
+      "S3_DATA_BUCKET": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "S3_BUCKET_NAME": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "NEPTUNE_PORT": "8182",
+      "BULK_LOAD_THRESHOLD": "20",
+      "ACCESS_CONTROL_ENABLED": "false",
+      "BEDROCK_LLM_MODEL_ID": "anthropic.claude-3-haiku-20240307-v1:0",
+      "BEDROCK_EMBEDDING_MODEL_ID": "amazon.titan-embed-text-v2:0",
+      "NEPTUNE_ENABLED": "true",
+      "OPENSEARCH_ENABLED": "true",
+      "REKOGNITION_ENABLED": "true",
+      "NEPTUNE_ENDPOINT": {
+       "Fn::GetAtt": [
+        "NeptuneNeptuneCluster76655737",
+        "Endpoint"
+       ]
+      },
+      "OPENSEARCH_ENDPOINT": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "CollectionEndpoint"
+       ]
+      },
+      "OPENSEARCH_COLLECTION_ID": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "Id"
+       ]
+      }
+     }
+    },
+    "Handler": "lambdas.ingestion.face_crop_handler.handler",
+    "MemorySize": 512,
+    "Role": {
+     "Fn::GetAtt": [
+      "LambdaIngestionFaceCropLambdaServiceRoleF05F1299",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.12",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Timeout": 300,
+    "TracingConfig": {
+     "Mode": "Active"
+    },
+    "VpcConfig": {
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "LambdaIngestionFaceCropLambdaSecurityGroup3EEDF021",
+        "GroupId"
+       ]
+      }
+     ],
+     "SubnetIds": [
+      "subnet-07cffe5b0b84b3499",
+      "subnet-0d4d796be847de3b0",
+      "subnet-08c5dc41e84a46eb5",
+      "subnet-08daeb0b5e4e1bf85",
+      "subnet-023e2e0e7b9bd70c6",
+      "subnet-037765830e6460aff"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LambdaIngestionFaceCropLambdaServiceRoleF05F1299"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/IngestionFaceCropLambda/Resource",
+    "aws:asset:path": "asset.ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "LambdaCaseFilesLambdaServiceRole956FB185": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/CaseFilesLambda/ServiceRole/Resource"
+   }
+  },
+  "LambdaCaseFilesLambdaServiceRoleDefaultPolicy5F0B5954": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sqs:SendMessage",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "LambdaLambdaDLQ66938329",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+       }
+      },
+      {
+       "Action": "rds-db:connect",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:*/*"
+       }
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*",
+        "s3:DeleteObject*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging",
+        "s3:Abort*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SecurityDataLakeBucketC8F981C8",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SecurityDataLakeBucketC8F981C8",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "neptune-db:ReadDataViaQuery",
+        "neptune-db:WriteDataViaQuery",
+        "neptune-db:GetQueryStatus",
+        "neptune-db:CancelQuery"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:neptune-db:${AWS::Region}:${AWS::AccountId}:*/*"
+       }
+      },
+      {
+       "Action": "bedrock:InvokeModel",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
+       }
+      },
+      {
+       "Action": "bedrock:InvokeModel",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/amazon.titan-embed-text-v2:0"
+       }
+      },
+      {
+       "Action": "bedrock:InvokeModelWithResponseStream",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
+       }
+      },
+      {
+       "Action": [
+        "bedrock:Retrieve",
+        "bedrock:RetrieveAndGenerate"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/*"
+       }
+      },
+      {
+       "Action": "bedrock:InvokeAgent",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:bedrock:${AWS::Region}:${AWS::AccountId}:agent/*"
+       }
+      },
+      {
+       "Action": [
+        "textract:DetectDocumentText",
+        "textract:StartDocumentTextDetection",
+        "textract:GetDocumentTextDetection"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "states:DescribeExecution",
+        "states:ListExecutions"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "LambdaCaseFilesLambdaB8E85C31",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "s3:GetObject",
+        "s3:ListBucket",
+        "s3:HeadObject"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Sub": "arn:${AWS::Partition}:s3:::doj-cases-*"
+        },
+        {
+         "Fn::Sub": "arn:${AWS::Partition}:s3:::doj-cases-*/*"
+        }
+       ]
+      },
+      {
+       "Action": "aoss:APIAccessAll",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":aoss:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":collection/",
+          {
+           "Fn::GetAtt": [
+            "OpenSearchOSSCollectionF2BCA4E1",
+            "Id"
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "Action": "states:StartExecution",
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "PipelineIngestionPipelineED2D3B56"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LambdaCaseFilesLambdaServiceRoleDefaultPolicy5F0B5954",
+    "Roles": [
+     {
+      "Ref": "LambdaCaseFilesLambdaServiceRole956FB185"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/CaseFilesLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LambdaCaseFilesLambdaSecurityGroup12FA05E7": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatic security group for Lambda Function ResearchAnalystStackLambdaCaseFilesLambda9110454A",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "VpcId": "vpc-0b42c848c0b11ed25"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/CaseFilesLambda/SecurityGroup/Resource"
+   }
+  },
+  "LambdaCaseFilesLambdaB8E85C31": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-974220725866-us-east-1",
+     "S3Key": "ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910.zip"
+    },
+    "DeadLetterConfig": {
+     "TargetArn": {
+      "Fn::GetAtt": [
+       "LambdaLambdaDLQ66938329",
+       "Arn"
+      ]
+     }
+    },
+    "Environment": {
+     "Variables": {
+      "AURORA_PROXY_ENDPOINT": {
+       "Fn::GetAtt": [
+        "AuroraAuroraProxyF9A388F6",
+        "Endpoint"
+       ]
+      },
+      "AURORA_SECRET_ARN": {
+       "Ref": "AuroraAuroraClusterSecretAttachment47B4605C"
+      },
+      "AURORA_DB_NAME": "research_analyst",
+      "S3_DATA_BUCKET": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "S3_BUCKET_NAME": {
+       "Ref": "SecurityDataLakeBucketC8F981C8"
+      },
+      "NEPTUNE_PORT": "8182",
+      "BULK_LOAD_THRESHOLD": "20",
+      "ACCESS_CONTROL_ENABLED": "false",
+      "BEDROCK_LLM_MODEL_ID": "anthropic.claude-3-haiku-20240307-v1:0",
+      "BEDROCK_EMBEDDING_MODEL_ID": "amazon.titan-embed-text-v2:0",
+      "NEPTUNE_ENABLED": "true",
+      "OPENSEARCH_ENABLED": "true",
+      "REKOGNITION_ENABLED": "true",
+      "NEPTUNE_ENDPOINT": {
+       "Fn::GetAtt": [
+        "NeptuneNeptuneCluster76655737",
+        "Endpoint"
+       ]
+      },
+      "OPENSEARCH_ENDPOINT": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "CollectionEndpoint"
+       ]
+      },
+      "OPENSEARCH_COLLECTION_ID": {
+       "Fn::GetAtt": [
+        "OpenSearchOSSCollectionF2BCA4E1",
+        "Id"
+       ]
+      },
+      "STATE_MACHINE_ARN": {
+       "Ref": "PipelineIngestionPipelineED2D3B56"
+      }
+     }
+    },
+    "Handler": "lambdas.api.case_files.dispatch_handler",
+    "MemorySize": 512,
+    "Role": {
+     "Fn::GetAtt": [
+      "LambdaCaseFilesLambdaServiceRole956FB185",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.12",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Timeout": 900,
+    "TracingConfig": {
+     "Mode": "Active"
+    },
+    "VpcConfig": {
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "LambdaCaseFilesLambdaSecurityGroup12FA05E7",
+        "GroupId"
+       ]
+      }
+     ],
+     "SubnetIds": [
+      "subnet-07cffe5b0b84b3499",
+      "subnet-0d4d796be847de3b0",
+      "subnet-08c5dc41e84a46eb5",
+      "subnet-08daeb0b5e4e1bf85",
+      "subnet-023e2e0e7b9bd70c6",
+      "subnet-037765830e6460aff"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LambdaCaseFilesLambdaServiceRole956FB185"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Lambda/CaseFilesLambda/Resource",
+    "aws:asset:path": "asset.ef276ba9dd0b666b2aca62ef8123c9f392c8bf8ee526a0a59c3cd0d56e0da910",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "PipelineIngestionPipelineRoleF35B31DC": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "states.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Pipeline/IngestionPipeline/Role/Resource"
+   }
+  },
+  "PipelineIngestionPipelineRoleDefaultPolicy2F083EF2": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "states:StartExecution",
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "LambdaIngestionUploadLambdaE2B7B52E",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "LambdaIngestionUploadLambdaE2B7B52E",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "LambdaIngestionParseLambda2EBE042A",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "LambdaIngestionParseLambda2EBE042A",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "LambdaIngestionExtractLambdaDE5A138C",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "LambdaIngestionExtractLambdaDE5A138C",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "LambdaIngestionEmbedLambda3E12B453",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "LambdaIngestionEmbedLambda3E12B453",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "LambdaIngestionStoreArtifactLambda096A088F",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "LambdaIngestionStoreArtifactLambda096A088F",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "LambdaIngestionGraphLoadLambdaE97733AE",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "LambdaIngestionGraphLoadLambdaE97733AE",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "LambdaIngestionUpdateStatusLambda06272738",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "LambdaIngestionUpdateStatusLambda06272738",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "LambdaIngestionResolveConfigLambda8CE7AA47",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "LambdaIngestionResolveConfigLambda8CE7AA47",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "LambdaEntityResolutionLambda4DF5D37A",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "LambdaEntityResolutionLambda4DF5D37A",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "LambdaIngestionImageDescriptionLambdaA9AE78EB",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "LambdaIngestionImageDescriptionLambdaA9AE78EB",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "LambdaIngestionRekognitionLambdaE9E5301E",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "LambdaIngestionRekognitionLambdaE9E5301E",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "LambdaIngestionFaceCropLambda8A6D3CD3",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "LambdaIngestionFaceCropLambda8A6D3CD3",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "PipelineIngestionPipelineRoleDefaultPolicy2F083EF2",
+    "Roles": [
+     {
+      "Ref": "PipelineIngestionPipelineRoleF35B31DC"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Pipeline/IngestionPipeline/Role/DefaultPolicy/Resource"
+   }
+  },
+  "PipelineIngestionPipelineED2D3B56": {
+   "Type": "AWS::StepFunctions::StateMachine",
+   "Properties": {
+    "DefinitionString": "{\n  \"Comment\": \"Research Analyst Platform \u00e2\u20ac\u201d Document Ingestion Pipeline. Orchestrates config resolution, upload, per-document processing (parse, extract, embed, store artifact), graph loading (bulk CSV or Gremlin), and case status update. Supports sample_mode for running against a subset of documents.\",\n  \"StartAt\": \"ResolveConfig\",\n  \"States\": {\n    \"ResolveConfig\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"${ResolveConfigLambdaArn}\",\n      \"Parameters\": {\n        \"case_id.$\": \"$.case_id\"\n      },\n      \"ResultPath\": \"$.effective_config\",\n      \"Retry\": [\n        {\n          \"ErrorEquals\": [\"States.TaskFailed\", \"Lambda.ServiceException\"],\n          \"IntervalSeconds\": 2,\n          \"MaxAttempts\": 3,\n          \"BackoffRate\": 2.0\n        }\n      ],\n      \"Catch\": [\n        {\n          \"ErrorEquals\": [\"States.ALL\"],\n          \"ResultPath\": \"$.error_info\",\n          \"Next\": \"SetStatusError\"\n        }\n      ],\n      \"Next\": \"CheckSampleMode\"\n    },\n\n    \"CheckSampleMode\": {\n      \"Type\": \"Choice\",\n      \"Comment\": \"If sample_mode is true, skip upload and use provided document_ids directly.\",\n      \"Choices\": [\n        {\n          \"Variable\": \"$.sample_mode\",\n          \"BooleanEquals\": true,\n          \"Next\": \"PrepareSampleDocuments\"\n        }\n      ],\n      \"Default\": \"CheckUploadResult\"\n    },\n\n    \"PrepareSampleDocuments\": {\n      \"Type\": \"Pass\",\n      \"Comment\": \"Reshape sample run document_ids into upload_result format for downstream compatibility.\",\n      \"Parameters\": {\n        \"case_id.$\": \"$.case_id\",\n        \"effective_config.$\": \"$.effective_config\",\n        \"sample_mode.$\": \"$.sample_mode\",\n        \"document_ids.$\": \"$.document_ids\",\n        \"upload_result\": {\n          \"document_ids.$\": \"$.document_ids\",\n          \"document_count.$\": \"States.ArrayLength($.document_ids)\"\n        }\n      },\n      \"Next\": \"ProcessDocuments\"\n    },\n\n    \"CheckUploadResult\": {\n      \"Type\": \"Choice\",\n      \"Comment\": \"Skip upload if upload_result already provided by the API handler.\",\n      \"Choices\": [\n        {\n          \"Variable\": \"$.upload_result.document_ids[0]\",\n          \"IsPresent\": true,\n          \"Next\": \"ProcessDocuments\"\n        }\n      ],\n      \"Default\": \"UploadRawData\"\n    },\n    \"UploadRawData\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"${IngestionUploadLambdaArn}\",\n      \"Parameters\": {\n        \"case_id.$\": \"$.case_id\",\n        \"files.$\": \"$.files\",\n        \"effective_config.$\": \"$.effective_config\"\n      },\n      \"ResultPath\": \"$.upload_result\",\n      \"Retry\": [\n        {\n          \"ErrorEquals\": [\"States.TaskFailed\", \"Lambda.ServiceException\"],\n          \"IntervalSeconds\": 2,\n          \"MaxAttempts\": 3,\n          \"BackoffRate\": 2.0\n        }\n      ],\n      \"Catch\": [\n        {\n          \"ErrorEquals\": [\"States.ALL\"],\n          \"ResultPath\": \"$.error_info\",\n          \"Next\": \"SetStatusError\"\n        }\n      ],\n      \"Next\": \"ProcessDocuments\"\n    },\n\n    \"ProcessDocuments\": {\n      \"Type\": \"Map\",\n      \"ItemsPath\": \"$.upload_result.document_ids\",\n      \"MaxConcurrency\": 5,\n      \"Parameters\": {\n        \"case_id.$\": \"$.case_id\",\n        \"document_id.$\": \"$$.Map.Item.Value\",\n        \"effective_config.$\": \"$.effective_config\"\n      },\n      \"Iterator\": {\n        \"StartAt\": \"ParseDocument\",\n        \"States\": {\n          \"ParseDocument\": {\n            \"Type\": \"Task\",\n            \"Resource\": \"${IngestionParseLambdaArn}\",\n            \"Parameters\": {\n              \"case_id.$\": \"$.case_id\",\n              \"document_id.$\": \"$.document_id\",\n              \"effective_config.$\": \"$.effective_config\"\n            },\n            \"ResultPath\": \"$.parse_result\",\n            \"Retry\": [\n              {\n                \"ErrorEquals\": [\"States.TaskFailed\", \"Lambda.ServiceException\"],\n                \"IntervalSeconds\": 2,\n                \"MaxAttempts\": 3,\n                \"BackoffRate\": 2.0\n              }\n            ],\n            \"Catch\": [\n              {\n                \"ErrorEquals\": [\"States.ALL\"],\n                \"ResultPath\": \"$.error_info\",\n                \"Next\": \"LogDocumentFailure\"\n              }\n            ],\n            \"Next\": \"ClassifyDocument\"\n          },\n\n          \"ClassifyDocument\": {\n            \"Type\": \"Pass\",\n            \"Comment\": \"Classification skipped \u00e2\u20ac\u201d no dedicated classification Lambda. Pass through to ExtractEntities.\",\n            \"Result\": {\"action\": \"skipped\", \"reason\": \"no_classification_lambda\"},\n            \"ResultPath\": \"$.classification_result\",\n            \"Next\": \"ExtractEntities\"\n          },\n\n          \"ExtractEntities\": {\n            \"Type\": \"Task\",\n            \"Resource\": \"${IngestionExtractLambdaArn}\",\n            \"Parameters\": {\n              \"case_id.$\": \"$.case_id\",\n              \"document_id.$\": \"$.document_id\",\n              \"raw_text.$\": \"$.parse_result.raw_text\",\n              \"effective_config.$\": \"$.effective_config\"\n            },\n            \"ResultPath\": \"$.extraction_result\",\n            \"Retry\": [\n              {\n                \"ErrorEquals\": [\"States.TaskFailed\", \"Lambda.ServiceException\"],\n                \"IntervalSeconds\": 3,\n                \"MaxAttempts\": 3,\n                \"BackoffRate\": 2.0\n              }\n            ],\n            \"Catch\": [\n              {\n                \"ErrorEquals\": [\"States.ALL\"],\n                \"ResultPath\": \"$.error_info\",\n                \"Next\": \"LogDocumentFailure\"\n              }\n            ],\n            \"Next\": \"GenerateEmbedding\"\n          },\n\n          \"GenerateEmbedding\": {\n            \"Type\": \"Task\",\n            \"Resource\": \"${IngestionEmbedLambdaArn}\",\n            \"Parameters\": {\n              \"case_id.$\": \"$.case_id\",\n              \"document_id.$\": \"$.document_id\",\n              \"raw_text.$\": \"$.parse_result.raw_text\",\n              \"sections.$\": \"$.parse_result.sections\",\n              \"source_metadata.$\": \"$.parse_result.source_metadata\",\n              \"effective_config.$\": \"$.effective_config\"\n            },\n            \"ResultPath\": \"$.embed_result\",\n            \"Retry\": [\n              {\n                \"ErrorEquals\": [\"States.TaskFailed\", \"Lambda.ServiceException\"],\n                \"IntervalSeconds\": 3,\n                \"MaxAttempts\": 3,\n                \"BackoffRate\": 2.0\n              }\n            ],\n            \"Catch\": [\n              {\n                \"ErrorEquals\": [\"States.ALL\"],\n                \"ResultPath\": \"$.error_info\",\n                \"Next\": \"LogDocumentFailure\"\n              }\n            ],\n            \"Next\": \"StoreExtractionArtifact\"\n          },\n\n          \"StoreExtractionArtifact\": {\n            \"Type\": \"Task\",\n            \"Resource\": \"${IngestionStoreArtifactLambdaArn}\",\n            \"Parameters\": {\n              \"case_id.$\": \"$.case_id\",\n              \"document_id.$\": \"$.document_id\",\n              \"entities.$\": \"$.extraction_result.entities\",\n              \"relationships.$\": \"$.extraction_result.relationships\",\n              \"effective_config.$\": \"$.effective_config\"\n            },\n            \"ResultPath\": \"$.artifact_result\",\n            \"Retry\": [\n              {\n                \"ErrorEquals\": [\"States.TaskFailed\", \"Lambda.ServiceException\"],\n                \"IntervalSeconds\": 2,\n                \"MaxAttempts\": 3,\n                \"BackoffRate\": 2.0\n              }\n            ],\n            \"Catch\": [\n              {\n                \"ErrorEquals\": [\"States.ALL\"],\n                \"ResultPath\": \"$.error_info\",\n                \"Next\": \"LogDocumentFailure\"\n              }\n            ],\n            \"Next\": \"DocumentSuccess\"\n          },\n\n          \"LogDocumentFailure\": {\n            \"Type\": \"Pass\",\n            \"Parameters\": {\n              \"case_id.$\": \"$.case_id\",\n              \"document_id.$\": \"$.document_id\",\n              \"status\": \"failed\",\n              \"error.$\": \"$.error_info\"\n            },\n            \"End\": true\n          },\n\n          \"DocumentSuccess\": {\n            \"Type\": \"Pass\",\n            \"Parameters\": {\n              \"case_id.$\": \"$.case_id\",\n              \"document_id.$\": \"$.document_id\",\n              \"status\": \"success\"\n            },\n            \"End\": true\n          }\n        }\n      },\n      \"ResultPath\": \"$.document_results\",\n      \"Catch\": [\n        {\n          \"ErrorEquals\": [\"States.ALL\"],\n          \"ResultPath\": \"$.error_info\",\n          \"Next\": \"SetStatusError\"\n        }\n      ],\n      \"Next\": \"CheckRekognitionEnabled\"\n    },\n\n    \"CheckRekognitionEnabled\": {\n      \"Type\": \"Choice\",\n      \"Comment\": \"If Rekognition is enabled in the effective config, run the Rekognition step for image/video analysis before graph loading.\",\n      \"Choices\": [\n        {\n          \"And\": [\n            {\n              \"Variable\": \"$.effective_config.rekognition\",\n              \"IsPresent\": true\n            },\n            {\n              \"Variable\": \"$.effective_config.rekognition.enabled\",\n              \"BooleanEquals\": true\n            }\n          ],\n          \"Next\": \"RekognitionStep\"\n        }\n      ],\n      \"Default\": \"ChooseGraphLoadStrategy\"\n    },\n\n    \"RekognitionStep\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"${RekognitionLambdaArn}\",\n      \"Parameters\": {\n        \"case_id.$\": \"$.case_id\",\n        \"effective_config.$\": \"$.effective_config\",\n        \"document_ids.$\": \"$.upload_result.document_ids\"\n      },\n      \"ResultPath\": \"$.rekognition_result\",\n      \"TimeoutSeconds\": 900,\n      \"Retry\": [\n        {\n          \"ErrorEquals\": [\"States.TaskFailed\", \"Lambda.ServiceException\"],\n          \"IntervalSeconds\": 5,\n          \"MaxAttempts\": 3,\n          \"BackoffRate\": 2.0\n        }\n      ],\n      \"Catch\": [\n        {\n          \"ErrorEquals\": [\"States.ALL\"],\n          \"ResultPath\": \"$.error_info\",\n          \"Next\": \"SetStatusError\"\n        }\n      ],\n      \"Next\": \"CheckFaceCropEnabled\"\n    },\n\n    \"CheckFaceCropEnabled\": {\n      \"Type\": \"Choice\",\n      \"Comment\": \"If face_crop is enabled in the effective config, run the FaceCropStep for face thumbnail generation. Uses IsPresent guard before BooleanEquals per Lesson Learned #24.\",\n      \"Choices\": [\n        {\n          \"And\": [\n            {\n              \"Variable\": \"$.effective_config.face_crop\",\n              \"IsPresent\": true\n            },\n            {\n              \"Variable\": \"$.effective_config.face_crop.enabled\",\n              \"BooleanEquals\": true\n            }\n          ],\n          \"Next\": \"FaceCropStep\"\n        }\n      ],\n      \"Default\": \"CheckImageDescriptionEnabled\"\n    },\n\n    \"FaceCropStep\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"${FaceCropLambdaArn}\",\n      \"Parameters\": {\n        \"case_id.$\": \"$.case_id\",\n        \"rekognition_result.$\": \"$.rekognition_result\",\n        \"effective_config.$\": \"$.effective_config\"\n      },\n      \"ResultPath\": \"$.face_crop_result\",\n      \"TimeoutSeconds\": 300,\n      \"Retry\": [\n        {\n          \"ErrorEquals\": [\"States.TaskFailed\", \"Lambda.ServiceException\"],\n          \"IntervalSeconds\": 3,\n          \"MaxAttempts\": 2,\n          \"BackoffRate\": 2.0\n        }\n      ],\n      \"Catch\": [\n        {\n          \"ErrorEquals\": [\"States.ALL\"],\n          \"ResultPath\": \"$.face_crop_error\",\n          \"Next\": \"CheckImageDescriptionEnabled\"\n        }\n      ],\n      \"Next\": \"CheckImageDescriptionEnabled\"\n    },\n\n    \"CheckImageDescriptionEnabled\": {\n      \"Type\": \"Choice\",\n      \"Comment\": \"If image_description is enabled in the effective config, run the ImageDescriptionStep for AI scene description. Uses IsPresent guard before BooleanEquals per Lesson Learned #24.\",\n      \"Choices\": [\n        {\n          \"And\": [\n            {\n              \"Variable\": \"$.effective_config.image_description\",\n              \"IsPresent\": true\n            },\n            {\n              \"Variable\": \"$.effective_config.image_description.enabled\",\n              \"BooleanEquals\": true\n            }\n          ],\n          \"Next\": \"ImageDescriptionStep\"\n        }\n      ],\n      \"Default\": \"ChooseGraphLoadStrategy\"\n    },\n\n    \"ImageDescriptionStep\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"${ImageDescriptionLambdaArn}\",\n      \"Parameters\": {\n        \"case_id.$\": \"$.case_id\",\n        \"rekognition_result.$\": \"$.rekognition_result\",\n        \"effective_config.$\": \"$.effective_config\"\n      },\n      \"ResultPath\": \"$.image_description_result\",\n      \"TimeoutSeconds\": 900,\n      \"Retry\": [\n        {\n          \"ErrorEquals\": [\"States.TaskFailed\", \"Lambda.ServiceException\"],\n          \"IntervalSeconds\": 5,\n          \"MaxAttempts\": 2,\n          \"BackoffRate\": 2.0\n        }\n      ],\n      \"Catch\": [\n        {\n          \"ErrorEquals\": [\"States.ALL\"],\n          \"ResultPath\": \"$.image_description_error\",\n          \"Next\": \"ChooseGraphLoadStrategy\"\n        }\n      ],\n      \"Next\": \"ChooseGraphLoadStrategy\"\n    },\n\n    \"ChooseGraphLoadStrategy\": {\n      \"Type\": \"Choice\",\n      \"Comment\": \"Route to bulk CSV loading when document count >= 20, otherwise use Gremlin for incremental loading.\",\n      \"Choices\": [\n        {\n          \"Variable\": \"$.upload_result.document_count\",\n          \"NumericGreaterThanEquals\": 20,\n          \"Next\": \"BulkCSVLoad\"\n        }\n      ],\n      \"Default\": \"GremlinLoad\"\n    },\n\n    \"BulkCSVLoad\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"${IngestionGraphLoadLambdaArn}\",\n      \"Parameters\": {\n        \"case_id.$\": \"$.case_id\",\n        \"load_strategy\": \"bulk\",\n        \"extraction_results.$\": \"$.document_results\",\n        \"effective_config.$\": \"$.effective_config\"\n      },\n      \"ResultPath\": \"$.graph_load_result\",\n      \"Retry\": [\n        {\n          \"ErrorEquals\": [\"States.TaskFailed\", \"Lambda.ServiceException\"],\n          \"IntervalSeconds\": 5,\n          \"MaxAttempts\": 3,\n          \"BackoffRate\": 2.0\n        }\n      ],\n      \"Catch\": [\n        {\n          \"ErrorEquals\": [\"States.ALL\"],\n          \"ResultPath\": \"$.error_info\",\n          \"Next\": \"SetStatusError\"\n        }\n      ],\n      \"Next\": \"UpdateCaseStatusIndexed\"\n    },\n\n    \"GremlinLoad\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"${IngestionGraphLoadLambdaArn}\",\n      \"Parameters\": {\n        \"case_id.$\": \"$.case_id\",\n        \"load_strategy\": \"gremlin\",\n        \"extraction_results.$\": \"$.document_results\",\n        \"effective_config.$\": \"$.effective_config\"\n      },\n      \"ResultPath\": \"$.graph_load_result\",\n      \"Retry\": [\n        {\n          \"ErrorEquals\": [\"States.TaskFailed\", \"Lambda.ServiceException\"],\n          \"IntervalSeconds\": 5,\n          \"MaxAttempts\": 3,\n          \"BackoffRate\": 2.0\n        }\n      ],\n      \"Catch\": [\n        {\n          \"ErrorEquals\": [\"States.ALL\"],\n          \"ResultPath\": \"$.error_info\",\n          \"Next\": \"SetStatusError\"\n        }\n      ],\n      \"Next\": \"UpdateCaseStatusIndexed\"\n    },\n\n    \"UpdateCaseStatusIndexed\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"${IngestionUpdateStatusLambdaArn}\",\n      \"Parameters\": {\n        \"case_id.$\": \"$.case_id\",\n        \"status\": \"indexed\",\n        \"document_count.$\": \"$.upload_result.document_count\",\n        \"effective_config.$\": \"$.effective_config\"\n      },\n      \"ResultPath\": \"$.status_result\",\n      \"Retry\": [\n        {\n          \"ErrorEquals\": [\"States.TaskFailed\", \"Lambda.ServiceException\"],\n          \"IntervalSeconds\": 2,\n          \"MaxAttempts\": 3,\n          \"BackoffRate\": 2.0\n        }\n      ],\n      \"Catch\": [\n        {\n          \"ErrorEquals\": [\"States.ALL\"],\n          \"ResultPath\": \"$.error_info\",\n          \"Next\": \"SetStatusError\"\n        }\n      ],\n      \"Next\": \"PipelineComplete\"\n    },\n\n    \"SetStatusError\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"${IngestionUpdateStatusLambdaArn}\",\n      \"Parameters\": {\n        \"case_id.$\": \"$.case_id\",\n        \"status\": \"error\",\n        \"error_details.$\": \"States.Format('Unrecoverable pipeline error: {}', $.error_info)\"\n      },\n      \"ResultPath\": \"$.error_status_result\",\n      \"Retry\": [\n        {\n          \"ErrorEquals\": [\"States.TaskFailed\"],\n          \"IntervalSeconds\": 2,\n          \"MaxAttempts\": 2,\n          \"BackoffRate\": 2.0\n        }\n      ],\n      \"Next\": \"PipelineFailed\"\n    },\n\n    \"PipelineFailed\": {\n      \"Type\": \"Fail\",\n      \"Error\": \"IngestionPipelineError\",\n      \"Cause\": \"The ingestion pipeline encountered an unrecoverable error. Case status set to error.\"\n    },\n\n    \"PipelineComplete\": {\n      \"Type\": \"Succeed\"\n    }\n  }\n}\n",
+    "DefinitionSubstitutions": {
+     "IngestionUploadLambdaArn": {
+      "Fn::GetAtt": [
+       "LambdaIngestionUploadLambdaE2B7B52E",
+       "Arn"
+      ]
+     },
+     "IngestionParseLambdaArn": {
+      "Fn::GetAtt": [
+       "LambdaIngestionParseLambda2EBE042A",
+       "Arn"
+      ]
+     },
+     "IngestionExtractLambdaArn": {
+      "Fn::GetAtt": [
+       "LambdaIngestionExtractLambdaDE5A138C",
+       "Arn"
+      ]
+     },
+     "IngestionEmbedLambdaArn": {
+      "Fn::GetAtt": [
+       "LambdaIngestionEmbedLambda3E12B453",
+       "Arn"
+      ]
+     },
+     "IngestionStoreArtifactLambdaArn": {
+      "Fn::GetAtt": [
+       "LambdaIngestionStoreArtifactLambda096A088F",
+       "Arn"
+      ]
+     },
+     "IngestionGraphLoadLambdaArn": {
+      "Fn::GetAtt": [
+       "LambdaIngestionGraphLoadLambdaE97733AE",
+       "Arn"
+      ]
+     },
+     "IngestionUpdateStatusLambdaArn": {
+      "Fn::GetAtt": [
+       "LambdaIngestionUpdateStatusLambda06272738",
+       "Arn"
+      ]
+     },
+     "IngestionResolveConfigLambdaArn": {
+      "Fn::GetAtt": [
+       "LambdaIngestionResolveConfigLambda8CE7AA47",
+       "Arn"
+      ]
+     },
+     "IngestionRekognitionLambdaArn": {
+      "Fn::GetAtt": [
+       "LambdaIngestionRekognitionLambdaE9E5301E",
+       "Arn"
+      ]
+     },
+     "ResolveConfigLambdaArn": {
+      "Fn::GetAtt": [
+       "LambdaIngestionResolveConfigLambda8CE7AA47",
+       "Arn"
+      ]
+     },
+     "ClassificationLambdaArn": {
+      "Fn::GetAtt": [
+       "LambdaIngestionExtractLambdaDE5A138C",
+       "Arn"
+      ]
+     },
+     "RekognitionLambdaArn": {
+      "Fn::GetAtt": [
+       "LambdaIngestionRekognitionLambdaE9E5301E",
+       "Arn"
+      ]
+     },
+     "FaceCropLambdaArn": {
+      "Fn::GetAtt": [
+       "LambdaIngestionFaceCropLambda8A6D3CD3",
+       "Arn"
+      ]
+     },
+     "ImageDescriptionLambdaArn": {
+      "Fn::GetAtt": [
+       "LambdaIngestionImageDescriptionLambdaA9AE78EB",
+       "Arn"
+      ]
+     }
+    },
+    "RoleArn": {
+     "Fn::GetAtt": [
+      "PipelineIngestionPipelineRoleF35B31DC",
+      "Arn"
+     ]
+    },
+    "StateMachineName": "research-analyst-ingestion",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "DependsOn": [
+    "PipelineIngestionPipelineRoleDefaultPolicy2F083EF2",
+    "PipelineIngestionPipelineRoleF35B31DC"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Pipeline/IngestionPipeline/Resource"
+   }
+  },
+  "Observabilitycasefileserrors0D82BCE0": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "Lambda case_files error rate exceeded threshold",
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Dimensions": [
+     {
+      "Name": "FunctionName",
+      "Value": {
+       "Ref": "LambdaCaseFilesLambdaB8E85C31"
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "Errors",
+    "Namespace": "AWS/Lambda",
+    "Period": 300,
+    "Statistic": "Sum",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Threshold": 5
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Observability/case_files-errors/Resource"
+   }
+  },
+  "Observabilityuploaderrors66C60F0A": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "Lambda upload error rate exceeded threshold",
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Dimensions": [
+     {
+      "Name": "FunctionName",
+      "Value": {
+       "Ref": "LambdaIngestionUploadLambdaE2B7B52E"
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "Errors",
+    "Namespace": "AWS/Lambda",
+    "Period": 300,
+    "Statistic": "Sum",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Threshold": 5
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Observability/upload-errors/Resource"
+   }
+  },
+  "Observabilityparseerrors7B9ECA53": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "Lambda parse error rate exceeded threshold",
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Dimensions": [
+     {
+      "Name": "FunctionName",
+      "Value": {
+       "Ref": "LambdaIngestionParseLambda2EBE042A"
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "Errors",
+    "Namespace": "AWS/Lambda",
+    "Period": 300,
+    "Statistic": "Sum",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Threshold": 5
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Observability/parse-errors/Resource"
+   }
+  },
+  "ObservabilityextracterrorsDF818775": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "Lambda extract error rate exceeded threshold",
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Dimensions": [
+     {
+      "Name": "FunctionName",
+      "Value": {
+       "Ref": "LambdaIngestionExtractLambdaDE5A138C"
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "Errors",
+    "Namespace": "AWS/Lambda",
+    "Period": 300,
+    "Statistic": "Sum",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Threshold": 5
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Observability/extract-errors/Resource"
+   }
+  },
+  "Observabilityembederrors38E36070": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "Lambda embed error rate exceeded threshold",
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Dimensions": [
+     {
+      "Name": "FunctionName",
+      "Value": {
+       "Ref": "LambdaIngestionEmbedLambda3E12B453"
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "Errors",
+    "Namespace": "AWS/Lambda",
+    "Period": 300,
+    "Statistic": "Sum",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Threshold": 5
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Observability/embed-errors/Resource"
+   }
+  },
+  "ObservabilitystoreartifacterrorsAD496C84": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "Lambda store_artifact error rate exceeded threshold",
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Dimensions": [
+     {
+      "Name": "FunctionName",
+      "Value": {
+       "Ref": "LambdaIngestionStoreArtifactLambda096A088F"
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "Errors",
+    "Namespace": "AWS/Lambda",
+    "Period": 300,
+    "Statistic": "Sum",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Threshold": 5
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Observability/store_artifact-errors/Resource"
+   }
+  },
+  "Observabilitygraphloaderrors4A2B7A9E": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "Lambda graph_load error rate exceeded threshold",
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Dimensions": [
+     {
+      "Name": "FunctionName",
+      "Value": {
+       "Ref": "LambdaIngestionGraphLoadLambdaE97733AE"
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "Errors",
+    "Namespace": "AWS/Lambda",
+    "Period": 300,
+    "Statistic": "Sum",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Threshold": 5
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Observability/graph_load-errors/Resource"
+   }
+  },
+  "Observabilityupdatestatuserrors9580C61D": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "Lambda update_status error rate exceeded threshold",
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Dimensions": [
+     {
+      "Name": "FunctionName",
+      "Value": {
+       "Ref": "LambdaIngestionUpdateStatusLambda06272738"
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "Errors",
+    "Namespace": "AWS/Lambda",
+    "Period": 300,
+    "Statistic": "Sum",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Threshold": 5
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Observability/update_status-errors/Resource"
+   }
+  },
+  "Observabilityresolveconfigerrors6342C9BC": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "Lambda resolve_config error rate exceeded threshold",
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Dimensions": [
+     {
+      "Name": "FunctionName",
+      "Value": {
+       "Ref": "LambdaIngestionResolveConfigLambda8CE7AA47"
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "Errors",
+    "Namespace": "AWS/Lambda",
+    "Period": 300,
+    "Statistic": "Sum",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Threshold": 5
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Observability/resolve_config-errors/Resource"
+   }
+  },
+  "Observabilityentityresolutionerrors13443BCA": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "Lambda entity_resolution error rate exceeded threshold",
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Dimensions": [
+     {
+      "Name": "FunctionName",
+      "Value": {
+       "Ref": "LambdaEntityResolutionLambda4DF5D37A"
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "Errors",
+    "Namespace": "AWS/Lambda",
+    "Period": 300,
+    "Statistic": "Sum",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Threshold": 5
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Observability/entity_resolution-errors/Resource"
+   }
+  },
+  "ObservabilityimagedescriptionerrorsBB16FABB": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "Lambda image_description error rate exceeded threshold",
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Dimensions": [
+     {
+      "Name": "FunctionName",
+      "Value": {
+       "Ref": "LambdaIngestionImageDescriptionLambdaA9AE78EB"
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "Errors",
+    "Namespace": "AWS/Lambda",
+    "Period": 300,
+    "Statistic": "Sum",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Threshold": 5
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Observability/image_description-errors/Resource"
+   }
+  },
+  "Observabilityrekognitionerrors3BF0C5CF": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "Lambda rekognition error rate exceeded threshold",
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Dimensions": [
+     {
+      "Name": "FunctionName",
+      "Value": {
+       "Ref": "LambdaIngestionRekognitionLambdaE9E5301E"
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "Errors",
+    "Namespace": "AWS/Lambda",
+    "Period": 300,
+    "Statistic": "Sum",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Threshold": 5
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Observability/rekognition-errors/Resource"
+   }
+  },
+  "ObservabilityfacecroperrorsC4740665": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "Lambda face_crop error rate exceeded threshold",
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Dimensions": [
+     {
+      "Name": "FunctionName",
+      "Value": {
+       "Ref": "LambdaIngestionFaceCropLambda8A6D3CD3"
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "Errors",
+    "Namespace": "AWS/Lambda",
+    "Period": 300,
+    "Statistic": "Sum",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Threshold": 5
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Observability/face_crop-errors/Resource"
+   }
+  },
+  "Observabilitycasefilesdurationp95EAC20887": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "case_files Lambda p95 duration exceeded 60s",
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Dimensions": [
+     {
+      "Name": "FunctionName",
+      "Value": {
+       "Ref": "LambdaCaseFilesLambdaB8E85C31"
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "ExtendedStatistic": "p95",
+    "MetricName": "Duration",
+    "Namespace": "AWS/Lambda",
+    "Period": 300,
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Threshold": 60000
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Observability/case-files-duration-p95/Resource"
+   }
+  },
+  "ObservabilitysfnfailuresCDEF333C": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "Step Functions execution failures exceeded threshold",
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Dimensions": [
+     {
+      "Name": "StateMachineArn",
+      "Value": {
+       "Ref": "PipelineIngestionPipelineED2D3B56"
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "ExecutionsFailed",
+    "Namespace": "AWS/States",
+    "Period": 300,
+    "Statistic": "Sum",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ],
+    "Threshold": 1
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Observability/sfn-failures/Resource"
+   }
+  },
+  "ApiResearchAnalystApiF1987154": {
+   "Type": "AWS::ApiGateway::RestApi",
+   "Properties": {
+    "Description": "REST API for the Research Analyst Platform",
+    "Name": "Research Analyst API",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Api/ResearchAnalystApi/Resource"
+   }
+  },
+  "ApiResearchAnalystApiCloudWatchRoleC25F3088": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "apigateway.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Api/ResearchAnalystApi/CloudWatchRole/Resource"
+   }
+  },
+  "ApiResearchAnalystApiAccountFDBBBA46": {
+   "Type": "AWS::ApiGateway::Account",
+   "Properties": {
+    "CloudWatchRoleArn": {
+     "Fn::GetAtt": [
+      "ApiResearchAnalystApiCloudWatchRoleC25F3088",
+      "Arn"
+     ]
+    }
+   },
+   "DependsOn": [
+    "ApiResearchAnalystApiF1987154"
+   ],
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Api/ResearchAnalystApi/Account"
+   }
+  },
+  "ApiResearchAnalystApiDeploymentF35D27BE2e88e2650987b73ddb47b0b9e298f99c": {
+   "Type": "AWS::ApiGateway::Deployment",
+   "Properties": {
+    "Description": "REST API for the Research Analyst Platform",
+    "RestApiId": {
+     "Ref": "ApiResearchAnalystApiF1987154"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Api/ResearchAnalystApi/Deployment/Resource",
+    "aws:cdk:do-not-refactor": true
+   }
+  },
+  "ApiResearchAnalystApiDeploymentStagev19C499F3D": {
+   "Type": "AWS::ApiGateway::Stage",
+   "Properties": {
+    "DeploymentId": {
+     "Ref": "ApiResearchAnalystApiDeploymentF35D27BE2e88e2650987b73ddb47b0b9e298f99c"
+    },
+    "MethodSettings": [
+     {
+      "DataTraceEnabled": false,
+      "HttpMethod": "*",
+      "ResourcePath": "/*",
+      "ThrottlingBurstLimit": 100,
+      "ThrottlingRateLimit": 50
+     }
+    ],
+    "RestApiId": {
+     "Ref": "ApiResearchAnalystApiF1987154"
+    },
+    "StageName": "v1",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "DependsOn": [
+    "ApiResearchAnalystApiAccountFDBBBA46"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Api/ResearchAnalystApi/DeploymentStage.v1/Resource"
+   }
+  },
+  "ApiResearchAnalystApiOPTIONS78E689A9": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Amz-Date,X-Api-Key'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Fn::GetAtt": [
+      "ApiResearchAnalystApiF1987154",
+      "RootResourceId"
+     ]
+    },
+    "RestApiId": {
+     "Ref": "ApiResearchAnalystApiF1987154"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Api/ResearchAnalystApi/Default/OPTIONS/Resource"
+   }
+  },
+  "ApiResearchAnalystApiproxy87151EC0": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Fn::GetAtt": [
+      "ApiResearchAnalystApiF1987154",
+      "RootResourceId"
+     ]
+    },
+    "PathPart": "{proxy+}",
+    "RestApiId": {
+     "Ref": "ApiResearchAnalystApiF1987154"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Api/ResearchAnalystApi/Default/{proxy+}/Resource"
+   }
+  },
+  "ApiResearchAnalystApiproxyOPTIONSC59C1D08": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Amz-Date,X-Api-Key'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "ApiResearchAnalystApiproxy87151EC0"
+    },
+    "RestApiId": {
+     "Ref": "ApiResearchAnalystApiF1987154"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Api/ResearchAnalystApi/Default/{proxy+}/OPTIONS/Resource"
+   }
+  },
+  "ApiResearchAnalystApiproxyANYApiPermissionResearchAnalystStackApiResearchAnalystApi57C5BCB8ANYproxyDAE728C9": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "LambdaCaseFilesLambdaB8E85C31",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:974220725866:",
+       {
+        "Ref": "ApiResearchAnalystApiF1987154"
+       },
+       "/",
+       {
+        "Ref": "ApiResearchAnalystApiDeploymentStagev19C499F3D"
+       },
+       "/*/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Api/ResearchAnalystApi/Default/{proxy+}/ANY/ApiPermission.ResearchAnalystStackApiResearchAnalystApi57C5BCB8.ANY..{proxy+}"
+   }
+  },
+  "ApiResearchAnalystApiproxyANYApiPermissionTestResearchAnalystStackApiResearchAnalystApi57C5BCB8ANYproxy353BB98B": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "LambdaCaseFilesLambdaB8E85C31",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:974220725866:",
+       {
+        "Ref": "ApiResearchAnalystApiF1987154"
+       },
+       "/test-invoke-stage/*/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Api/ResearchAnalystApi/Default/{proxy+}/ANY/ApiPermission.Test.ResearchAnalystStackApiResearchAnalystApi57C5BCB8.ANY..{proxy+}"
+   }
+  },
+  "ApiResearchAnalystApiproxyANY44231EAD": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "ANY",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "LambdaCaseFilesLambdaB8E85C31",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "ResourceId": {
+     "Ref": "ApiResearchAnalystApiproxy87151EC0"
+    },
+    "RestApiId": {
+     "Ref": "ApiResearchAnalystApiF1987154"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Api/ResearchAnalystApi/Default/{proxy+}/ANY/Resource"
+   }
+  },
+  "ApiResearchAnalystApiANYApiPermissionResearchAnalystStackApiResearchAnalystApi57C5BCB8ANY5A6A5E9A": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "LambdaCaseFilesLambdaB8E85C31",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:974220725866:",
+       {
+        "Ref": "ApiResearchAnalystApiF1987154"
+       },
+       "/",
+       {
+        "Ref": "ApiResearchAnalystApiDeploymentStagev19C499F3D"
+       },
+       "/*/"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Api/ResearchAnalystApi/Default/ANY/ApiPermission.ResearchAnalystStackApiResearchAnalystApi57C5BCB8.ANY.."
+   }
+  },
+  "ApiResearchAnalystApiANYApiPermissionTestResearchAnalystStackApiResearchAnalystApi57C5BCB8ANY6CF33ACC": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "LambdaCaseFilesLambdaB8E85C31",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:974220725866:",
+       {
+        "Ref": "ApiResearchAnalystApiF1987154"
+       },
+       "/test-invoke-stage/*/"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Api/ResearchAnalystApi/Default/ANY/ApiPermission.Test.ResearchAnalystStackApiResearchAnalystApi57C5BCB8.ANY.."
+   }
+  },
+  "ApiResearchAnalystApiANYBDABE39B": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "ANY",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "LambdaCaseFilesLambdaB8E85C31",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "ResourceId": {
+     "Fn::GetAtt": [
+      "ApiResearchAnalystApiF1987154",
+      "RootResourceId"
+     ]
+    },
+    "RestApiId": {
+     "Ref": "ApiResearchAnalystApiF1987154"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/Api/ResearchAnalystApi/Default/ANY/Resource"
+   }
+  },
+  "BedrockKBRole10C55766": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "bedrock.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Description": "Role for Bedrock Knowledge Base to access Aurora pgvector and S3",
+    "Tags": [
+     {
+      "Key": "Environment",
+      "Value": "dev"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/BedrockKBRole/Resource"
+   }
+  },
+  "BedrockKBRoleDefaultPolicyFE85C08A": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SecurityDataLakeBucketC8F981C8",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SecurityDataLakeBucketC8F981C8",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "bedrock:InvokeModel",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Sub": "arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/amazon.titan-embed-text-v2:0"
+       }
+      },
+      {
+       "Action": [
+        "rds-data:ExecuteStatement",
+        "rds-data:BatchExecuteStatement"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":rds:us-east-1:974220725866:cluster:",
+          {
+           "Ref": "AuroraAuroraCluster557FDB85"
+          }
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "BedrockKBRoleDefaultPolicyFE85C08A",
+    "Roles": [
+     {
+      "Ref": "BedrockKBRole10C55766"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/BedrockKBRole/DefaultPolicy/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/5VTTW/bMAz9Lc1ZUdOkp53mJNtQYEW9ZOhlGApGZm21tuSJVNPA0H8fJOVrxVZgJz7qPfFJlDiV0+trOUwuYEtjVT2PW72Rw5pBPYvFoynBQYeMTqyQrHcKBWzpYaCZHOZePSNHVUY/hlGnX7UZfRidF4t6mslEkczSwrNdYouMd5snVEyj8FNkqrStVrtT1Zz/R+28Yc3A2KE5Lz0HwiBQTeWwRuWd5t0XZ30fzd5fuDG1QyJxYxjdIyi879UnU/VWm9SA+3JxSINwFclhCQwbIFy0nmL71n5jkI/Vl/PzhYN4jcrlji7nh40puTHEYBQelaWzr7vMvYXfwdX7wkFQqkgdGKjRySFfLJrkkMUFM6gmdkscBW+ZIDR0cljZFqMoxdNbZRSEwZ69wWT05x3/fakgbI+GEJxqCN0LuhaJDmdNj3AyKpRColO+sG2LirU1QdAvksM3jz6dMIEgWug2FcjhszdJFqlzXKLrNFEuMHsAImSSRQyCGPvHvZbSVDDegmq0SQ7neRCqtb7aAqtGDkULrkvHjSAI6HUNjFvYyeFrOtAKiYtep1aeYKGU9YbFEvvW7g4PcpatGeqDd43HoYw/W9wiN7aK5B6l73Cc2+yUcAhi4Ylt9zfyDVU6+6IrdMkitSVaa1PHPXeee89BTMbQ9g3IycXH/Xhexrj/DXvyvZkIQZQ7bqy5nMmrqbyaXDyR1mPnDesO5SrH3+11tgOtBAAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ResearchAnalystStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "ApiResearchAnalystApiEndpoint8CD7F42F": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "ApiResearchAnalystApiF1987154"
+      },
+      ".execute-api.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "ApiResearchAnalystApiDeploymentStagev19C499F3D"
+      },
+      "/"
+     ]
+    ]
+   }
+  },
+  "AuroraClusterEndpoint": {
+   "Value": {
+    "Fn::GetAtt": [
+     "AuroraAuroraCluster557FDB85",
+     "Endpoint.Address"
+    ]
+   }
+  },
+  "RdsProxyEndpoint": {
+   "Value": {
+    "Fn::GetAtt": [
+     "AuroraAuroraProxyF9A388F6",
+     "Endpoint"
+    ]
+   }
+  },
+  "DataBucketName": {
+   "Value": {
+    "Ref": "SecurityDataLakeBucketC8F981C8"
+   }
+  },
+  "NeptuneClusterEndpoint": {
+   "Value": {
+    "Fn::GetAtt": [
+     "NeptuneNeptuneCluster76655737",
+     "Endpoint"
+    ]
+   }
+  },
+  "OpenSearchEndpoint": {
+   "Value": {
+    "Fn::GetAtt": [
+     "OpenSearchOSSCollectionF2BCA4E1",
+     "CollectionEndpoint"
+    ]
+   }
+  },
+  "OpenSearchCollectionId": {
+   "Value": {
+    "Fn::GetAtt": [
+     "OpenSearchOSSCollectionF2BCA4E1",
+     "Id"
+    ]
+   }
+  },
+  "ApiGatewayUrl": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "ApiResearchAnalystApiF1987154"
+      },
+      ".execute-api.us-east-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "ApiResearchAnalystApiDeploymentStagev19C499F3D"
+      },
+      "/"
+     ]
+    ]
+   }
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}
