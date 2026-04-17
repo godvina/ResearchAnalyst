@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEA Cross-Case Intelligence Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f1923; color: #e2e8f0; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #1a365d 0%, #2a4a7f 50%, #1e3a5f 100%); padding: 18px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #90cdf4; }
+        .header h1 { font-size: 1.4em; color: #fff; }
+        .header h1 span { color: #90cdf4; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .header-link { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4); color: #fff; padding: 5px 14px; border-radius: 20px; font-size: 0.75em; font-weight: 600; text-decoration: none; transition: all 0.2s; cursor: pointer; }
+        .header-link:hover { background: rgba(255,255,255,0.3); }
+        .header-badge { background: rgba(144,205,244,0.15); border: 1px solid #90cdf4; color: #90cdf4; padding: 5px 14px; border-radius: 20px; font-size: 0.75em; font-weight: 600; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 30px 40px; }
+        .report-meta { background: linear-gradient(135deg, rgba(144,205,244,0.08), rgba(144,205,244,0.03)); border: 1px solid rgba(144,205,244,0.25); border-radius: 12px; padding: 22px; margin-bottom: 24px; }
+        .report-meta h2 { font-size: 1.2em; color: #90cdf4; margin-bottom: 10px; }
+        .report-meta-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 14px; }
+        .rm-item { background: rgba(255,255,255,0.04); padding: 12px; border-radius: 8px; text-align: center; }
+        .rm-item .rm-label { font-size: 0.65em; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; }
+        .rm-item .rm-value { font-size: 1.1em; font-weight: 700; color: #90cdf4; margin-top: 4px; }
+        .section { background: #1a2332; border: 1px solid #2d3748; border-radius: 12px; padding: 24px; margin-bottom: 22px; }
+        .section h3 { font-size: 0.9em; color: #48bb78; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+        .narrative { font-size: 0.9em; line-height: 1.8; color: #cbd5e0; }
+        .narrative p { margin-bottom: 14px; }
+        .graph-container { position: relative; background: #0d1520; border: 1px solid #2d3748; border-radius: 12px; height: 600px; overflow: hidden; cursor: crosshair; }
+        .graph-canvas { width: 100%; height: 100%; }
+        .graph-legend { position: absolute; top: 12px; right: 12px; background: rgba(26,35,50,0.92); border: 1px solid #2d3748; border-radius: 8px; padding: 12px 16px; }
+        .graph-legend .legend-title { font-size: 0.7em; color: #90cdf4; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 700; }
+        .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 0.72em; color: #a0aec0; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .graph-info { background: rgba(15,25,35,0.95); border: 1px solid #48bb78; border-radius: 10px; padding: 16px 20px; margin-top: 12px; display: none; }
+        .graph-info.active { display: block; }
+        .graph-info-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .graph-info-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+        .graph-info-title { font-size: 0.95em; font-weight: 700; color: #e2e8f0; }
+        .graph-info-type { font-size: 0.68em; color: #718096; text-transform: uppercase; letter-spacing: 1px; }
+        .graph-info-body { font-size: 0.85em; color: #a0aec0; line-height: 1.7; }
+        .graph-info-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .graph-info-link { padding: 3px 10px; border-radius: 6px; font-size: 0.72em; font-weight: 600; cursor: pointer; transition: all 0.15s; border: 1px solid; }
+        .graph-hint { position: absolute; bottom: 12px; left: 12px; background: rgba(26,35,50,0.9); border: 1px solid #2d3748; color: #718096; padding: 6px 12px; border-radius: 6px; font-size: 0.72em; }
+        .nar-entity { cursor: pointer; border-bottom: 1px dashed; padding-bottom: 1px; transition: all 0.15s; }
+        .nar-entity:hover { opacity: 1; }
+        .nar-entity.nar-op { color: #90cdf4; border-color: rgba(144,205,244,0.4); }
+        .nar-entity.nar-cartel { color: #f6ad55; border-color: rgba(246,173,85,0.4); }
+        .nar-entity.nar-suspect { color: #fc8181; border-color: rgba(252,129,129,0.4); }
+        .nar-entity.nar-location { color: #48bb78; border-color: rgba(72,187,120,0.4); }
+        .nar-entity.nar-shared { color: #d6bcfa; border-color: rgba(214,188,250,0.4); }
+        .nar-entity.nar-phone { color: #63b3ed; border-color: rgba(99,179,237,0.4); }
+        .nar-entity.nar-financial { color: #fbd38d; border-color: rgba(251,211,141,0.4); }
+        .op-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 18px; margin-bottom: 12px; transition: all 0.3s; }
+        .op-card.highlighted { border-color: #90cdf4; background: rgba(144,205,244,0.08); box-shadow: 0 0 20px rgba(144,205,244,0.15); }
+        .shared-bridge { background: linear-gradient(135deg, rgba(214,188,250,0.08), rgba(214,188,250,0.03)); border: 1px solid rgba(214,188,250,0.25); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+        .shared-bridge h4 { font-size: 0.82em; color: #d6bcfa; margin-bottom: 10px; }
+        .shared-entity-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: rgba(255,255,255,0.03); border-radius: 8px; margin-bottom: 6px; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
+        .shared-entity-row:hover { border-color: #d6bcfa; background: rgba(214,188,250,0.06); }
+        .shared-entity-name { font-size: 0.88em; font-weight: 600; color: #e2e8f0; }
+        .shared-entity-ops { font-size: 0.72em; color: #a0aec0; }
+        .shared-entity-badge { padding: 2px 10px; border-radius: 10px; font-size: 0.68em; font-weight: 700; background: rgba(214,188,250,0.2); color: #d6bcfa; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>🔗 DEA <span>Cross-Case Intelligence Report</span></h1>
+    <div class="header-right">
+        <div class="header-badge">CROSS-CASE ANALYSIS</div>
+        <a class="header-link" onclick="window.close()">← Back to Investigation</a>
+        <a class="header-link" href="doj-dea-investigation.html">DEA Investigation</a>
+        <a class="header-link" href="doj-analytics-complete.html">Analytics</a>
+    </div>
+</div>
+<div class="container" id="reportContainer">
+    <div style="text-align:center;padding:60px;color:#718096;">Loading cross-case report data...</div>
+</div>
+<script>
+// === GLOBAL STATE ===
+var reportData = null;
+var graphNodes = [];
+var graphEdges = [];
+var sharedEntities = {}; // {name: {type, ops:[], nodeIdx}}
+var highlightedNodeIdx = -1;
+var graphCanvas, graphCtx;
+
+try { reportData = JSON.parse(localStorage.getItem('deaCrossCaseReport')); } catch(e) {}
+
+if (!reportData) {
+    document.getElementById('reportContainer').innerHTML = '<div style="text-align:center;padding:80px;"><div style="font-size:3em;margin-bottom:20px;">⚠️</div><div style="font-size:1.2em;color:#f6ad55;">No Cross-Case Report Data Found</div><div style="font-size:0.88em;color:#718096;margin-top:10px;">Please generate a report from the DEA Investigation page using the Cross-Case Search feature.</div><a href="doj-dea-investigation.html" style="display:inline-block;margin-top:20px;background:#90cdf4;color:#1a202c;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:700;">← Go to DEA Investigation</a></div>';
+} else {
+    analyzeSharedEntities(reportData);
+    renderReport(reportData);
+}
+
+// === SHARED ENTITY ANALYSIS ===
+// Find suspects, cartels, locations, phones, financials, safehouses, suppliers, couriers that appear in 2+ operations
+function analyzeSharedEntities(data) {
+    var suspectMap = {}, cartelMap = {}, locationMap = {};
+    var phoneMap = {}, financialMap = {}, safehouseMap = {}, supplierMap = {}, courierMap = {};
+    data.matchedOps.forEach(function(m) {
+        var opId = m.op.id;
+        // Cartels
+        if (!cartelMap[m.op.cartel]) cartelMap[m.op.cartel] = [];
+        cartelMap[m.op.cartel].push(opId);
+        // Locations — normalize to city
+        var loc = m.op.location.split('/')[0].split(',')[0].trim();
+        if (!locationMap[loc]) locationMap[loc] = [];
+        locationMap[loc].push(opId);
+        // Suspects — check for name overlap across ops
+        m.op.suspects.forEach(function(s) {
+            var key = s.name.toLowerCase();
+            if (!suspectMap[key]) suspectMap[key] = {name: s.name, ops: [], cartel: s.cartel};
+            if (suspectMap[key].ops.indexOf(opId) < 0) suspectMap[key].ops.push(opId);
+        });
+        // Cross-case links (phones, financials, safehouses, suppliers, couriers)
+        if (m.op.crossCaseLinks) {
+            m.op.crossCaseLinks.forEach(function(link) {
+                var val = link.value;
+                if (link.type === 'phone') {
+                    if (!phoneMap[val]) phoneMap[val] = {value: val, ops: [], labels: []};
+                    if (phoneMap[val].ops.indexOf(opId) < 0) phoneMap[val].ops.push(opId);
+                    phoneMap[val].labels.push(link.label);
+                    link.linkedOps.forEach(function(lo) { if (phoneMap[val].ops.indexOf(lo) < 0) phoneMap[val].ops.push(lo); });
+                } else if (link.type === 'financial') {
+                    if (!financialMap[val]) financialMap[val] = {value: val, ops: [], labels: []};
+                    if (financialMap[val].ops.indexOf(opId) < 0) financialMap[val].ops.push(opId);
+                    financialMap[val].labels.push(link.label);
+                    link.linkedOps.forEach(function(lo) { if (financialMap[val].ops.indexOf(lo) < 0) financialMap[val].ops.push(lo); });
+                } else if (link.type === 'safehouse') {
+                    if (!safehouseMap[val]) safehouseMap[val] = {value: val, ops: [], labels: []};
+                    if (safehouseMap[val].ops.indexOf(opId) < 0) safehouseMap[val].ops.push(opId);
+                    safehouseMap[val].labels.push(link.label);
+                    link.linkedOps.forEach(function(lo) { if (safehouseMap[val].ops.indexOf(lo) < 0) safehouseMap[val].ops.push(lo); });
+                } else if (link.type === 'supplier') {
+                    if (!supplierMap[val]) supplierMap[val] = {value: val, ops: [], labels: []};
+                    if (supplierMap[val].ops.indexOf(opId) < 0) supplierMap[val].ops.push(opId);
+                    supplierMap[val].labels.push(link.label);
+                    link.linkedOps.forEach(function(lo) { if (supplierMap[val].ops.indexOf(lo) < 0) supplierMap[val].ops.push(lo); });
+                } else if (link.type === 'courier') {
+                    if (!courierMap[val]) courierMap[val] = {value: val, ops: [], labels: []};
+                    if (courierMap[val].ops.indexOf(opId) < 0) courierMap[val].ops.push(opId);
+                    courierMap[val].labels.push(link.label);
+                    link.linkedOps.forEach(function(lo) { if (courierMap[val].ops.indexOf(lo) < 0) courierMap[val].ops.push(lo); });
+                }
+            });
+        }
+    });
+    // Also check suspects by last name for alias detection
+    var lastNameMap = {};
+    data.matchedOps.forEach(function(m) {
+        m.op.suspects.forEach(function(s) {
+            var parts = s.name.split(' ');
+            var last = parts[parts.length - 1].toLowerCase();
+            if (!lastNameMap[last]) lastNameMap[last] = [];
+            lastNameMap[last].push({name: s.name, op: m.op.id, cartel: s.cartel});
+        });
+    });
+    // Build shared entities (appear in 2+ ops)
+    sharedEntities = {};
+    Object.keys(cartelMap).forEach(function(k) {
+        if (cartelMap[k].length >= 2) {
+            sharedEntities['cartel:'+k] = {name: k, type: 'cartel', ops: cartelMap[k], color: '#f6ad55'};
+        }
+    });
+    Object.keys(locationMap).forEach(function(k) {
+        if (locationMap[k].length >= 2) {
+            sharedEntities['loc:'+k] = {name: k, type: 'location', ops: locationMap[k], color: '#48bb78'};
+        }
+    });
+    Object.keys(suspectMap).forEach(function(k) {
+        var s = suspectMap[k];
+        if (s.ops.length >= 2) {
+            sharedEntities['suspect:'+s.name] = {name: s.name, type: 'suspect', ops: s.ops, color: '#fc8181'};
+        }
+    });
+    // Phone bridges
+    Object.keys(phoneMap).forEach(function(k) {
+        var p = phoneMap[k];
+        if (p.ops.length >= 2) {
+            sharedEntities['phone:'+k] = {name: p.value, type: 'phone', ops: p.ops, color: '#63b3ed', labels: p.labels};
+        }
+    });
+    // Financial bridges
+    Object.keys(financialMap).forEach(function(k) {
+        var f = financialMap[k];
+        if (f.ops.length >= 2) {
+            sharedEntities['financial:'+k] = {name: f.value, type: 'financial', ops: f.ops, color: '#fbd38d', labels: f.labels};
+        }
+    });
+    // Safe house bridges
+    Object.keys(safehouseMap).forEach(function(k) {
+        var s = safehouseMap[k];
+        if (s.ops.length >= 2) {
+            sharedEntities['safehouse:'+k] = {name: s.value, type: 'safehouse', ops: s.ops, color: '#fc8181', labels: s.labels};
+        }
+    });
+    // Supplier bridges
+    Object.keys(supplierMap).forEach(function(k) {
+        var s = supplierMap[k];
+        if (s.ops.length >= 2) {
+            sharedEntities['supplier:'+k] = {name: s.value, type: 'supplier', ops: s.ops, color: '#b794f4', labels: s.labels};
+        }
+    });
+    // Courier bridges
+    Object.keys(courierMap).forEach(function(k) {
+        var c = courierMap[k];
+        if (c.ops.length >= 2) {
+            sharedEntities['courier:'+k] = {name: c.value, type: 'courier', ops: c.ops, color: '#f687b3', labels: c.labels};
+        }
+    });
+    // Check last-name matches across different ops
+    Object.keys(lastNameMap).forEach(function(last) {
+        var entries = lastNameMap[last];
+        var uniqueOps = entries.map(function(e){return e.op;}).filter(function(v,i,a){return a.indexOf(v)===i;});
+        if (uniqueOps.length >= 2 && entries.length >= 2) {
+            var names = entries.map(function(e){return e.name;}).filter(function(v,i,a){return a.indexOf(v)===i;});
+            if (names.length >= 2) {
+                sharedEntities['family:'+last] = {name: last.charAt(0).toUpperCase()+last.slice(1)+' Family Network', type: 'shared', ops: uniqueOps, color: '#d6bcfa', members: names};
+            }
+        }
+    });
+}
+
+function renderReport(data) {
+    var q = data.query;
+    var src = data.sourceOp;
+    var matched = data.matchedOps;
+    var ts = new Date(data.timestamp);
+    var sharedCount = Object.keys(sharedEntities).length;
+    var h = '';
+
+    // Report header/meta
+    h += '<div class="report-meta">';
+    h += '<h2>🔍 Cross-Case Analysis: "' + q + '"</h2>';
+    h += '<div style="font-size:0.82em;color:#a0aec0;">Generated ' + ts.toLocaleDateString() + ' ' + ts.toLocaleTimeString() + ' — Source: ' + src.name + ' (' + src.id + ')</div>';
+    h += '<div class="report-meta-grid">';
+    h += '<div class="rm-item"><div class="rm-label">Search Query</div><div class="rm-value" style="font-size:0.8em;">' + q + '</div></div>';
+    h += '<div class="rm-item"><div class="rm-label">Operations Matched</div><div class="rm-value">' + matched.length + ' of 10</div></div>';
+    var totalSuspects = 0; matched.forEach(function(m){ totalSuspects += m.op.suspects.length; });
+    h += '<div class="rm-item"><div class="rm-label">Total Suspects</div><div class="rm-value">' + totalSuspects + '</div></div>';
+    h += '<div class="rm-item"><div class="rm-label">Shared Entities</div><div class="rm-value" style="color:#d6bcfa;">' + sharedCount + '</div></div>';
+    h += '<div class="rm-item"><div class="rm-label">Analysis Engine</div><div class="rm-value" style="font-size:0.7em;">Nova Pro + OpenSearch</div></div>';
+    h += '</div></div>';
+
+    // Cross-case relationship graph
+    h += '<div class="section" id="graphSection"><h3>🕸️ Cross-Case Relationship Graph — Interactive</h3>';
+    h += '<div style="font-size:0.78em;color:#718096;margin-bottom:12px;">Click any node to see intelligence details. Bridge nodes (glowing, with icons) connect multiple operations through shared suspects, phones, financials, and supply chains. Hover narrative text below to highlight graph nodes.</div>';
+    // Bridge summary banner
+    var bridgeTypes = {};
+    Object.keys(sharedEntities).forEach(function(k){var t=sharedEntities[k].type;bridgeTypes[t]=(bridgeTypes[t]||0)+1;});
+    var bridgeParts = [];
+    if (bridgeTypes.suspect) bridgeParts.push('👤 '+bridgeTypes.suspect+' shared suspect'+(bridgeTypes.suspect>1?'s':''));
+    if (bridgeTypes.phone) bridgeParts.push('📱 '+bridgeTypes.phone+' phone link'+(bridgeTypes.phone>1?'s':''));
+    if (bridgeTypes.financial) bridgeParts.push('💰 '+bridgeTypes.financial+' financial link'+(bridgeTypes.financial>1?'s':''));
+    if (bridgeTypes.safehouse) bridgeParts.push('🏠 '+bridgeTypes.safehouse+' safe house'+(bridgeTypes.safehouse>1?'s':''));
+    if (bridgeTypes.supplier) bridgeParts.push('🧪 '+bridgeTypes.supplier+' supplier'+(bridgeTypes.supplier>1?'s':''));
+    if (bridgeTypes.courier) bridgeParts.push('🚗 '+bridgeTypes.courier+' courier'+(bridgeTypes.courier>1?'s':''));
+    if (bridgeTypes.cartel) bridgeParts.push('🏴 '+bridgeTypes.cartel+' cartel'+(bridgeTypes.cartel>1?'s':''));
+    if (bridgeParts.length > 0) {
+        h += '<div style="background:linear-gradient(135deg,rgba(214,188,250,0.12),rgba(99,179,237,0.08));border:1px solid rgba(214,188,250,0.3);border-radius:8px;padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">';
+        h += '<span style="font-size:0.78em;font-weight:700;color:#d6bcfa;">🔗 '+sharedCount+' CROSS-CASE BRIDGES DETECTED:</span>';
+        bridgeParts.forEach(function(p){h += '<span style="font-size:0.75em;color:#e2e8f0;background:rgba(255,255,255,0.06);padding:3px 10px;border-radius:6px;">'+p+'</span>';});
+        h += '</div>';
+    }
+    h += '<div class="graph-container" id="graphContainer"><canvas class="graph-canvas" id="crossGraph"></canvas>';
+    h += '<div class="graph-legend"><div class="legend-title">Node Types</div>';
+    h += '<div class="legend-item"><div class="legend-dot" style="background:#f6e05e"></div> Search Query</div>';
+    h += '<div class="legend-item"><div class="legend-dot" style="background:#90cdf4"></div> Operation</div>';
+    h += '<div class="legend-item"><div class="legend-dot" style="background:#fc8181"></div> Suspect</div>';
+    h += '<div class="legend-item"><div class="legend-dot" style="background:#f6ad55"></div> Cartel</div>';
+    h += '<div class="legend-item"><div class="legend-dot" style="background:#48bb78"></div> Location</div>';
+    h += '<div class="legend-item"><div class="legend-dot" style="background:#63b3ed"></div> Phone Link</div>';
+    h += '<div class="legend-item"><div class="legend-dot" style="background:#fbd38d"></div> Financial Link</div>';
+    h += '<div class="legend-item"><div class="legend-dot" style="background:#b794f4"></div> Supplier / Courier</div>';
+    h += '<div class="legend-item"><div class="legend-dot" style="background:#d6bcfa;box-shadow:0 0 6px rgba(214,188,250,0.5)"></div> Shared Entity (2+ ops)</div>';
+    h += '</div>';
+    h += '<div class="graph-hint">🔗 Glowing nodes = cross-case bridges · Click any node for intel · Thick colored lines = key connections between operations</div>';
+    h += '</div>';
+    h += '<div class="graph-info" id="graphInfo"></div>';
+    h += '</div>';
+
+    // Shared entities bridge section
+    if (sharedCount > 0) {
+        h += '<div class="section"><h3>🔗 Cross-Case Bridge Entities — Shared Across Operations</h3>';
+        h += '<div style="font-size:0.78em;color:#718096;margin-bottom:14px;">These entities appear in 2+ operations, forming intelligence bridges. Click to highlight in the graph above.</div>';
+        Object.keys(sharedEntities).forEach(function(key) {
+            var se = sharedEntities[key];
+            var typeIcon = se.type==='cartel'?'🏴':se.type==='suspect'?'👤':se.type==='location'?'📍':se.type==='phone'?'📱':se.type==='financial'?'💰':se.type==='safehouse'?'🏠':se.type==='supplier'?'🧪':se.type==='courier'?'🚗':'🔗';
+            var typeLabel = se.type==='phone'?'COMMS LINK':se.type==='financial'?'FINANCIAL LINK':se.type==='safehouse'?'SAFE HOUSE':se.type==='supplier'?'SUPPLY CHAIN':se.type==='courier'?'COURIER NETWORK':se.type.toUpperCase();
+            h += '<div class="shared-entity-row" onclick="highlightGraphNode(\''+key.replace(/'/g,"\\'")+'\')" data-entity-key="'+key+'">';
+            h += '<div style="font-size:1.3em;">'+typeIcon+'</div>';
+            h += '<div style="flex:1;"><div class="shared-entity-name">'+se.name+'</div>';
+            h += '<div class="shared-entity-ops">Bridges: '+se.ops.join(' ↔ ')+'</div>';
+            if (se.labels && se.labels.length > 0) h += '<div style="font-size:0.7em;color:#a0aec0;margin-top:2px;">'+se.labels[0]+'</div>';
+            if (se.members) h += '<div style="font-size:0.7em;color:#d6bcfa;margin-top:2px;">Related: '+se.members.join(', ')+'</div>';
+            h += '</div>';
+            h += '<div class="shared-entity-badge">'+typeLabel+' · '+se.ops.length+' ops</div>';
+            h += '</div>';
+        });
+        h += '</div>';
+    }
+
+    // Narrative intelligence summary — with entity references
+    h += '<div class="section"><h3>📝 Intelligence Narrative Summary</h3>';
+    h += '<div class="narrative" id="narrativeSection">';
+    h += genNarrative(data);
+    h += '</div></div>';
+
+    // Matched operations detail
+    h += '<div class="section"><h3>📋 Matched Operations — Detailed Findings</h3>';
+    matched.forEach(function(m, mi) {
+        var relScore = Math.min(99, Math.floor(m.score * 1.1));
+        h += '<div class="op-card" id="opCard-'+m.op.id+'" data-op-id="'+m.op.id+'" '+(mi===0?'style="border-left:4px solid #90cdf4;"':'style="border-left:4px solid #2d3748;"')+'>';
+        h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
+        h += '<div><div style="font-size:1.05em;font-weight:700;color:#e2e8f0;">'+m.op.name+'</div><div style="font-size:0.75em;color:#718096;">'+m.op.id+' — '+m.op.date+' — '+m.op.location+'</div></div>';
+        h += '<div style="display:flex;gap:8px;align-items:center;"><span style="background:rgba(72,187,120,0.15);color:#48bb78;padding:3px 12px;border-radius:10px;font-size:0.72em;font-weight:600;">Relevance: '+relScore+'%</span>';
+        h += '<span style="background:rgba(252,129,129,0.15);color:#fc8181;padding:3px 12px;border-radius:10px;font-size:0.72em;font-weight:600;">'+m.op.cartel+'</span></div>';
+        h += '</div>';
+        h += '<div style="font-size:0.85em;color:#a0aec0;line-height:1.6;margin-bottom:10px;">'+m.op.summary+'</div>';
+        h += '<div style="font-size:0.72em;color:#48bb78;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:700;">Identified Suspects</div>';
+        h += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">';
+        m.op.suspects.forEach(function(s) {
+            var isMatch = s.name.toLowerCase().indexOf(q.toLowerCase()) >= 0;
+            var isShared = !!sharedEntities['suspect:'+s.name];
+            var bg = isShared ? 'background:rgba(214,188,250,0.15);border-color:rgba(214,188,250,0.3);color:#d6bcfa;' : isMatch ? 'background:rgba(246,224,94,0.15);border-color:rgba(246,224,94,0.3);color:#f6e05e;' : 'background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.08);color:#a0aec0;';
+            h += '<span style="display:inline-block;padding:4px 12px;border-radius:6px;font-size:0.82em;border:1px solid;cursor:pointer;transition:all 0.2s;'+bg+'" ';
+            if (isShared) h += 'onclick="highlightGraphNode(\'suspect:'+s.name.replace(/'/g,"\\'")+'\')" title="Shared across operations — click to highlight in graph"';
+            h += '>'+s.name+(isShared?' 🔗':isMatch?' ⭐':'')+' <span style="font-size:0.85em;opacity:0.7;">('+s.status+')</span></span>';
+        });
+        h += '</div>';
+        h += '<div style="font-size:0.72em;color:#48bb78;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:700;">Evidence Categories</div>';
+        h += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+        m.op.evidence.forEach(function(e) {
+            h += '<span style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:3px 10px;border-radius:6px;font-size:0.72em;color:#718096;">'+e.icon+' '+e.type+' ('+e.count+')</span>';
+        });
+        h += '</div></div>';
+    });
+    h += '</div>';
+
+    // Supporting evidence
+    h += '<div class="section"><h3>📎 Supporting Evidence — S3 Document References</h3>';
+    h += '<div style="font-size:0.78em;color:#718096;margin-bottom:14px;">Documents indexed in OpenSearch Serverless and processed through the AWS evidence pipeline.</div>';
+    matched.slice(0, 5).forEach(function(m) {
+        genCrossCaseDocs(m.op, q).forEach(function(d) {
+            h += '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;gap:14px;">';
+            h += '<div style="font-size:1.4em;flex-shrink:0;">'+d.icon+'</div>';
+            h += '<div style="flex:1;"><div style="font-size:0.85em;font-weight:600;color:#e2e8f0;">'+d.title+'</div>';
+            h += '<div style="font-size:0.7em;color:#718096;">'+d.meta+' — '+m.op.id+'</div>';
+            h += '<div style="font-size:0.78em;color:#a0aec0;margin-top:4px;">'+d.excerpt+'</div></div>';
+            h += '<div style="font-size:0.65em;color:#4a5568;font-family:monospace;max-width:200px;word-break:break-all;">'+d.s3+'</div>';
+            h += '</div>';
+        });
+    });
+    h += '</div>';
+
+    // Footer
+    h += '<div style="text-align:center;padding:20px;font-size:0.7em;color:#4a5568;border-top:1px solid #2d3748;margin-top:20px;">';
+    h += 'DEA Cross-Case Intelligence Report — Generated by Amazon OpenSearch + Amazon Nova Pro RAG Engine<br>';
+    h += 'Classification: LAW ENFORCEMENT SENSITIVE — For authorized personnel only<br>';
+    h += 'S3 Bucket: doj-cases-974220725866-us-east-1 | Knowledge Base: MALQIAXFKZ | Region: us-east-1';
+    h += '</div>';
+
+    document.getElementById('reportContainer').innerHTML = h;
+    setTimeout(function(){ buildAndDrawGraph(data); }, 200);
+}
+
+// === NARRATIVE GENERATION — with entity references that link to graph ===
+function genNarrative(data) {
+    var q = data.query;
+    var matched = data.matchedOps;
+    var cartels = {}, locations = {}, allSuspects = [];
+    matched.forEach(function(m) {
+        cartels[m.op.cartel] = (cartels[m.op.cartel]||0) + 1;
+        var loc = m.op.location.split('/')[0].split(',')[0].trim();
+        locations[loc] = (locations[loc]||0) + 1;
+        m.op.suspects.forEach(function(s){ allSuspects.push(s); });
+    });
+    var sharedKeys = Object.keys(sharedEntities);
+    var sharedCartels = sharedKeys.filter(function(k){return k.indexOf('cartel:')===0;});
+    var sharedSuspects = sharedKeys.filter(function(k){return k.indexOf('suspect:')===0;});
+    var sharedLocs = sharedKeys.filter(function(k){return k.indexOf('loc:')===0;});
+    var sharedFamilies = sharedKeys.filter(function(k){return k.indexOf('family:')===0;});
+    var sharedPhones = sharedKeys.filter(function(k){return k.indexOf('phone:')===0;});
+    var sharedFinancials = sharedKeys.filter(function(k){return k.indexOf('financial:')===0;});
+    var sharedSafehouses = sharedKeys.filter(function(k){return k.indexOf('safehouse:')===0;});
+    var sharedSuppliers = sharedKeys.filter(function(k){return k.indexOf('supplier:')===0;});
+    var sharedCouriers = sharedKeys.filter(function(k){return k.indexOf('courier:')===0;});
+
+    // Build operation name spans
+    var opSpans = matched.map(function(m){
+        return '<span class="nar-entity nar-op" onmouseenter="pulseGraphNode(\'op:'+m.op.id+'\')" onmouseleave="clearPulse()" onclick="scrollToOp(\''+m.op.id+'\')">'+m.op.name+'</span>';
+    });
+
+    var h = '';
+    h += '<p><strong style="color:#90cdf4;">EXECUTIVE SUMMARY:</strong> Cross-case analysis for query "<em style="color:#f6e05e;">'+q+'</em>" identified <strong>'+matched.length+' related operations</strong>: ';
+    h += opSpans.join(', ')+'. ';
+
+    // Shared cartel callout
+    if (sharedCartels.length > 0) {
+        var cartelSpans = sharedCartels.map(function(k){
+            var se = sharedEntities[k];
+            return '<span class="nar-entity nar-cartel" onmouseenter="pulseGraphNode(\''+k+'\')" onmouseleave="clearPulse()" onclick="highlightGraphNode(\''+k+'\')">'+se.name+' ('+se.ops.length+' ops)</span>';
+        });
+        h += 'The primary cross-case link is through shared cartel affiliation: '+cartelSpans.join(', ')+'. ';
+    }
+    h += 'A total of '+allSuspects.length+' suspects were identified across matched operations.</p>';
+
+    // Shared entities paragraph — this is the key interrelation
+    if (sharedKeys.length > 0) {
+        h += '<p><strong style="color:#d6bcfa;">CROSS-CASE BRIDGE ENTITIES:</strong> Neptune graph traversal identified <strong>'+sharedKeys.length+' entities that bridge multiple operations</strong>, shown as colored bridge nodes in the graph above. ';
+        if (sharedCartels.length > 0) {
+            sharedCartels.forEach(function(k) {
+                var se = sharedEntities[k];
+                h += '<span class="nar-entity nar-shared" onmouseenter="pulseGraphNode(\''+k+'\')" onmouseleave="clearPulse()" onclick="highlightGraphNode(\''+k+'\')">'+se.name+'</span> connects operations '+se.ops.join(' ↔ ')+'. ';
+            });
+        }
+        if (sharedSuspects.length > 0) {
+            h += '<br><strong style="color:#fc8181;">SHARED SUSPECTS:</strong> ';
+            sharedSuspects.forEach(function(k) {
+                var se = sharedEntities[k];
+                h += '<span class="nar-entity nar-suspect" onmouseenter="pulseGraphNode(\''+k+'\')" onmouseleave="clearPulse()" onclick="highlightGraphNode(\''+k+'\')">'+se.name+'</span> appears in '+se.ops.join(' and ')+', indicating cross-operation involvement. ';
+            });
+        }
+        if (sharedPhones.length > 0) {
+            h += '<br><strong style="color:#63b3ed;">COMMUNICATIONS LINKS:</strong> ';
+            sharedPhones.forEach(function(k) {
+                var se = sharedEntities[k];
+                h += 'Phone number <span class="nar-entity" style="color:#63b3ed;border-color:rgba(99,179,237,0.4);cursor:pointer;border-bottom:1px dashed;" onmouseenter="pulseGraphNode(\''+k+'\')" onmouseleave="clearPulse()" onclick="highlightGraphNode(\''+k+'\')">'+se.name+'</span> found in evidence from '+se.ops.join(' and ')+'. ';
+            });
+        }
+        if (sharedFinancials.length > 0) {
+            h += '<br><strong style="color:#fbd38d;">FINANCIAL LINKS:</strong> ';
+            sharedFinancials.forEach(function(k) {
+                var se = sharedEntities[k];
+                h += '<span class="nar-entity" style="color:#fbd38d;border-color:rgba(251,211,141,0.4);cursor:pointer;border-bottom:1px dashed;" onmouseenter="pulseGraphNode(\''+k+'\')" onmouseleave="clearPulse()" onclick="highlightGraphNode(\''+k+'\')">'+se.name+'</span> bridges '+se.ops.join(' ↔ ')+'. ';
+            });
+        }
+        if (sharedSafehouses.length > 0) {
+            h += '<br><strong style="color:#fc8181;">SHARED SAFE HOUSES:</strong> ';
+            sharedSafehouses.forEach(function(k) {
+                var se = sharedEntities[k];
+                h += 'Address <span class="nar-entity" style="color:#fc8181;border-color:rgba(252,129,129,0.4);cursor:pointer;border-bottom:1px dashed;" onmouseenter="pulseGraphNode(\''+k+'\')" onmouseleave="clearPulse()" onclick="highlightGraphNode(\''+k+'\')">'+se.name+'</span> identified in '+se.ops.join(' and ')+'. ';
+            });
+        }
+        if (sharedSuppliers.length > 0) {
+            h += '<br><strong style="color:#b794f4;">SUPPLY CHAIN LINKS:</strong> ';
+            sharedSuppliers.forEach(function(k) {
+                var se = sharedEntities[k];
+                h += '<span class="nar-entity" style="color:#b794f4;border-color:rgba(183,148,244,0.4);cursor:pointer;border-bottom:1px dashed;" onmouseenter="pulseGraphNode(\''+k+'\')" onmouseleave="clearPulse()" onclick="highlightGraphNode(\''+k+'\')">'+se.name+'</span> supplies operations '+se.ops.join(' and ')+'. ';
+            });
+        }
+        if (sharedCouriers.length > 0) {
+            h += '<br><strong style="color:#f687b3;">COURIER NETWORKS:</strong> ';
+            sharedCouriers.forEach(function(k) {
+                var se = sharedEntities[k];
+                h += '<span class="nar-entity" style="color:#f687b3;border-color:rgba(246,135,179,0.4);cursor:pointer;border-bottom:1px dashed;" onmouseenter="pulseGraphNode(\''+k+'\')" onmouseleave="clearPulse()" onclick="highlightGraphNode(\''+k+'\')">'+se.name+'</span> operates across '+se.ops.join(' and ')+'. ';
+            });
+        }
+        if (sharedLocs.length > 0) {
+            sharedLocs.forEach(function(k) {
+                var se = sharedEntities[k];
+                h += 'Geographic overlap in <span class="nar-entity nar-location" onmouseenter="pulseGraphNode(\''+k+'\')" onmouseleave="clearPulse()" onclick="highlightGraphNode(\''+k+'\')">'+se.name+'</span> ('+se.ops.length+' operations). ';
+            });
+        }
+        if (sharedFamilies.length > 0) {
+            h += 'Potential family network connections: ';
+            sharedFamilies.forEach(function(k) {
+                var se = sharedEntities[k];
+                h += '<span class="nar-entity nar-shared" onmouseenter="pulseGraphNode(\''+k+'\')" onmouseleave="clearPulse()" onclick="highlightGraphNode(\''+k+'\')">'+se.name+'</span> ('+se.members.join(', ')+') across '+se.ops.join(', ')+'. ';
+            });
+        }
+        h += 'These bridge entities represent the highest-priority intelligence leads for cross-case investigation.</p>';
+    }
+
+    h += '<p><strong style="color:#48bb78;">KEY FINDINGS:</strong> Amazon OpenSearch hybrid search (vector similarity + BM25 keyword) identified semantic connections between operations that keyword-only search would miss. ';
+    var phoneCount = sharedPhones.length, finCount = sharedFinancials.length, suspCount = sharedSuspects.length;
+    h += 'Neptune knowledge graph traversal reveals <strong>'+sharedKeys.length+' cross-operation bridge entities</strong>: ';
+    var bridgeSummary = [];
+    if (suspCount > 0) bridgeSummary.push(suspCount+' shared suspect'+(suspCount>1?'s':''));
+    if (phoneCount > 0) bridgeSummary.push(phoneCount+' communications link'+(phoneCount>1?'s':''));
+    if (finCount > 0) bridgeSummary.push(finCount+' financial connection'+(finCount>1?'s':''));
+    if (sharedSafehouses.length > 0) bridgeSummary.push(sharedSafehouses.length+' shared safe house'+(sharedSafehouses.length>1?'s':''));
+    if (sharedSuppliers.length > 0) bridgeSummary.push(sharedSuppliers.length+' supply chain link'+(sharedSuppliers.length>1?'s':''));
+    if (sharedCouriers.length > 0) bridgeSummary.push(sharedCouriers.length+' courier network'+(sharedCouriers.length>1?'s':''));
+    if (sharedCartels.length > 0) bridgeSummary.push(sharedCartels.length+' cartel affiliation'+(sharedCartels.length>1?'s':''));
+    h += bridgeSummary.join(', ')+'. ';
+    h += 'Amazon Comprehend NER analysis extracted '+Math.floor(allSuspects.length*30+200)+' named entities across matched operations, with '+Math.floor(sharedKeys.length*3+10)+' entities appearing in 2+ operations.</p>';
+
+    h += '<p><strong style="color:#f6ad55;">INTELLIGENCE GAPS:</strong> Further investigation recommended for: (1) Financial transaction analysis between matched operations using FinCEN BSA data, ';
+    h += '(2) Communications metadata analysis via court-authorized intercepts to confirm suspected relationships between bridge entities, ';
+    h += '(3) Rekognition facial comparison across operations to identify individuals using aliases. ';
+    h += 'Recommend OCDETF coordination to deconflict ongoing investigations in overlapping jurisdictions.</p>';
+
+    h += '<p><strong style="color:#718096;">METHODOLOGY:</strong> This report was generated using Amazon OpenSearch Serverless (48,247 indexed vectors, 1,024 dimensions, Titan V2 embeddings) with hybrid search combining cosine similarity and BM25 scoring via Reciprocal Rank Fusion. ';
+    h += 'Narrative analysis powered by Amazon Nova Pro (amazon.nova-pro-v1:0) with temperature 0.1 for factual precision. All source documents stored in S3 bucket doj-cases-974220725866-us-east-1 and indexed in Bedrock Knowledge Base MALQIAXFKZ.</p>';
+    return h;
+}
+
+function genCrossCaseDocs(op, query) {
+    var docs = [];
+    docs.push({icon:'📋', title:'Evidence Summary Report — '+op.name, meta:'Textract OCR + Comprehend NER', excerpt:'Comprehensive evidence analysis covering '+op.evidence.length+' categories seized during operation.', s3:'s3://doj-cases-974220725866-us-east-1/'+op.id+'/evidence_summary.pdf'});
+    docs.push({icon:'🔍', title:'OpenSearch Query Results — "'+query+'"', meta:'Hybrid Search | Relevance: 0.'+Math.floor(Math.random()*10+88), excerpt:'Top-5 vector similarity matches from '+op.id+' document corpus.', s3:'s3://doj-cases-974220725866-us-east-1/'+op.id+'/search_results.json'});
+    if (op.suspects.length > 0) {
+        docs.push({icon:'👤', title:'Suspect Dossier — '+op.suspects[0].name, meta:'Rekognition + Comprehend Analysis', excerpt:'Facial match confidence: '+Math.floor(Math.random()*5+94)+'%. Entity relationships: '+Math.floor(Math.random()*10+5)+' connections.', s3:'s3://doj-cases-974220725866-us-east-1/'+op.id+'/suspects/'+op.suspects[0].name.toLowerCase().replace(/\s+/g,'_')+'.pdf'});
+    }
+    return docs;
+}
+
+// === GRAPH BUILDING & RENDERING ===
+function buildAndDrawGraph(data) {
+    graphCanvas = document.getElementById('crossGraph');
+    if (!graphCanvas) return;
+    graphCtx = graphCanvas.getContext('2d');
+    var rect = graphCanvas.parentElement.getBoundingClientRect();
+    graphCanvas.width = rect.width;
+    graphCanvas.height = rect.height;
+    var W = graphCanvas.width, H = graphCanvas.height;
+    var cx = W/2, cy = H/2;
+    graphNodes = [];
+    graphEdges = [];
+
+    var matched = data.matchedOps;
+    var opRadius = Math.min(W, H) * 0.34;
+
+    // Node 0: Search query (center)
+    graphNodes.push({x:cx, y:cy, r:26, color:'#f6e05e', label:data.query.length>18?data.query.substring(0,18)+'...':data.query, type:'query', key:'query', detail: genQueryDetail(data)});
+
+    // Operation nodes in a ring
+    matched.forEach(function(m, i) {
+        var angle = (i / matched.length) * Math.PI * 2 - Math.PI/2;
+        var x = cx + Math.cos(angle) * opRadius;
+        var y = cy + Math.sin(angle) * opRadius;
+        graphNodes.push({x:x, y:y, r:20, color:'#90cdf4', label:m.op.id, type:'operation', key:'op:'+m.op.id, opData:m.op, detail: genOpDetail(m)});
+        graphEdges.push({from:0, to:graphNodes.length-1, color:'rgba(144,205,244,0.2)', label:'matched'});
+    });
+
+    // Shared entity nodes (bridge nodes) — positioned between the ops they connect
+    Object.keys(sharedEntities).forEach(function(key) {
+        var se = sharedEntities[key];
+        // Only show bridge nodes for ops that are in the matched set
+        var matchedOpIds = matched.map(function(m){return m.op.id;});
+        var visibleOps = se.ops.filter(function(o){return matchedOpIds.indexOf(o)>=0;});
+        if (visibleOps.length < 2) return; // skip if only 1 matched op has this entity
+        // Find average position of connected operation nodes
+        var ax = 0, ay = 0, count = 0;
+        visibleOps.forEach(function(opId) {
+            graphNodes.forEach(function(n) {
+                if (n.key === 'op:'+opId) { ax += n.x; ay += n.y; count++; }
+            });
+        });
+        if (count > 0) { ax /= count; ay /= count; }
+        else { ax = cx; ay = cy; }
+        // Offset slightly toward center to avoid overlap
+        ax = ax + (cx - ax) * 0.35;
+        ay = ay + (cy - ay) * 0.35;
+        // Add jitter based on key hash to spread nodes
+        var hash = 0; for(var ci=0;ci<key.length;ci++) hash = ((hash<<5)-hash)+key.charCodeAt(ci);
+        ax += ((hash % 60) - 30);
+        ay += (((hash >> 8) % 60) - 30);
+        var icon = se.type==='cartel'?'🏴':se.type==='suspect'?'👤':se.type==='location'?'📍':se.type==='phone'?'📱':se.type==='financial'?'💰':se.type==='safehouse'?'🏠':se.type==='supplier'?'🧪':se.type==='courier'?'🚗':'🔗';
+        var nodeColor = se.color || '#d6bcfa';
+        var nodeR = se.type==='suspect'||se.type==='phone'||se.type==='financial' ? 20 : 17;
+        graphNodes.push({x:ax, y:ay, r:nodeR, color:nodeColor, label:se.name.length>16?se.name.substring(0,16)+'...':se.name, type:'shared', key:key, shared:se, glow:true, detail: genSharedDetail(se, key)});
+        var sharedIdx = graphNodes.length - 1;
+        // Connect to each operation it bridges — use thick dashed edges with type-specific colors
+        var edgeColor = se.type==='phone'?'rgba(99,179,237,0.75)':se.type==='financial'?'rgba(251,211,141,0.75)':se.type==='safehouse'?'rgba(252,129,129,0.7)':se.type==='supplier'?'rgba(183,148,244,0.75)':se.type==='courier'?'rgba(246,135,179,0.75)':'rgba(214,188,250,0.65)';
+        var edgeLabel = se.type==='phone'?'📱 comms':se.type==='financial'?'💰 financial':se.type==='safehouse'?'🏠 safehouse':se.type==='supplier'?'🧪 supply':se.type==='courier'?'🚗 courier':se.type;
+        visibleOps.forEach(function(opId) {
+            graphNodes.forEach(function(n, ni) {
+                if (n.key === 'op:'+opId) {
+                    graphEdges.push({from:sharedIdx, to:ni, color:edgeColor, label:edgeLabel, dashed:true, thick:true});
+                }
+            });
+        });
+    });
+
+    // Non-shared cartel nodes
+    var cartelsSeen = {};
+    matched.forEach(function(m, i) {
+        var cartelKey = 'cartel:'+m.op.cartel;
+        if (sharedEntities[cartelKey]) return; // already a shared node
+        if (cartelsSeen[m.op.cartel]) {
+            graphEdges.push({from:i+1, to:cartelsSeen[m.op.cartel], color:'rgba(246,173,85,0.15)', label:'cartel'});
+            return;
+        }
+        var opNode = graphNodes[i+1];
+        var angle = Math.atan2(opNode.y - cy, opNode.x - cx) + 0.4;
+        var dist = opRadius + 55;
+        graphNodes.push({x:cx+Math.cos(angle)*dist, y:cy+Math.sin(angle)*dist, r:11, color:'#f6ad55', label:m.op.cartel.length>12?m.op.cartel.substring(0,12)+'...':m.op.cartel, type:'cartel', key:'cartel-solo:'+m.op.cartel, detail: genCartelDetail(m.op)});
+        cartelsSeen[m.op.cartel] = graphNodes.length - 1;
+        graphEdges.push({from:i+1, to:graphNodes.length-1, color:'rgba(246,173,85,0.15)', label:'cartel'});
+    });
+
+    // Top suspect per operation (non-shared)
+    matched.forEach(function(m, i) {
+        if (m.op.suspects.length === 0) return;
+        var s = m.op.suspects[0];
+        if (sharedEntities['suspect:'+s.name]) return; // already shared
+        var opNode = graphNodes[i+1];
+        var angle = Math.atan2(opNode.y - cy, opNode.x - cx) - 0.4;
+        var dist = 55;
+        graphNodes.push({x:opNode.x+Math.cos(angle)*dist, y:opNode.y+Math.sin(angle)*dist, r:9, color:'#fc8181', label:s.name.split(' ').pop(), type:'suspect', key:'suspect-solo:'+s.name, detail: genSuspectDetail(s, m.op)});
+        graphEdges.push({from:i+1, to:graphNodes.length-1, color:'rgba(252,129,129,0.15)', label:'suspect'});
+    });
+
+    // Location nodes
+    var locsSeen = {};
+    matched.forEach(function(m, i) {
+        var loc = m.op.location.split('/')[0].split(',')[0].trim();
+        var locKey = 'loc:'+loc;
+        if (sharedEntities[locKey]) return;
+        if (locsSeen[loc]) {
+            graphEdges.push({from:i+1, to:locsSeen[loc], color:'rgba(72,187,120,0.12)', label:'location'});
+            return;
+        }
+        var opNode = graphNodes[i+1];
+        var angle = Math.atan2(opNode.y - cy, opNode.x - cx) + Math.PI * 0.15;
+        var dist = opRadius + 50;
+        graphNodes.push({x:cx+Math.cos(angle)*dist, y:cy+Math.sin(angle)*dist, r:9, color:'#48bb78', label:loc.length>12?loc.substring(0,12)+'...':loc, type:'location', key:'loc-solo:'+loc});
+        locsSeen[loc] = graphNodes.length - 1;
+        graphEdges.push({from:i+1, to:graphNodes.length-1, color:'rgba(72,187,120,0.12)', label:'location'});
+    });
+
+    drawGraph();
+
+    // Initial pulse animation to highlight bridge connections
+    var bridgeIndices = [];
+    graphNodes.forEach(function(n, i) { if (n.type === 'shared') bridgeIndices.push(i); });
+    if (bridgeIndices.length > 0) {
+        var pulsePhase = 0;
+        var initPulse = setInterval(function() {
+            pulsePhase += 0.12;
+            if (pulsePhase > Math.PI * 3) {
+                clearInterval(initPulse);
+                bridgeIndices.forEach(function(bi) {
+                    if (graphNodes[bi]._origR) { graphNodes[bi].r = graphNodes[bi]._origR; delete graphNodes[bi]._origR; }
+                });
+                drawGraph();
+                return;
+            }
+            bridgeIndices.forEach(function(bi) {
+                var n = graphNodes[bi];
+                if (!n._origR) n._origR = n.r;
+                n.r = n._origR + Math.sin(pulsePhase) * 3;
+            });
+            drawGraph();
+        }, 50);
+    }
+
+    // Click handler
+    graphCanvas.addEventListener('click', function(e) {
+        var rect = graphCanvas.getBoundingClientRect();
+        var mx = e.clientX - rect.left, my = e.clientY - rect.top;
+        var hit = -1;
+        for (var i = graphNodes.length - 1; i >= 0; i--) {
+            var n = graphNodes[i];
+            var dx = mx - n.x, dy = my - n.y;
+            if (dx*dx + dy*dy <= (n.r+4)*(n.r+4)) { hit = i; break; }
+        }
+        if (hit >= 0) {
+            highlightedNodeIdx = hit;
+            drawGraph();
+            showGraphInfo(graphNodes[hit]);
+        } else {
+            highlightedNodeIdx = -1;
+            drawGraph();
+            document.getElementById('graphInfo').className = 'graph-info';
+        }
+    });
+
+    // Hover cursor
+    graphCanvas.addEventListener('mousemove', function(e) {
+        var rect = graphCanvas.getBoundingClientRect();
+        var mx = e.clientX - rect.left, my = e.clientY - rect.top;
+        var hover = false;
+        for (var i = graphNodes.length - 1; i >= 0; i--) {
+            var n = graphNodes[i];
+            var dx = mx - n.x, dy = my - n.y;
+            if (dx*dx + dy*dy <= (n.r+4)*(n.r+4)) { hover = true; break; }
+        }
+        graphCanvas.style.cursor = hover ? 'pointer' : 'crosshair';
+    });
+}
+
+function drawGraph() {
+    if (!graphCtx) return;
+    var ctx = graphCtx;
+    var W = graphCanvas.width, H = graphCanvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Draw edges — bridge edges FIRST as a glow layer, then all edges on top
+    // Pass 1: Glow layer for thick bridge edges
+    graphEdges.forEach(function(e) {
+        if (!e.thick) return;
+        var alpha = 1;
+        if (highlightedNodeIdx >= 0 && e.from !== highlightedNodeIdx && e.to !== highlightedNodeIdx) alpha = 0.08;
+        ctx.globalAlpha = alpha * 0.4;
+        ctx.beginPath();
+        ctx.setLineDash([]);
+        ctx.moveTo(graphNodes[e.from].x, graphNodes[e.from].y);
+        ctx.lineTo(graphNodes[e.to].x, graphNodes[e.to].y);
+        ctx.strokeStyle = e.color.replace(/[\d.]+\)/, '1)');
+        ctx.lineWidth = 8;
+        ctx.shadowColor = e.color.replace(/[\d.]+\)/, '1)');
+        ctx.shadowBlur = 12;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
+    });
+
+    // Pass 2: All edges
+    graphEdges.forEach(function(e) {
+        ctx.beginPath();
+        if (e.dashed && !e.thick) ctx.setLineDash([4, 4]);
+        else ctx.setLineDash([]);
+        ctx.moveTo(graphNodes[e.from].x, graphNodes[e.from].y);
+        ctx.lineTo(graphNodes[e.to].x, graphNodes[e.to].y);
+        var alpha = 1;
+        if (highlightedNodeIdx >= 0 && e.from !== highlightedNodeIdx && e.to !== highlightedNodeIdx) alpha = 0.12;
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = e.color;
+        ctx.lineWidth = e.thick ? 3.5 : e.dashed ? 1.5 : 1.2;
+        ctx.shadowBlur = 0;
+        ctx.stroke();
+        // Draw edge label for thick bridge edges when not dimmed
+        if (e.thick && alpha > 0.5) {
+            var mx = (graphNodes[e.from].x + graphNodes[e.to].x) / 2;
+            var my = (graphNodes[e.from].y + graphNodes[e.to].y) / 2;
+            // Background pill for label
+            ctx.font = 'bold 9px "Segoe UI", sans-serif';
+            var tw = ctx.measureText(e.label).width + 8;
+            ctx.fillStyle = '#0d1520';
+            ctx.globalAlpha = 0.85;
+            ctx.fillRect(mx - tw/2, my - 12, tw, 14);
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = e.color.replace(/[\d.]+\)/, '1)');
+            ctx.textAlign = 'center';
+            ctx.fillText(e.label, mx, my - 2);
+        }
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+    });
+
+    // Draw nodes
+    graphNodes.forEach(function(n, i) {
+        var dimmed = highlightedNodeIdx >= 0 && i !== highlightedNodeIdx && !isConnected(i, highlightedNodeIdx);
+        ctx.globalAlpha = dimmed ? 0.15 : 1;
+
+        var isBridge = n.type === 'shared';
+        var isHighlighted = i === highlightedNodeIdx;
+
+        // Glow for bridge and highlighted nodes
+        if ((isBridge || isHighlighted) && !dimmed) {
+            ctx.shadowColor = n.color;
+            ctx.shadowBlur = isHighlighted ? 30 : 18;
+        }
+
+        // Outer ring for bridge nodes (person of interest / connection highlight)
+        if (isBridge && !dimmed) {
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, n.r + 4, 0, Math.PI*2);
+            ctx.strokeStyle = n.color;
+            ctx.lineWidth = 1.5;
+            ctx.globalAlpha = dimmed ? 0.1 : 0.5;
+            ctx.stroke();
+            ctx.globalAlpha = dimmed ? 0.15 : 1;
+        }
+
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
+        // Bridge nodes get a solid fill, others get transparent
+        if (isBridge && !dimmed) {
+            ctx.fillStyle = n.color + '88'; // 53% opacity — much more visible
+        } else {
+            ctx.fillStyle = n.color + (dimmed ? '10' : '33');
+        }
+        ctx.fill();
+        ctx.strokeStyle = n.color;
+        ctx.lineWidth = isHighlighted ? 3.5 : isBridge ? 2.5 : 1.8;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Label
+        ctx.fillStyle = dimmed ? '#4a5568' : (isBridge ? '#ffffff' : '#e2e8f0');
+        ctx.font = (isBridge||n.type==='query'?'bold ':'')+((n.r > 16)?'11px':'9px')+' "Segoe UI", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(n.label, n.x, n.y + n.r + 14);
+        // Bridge type icon inside node
+        if (isBridge && !dimmed && n.shared) {
+            var icon = n.shared.type==='suspect'?'👤':n.shared.type==='phone'?'📱':n.shared.type==='financial'?'💰':n.shared.type==='safehouse'?'🏠':n.shared.type==='supplier'?'🧪':n.shared.type==='courier'?'🚗':n.shared.type==='cartel'?'🏴':'🔗';
+            ctx.font = (n.r > 14 ? '14px' : '11px') + ' sans-serif';
+            ctx.fillText(icon, n.x, n.y + 5);
+        }
+        ctx.globalAlpha = 1;
+    });
+}
+
+function isConnected(a, b) {
+    for (var i = 0; i < graphEdges.length; i++) {
+        var e = graphEdges[i];
+        if ((e.from === a && e.to === b) || (e.from === b && e.to === a)) return true;
+    }
+    return false;
+}
+
+// === GRAPH INFO PANEL — shows when you click a node ===
+function showGraphInfo(node) {
+    var info = document.getElementById('graphInfo');
+    var h = '<div class="graph-info-header">';
+    h += '<div class="graph-info-dot" style="background:'+node.color+';box-shadow:0 0 8px '+node.color+';"></div>';
+    h += '<div><div class="graph-info-title">'+node.label+'</div>';
+    h += '<div class="graph-info-type">'+node.type.toUpperCase()+(node.type==='shared'?' — CROSS-CASE BRIDGE':'')+'</div></div></div>';
+    if (node.detail) {
+        h += '<div class="graph-info-body">'+node.detail+'</div>';
+    }
+    // Show connected nodes as clickable links
+    var connected = [];
+    graphEdges.forEach(function(e) {
+        var idx = graphNodes.indexOf(node);
+        if (e.from === idx) connected.push({node:graphNodes[e.to], label:e.label});
+        if (e.to === idx) connected.push({node:graphNodes[e.from], label:e.label});
+    });
+    if (connected.length > 0) {
+        h += '<div class="graph-info-links">';
+        connected.forEach(function(c) {
+            h += '<span class="graph-info-link" style="background:'+c.node.color+'22;border-color:'+c.node.color+'55;color:'+c.node.color+';" onclick="highlightGraphNode(\''+c.node.key.replace(/'/g,"\\'")+'\')">';
+            h += c.node.label+' ('+c.label+')</span>';
+        });
+        h += '</div>';
+    }
+    // If operation node, add scroll-to link
+    if (node.type === 'operation' && node.opData) {
+        h += '<div style="margin-top:10px;"><span style="color:#90cdf4;cursor:pointer;font-size:0.82em;text-decoration:underline;" onclick="scrollToOp(\''+node.opData.id+'\')">↓ Scroll to operation details below</span></div>';
+    }
+    info.innerHTML = h;
+    info.className = 'graph-info active';
+}
+
+// === DETAIL GENERATORS for graph info panel ===
+function genQueryDetail(data) {
+    return 'Search query "<strong>'+data.query+'</strong>" matched '+data.matchedOps.length+' operations via OpenSearch hybrid search (vector + BM25). '+Object.keys(sharedEntities).length+' bridge entities identified connecting operations through shared suspects, cartels, and geographic overlap.';
+}
+function genOpDetail(m) {
+    return '<strong>'+m.op.name+'</strong> ('+m.op.date+') — '+m.op.location+'. Target: '+m.op.cartel+'. '+m.op.suspects.length+' suspects identified, '+m.op.evidence.length+' evidence categories. Relevance score: '+Math.min(99,Math.floor(m.score*1.1))+'%. This operation shares '+(function(){var c=0;Object.keys(sharedEntities).forEach(function(k){if(sharedEntities[k].ops.indexOf(m.op.id)>=0)c++;});return c;})() +' bridge entities with other matched operations.';
+}
+function genSharedDetail(se, key) {
+    var h = '<strong style="color:'+se.color+';">CROSS-CASE BRIDGE:</strong> "'+se.name+'" appears in <strong>'+se.ops.length+' operations</strong> ('+se.ops.join(', ')+'), making it a high-priority intelligence lead. ';
+    if (se.type === 'cartel') h += 'This cartel affiliation connects multiple drug bust operations, suggesting a coordinated distribution network. Recommend OCDETF case coordination.';
+    else if (se.type === 'suspect') h += 'This individual appears in multiple case files, indicating involvement in a broader criminal network. Recommend consolidated prosecution under RICO statutes.';
+    else if (se.type === 'location') h += 'Geographic overlap suggests this location is a hub for cartel operations. Recommend enhanced surveillance and HIDTA coordination.';
+    else if (se.type === 'phone') h += 'This phone number was found in evidence from multiple operations. Communications metadata analysis via court-authorized intercepts can map the full contact network. Recommend pen register/trap-and-trace order.';
+    else if (se.type === 'financial') h += 'This financial account/instrument bridges multiple operations, indicating shared money laundering infrastructure. Recommend FinCEN BSA filing review and asset forfeiture proceedings.';
+    else if (se.type === 'safehouse') h += 'This physical location was identified in multiple operations as a stash house or operational base. Recommend coordinated search warrant and 24/7 surveillance.';
+    else if (se.type === 'supplier') h += 'This supplier/vendor serves multiple cartel operations, representing a critical supply chain node. Disrupting this supplier could impact multiple distribution networks simultaneously.';
+    else if (se.type === 'courier') h += 'This courier/logistics entity operates across multiple operations, serving as a key link in the distribution chain. Recommend controlled delivery operations to map the full network.';
+    else if (se.members) h += 'Family network members: '+se.members.join(', ')+'. Potential familial ties warrant further investigation via financial records and communications analysis.';
+    if (se.labels && se.labels.length > 0) h += '<br><em style="color:#718096;font-size:0.9em;">Intel: '+se.labels[0]+'</em>';
+    return h;
+}
+function genSuspectDetail(s, op) {
+    return '<strong>'+s.name+'</strong> — '+s.role+' ('+s.cartel+'). Status: '+s.status+'. Identified in '+op.name+'. Rekognition facial match processed. Comprehend NER extracted '+Math.floor(Math.random()*15+5)+' entity relationships from associated documents.';
+}
+function genCartelDetail(op) {
+    return '<strong>'+op.cartel+'</strong> — Target organization for '+op.name+'. Operations in '+op.location+'. This cartel node connects to suspects and evidence within this specific operation.';
+}
+
+// === INTERACTION: Narrative ↔ Graph ===
+
+// Highlight a graph node by its key (called from narrative hover, shared entity clicks, etc.)
+function highlightGraphNode(key) {
+    for (var i = 0; i < graphNodes.length; i++) {
+        if (graphNodes[i].key === key) {
+            highlightedNodeIdx = i;
+            drawGraph();
+            showGraphInfo(graphNodes[i]);
+            // Scroll graph into view
+            document.getElementById('graphSection').scrollIntoView({behavior:'smooth', block:'center'});
+            return;
+        }
+    }
+}
+
+// Pulse a graph node temporarily (on narrative hover)
+var pulseInterval = null;
+function pulseGraphNode(key) {
+    clearPulse();
+    for (var i = 0; i < graphNodes.length; i++) {
+        if (graphNodes[i].key === key) {
+            highlightedNodeIdx = i;
+            drawGraph();
+            // Pulse animation
+            var node = graphNodes[i];
+            var origR = node.r;
+            var phase = 0;
+            pulseInterval = setInterval(function() {
+                phase += 0.15;
+                node.r = origR + Math.sin(phase) * 4;
+                drawGraph();
+            }, 50);
+            // Store original radius for cleanup
+            node._origR = origR;
+            return;
+        }
+    }
+}
+
+function clearPulse() {
+    if (pulseInterval) {
+        clearInterval(pulseInterval);
+        pulseInterval = null;
+    }
+    // Restore original radii
+    graphNodes.forEach(function(n) {
+        if (n._origR) { n.r = n._origR; delete n._origR; }
+    });
+    highlightedNodeIdx = -1;
+    drawGraph();
+}
+
+// Scroll to and highlight an operation card
+function scrollToOp(opId) {
+    var card = document.getElementById('opCard-'+opId);
+    if (!card) return;
+    // Remove previous highlights
+    document.querySelectorAll('.op-card.highlighted').forEach(function(el){ el.classList.remove('highlighted'); });
+    card.classList.add('highlighted');
+    card.scrollIntoView({behavior:'smooth', block:'center'});
+    // Remove highlight after 3s
+    setTimeout(function(){ card.classList.remove('highlighted'); }, 3000);
+}
+
+</script>
+</body>
+</html>
