@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Loader — Investigative Intelligence Platform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f1923; color: #e2e8f0; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #1a365d 0%, #2a4a7f 50%, #1e3a5f 100%); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #48bb78; }
+        .header h1 { font-size: 1.35em; color: #fff; }
+        .header h1 span { color: #48bb78; }
+        .nav-bar { display: flex; background: #1a2332; border-bottom: 1px solid #2d3748; padding: 0 16px; flex-wrap: wrap; }
+        .nav-link { padding: 10px 16px; color: #718096; text-decoration: none; font-size: 0.78em; font-weight: 600; border-bottom: 2px solid transparent; }
+        .nav-link:hover { color: #e2e8f0; }
+        .nav-link.active { color: #48bb78; border-bottom-color: #48bb78; }
+        .main { max-width: 900px; margin: 24px auto; padding: 0 24px; }
+        .section { background: #1a2332; border: 1px solid #2d3748; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .section h2 { font-size: 0.85em; color: #48bb78; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        select, input[type="text"] { background: #0d1520; border: 1px solid #2d3748; color: #e2e8f0; padding: 10px 14px; border-radius: 8px; font-size: 0.85em; width: 100%; outline: none; }
+        select:focus, input:focus { border-color: #48bb78; }
+        .btn { padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 0.82em; cursor: pointer; border: none; transition: all 0.2s; }
+        .btn-green { background: linear-gradient(135deg, #48bb78, #38a169); color: #fff; }
+        .btn-green:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(72,187,120,0.3); }
+        .btn-green:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .row { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+        .row label { font-size: 0.78em; color: #a0aec0; min-width: 100px; }
+        .status-box { padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.82em; color: #a0aec0; min-height: 40px; }
+        .status-running { border-left: 3px solid #f6e05e; }
+        .status-done { border-left: 3px solid #48bb78; }
+        .status-error { border-left: 3px solid #fc8181; }
+        .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #2d3748; border-top-color: #f6e05e; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 6px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .drop-zone { border: 2px dashed #2d3748; border-radius: 10px; padding: 30px; text-align: center; color: #718096; font-size: 0.85em; cursor: pointer; transition: all 0.2s; }
+        .drop-zone:hover, .drop-zone.dragover { border-color: #48bb78; color: #48bb78; background: rgba(72,187,120,0.05); }
+        .file-list { margin-top: 10px; font-size: 0.78em; color: #a0aec0; }
+        .file-item { padding: 4px 0; display: flex; justify-content: space-between; }
+        .upload-progress { height: 4px; background: #2d3748; border-radius: 2px; margin-top: 8px; overflow: hidden; }
+        .upload-fill { height: 100%; background: #48bb78; transition: width 0.3s; border-radius: 2px; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>📥 <span>Data Loader</span> — Investigative Intelligence</h1>
+</div>
+<div class="nav-bar">
+    <a href="index.html" class="nav-link">🏠 Home</a>
+    <a href="investigator.html" class="nav-link">📋 Cases</a>
+    <a href="pipeline-config.html" class="nav-link">⚙️ Pipeline Config</a>
+    <a href="data-loader.html" class="nav-link active">📥 Data Loader</a>
+    <a href="admin.html" class="nav-link">🔐 Admin</a>
+    <a href="chatbot.html" class="nav-link">💬 Chat</a>
+</div>
+<div class="main">
+
+<!-- Section 1: Case Selector -->
+<div class="section">
+    <h2>1. Select Case</h2>
+    <select id="caseSelect" onchange="onCaseSelected()">
+        <option value="">Loading cases...</option>
+    </select>
+</div>
+
+<!-- Section 2: Case Type Profile -->
+<div class="section">
+    <h2>2. Case Type Profile</h2>
+    <div class="row">
+        <label>Case Type:</label>
+        <select id="caseTypeSelect" disabled>
+            <option value="">Select a case first</option>
+        </select>
+        <button class="btn btn-green" id="applyTypeBtn" disabled onclick="applyCaseType()">Apply</button>
+    </div>
+    <div id="caseTypeStatus" class="status-box" style="margin-top:8px;display:none;"></div>
+</div>
+
+<!-- Section 3: S3 Prefix Pipeline Trigger -->
+<div class="section">
+    <h2>3. Trigger Pipeline from S3</h2>
+    <p style="font-size:0.78em;color:#718096;margin-bottom:10px;">Enter the S3 prefix containing your documents (e.g., <code>cases/7f05e8d5.../raw/</code>)</p>
+    <div class="row">
+        <input type="text" id="s3Prefix" placeholder="cases/{case_id}/raw/" style="flex:1;" />
+        <button class="btn btn-green" id="triggerBtn" disabled onclick="triggerPipeline()">🚀 Start Pipeline</button>
+    </div>
+    <div id="pipelineStatus" class="status-box" style="margin-top:8px;display:none;"></div>
+</div>
+
+<!-- Section 4: File Upload -->
+<div class="section">
+    <h2>4. Upload Files</h2>
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        📁 Drag & drop files here, or click to browse
+        <input type="file" id="fileInput" multiple style="display:none;" onchange="onFilesSelected(this.files)" />
+    </div>
+    <div id="fileList" class="file-list"></div>
+    <div id="uploadProgress" class="upload-progress" style="display:none;"><div class="upload-fill" id="uploadFill"></div></div>
+    <div id="uploadStatus" class="status-box" style="margin-top:8px;display:none;"></div>
+    <button class="btn btn-green" id="uploadBtn" style="margin-top:10px;display:none;" onclick="uploadFiles()">📤 Upload & Ingest</button>
+</div>
+
+<!-- Section 5: Pipeline Monitor -->
+<div class="section">
+    <h2>5. Pipeline Status</h2>
+    <div id="monitorStatus" class="status-box">No pipeline running. Trigger a pipeline above to monitor progress.</div>
+</div>
+
+</div>
+
+<script>
+const API_BASE = 'https://edb025my3i.execute-api.us-east-1.amazonaws.com/v1';
+let selectedCaseId = '';
+let selectedFiles = [];
+let pollTimer = null;
+
+async function api(method, path, body) {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body) opts.body = JSON.stringify(body);
+    const resp = await fetch(API_BASE + path, opts);
+    const data = await resp.json();
+    return typeof data.body === 'string' ? JSON.parse(data.body) : data;
+}
+
+// Load cases on page load
+async function loadCases() {
+    try {
+        const cases = await api('GET', '/case-files');
+        const sel = document.getElementById('caseSelect');
+        sel.innerHTML = '<option value="">-- Select a case --</option>';
+        (cases.case_files || cases || []).forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id || c.case_id;
+            opt.textContent = (c.topic_name || c.name || c.id) + ' (' + (c.document_count || 0) + ' docs)';
+            sel.appendChild(opt);
+        });
+    } catch (e) { console.warn('Failed to load cases:', e); }
+}
+
+async function onCaseSelected() {
+    selectedCaseId = document.getElementById('caseSelect').value;
+    document.getElementById('triggerBtn').disabled = !selectedCaseId;
+    document.getElementById('caseTypeSelect').disabled = !selectedCaseId;
+    document.getElementById('applyTypeBtn').disabled = !selectedCaseId;
+    if (selectedCaseId) {
+        document.getElementById('s3Prefix').value = 'cases/' + selectedCaseId + '/raw/';
+        loadCaseTypes();
+    }
+}
+
+async function loadCaseTypes() {
+    try {
+        const profiles = await api('GET', '/case-type-profiles');
+        const sel = document.getElementById('caseTypeSelect');
+        sel.innerHTML = '<option value="">-- Select case type --</option>';
+        (profiles.profiles || profiles || []).forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.name || p.id;
+            opt.textContent = p.display_name || p.name;
+            sel.appendChild(opt);
+        });
+    } catch (e) {
+        // API may not exist yet — show placeholder
+        const sel = document.getElementById('caseTypeSelect');
+        sel.innerHTML = '<option value="">Case type profiles not yet configured</option>';
+    }
+}
+
+async function applyCaseType() {
+    const caseType = document.getElementById('caseTypeSelect').value;
+    if (!caseType || !selectedCaseId) return;
+    const box = document.getElementById('caseTypeStatus');
+    box.style.display = 'block';
+    box.className = 'status-box status-running';
+    box.innerHTML = '<span class="spinner"></span>Applying case type profile...';
+    try {
+        const res = await api('POST', '/case-files/' + selectedCaseId + '/apply-case-type', { case_type: caseType });
+        box.className = 'status-box status-done';
+        box.textContent = '✅ Applied: ' + caseType;
+    } catch (e) {
+        box.className = 'status-box status-error';
+        box.textContent = '❌ Failed: ' + (e.message || e);
+    }
+}
+
+async function triggerPipeline() {
+    const prefix = document.getElementById('s3Prefix').value.trim();
+    if (!prefix || !selectedCaseId) return;
+    const box = document.getElementById('pipelineStatus');
+    box.style.display = 'block';
+    box.className = 'status-box status-running';
+    box.innerHTML = '<span class="spinner"></span>Triggering pipeline...';
+    try {
+        const res = await api('POST', '/case-files/' + selectedCaseId + '/trigger-pipeline', { s3_prefix: prefix });
+        const arn = res.execution_arn || res.executionArn || '';
+        box.className = 'status-box status-done';
+        box.textContent = '✅ Pipeline started' + (arn ? ': ' + arn.split(':').pop() : '');
+        if (arn) startPolling(arn);
+    } catch (e) {
+        box.className = 'status-box status-error';
+        box.textContent = '❌ Failed: ' + (e.message || e);
+    }
+}
+
+function startPolling(arn) {
+    if (pollTimer) clearInterval(pollTimer);
+    const mon = document.getElementById('monitorStatus');
+    mon.className = 'status-box status-running';
+    mon.innerHTML = '<span class="spinner"></span>Pipeline running...';
+    pollTimer = setInterval(async () => {
+        try {
+            const res = await api('GET', '/pipeline-execution-status?arn=' + encodeURIComponent(arn));
+            const status = res.status || 'UNKNOWN';
+            if (status === 'SUCCEEDED') {
+                mon.className = 'status-box status-done';
+                mon.textContent = '✅ Pipeline completed successfully';
+                clearInterval(pollTimer);
+            } else if (status === 'FAILED' || status === 'TIMED_OUT' || status === 'ABORTED') {
+                mon.className = 'status-box status-error';
+                mon.textContent = '❌ Pipeline ' + status;
+                clearInterval(pollTimer);
+            } else {
+                mon.innerHTML = '<span class="spinner"></span>Pipeline status: ' + status;
+            }
+        } catch (e) {
+            mon.innerHTML = '<span class="spinner"></span>Polling... (waiting for status)';
+        }
+    }, 5000);
+}
+
+// File upload
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); onFilesSelected(e.dataTransfer.files); });
+
+function onFilesSelected(files) {
+    selectedFiles = Array.from(files);
+    const list = document.getElementById('fileList');
+    list.innerHTML = selectedFiles.map(f => '<div class="file-item"><span>' + f.name + '</span><span>' + (f.size / 1024).toFixed(1) + ' KB</span></div>').join('');
+    document.getElementById('uploadBtn').style.display = selectedFiles.length ? 'inline-block' : 'none';
+}
+
+async function uploadFiles() {
+    if (!selectedFiles.length || !selectedCaseId) return;
+    const box = document.getElementById('uploadStatus');
+    const prog = document.getElementById('uploadProgress');
+    const fill = document.getElementById('uploadFill');
+    box.style.display = 'block';
+    prog.style.display = 'block';
+    let done = 0;
+    const total = selectedFiles.length;
+
+    for (const file of selectedFiles) {
+        box.className = 'status-box status-running';
+        box.innerHTML = '<span class="spinner"></span>Uploading ' + file.name + ' (' + (done + 1) + '/' + total + ')';
+        fill.style.width = ((done / total) * 100) + '%';
+        try {
+            const reader = new FileReader();
+            const b64 = await new Promise((resolve, reject) => {
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+            await api('POST', '/case-files/' + selectedCaseId + '/ingest', {
+                files: [{ filename: file.name, content_base64: b64 }]
+            });
+            done++;
+        } catch (e) {
+            box.className = 'status-box status-error';
+            box.textContent = '❌ Failed on ' + file.name + ': ' + (e.message || e);
+            return;
+        }
+    }
+    fill.style.width = '100%';
+    box.className = 'status-box status-done';
+    box.textContent = '✅ Uploaded ' + done + '/' + total + ' files. Pipeline triggered for each.';
+}
+
+loadCases();
+</script>
+</body>
+</html>
