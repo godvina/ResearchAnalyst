@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Analytics Suite: The Open Data Lake Advantage</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Amazon Ember', Arial, sans-serif; background: #1a1a2e; }
+        .slide {
+            width: 1280px; height: 720px; margin: 40px auto;
+            position: relative; overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            page-break-after: always;
+        }
+        .top-bar { background: #ff9900; height: 6px; width: 100%; }
+        .footer-bar {
+            background: rgba(255,255,255,0.03); padding: 12px 80px;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 12px; color: #718096;
+        }
+        .aws-logo { font-weight: 700; color: #ff9900; font-size: 14px; }
+
+        /* ===== SLIDE 1: Title ===== */
+        .slide-1 {
+            background: linear-gradient(135deg, #232f3e 0%, #1a2332 50%, #0d1b2a 100%);
+            color: white; display: flex; flex-direction: column;
+        }
+        .slide-1 .content { flex: 1; display: flex; padding: 50px 80px; gap: 50px; }
+        .slide-1 .left { flex: 1.3; display: flex; flex-direction: column; justify-content: center; }
+        .slide-1 .right { flex: 1; display: flex; align-items: center; justify-content: center; }
+        .slide-1 h1 { font-size: 34px; font-weight: 700; line-height: 1.2; margin-bottom: 16px; color: #ff9900; }
+        .slide-1 .subtitle { font-size: 19px; color: #a0aec0; line-height: 1.5; margin-bottom: 22px; }
+        .slide-1 .tagline { font-size: 16px; color: #ff9900; font-weight: 600; border-left: 4px solid #ff9900; padding-left: 15px; line-height: 1.6; }
+        .problem-box {
+            background: rgba(255,255,255,0.05); border: 2px solid rgba(255,153,0,0.3);
+            border-radius: 16px; padding: 30px; width: 420px;
+        }
+        .problem-box .label { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: #ff9900; margin-bottom: 18px; font-weight: 600; }
+        .problem-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; font-size: 14px; line-height: 1.5; color: #cbd5e0; }
+        .problem-item .icon { font-size: 16px; flex-shrink: 0; margin-top: 2px; color: #fc8181; }
+
+        /* ===== SLIDE 2: The Lock-In Problem ===== */
+        .slide-2 {
+            background: #ffffff; color: #232f3e; display: flex; flex-direction: column;
+        }
+        .slide-2 .header {
+            background: #232f3e; padding: 22px 80px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .slide-2 .header h2 { color: white; font-size: 26px; font-weight: 700; }
+        .slide-2 .header .badge { background: #ff9900; color: #232f3e; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .comparison { flex: 1; display: flex; padding: 30px 60px; gap: 35px; }
+        .arch-column { flex: 1; border-radius: 14px; padding: 25px; }
+        .arch-column.locked { background: #fef2f2; border: 2px solid #fca5a5; }
+        .arch-column.open { background: #f0fdf4; border: 2px solid #86efac; }
+        .col-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+        .col-title { font-size: 18px; font-weight: 700; }
+        .col-verdict { font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 600; }
+        .locked .col-verdict { background: #fca5a5; color: #7f1d1d; }
+        .open .col-verdict { background: #86efac; color: #14532d; }
+        .arch-flow { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .arch-box { width: 100%; padding: 12px 16px; border-radius: 10px; text-align: center; font-size: 13px; font-weight: 600; }
+        .arch-box.vendor { background: #fee2e2; color: #991b1b; border: 2px solid #fca5a5; }
+        .arch-box.s3 { background: #dbeafe; color: #1e40af; }
+        .arch-box.aws-svc { background: #d1fae5; color: #065f46; border: 2px solid #10b981; }
+        .arch-box.bedrock { background: #232f3e; color: #ff9900; }
+        .arch-box.user { background: #f3e8ff; color: #6b21a8; }
+        .arch-arrow { font-size: 18px; color: #94a3b8; }
+        .arch-arrow.bad { color: #ef4444; }
+        .arch-arrow.good { color: #16a34a; font-size: 22px; }
+        .arch-note { font-size: 10px; color: #64748b; text-align: center; font-style: italic; }
+        .arch-note.bad { color: #dc2626; font-weight: 600; font-style: normal; }
+        .arch-note.good { color: #16a34a; font-weight: 600; font-style: normal; }
+        .bottom-callout {
+            background: #232f3e; padding: 16px 80px;
+            display: flex; align-items: center; gap: 15px;
+        }
+        .bottom-callout .icon { font-size: 22px; }
+        .bottom-callout .text { color: white; font-size: 15px; font-weight: 600; }
+        .bottom-callout .highlight { color: #ff9900; }
+
+        /* ===== SLIDE 3: S3 Data Lake Foundation ===== */
+        .slide-3 {
+            background: linear-gradient(135deg, #232f3e 0%, #1a2332 100%);
+            color: white; display: flex; flex-direction: column;
+        }
+        .slide-3 .header-section { padding: 30px 80px 15px; }
+        .slide-3 .header-section h2 { font-size: 30px; font-weight: 700; color: #ff9900; }
+        .slide-3 .header-section p { font-size: 15px; color: #a0aec0; margin-top: 5px; }
+        .lake-layout { flex: 1; display: flex; padding: 10px 80px 15px; gap: 30px; }
+        .lake-center {
+            flex: 1.2; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .lake-box {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            border-radius: 20px; padding: 30px 40px; text-align: center;
+            border: 3px solid #60a5fa; width: 100%;
+        }
+        .lake-box .lake-icon { font-size: 48px; margin-bottom: 10px; }
+        .lake-box .lake-title { font-size: 24px; font-weight: 700; color: white; }
+        .lake-box .lake-sub { font-size: 14px; color: #bfdbfe; margin-top: 6px; line-height: 1.5; }
+        .lake-stats { display: flex; gap: 15px; margin-top: 15px; justify-content: center; }
+        .lake-stat {
+            background: rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 16px; text-align: center;
+        }
+        .lake-stat .num { font-size: 20px; font-weight: 700; color: #ff9900; }
+        .lake-stat .lbl { font-size: 10px; color: #93c5fd; text-transform: uppercase; letter-spacing: 1px; }
+        .services-ring { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; justify-content: center; }
+        .svc-chip {
+            background: rgba(255,153,0,0.15); border: 1px solid rgba(255,153,0,0.4);
+            border-radius: 10px; padding: 10px 16px; text-align: center; width: 140px;
+        }
+        .svc-chip .svc-icon { font-size: 22px; }
+        .svc-chip .svc-name { font-size: 12px; font-weight: 700; color: #ff9900; margin-top: 4px; }
+        .svc-chip .svc-role { font-size: 10px; color: #a0aec0; margin-top: 2px; }
+        .lake-side { flex: 0.8; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+        .benefit-item {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,153,0,0.2);
+            border-radius: 10px; padding: 14px 18px;
+        }
+        .benefit-item .bi-title { font-size: 14px; font-weight: 700; color: #ff9900; margin-bottom: 4px; }
+        .benefit-item .bi-body { font-size: 12px; color: #cbd5e0; line-height: 1.5; }
+
+        /* ===== SLIDE 4: Apache Iceberg ===== */
+        .slide-iceberg {
+            background: linear-gradient(135deg, #0c1929 0%, #1a2744 50%, #0f2035 100%);
+            color: white; display: flex; flex-direction: column;
+        }
+        .slide-iceberg .header-section { padding: 28px 80px 12px; }
+        .slide-iceberg .header-section h2 { font-size: 28px; font-weight: 700; color: #60a5fa; }
+        .slide-iceberg .header-section p { font-size: 14px; color: #94a3b8; margin-top: 5px; }
+        .iceberg-layout { flex: 1; display: flex; padding: 10px 80px 10px; gap: 30px; }
+        .iceberg-main { flex: 1.4; display: flex; flex-direction: column; gap: 16px; }
+        .iceberg-side { flex: 0.6; display: flex; flex-direction: column; gap: 12px; }
+        .iceberg-center-box {
+            background: linear-gradient(135deg, #1e3a5f, #2563eb);
+            border: 2px solid #60a5fa; border-radius: 16px;
+            padding: 22px 28px; text-align: center;
+        }
+        .iceberg-center-box .ic-icon { font-size: 40px; }
+        .iceberg-center-box .ic-title { font-size: 22px; font-weight: 700; color: white; margin-top: 6px; }
+        .iceberg-center-box .ic-sub { font-size: 13px; color: #bfdbfe; margin-top: 6px; line-height: 1.5; }
+        .engine-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .engine-chip {
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(96,165,250,0.3);
+            border-radius: 10px; padding: 14px 10px; text-align: center;
+        }
+        .engine-chip .ec-icon { font-size: 22px; }
+        .engine-chip .ec-name { font-size: 12px; font-weight: 700; color: #60a5fa; margin-top: 4px; }
+        .engine-chip .ec-how { font-size: 10px; color: #94a3b8; margin-top: 3px; }
+        .engine-chip.aws-native { border-color: rgba(255,153,0,0.5); }
+        .engine-chip.aws-native .ec-name { color: #ff9900; }
+        .vs-delta {
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(252,165,165,0.3);
+            border-radius: 12px; padding: 16px;
+        }
+        .vs-delta .vd-title { font-size: 14px; font-weight: 700; color: #fca5a5; margin-bottom: 8px; }
+        .vs-delta .vd-row { display: flex; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+        .vs-delta .vd-label { color: #94a3b8; width: 120px; flex-shrink: 0; }
+        .vs-delta .vd-iceberg { color: #86efac; font-weight: 600; flex: 1; }
+        .vs-delta .vd-delta { color: #fca5a5; font-weight: 600; flex: 1; }
+        .iceberg-benefit {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(96,165,250,0.2);
+            border-radius: 10px; padding: 14px 16px;
+        }
+        .iceberg-benefit .ib-title { font-size: 13px; font-weight: 700; color: #60a5fa; margin-bottom: 4px; }
+        .iceberg-benefit .ib-body { font-size: 11px; color: #cbd5e0; line-height: 1.5; }
+
+        /* ===== SLIDE 5: Service Deep Dive - Redshift + OpenSearch ===== */
+        .slide-4 {
+            background: #ffffff; color: #232f3e; display: flex; flex-direction: column;
+        }
+        .slide-4 .header {
+            background: #232f3e; padding: 20px 80px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .slide-4 .header h2 { color: white; font-size: 24px; font-weight: 700; }
+        .slide-4 .header .badge { background: #ff9900; color: #232f3e; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .svc-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; padding: 30px 60px; }
+        .svc-card {
+            border-radius: 16px; padding: 28px; position: relative; overflow: hidden;
+        }
+        .svc-card .svc-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+        .svc-card .svc-header .icon { font-size: 36px; }
+        .svc-card .svc-header .title { font-size: 22px; font-weight: 700; }
+        .svc-card .svc-header .sub { font-size: 12px; color: #64748b; }
+        .svc-card .desc { font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 14px; }
+        .svc-card .features { list-style: none; }
+        .svc-card .features li { font-size: 13px; color: #475569; padding: 4px 0; padding-left: 20px; position: relative; }
+        .svc-card .features li::before { content: "✓"; position: absolute; left: 0; color: #16a34a; font-weight: 700; }
+        .svc-card .vs-databricks {
+            margin-top: 12px; padding-top: 12px; border-top: 2px dashed #e2e8f0;
+            font-size: 12px; color: #dc2626; font-weight: 600;
+        }
+        .svc-card.redshift { background: #eff6ff; border: 2px solid #93c5fd; }
+        .svc-card.redshift .svc-header .title { color: #1e40af; }
+        .svc-card.opensearch { background: #fdf4ff; border: 2px solid #d8b4fe; }
+        .svc-card.opensearch .svc-header .title { color: #7c3aed; }
+        .svc-card.quicksight { background: #fefce8; border: 2px solid #fde047; }
+        .svc-card.quicksight .svc-header .title { color: #a16207; }
+        .svc-card.sagemaker { background: #f0fdf4; border: 2px solid #86efac; }
+        .svc-card.sagemaker .svc-header .title { color: #15803d; }
+
+        /* ===== SLIDE 5: QuickSight + SageMaker ===== */
+        .slide-5 {
+            background: #ffffff; color: #232f3e; display: flex; flex-direction: column;
+        }
+        .slide-5 .header {
+            background: #232f3e; padding: 20px 80px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .slide-5 .header h2 { color: white; font-size: 24px; font-weight: 700; }
+        .slide-5 .header .badge { background: #ff9900; color: #232f3e; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+
+        /* ===== SLIDE 6: Bedrock AI Integration ===== */
+        .slide-6 {
+            background: linear-gradient(135deg, #232f3e 0%, #1a2332 100%);
+            color: white; display: flex; flex-direction: column;
+        }
+        .slide-6 .header-section { padding: 30px 80px 15px; }
+        .slide-6 .header-section h2 { font-size: 28px; font-weight: 700; color: #ff9900; }
+        .slide-6 .header-section p { font-size: 14px; color: #a0aec0; margin-top: 5px; }
+        .bedrock-layout { flex: 1; display: flex; flex-direction: column; padding: 10px 80px 15px; gap: 20px; }
+        .bedrock-center {
+            background: linear-gradient(135deg, #ff9900, #f59e0b);
+            border-radius: 16px; padding: 20px 30px; text-align: center;
+        }
+        .bedrock-center .bc-title { font-size: 22px; font-weight: 700; color: #232f3e; }
+        .bedrock-center .bc-sub { font-size: 13px; color: #451a03; margin-top: 4px; }
+        .bedrock-sources {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+        }
+        .bedrock-src {
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,153,0,0.3);
+            border-radius: 12px; padding: 18px; text-align: center;
+        }
+        .bedrock-src .bs-icon { font-size: 28px; margin-bottom: 8px; }
+        .bedrock-src .bs-name { font-size: 14px; font-weight: 700; color: #ff9900; }
+        .bedrock-src .bs-type { font-size: 11px; color: #a0aec0; margin-top: 2px; }
+        .bedrock-src .bs-how { font-size: 11px; color: #cbd5e0; margin-top: 8px; line-height: 1.4; }
+        .bedrock-src .bs-tag {
+            display: inline-block; margin-top: 8px; padding: 3px 10px;
+            border-radius: 8px; font-size: 10px; font-weight: 600;
+        }
+        .bs-tag.native { background: #065f46; color: #d1fae5; }
+        .bs-tag.direct { background: #1e40af; color: #dbeafe; }
+
+        /* ===== SLIDE: Multi-Vendor Architecture ===== */
+        .slide-multivendor {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white; display: flex; flex-direction: column;
+        }
+        .slide-multivendor .header-section { padding: 28px 80px 10px; }
+        .slide-multivendor .header-section h2 { font-size: 27px; font-weight: 700; color: #ff9900; }
+        .slide-multivendor .header-section p { font-size: 14px; color: #94a3b8; margin-top: 5px; }
+        .mv-layout { flex: 1; display: flex; flex-direction: column; padding: 8px 80px 10px; gap: 14px; }
+        .mv-foundation {
+            background: linear-gradient(135deg, #1e3a5f, #2563eb);
+            border: 2px solid #60a5fa; border-radius: 14px;
+            padding: 16px 24px; text-align: center;
+        }
+        .mv-foundation .mvf-title { font-size: 20px; font-weight: 700; color: white; }
+        .mv-foundation .mvf-sub { font-size: 12px; color: #bfdbfe; margin-top: 4px; }
+        .mv-arrow-row { text-align: center; font-size: 20px; color: #60a5fa; }
+        .mv-vendors { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .mv-vendor-card {
+            border-radius: 14px; padding: 20px; text-align: center;
+        }
+        .mv-vendor-card .mvc-icon { font-size: 32px; margin-bottom: 8px; }
+        .mv-vendor-card .mvc-name { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+        .mv-vendor-card .mvc-role { font-size: 12px; margin-bottom: 10px; opacity: 0.8; }
+        .mv-vendor-card .mvc-uses { list-style: none; text-align: left; }
+        .mv-vendor-card .mvc-uses li { font-size: 12px; padding: 3px 0 3px 18px; position: relative; }
+        .mv-vendor-card .mvc-uses li::before { content: "→"; position: absolute; left: 0; }
+        .mv-vendor-card.databricks-card { background: #1e1b2e; border: 2px solid #8b5cf6; }
+        .mv-vendor-card.databricks-card .mvc-name { color: #a78bfa; }
+        .mv-vendor-card.databricks-card .mvc-uses li { color: #c4b5fd; }
+        .mv-vendor-card.aws-card { background: #1a2332; border: 2px solid #ff9900; }
+        .mv-vendor-card.aws-card .mvc-name { color: #ff9900; }
+        .mv-vendor-card.aws-card .mvc-uses li { color: #fcd34d; }
+        .mv-vendor-card.palantir-card { background: #1a2320; border: 2px solid #22c55e; }
+        .mv-vendor-card.palantir-card .mvc-name { color: #4ade80; }
+        .mv-vendor-card.palantir-card .mvc-uses li { color: #86efac; }
+        .mv-key-msg {
+            background: rgba(255,153,0,0.1); border: 1px solid rgba(255,153,0,0.3);
+            border-radius: 10px; padding: 14px 20px; text-align: center;
+        }
+        .mv-key-msg .mkm-title { font-size: 15px; font-weight: 700; color: #ff9900; }
+        .mv-key-msg .mkm-body { font-size: 12px; color: #cbd5e0; margin-top: 4px; }
+
+        /* ===== SLIDE: Use Case Matrix ===== */
+        .slide-matrix {
+            background: #ffffff; color: #232f3e; display: flex; flex-direction: column;
+        }
+        .slide-matrix .header {
+            background: #232f3e; padding: 20px 80px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .slide-matrix .header h2 { color: white; font-size: 24px; font-weight: 700; }
+        .slide-matrix .header .badge { background: #ff9900; color: #232f3e; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .matrix-layout { flex: 1; padding: 20px 50px; overflow: hidden; }
+        .matrix-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .matrix-table th {
+            padding: 10px 12px; text-align: left; font-size: 12px;
+            text-transform: uppercase; letter-spacing: 1px; border-bottom: 3px solid #e2e8f0;
+        }
+        .matrix-table th.col-usecase { width: 22%; color: #475569; }
+        .matrix-table th.col-db { width: 20%; color: #7c3aed; background: #f5f3ff; }
+        .matrix-table th.col-aws { width: 22%; color: #b45309; background: #fffbeb; }
+        .matrix-table th.col-pal { width: 20%; color: #15803d; background: #f0fdf4; }
+        .matrix-table th.col-best { width: 16%; color: #1e40af; background: #eff6ff; }
+        .matrix-table td { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+        .matrix-table tr:nth-child(even) td { background: #fafafa; }
+        .matrix-table .uc-name { font-weight: 700; color: #1e293b; font-size: 13px; }
+        .matrix-table .uc-desc { font-size: 11px; color: #64748b; margin-top: 2px; }
+        .matrix-table .rating { font-size: 12px; }
+        .rating-best { color: #16a34a; font-weight: 700; }
+        .rating-good { color: #ca8a04; }
+        .rating-gap { color: #dc2626; font-size: 11px; }
+        .best-pick { font-weight: 700; font-size: 12px; border-radius: 6px; padding: 2px 8px; display: inline-block; }
+        .best-db { background: #ede9fe; color: #6d28d9; }
+        .best-aws { background: #fff7ed; color: #c2410c; }
+        .best-pal { background: #dcfce7; color: #15803d; }
+
+        /* ===== SLIDE 7: CTA / Summary ===== */
+        .slide-7 {
+            background: linear-gradient(135deg, #232f3e 0%, #0d1b2a 100%);
+            color: white; display: flex; flex-direction: column;
+        }
+        .slide-7 .header-section { padding: 35px 80px 15px; }
+        .slide-7 .header-section h2 { font-size: 30px; font-weight: 700; color: #ff9900; }
+        .slide-7 .header-section p { font-size: 15px; color: #a0aec0; margin-top: 5px; }
+        .summary-grid {
+            flex: 1; display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 20px; padding: 15px 80px 15px;
+        }
+        .sum-card {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,153,0,0.2);
+            border-radius: 14px; padding: 22px;
+        }
+        .sum-card .sc-icon { font-size: 30px; margin-bottom: 10px; }
+        .sum-card .sc-title { font-size: 16px; font-weight: 700; color: #ff9900; margin-bottom: 8px; }
+        .sum-card .sc-body { font-size: 13px; color: #cbd5e0; line-height: 1.6; }
+        .sum-card .sc-stat {
+            margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,153,0,0.15);
+            font-size: 12px; color: #ff9900; font-weight: 600;
+        }
+        .cta-bar {
+            background: #ff9900; padding: 20px 80px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .cta-bar .cta-text { font-size: 20px; font-weight: 700; color: #232f3e; }
+        .cta-bar .cta-sub { font-size: 13px; color: #232f3e; opacity: 0.8; }
+        .cta-bar .cta-action {
+            background: #232f3e; color: #ff9900; padding: 12px 28px;
+            border-radius: 8px; font-size: 15px; font-weight: 700; border: none; cursor: pointer;
+        }
+
+        @media print {
+            body { background: white; }
+            .slide { margin: 0; box-shadow: none; page-break-after: always; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==================== SLIDE 1: Title / Problem Statement ==================== -->
+<div class="slide slide-1">
+    <div class="top-bar"></div>
+    <div class="content">
+        <div class="left">
+            <h1>Break Free from Vendor Lock-In:<br>The AWS Analytics Advantage</h1>
+            <div class="subtitle">
+                Build on Amazon S3 as your open data lake. Access best-of-breed analytics, search, BI, ML, and generative AI services — all natively integrated, all pay-per-use.
+            </div>
+            <div class="tagline">
+                Keep Databricks for what it does well.<br>
+                Stop forcing everything through one vendor.<br>
+                Let AWS services work together natively.
+            </div>
+        </div>
+        <div class="right">
+            <div class="problem-box">
+                <div class="label">The Databricks-Only Problem</div>
+                <div class="problem-item">
+                    <span class="icon">✗</span>
+                    <span>All data imported into Databricks = expensive storage at premium rates</span>
+                </div>
+                <div class="problem-item">
+                    <span class="icon">✗</span>
+                    <span>AI/ML models purchased and maintained through Databricks marketplace</span>
+                </div>
+                <div class="problem-item">
+                    <span class="icon">✗</span>
+                    <span>No native connection to Amazon Bedrock, OpenSearch, QuickSight, or SageMaker</span>
+                </div>
+                <div class="problem-item">
+                    <span class="icon">✗</span>
+                    <span>Scaling data = scaling Databricks spend linearly (compute + storage)</span>
+                </div>
+                <div class="problem-item">
+                    <span class="icon">✗</span>
+                    <span>Separate identity, networking, billing, and support from your AWS environment</span>
+                </div>
+                <div class="problem-item">
+                    <span class="icon">✗</span>
+                    <span>Vendor lock-in: migrating away means rewriting pipelines, notebooks, and integrations</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bar">
+        <span class="aws-logo">Amazon Web Services</span>
+        <span>AWS Analytics Suite | Open Data Lake Strategy</span>
+    </div>
+</div>
+
+<!-- ==================== SLIDE 2: Lock-In vs Open Architecture ==================== -->
+<div class="slide slide-2">
+    <div class="header">
+        <h2>Vendor Lock-In vs. Open Data Lake Architecture</h2>
+        <span class="badge">SIDE BY SIDE</span>
+    </div>
+    <div class="comparison">
+        <div class="arch-column locked">
+            <div class="col-header">
+                <span class="col-title">Databricks-Only Approach</span>
+                <span class="col-verdict">Locked In</span>
+            </div>
+            <div class="arch-flow">
+                <div class="arch-box vendor">📥 Import ALL Data into Databricks</div>
+                <div class="arch-note bad">Premium storage rates, data duplication</div>
+                <div class="arch-arrow bad">↓</div>
+                <div class="arch-box vendor">⚙️ Databricks Compute for Everything</div>
+                <div class="arch-note bad">ETL, analytics, ML — all one vendor</div>
+                <div class="arch-arrow bad">↓</div>
+                <div class="arch-box vendor">🤖 Databricks AI/ML Marketplace</div>
+                <div class="arch-note bad">Models purchased through Databricks</div>
+                <div class="arch-arrow bad">↓</div>
+                <div class="arch-box vendor">📊 Databricks Dashboards</div>
+                <div class="arch-note bad">Limited BI, no embedded analytics</div>
+                <div class="arch-arrow bad">↓</div>
+                <div class="arch-box user">👤 End Users</div>
+                <div class="arch-note bad">Single vendor dependency for everything</div>
+            </div>
+        </div>
+        <div class="arch-column open">
+            <div class="col-header">
+                <span class="col-title">AWS Open Data Lake</span>
+                <span class="col-verdict">Open & Flexible</span>
+            </div>
+            <div class="arch-flow">
+                <div class="arch-box s3">🪣 Amazon S3 Data Lake (Open Formats)</div>
+                <div class="arch-note good">Lowest cost storage, open formats, infinite scale</div>
+                <div class="arch-arrow good">↓</div>
+                <div style="display:flex; gap:8px; width:100%;">
+                    <div class="arch-box aws-svc" style="flex:1; font-size:11px;">📊 Redshift<br><span style="font-weight:400;font-size:10px;">SQL Analytics</span></div>
+                    <div class="arch-box aws-svc" style="flex:1; font-size:11px;">🔍 OpenSearch<br><span style="font-weight:400;font-size:10px;">Search & RAG</span></div>
+                </div>
+                <div style="display:flex; gap:8px; width:100%;">
+                    <div class="arch-box aws-svc" style="flex:1; font-size:11px;">📈 QuickSight<br><span style="font-weight:400;font-size:10px;">BI & Dashboards</span></div>
+                    <div class="arch-box aws-svc" style="flex:1; font-size:11px;">🧪 SageMaker<br><span style="font-weight:400;font-size:10px;">ML Studio</span></div>
+                </div>
+                <div class="arch-arrow good">↓</div>
+                <div class="arch-box bedrock">🤖 Amazon Bedrock — Unified AI Layer</div>
+                <div class="arch-note good">All services feed into Bedrock natively</div>
+                <div class="arch-arrow good">↓</div>
+                <div class="arch-box user">👤 End Users</div>
+                <div class="arch-note good">Best tool for each job, one AWS bill</div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom-callout">
+        <span class="icon">💡</span>
+        <span class="text">
+            <span class="highlight">Co-existence strategy:</span>
+            Keep Databricks for Spark workloads and data engineering. Add AWS-native services for analytics, search, BI, and AI — all reading from the same S3 data lake.
+        </span>
+    </div>
+</div>
+
+<!-- ==================== SLIDE 3: S3 Data Lake Foundation ==================== -->
+<div class="slide slide-3">
+    <div class="top-bar"></div>
+    <div class="header-section">
+        <h2>Amazon S3: The Foundation That Changes Everything</h2>
+        <p>Store once in open formats. Query from any service. Scale without limits. Pay only for what you store.</p>
+    </div>
+    <div class="lake-layout">
+        <div class="lake-center">
+            <div class="lake-box">
+                <div class="lake-icon">🪣</div>
+                <div class="lake-title">Amazon S3 Data Lake + Apache Iceberg</div>
+                <div class="lake-sub">Open table format on S3. ACID transactions, time travel, schema evolution.<br>Your data is never locked in. Any engine reads it. $0.023/GB/month.</div>
+                <div class="lake-stats">
+                    <div class="lake-stat">
+                        <div class="num">90%</div>
+                        <div class="lbl">Cost Reduction</div>
+                    </div>
+                    <div class="lake-stat">
+                        <div class="num">∞</div>
+                        <div class="lbl">Scale</div>
+                    </div>
+                    <div class="lake-stat">
+                        <div class="num">0</div>
+                        <div class="lbl">Vendor Lock-In</div>
+                    </div>
+                    <div class="lake-stat">
+                        <div class="num">5+</div>
+                        <div class="lbl">AWS Services</div>
+                    </div>
+                </div>
+            </div>
+            <div class="services-ring">
+                <div class="svc-chip">
+                    <div class="svc-icon">📊</div>
+                    <div class="svc-name">Redshift</div>
+                    <div class="svc-role">SQL Analytics</div>
+                </div>
+                <div class="svc-chip">
+                    <div class="svc-icon">🔍</div>
+                    <div class="svc-name">OpenSearch</div>
+                    <div class="svc-role">Search & RAG</div>
+                </div>
+                <div class="svc-chip">
+                    <div class="svc-icon">📈</div>
+                    <div class="svc-name">QuickSight</div>
+                    <div class="svc-role">BI & Dashboards</div>
+                </div>
+                <div class="svc-chip">
+                    <div class="svc-icon">🧪</div>
+                    <div class="svc-name">SageMaker</div>
+                    <div class="svc-role">ML & AI Studio</div>
+                </div>
+                <div class="svc-chip">
+                    <div class="svc-icon">🤖</div>
+                    <div class="svc-name">Bedrock</div>
+                    <div class="svc-role">Generative AI</div>
+                </div>
+                <div class="svc-chip" style="border-color:rgba(96,165,250,0.6); background:rgba(59,130,246,0.15);">
+                    <div class="svc-icon">🧊</div>
+                    <div class="svc-name" style="color:#60a5fa;">Iceberg Tables</div>
+                    <div class="svc-role">Open Table Format</div>
+                </div>
+                <div class="svc-chip">
+                    <div class="svc-icon">�</div>
+                    <div class="svc-name">Glue</div>
+                    <div class="svc-role">Data Catalog</div>
+                </div>
+                <div class="svc-chip">
+                    <div class="svc-icon">�</div>
+                    <div class="svc-name">Lake Formation</div>
+                    <div class="svc-role">Governance</div>
+                </div>
+                <div class="svc-chip">
+                    <div class="svc-icon">🔄</div>
+                    <div class="svc-name">Athena</div>
+                    <div class="svc-role">Ad-hoc Query</div>
+                </div>
+            </div>
+        </div>
+        <div class="lake-side">
+            <div class="benefit-item">
+                <div class="bi-title">Cost at Scale</div>
+                <div class="bi-body">S3 storage: $0.023/GB/month. Databricks Delta Lake storage: $0.06+/GB/month plus compute. At petabyte scale, the gap is millions per year.</div>
+            </div>
+            <div class="benefit-item">
+                <div class="bi-title">Apache Iceberg: True Openness</div>
+                <div class="bi-body">Iceberg tables on S3 give you ACID transactions, time travel, and schema evolution — readable by Spark, Trino, Redshift, Athena, Flink, and Databricks itself. Your data goes everywhere.</div>
+            </div>
+            <div class="benefit-item">
+                <div class="bi-title">Decouple Storage from Compute</div>
+                <div class="bi-body">Scale storage and compute independently. Don't pay for idle compute just to keep data accessible. S3 is always on, always available.</div>
+            </div>
+            <div class="benefit-item">
+                <div class="bi-title">Native AWS Integration</div>
+                <div class="bi-body">Every AWS analytics service reads S3 natively. No connectors, no ETL, no data movement. One copy of data, many consumers.</div>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bar">
+        <span class="aws-logo">Amazon Web Services</span>
+        <span>S3 Data Lake | Store Once, Query from Anywhere</span>
+    </div>
+</div>
+
+<!-- ==================== SLIDE 4: Apache Iceberg - Open Table Format ==================== -->
+<div class="slide slide-iceberg">
+    <div class="top-bar"></div>
+    <div class="header-section">
+        <h2>Apache Iceberg on S3: Your Data Goes Everywhere</h2>
+        <p>Open table format means zero lock-in. Every major engine reads Iceberg natively — including Databricks itself.</p>
+    </div>
+    <div class="iceberg-layout">
+        <div class="iceberg-main">
+            <div class="iceberg-center-box">
+                <div class="ic-icon">🧊</div>
+                <div class="ic-title">Apache Iceberg Tables on Amazon S3</div>
+                <div class="ic-sub">ACID transactions · Time travel · Schema evolution · Partition evolution · Hidden partitioning<br>One copy of data in S3. Every engine reads it. No proprietary format. No conversion. No export.</div>
+            </div>
+            <div style="text-align:center; font-size:13px; color:#60a5fa; font-weight:600; letter-spacing:1px;">ENGINES THAT READ ICEBERG NATIVELY</div>
+            <div class="engine-grid">
+                <div class="engine-chip aws-native">
+                    <div class="ec-icon">📊</div>
+                    <div class="ec-name">Redshift</div>
+                    <div class="ec-how">Query Iceberg via Spectrum, zero-copy</div>
+                </div>
+                <div class="engine-chip aws-native">
+                    <div class="ec-icon">🔄</div>
+                    <div class="ec-name">Athena</div>
+                    <div class="ec-how">Serverless SQL on Iceberg tables</div>
+                </div>
+                <div class="engine-chip aws-native">
+                    <div class="ec-icon">⚡</div>
+                    <div class="ec-name">EMR / Spark</div>
+                    <div class="ec-how">Native Iceberg read/write at scale</div>
+                </div>
+                <div class="engine-chip aws-native">
+                    <div class="ec-icon">📋</div>
+                    <div class="ec-name">Glue</div>
+                    <div class="ec-how">Iceberg catalog + ETL jobs</div>
+                </div>
+                <div class="engine-chip">
+                    <div class="ec-icon">🔥</div>
+                    <div class="ec-name">Databricks</div>
+                    <div class="ec-how">Reads Iceberg via UniForm</div>
+                </div>
+                <div class="engine-chip">
+                    <div class="ec-icon">🔺</div>
+                    <div class="ec-name">Trino / Presto</div>
+                    <div class="ec-how">Full Iceberg connector</div>
+                </div>
+                <div class="engine-chip">
+                    <div class="ec-icon">❄️</div>
+                    <div class="ec-name">Snowflake</div>
+                    <div class="ec-how">External Iceberg table support</div>
+                </div>
+                <div class="engine-chip">
+                    <div class="ec-icon">🌊</div>
+                    <div class="ec-name">Flink</div>
+                    <div class="ec-how">Streaming read/write to Iceberg</div>
+                </div>
+            </div>
+            <div class="vs-delta">
+                <div class="vd-title">Iceberg vs. Databricks Delta Lake — Format Comparison</div>
+                <div style="display:flex; gap:8px; margin-bottom:8px;">
+                    <div class="vd-label"></div>
+                    <div class="vd-iceberg" style="color:#60a5fa;">Apache Iceberg</div>
+                    <div class="vd-delta" style="color:#fca5a5;">Delta Lake</div>
+                </div>
+                <div class="vd-row">
+                    <div class="vd-label">Governance</div>
+                    <div class="vd-iceberg">Apache Foundation (open)</div>
+                    <div class="vd-delta">Databricks (vendor-controlled)</div>
+                </div>
+                <div class="vd-row">
+                    <div class="vd-label">Engine support</div>
+                    <div class="vd-iceberg">Spark, Trino, Flink, Redshift, Athena, Snowflake, Presto</div>
+                    <div class="vd-delta">Best in Databricks; limited elsewhere</div>
+                </div>
+                <div class="vd-row">
+                    <div class="vd-label">AWS integration</div>
+                    <div class="vd-iceberg">First-class in Glue, Athena, Redshift, EMR</div>
+                    <div class="vd-delta">Requires Databricks runtime or UniForm</div>
+                </div>
+                <div class="vd-row">
+                    <div class="vd-label">Portability</div>
+                    <div class="vd-iceberg">Move data between engines freely</div>
+                    <div class="vd-delta">Tied to Databricks ecosystem</div>
+                </div>
+            </div>
+        </div>
+        <div class="iceberg-side">
+            <div class="iceberg-benefit">
+                <div class="ib-title">🔓 True Data Portability</div>
+                <div class="ib-body">Your data in Iceberg format on S3 can be read by any engine today and any engine tomorrow. No conversion, no export, no vendor permission needed.</div>
+            </div>
+            <div class="iceberg-benefit">
+                <div class="ib-title">⏪ Time Travel Queries</div>
+                <div class="ib-body">Query data as it existed at any point in time. Roll back bad writes. Audit historical state. Built into the format — no extra infrastructure.</div>
+            </div>
+            <div class="iceberg-benefit">
+                <div class="ib-title">📐 Schema Evolution</div>
+                <div class="ib-body">Add, rename, drop, or reorder columns without rewriting data. Consumers see changes automatically. No breaking downstream queries.</div>
+            </div>
+            <div class="iceberg-benefit">
+                <div class="ib-title">📊 Partition Evolution</div>
+                <div class="ib-body">Change partitioning strategy without rewriting existing data. Hidden partitioning means users write simple queries — Iceberg handles the rest.</div>
+            </div>
+            <div class="iceberg-benefit">
+                <div class="ib-title">💰 S3 Economics</div>
+                <div class="ib-body">Iceberg tables live on S3 at $0.023/GB. No proprietary storage layer. No compute charges just to keep data accessible. Scale to petabytes affordably.</div>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bar">
+        <span class="aws-logo">Amazon Web Services</span>
+        <span>Apache Iceberg on S3 | Open Format, Universal Access</span>
+    </div>
+</div>
+
+<!-- ==================== SLIDE 5: Redshift + OpenSearch Deep Dive ==================== -->
+<div class="slide slide-4">
+    <div class="header">
+        <h2>AWS Analytics Services: Redshift + OpenSearch</h2>
+        <span class="badge">DATA QUERY & SEARCH</span>
+    </div>
+    <div class="svc-grid">
+        <div class="svc-card redshift">
+            <div class="svc-header">
+                <span class="icon">📊</span>
+                <div>
+                    <div class="title">Amazon Redshift</div>
+                    <div class="sub">Serverless SQL Analytics & AI Query Layer</div>
+                </div>
+            </div>
+            <div class="desc">
+                The fastest cloud data warehouse with native Bedrock integration. Users ask questions in plain English — Bedrock generates SQL and queries live Redshift data in real time.
+            </div>
+            <ul class="features">
+                <li>Native Bedrock Knowledge Base structured data source</li>
+                <li>Serverless — pay per query, no cluster management</li>
+                <li>Zero-ETL from Aurora, DynamoDB, and S3</li>
+                <li>Queries S3 data lake directly via Redshift Spectrum</li>
+                <li>Federated queries across RDS, Aurora, S3 in one SQL</li>
+                <li>ML inference directly in SQL with Redshift ML</li>
+            </ul>
+            <div class="vs-databricks">
+                Databricks gap: No native Bedrock connection. Must ETL to S3, then Bedrock reads stale copies. No serverless SQL warehouse option with AI integration.
+            </div>
+        </div>
+        <div class="svc-card opensearch">
+            <div class="svc-header">
+                <span class="icon">🔍</span>
+                <div>
+                    <div class="title">Amazon OpenSearch</div>
+                    <div class="sub">Full-Text Search, Vector Search & RAG</div>
+                </div>
+            </div>
+            <div class="desc">
+                Enterprise search and vector database for RAG applications. Powers Bedrock Knowledge Bases for semantic search across millions of documents with sub-second response.
+            </div>
+            <ul class="features">
+                <li>Native Bedrock Knowledge Base vector store</li>
+                <li>Full-text search + vector (hybrid) search in one engine</li>
+                <li>Serverless option — scales to zero, pay per use</li>
+                <li>k-NN vector search for semantic similarity</li>
+                <li>Ingests directly from S3, Kinesis, DynamoDB</li>
+                <li>Dashboards built-in for log and search analytics</li>
+            </ul>
+            <div class="vs-databricks">
+                Databricks gap: No equivalent full-text + vector search engine. Must use third-party (Pinecone, Elastic) for RAG, adding cost and integration complexity.
+            </div>
+        </div>
+    </div>
+    <div class="bottom-callout">
+        <span class="icon">🔗</span>
+        <span class="text">
+            <span class="highlight">Together:</span>
+            Redshift handles structured data queries (SQL, analytics). OpenSearch handles unstructured search (documents, RAG). Both feed into Bedrock as native data sources.
+        </span>
+    </div>
+</div>
+
+<!-- ==================== SLIDE 5: QuickSight + SageMaker Deep Dive ==================== -->
+<div class="slide slide-5">
+    <div class="header">
+        <h2>AWS Analytics Services: QuickSight + SageMaker Unified Studio</h2>
+        <span class="badge">BI & MACHINE LEARNING</span>
+    </div>
+    <div class="svc-grid">
+        <div class="svc-card quicksight">
+            <div class="svc-header">
+                <span class="icon">📈</span>
+                <div>
+                    <div class="title">Amazon QuickSight</div>
+                    <div class="sub">Serverless BI with Generative AI (Q)</div>
+                </div>
+            </div>
+            <div class="desc">
+                Cloud-native BI with natural language querying (QuickSight Q). Embed interactive dashboards in any application. Pay per session — not per named user.
+            </div>
+            <ul class="features">
+                <li>QuickSight Q: ask questions in plain English, get charts</li>
+                <li>Connects natively to Redshift, S3, Athena, RDS</li>
+                <li>Embeddable dashboards in web apps and portals</li>
+                <li>Per-session pricing: $0.30/session vs. $70/user/month</li>
+                <li>SPICE in-memory engine for sub-second dashboards</li>
+                <li>Paginated reports for compliance and regulatory needs</li>
+            </ul>
+            <div class="vs-databricks">
+                Databricks gap: Databricks SQL dashboards are basic, not embeddable, and require Databricks compute. No per-session pricing — every viewer needs a Databricks license.
+            </div>
+        </div>
+        <div class="svc-card sagemaker">
+            <div class="svc-header">
+                <span class="icon">🧪</span>
+                <div>
+                    <div class="title">SageMaker Unified Studio</div>
+                    <div class="sub">End-to-End ML & AI Development Platform</div>
+                </div>
+            </div>
+            <div class="desc">
+                One IDE for data engineering, analytics, ML model development, and generative AI — all connected to your S3 data lake and Bedrock foundation models.
+            </div>
+            <ul class="features">
+                <li>Unified workspace: SQL, Python, Spark, and ML in one IDE</li>
+                <li>Native Bedrock integration for generative AI apps</li>
+                <li>Built-in MLOps: training, tuning, deployment, monitoring</li>
+                <li>Access S3, Redshift, Glue catalog from one interface</li>
+                <li>Fine-tune foundation models on your own data</li>
+                <li>Governed collaboration with Lake Formation permissions</li>
+            </ul>
+            <div class="vs-databricks">
+                Databricks gap: Databricks notebooks are powerful but siloed from AWS AI services. Models trained in Databricks can't natively deploy to Bedrock or integrate with QuickSight Q.
+            </div>
+        </div>
+    </div>
+    <div class="bottom-callout">
+        <span class="icon">🔗</span>
+        <span class="text">
+            <span class="highlight">Together:</span>
+            QuickSight delivers BI to every user at per-session cost. SageMaker Unified Studio gives data teams one IDE for analytics, ML, and generative AI — all on the same data lake.
+        </span>
+    </div>
+</div>
+
+<!-- ==================== SLIDE: Multi-Vendor Open Architecture ==================== -->
+<div class="slide slide-multivendor">
+    <div class="top-bar"></div>
+    <div class="header-section">
+        <h2>Open Data, Open Choice: Best Service for Every Use Case</h2>
+        <p>With Iceberg tables on S3, your data is accessible to every platform. No single vendor owns it. Pick the best tool for each job.</p>
+    </div>
+    <div class="mv-layout">
+        <div class="mv-foundation">
+            <div class="mvf-title">🧊 Apache Iceberg Tables on Amazon S3</div>
+            <div class="mvf-sub">One copy of data. Open format. ACID transactions. Readable by every platform below — simultaneously, without export or conversion.</div>
+        </div>
+        <div class="mv-arrow-row">↓ &nbsp;&nbsp; Same data, read by all &nbsp;&nbsp; ↓</div>
+        <div class="mv-vendors">
+            <div class="mv-vendor-card databricks-card">
+                <div class="mvc-icon">🔥</div>
+                <div class="mvc-name">Databricks</div>
+                <div class="mvc-role">Data Engineering & Spark Workloads</div>
+                <ul class="mvc-uses">
+                    <li>Large-scale Spark ETL and data pipelines</li>
+                    <li>Complex data transformations</li>
+                    <li>Data science notebooks (Python/Scala)</li>
+                    <li>Delta-to-Iceberg via UniForm</li>
+                    <li>Existing Spark workloads (no migration)</li>
+                </ul>
+            </div>
+            <div class="mv-vendor-card aws-card">
+                <div class="mvc-icon">☁️</div>
+                <div class="mvc-name">AWS Analytics Suite</div>
+                <div class="mvc-role">AI, Search, BI & Real-Time Analytics</div>
+                <ul class="mvc-uses">
+                    <li>Redshift: SQL analytics + Bedrock AI queries</li>
+                    <li>OpenSearch: Full-text search + RAG</li>
+                    <li>QuickSight: Embedded BI dashboards</li>
+                    <li>SageMaker: ML model training + deployment</li>
+                    <li>Bedrock: Generative AI across all data</li>
+                    <li>Athena: Ad-hoc serverless SQL on Iceberg</li>
+                </ul>
+            </div>
+            <div class="mv-vendor-card palantir-card">
+                <div class="mvc-icon">🛡️</div>
+                <div class="mvc-name">Palantir Foundry</div>
+                <div class="mvc-role">Operational Intelligence & Decision Support</div>
+                <ul class="mvc-uses">
+                    <li>Ontology-based operational applications</li>
+                    <li>Cross-domain data fusion and linking</li>
+                    <li>Mission-critical decision workflows</li>
+                    <li>Reads Iceberg tables from S3 directly</li>
+                    <li>Deploys on AWS (GovCloud compatible)</li>
+                </ul>
+            </div>
+        </div>
+        <div class="mv-key-msg">
+            <div class="mkm-title">The data stays in S3. The format stays open. The choice stays yours.</div>
+            <div class="mkm-body">No vendor can hold your data hostage. Add or remove platforms without data migration. Iceberg on S3 is the universal foundation.</div>
+        </div>
+    </div>
+    <div class="footer-bar">
+        <span class="aws-logo">Amazon Web Services</span>
+        <span>Open Data Architecture | Databricks + AWS + Palantir on Iceberg</span>
+    </div>
+</div>
+
+<!-- ==================== SLIDE: Use Case Alignment Matrix ==================== -->
+<div class="slide slide-matrix">
+    <div class="header">
+        <h2>Use Case Alignment: Best Platform for Each Workload</h2>
+        <span class="badge">MAY THE BEST SERVICE WIN</span>
+    </div>
+    <div class="matrix-layout">
+        <table class="matrix-table">
+            <thead>
+                <tr>
+                    <th class="col-usecase">Use Case</th>
+                    <th class="col-db">Databricks</th>
+                    <th class="col-aws">AWS Analytics</th>
+                    <th class="col-pal">Palantir Foundry</th>
+                    <th class="col-best">Best Fit</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><div class="uc-name">Large-Scale ETL / Spark</div><div class="uc-desc">Petabyte data transformations, complex pipelines</div></td>
+                    <td class="rating rating-best">✓ Native Spark, Delta Live Tables</td>
+                    <td class="rating rating-good">EMR/Glue Spark, but less notebook UX</td>
+                    <td class="rating rating-gap">Not designed for heavy ETL</td>
+                    <td><span class="best-pick best-db">Databricks</span></td>
+                </tr>
+                <tr>
+                    <td><div class="uc-name">Generative AI / RAG</div><div class="uc-desc">Natural language queries, document search, chatbots</div></td>
+                    <td class="rating rating-gap">No native Bedrock; must use Databricks models</td>
+                    <td class="rating rating-best">✓ Bedrock + OpenSearch + Redshift native</td>
+                    <td class="rating rating-good">AIP for operational AI, not general RAG</td>
+                    <td><span class="best-pick best-aws">AWS (Bedrock)</span></td>
+                </tr>
+                <tr>
+                    <td><div class="uc-name">SQL Analytics / Data Warehouse</div><div class="uc-desc">Ad-hoc queries, reporting, structured data analysis</div></td>
+                    <td class="rating rating-good">Databricks SQL, but requires cluster compute</td>
+                    <td class="rating rating-best">✓ Redshift Serverless, pay-per-query</td>
+                    <td class="rating rating-gap">Not a SQL analytics platform</td>
+                    <td><span class="best-pick best-aws">AWS (Redshift)</span></td>
+                </tr>
+                <tr>
+                    <td><div class="uc-name">Business Intelligence</div><div class="uc-desc">Dashboards, embedded analytics, executive reporting</div></td>
+                    <td class="rating rating-gap">Basic dashboards, not embeddable, per-user pricing</td>
+                    <td class="rating rating-best">✓ QuickSight: embeddable, per-session, Q natural language</td>
+                    <td class="rating rating-good">Operational dashboards in Foundry apps</td>
+                    <td><span class="best-pick best-aws">AWS (QuickSight)</span></td>
+                </tr>
+                <tr>
+                    <td><div class="uc-name">Full-Text & Semantic Search</div><div class="uc-desc">Document search, vector search, hybrid retrieval</div></td>
+                    <td class="rating rating-gap">No search engine; requires third-party</td>
+                    <td class="rating rating-best">✓ OpenSearch: full-text + vector + serverless</td>
+                    <td class="rating rating-good">Object search within Foundry ontology</td>
+                    <td><span class="best-pick best-aws">AWS (OpenSearch)</span></td>
+                </tr>
+                <tr>
+                    <td><div class="uc-name">ML Model Training & MLOps</div><div class="uc-desc">Custom model development, fine-tuning, deployment</div></td>
+                    <td class="rating rating-best">✓ MLflow, Feature Store, model serving</td>
+                    <td class="rating rating-best">✓ SageMaker Unified Studio, Bedrock fine-tuning</td>
+                    <td class="rating rating-good">Palantir AIP for operational ML</td>
+                    <td><span class="best-pick best-db">Databricks</span> / <span class="best-pick best-aws">SageMaker</span></td>
+                </tr>
+                <tr>
+                    <td><div class="uc-name">Operational Decision Support</div><div class="uc-desc">Mission workflows, cross-domain fusion, ontology apps</div></td>
+                    <td class="rating rating-gap">Not designed for operational workflows</td>
+                    <td class="rating rating-good">Step Functions + custom apps</td>
+                    <td class="rating rating-best">✓ Foundry ontology, AIP, decision workflows</td>
+                    <td><span class="best-pick best-pal">Palantir</span></td>
+                </tr>
+                <tr>
+                    <td><div class="uc-name">Data Science Notebooks</div><div class="uc-desc">Interactive Python/R/Scala exploration</div></td>
+                    <td class="rating rating-best">✓ Collaborative notebooks, great UX</td>
+                    <td class="rating rating-best">✓ SageMaker Studio notebooks</td>
+                    <td class="rating rating-good">Code Workbook in Foundry</td>
+                    <td><span class="best-pick best-db">Databricks</span> / <span class="best-pick best-aws">SageMaker</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="bottom-callout">
+        <span class="icon">🧊</span>
+        <span class="text">
+            <span class="highlight">The Iceberg advantage:</span>
+            All three platforms read the same Iceberg tables on S3. No data duplication. No export pipelines. Align the best service to each use case — and change your mind later without migration.
+        </span>
+    </div>
+</div>
+
+<!-- ==================== SLIDE: Bedrock as Unified AI Layer ==================== -->
+<div class="slide slide-6">
+    <div class="top-bar"></div>
+    <div class="header-section">
+        <h2>Amazon Bedrock: The AI Layer That Ties It All Together</h2>
+        <p>Every AWS analytics service feeds into Bedrock natively — one AI layer for structured, unstructured, and real-time data</p>
+    </div>
+    <div class="bedrock-layout">
+        <div class="bedrock-center">
+            <div class="bc-title">Amazon Bedrock Knowledge Bases</div>
+            <div class="bc-sub">Natural language interface to ALL your data — structured and unstructured — through one unified API</div>
+        </div>
+        <div class="bedrock-sources">
+            <div class="bedrock-src">
+                <div class="bs-icon">📊</div>
+                <div class="bs-name">Redshift</div>
+                <div class="bs-type">Structured Data</div>
+                <div class="bs-how">Bedrock generates SQL, queries live tables. Real-time answers from production data. Zero ETL.</div>
+                <div class="bs-tag native">NATIVE SOURCE</div>
+            </div>
+            <div class="bedrock-src">
+                <div class="bs-icon">🔍</div>
+                <div class="bs-name">OpenSearch</div>
+                <div class="bs-type">Vector Store / RAG</div>
+                <div class="bs-how">Semantic search across millions of documents. Vector embeddings for retrieval-augmented generation.</div>
+                <div class="bs-tag native">NATIVE SOURCE</div>
+            </div>
+            <div class="bedrock-src">
+                <div class="bs-icon">🪣</div>
+                <div class="bs-name">S3 Data Lake</div>
+                <div class="bs-type">Documents & Files</div>
+                <div class="bs-how">PDFs, images, CSVs ingested directly. Auto-chunked, embedded, and indexed for retrieval.</div>
+                <div class="bs-tag native">NATIVE SOURCE</div>
+            </div>
+            <div class="bedrock-src">
+                <div class="bs-icon">🧪</div>
+                <div class="bs-name">SageMaker</div>
+                <div class="bs-type">Custom Models</div>
+                <div class="bs-how">Fine-tuned models deployed as Bedrock endpoints. Custom ML inference alongside foundation models.</div>
+                <div class="bs-tag direct">DIRECT INTEGRATION</div>
+            </div>
+        </div>
+        <div style="display:flex; gap:20px; margin-top:10px;">
+            <div style="flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,153,0,0.2); border-radius:12px; padding:16px;">
+                <div style="font-size:14px; font-weight:700; color:#ff9900; margin-bottom:6px;">🚫 What Databricks Can't Do</div>
+                <div style="font-size:12px; color:#cbd5e0; line-height:1.6;">
+                    No native Bedrock connection. Must export data to S3, then Bedrock reads stale copies. AI models purchased through Databricks marketplace — not Bedrock foundation models. No unified AI layer across structured + unstructured data.
+                </div>
+            </div>
+            <div style="flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,153,0,0.2); border-radius:12px; padding:16px;">
+                <div style="font-size:14px; font-weight:700; color:#ff9900; margin-bottom:6px;">✅ What AWS Delivers</div>
+                <div style="font-size:12px; color:#cbd5e0; line-height:1.6;">
+                    One Bedrock Knowledge Base queries Redshift (structured), OpenSearch (vectors), and S3 (documents) simultaneously. Users ask one question, get answers from all data sources. One API, one bill, one security model.
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bar">
+        <span class="aws-logo">Amazon Web Services</span>
+        <span>Amazon Bedrock | Unified AI Across All Data Sources</span>
+    </div>
+</div>
+
+<!-- ==================== SLIDE: Databricks-Only Architecture (Customer's Current State) ==================== -->
+<div class="slide slide-multivendor" style="background: linear-gradient(135deg, #1a1625 0%, #2d2240 100%);">
+    <div class="top-bar" style="background:#8b5cf6;"></div>
+    <div class="header-section" style="padding:24px 80px 8px;">
+        <h2 style="color:#a78bfa; font-size:25px;">Current State: Databricks-Only Architecture</h2>
+        <p style="font-size:13px;">All data flows through one vendor — creating cost, scale, governance, and AI limitations</p>
+    </div>
+    <div style="flex:1; padding:8px 60px 8px; display:flex; flex-direction:column; gap:10px;">
+        <!-- Flow diagram -->
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="text-align:center; font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; width:120px;">Data Sources</div>
+            <div style="width:20px;"></div>
+            <div style="text-align:center; font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; flex:1;">Data Movement</div>
+            <div style="text-align:center; font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; flex:1;">Data Lake / Governance</div>
+            <div style="text-align:center; font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; flex:1;">Data Warehouse</div>
+            <div style="text-align:center; font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; flex:1;">AI</div>
+            <div style="text-align:center; font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; flex:0.8;">BI</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="width:120px; display:flex; flex-direction:column; gap:6px;">
+                <div style="background:#334155; border:1px solid #64748b; border-radius:8px; padding:10px; text-align:center; font-size:12px; color:#e2e8f0; font-weight:600;">Postgres<br><span style="font-size:10px; color:#94a3b8;">AWS RDS</span></div>
+                <div style="background:#334155; border:1px solid #64748b; border-radius:8px; padding:10px; text-align:center; font-size:12px; color:#e2e8f0; font-weight:600;">Oracle<br><span style="font-size:10px; color:#94a3b8;">On-Prem</span></div>
+                <div style="background:#334155; border:1px solid #64748b; border-radius:8px; padding:10px; text-align:center; font-size:12px; color:#e2e8f0; font-weight:600;">Other<br><span style="font-size:10px; color:#94a3b8;">Sources</span></div>
+            </div>
+            <div style="font-size:24px; color:#8b5cf6;">→</div>
+            <div style="flex:1; background:#1e1b2e; border:2px solid #8b5cf6; border-radius:12px; padding:14px; text-align:center;">
+                <div style="font-size:14px; font-weight:700; color:#a78bfa;">Glue / Informatica</div>
+                <div style="font-size:11px; color:#c4b5fd; margin-top:4px;">ETL to S3</div>
+            </div>
+            <div style="font-size:24px; color:#8b5cf6;">→</div>
+            <div style="flex:1; background:#1e3a5f; border:2px solid #3b82f6; border-radius:12px; padding:14px; text-align:center;">
+                <div style="font-size:14px; font-weight:700; color:#60a5fa;">Data Lake S3</div>
+                <div style="font-size:11px; color:#93c5fd; margin-top:4px;">Databricks Catalog</div>
+            </div>
+            <div style="font-size:24px; color:#8b5cf6;">→</div>
+            <div style="flex:1; background:#1e1b2e; border:2px solid #8b5cf6; border-radius:12px; padding:14px; text-align:center;">
+                <div style="font-size:14px; font-weight:700; color:#a78bfa;">Databricks</div>
+                <div style="font-size:11px; color:#c4b5fd; margin-top:4px;">Delta / Proton Query</div>
+            </div>
+            <div style="font-size:24px; color:#8b5cf6;">→</div>
+            <div style="flex:1; background:#1e1b2e; border:2px solid #8b5cf6; border-radius:12px; padding:14px; text-align:center;">
+                <div style="font-size:14px; font-weight:700; color:#a78bfa;">Databricks AI?</div>
+                <div style="font-size:11px; color:#c4b5fd; margin-top:4px;">Limited models</div>
+            </div>
+            <div style="font-size:24px; color:#8b5cf6;">→</div>
+            <div style="flex:0.8; background:#1e1b2e; border:2px solid #8b5cf6; border-radius:12px; padding:14px; text-align:center;">
+                <div style="font-size:13px; font-weight:700; color:#a78bfa;">BI Layer</div>
+                <div style="font-size:10px; color:#c4b5fd; margin-top:4px;">QuickSight?<br>Tableau? PBI?</div>
+            </div>
+        </div>
+        <!-- Problem callouts -->
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-top:6px;">
+            <div style="background:rgba(252,165,165,0.1); border:1px solid rgba(252,165,165,0.3); border-radius:10px; padding:12px;">
+                <div style="font-size:11px; font-weight:700; color:#fca5a5; margin-bottom:4px;">⚠ Near Real-Time Gap</div>
+                <div style="font-size:10px; color:#fecaca; line-height:1.5;">Dumping to S3 is not real time. Near real-time use cases are not supported. ETL latency = stale data for analytics.</div>
+            </div>
+            <div style="background:rgba(252,165,165,0.1); border:1px solid rgba(252,165,165,0.3); border-radius:10px; padding:12px;">
+                <div style="font-size:11px; font-weight:700; color:#fca5a5; margin-bottom:4px;">⚠ Governance Lock-In</div>
+                <div style="font-size:10px; color:#fecaca; line-height:1.5;">Data governance done entirely through Databricks catalog. Vendor lock-in for access control and security. Is this the best choice?</div>
+            </div>
+            <div style="background:rgba(252,165,165,0.1); border:1px solid rgba(252,165,165,0.3); border-radius:10px; padding:12px;">
+                <div style="font-size:11px; font-weight:700; color:#fca5a5; margin-bottom:4px;">⚠ AI Model Limitations</div>
+                <div style="font-size:10px; color:#fecaca; line-height:1.5;">Not all models available in Databricks. Limits use-case-driven AI solutions. Bedrock has more models at better prices. Some use cases better in Palantir, Snowflake, or AWS.</div>
+            </div>
+            <div style="background:rgba(252,165,165,0.1); border:1px solid rgba(252,165,165,0.3); border-radius:10px; padding:12px;">
+                <div style="font-size:11px; font-weight:700; color:#fca5a5; margin-bottom:4px;">⚠ Cost & Scale Challenges</div>
+                <div style="font-size:10px; color:#fecaca; line-height:1.5;">Loading all data into Databricks is costly and has had scaling challenges. BI tool integrations uncertain — will connectors be maintained?</div>
+            </div>
+        </div>
+        <div style="background:rgba(252,165,165,0.08); border:1px solid rgba(252,165,165,0.25); border-radius:10px; padding:12px 20px; text-align:center;">
+            <span style="font-size:14px; font-weight:700; color:#fca5a5;">Core Question: </span>
+            <span style="font-size:13px; color:#fecaca;">Should one vendor own your data movement, governance, warehousing, AI, and BI? What happens when a better tool emerges for a specific use case?</span>
+        </div>
+    </div>
+    <div class="footer-bar">
+        <span class="aws-logo" style="color:#8b5cf6;">Current Architecture</span>
+        <span>Databricks-Only | Single Vendor Dependency</span>
+    </div>
+</div>
+
+<!-- ==================== SLIDE: Open Architecture with Iceberg (Best Service for Each Use Case) ==================== -->
+<div class="slide slide-multivendor">
+    <div class="top-bar"></div>
+    <div class="header-section" style="padding:24px 80px 6px;">
+        <h2 style="font-size:24px;">Open Architecture: Iceberg Tables + Best Service for Each Use Case</h2>
+        <p style="font-size:12px;">zETL from Postgres/Oracle → Redshift Tables → Iceberg on S3. Every engine reads the same data. May the best service win.</p>
+    </div>
+    <div style="flex:1; padding:6px 60px 6px; display:flex; flex-direction:column; gap:8px;">
+        <!-- Flow diagram -->
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="text-align:center; font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; width:110px;">Data Sources</div>
+            <div style="width:16px;"></div>
+            <div style="text-align:center; font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; width:80px;">zETL</div>
+            <div style="width:16px;"></div>
+            <div style="text-align:center; font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; flex:1;">Redshift + Iceberg on S3</div>
+            <div style="text-align:center; font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; flex:1.5;">Data Warehouse / Analytics</div>
+            <div style="text-align:center; font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; flex:1;">AI Layer</div>
+            <div style="text-align:center; font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; flex:0.7;">BI</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="width:110px; display:flex; flex-direction:column; gap:5px;">
+                <div style="background:rgba(255,255,255,0.06); border:1px solid #64748b; border-radius:8px; padding:8px; text-align:center; font-size:11px; color:#e2e8f0; font-weight:600;">Postgres<br><span style="font-size:9px; color:#94a3b8;">AWS RDS</span></div>
+                <div style="background:rgba(255,255,255,0.06); border:1px solid #64748b; border-radius:8px; padding:8px; text-align:center; font-size:11px; color:#e2e8f0; font-weight:600;">Oracle<br><span style="font-size:9px; color:#94a3b8;">On-Prem</span></div>
+                <div style="background:rgba(255,255,255,0.06); border:1px solid #64748b; border-radius:8px; padding:8px; text-align:center; font-size:11px; color:#e2e8f0; font-weight:600;">Other<br><span style="font-size:9px; color:#94a3b8;">Sources</span></div>
+            </div>
+            <div style="font-size:22px; color:#ff9900;">→</div>
+            <div style="width:80px; background:rgba(255,153,0,0.15); border:2px solid #ff9900; border-radius:10px; padding:10px 6px; text-align:center;">
+                <div style="font-size:13px; font-weight:700; color:#ff9900;">zETL</div>
+                <div style="font-size:9px; color:#fcd34d; margin-top:3px;">Near real-time</div>
+            </div>
+            <div style="font-size:22px; color:#ff9900;">→</div>
+            <div style="flex:1; display:flex; flex-direction:column; gap:5px;">
+                <div style="background:rgba(37,99,235,0.2); border:2px solid #3b82f6; border-radius:10px; padding:10px; text-align:center;">
+                    <div style="font-size:13px; font-weight:700; color:#60a5fa;">Redshift Tables</div>
+                    <div style="font-size:9px; color:#93c5fd;">Live query + auto-publish</div>
+                </div>
+                <div style="text-align:center; font-size:14px; color:#60a5fa;">↓</div>
+                <div style="background:linear-gradient(135deg, rgba(37,99,235,0.15), rgba(96,165,250,0.15)); border:2px solid #60a5fa; border-radius:10px; padding:10px; text-align:center;">
+                    <div style="font-size:14px; font-weight:700; color:#60a5fa;">🧊 Iceberg Tables on S3</div>
+                    <div style="font-size:9px; color:#93c5fd;">Open format · Any engine reads</div>
+                </div>
+            </div>
+            <div style="font-size:22px; color:#16a34a;">→</div>
+            <div style="flex:1.5; display:flex; flex-direction:column; gap:5px;">
+                <div style="display:flex; gap:5px;">
+                    <div style="flex:1; background:#1e1b2e; border:1.5px solid #8b5cf6; border-radius:8px; padding:8px; text-align:center;">
+                        <div style="font-size:11px; font-weight:700; color:#a78bfa;">Databricks</div>
+                        <div style="font-size:9px; color:#c4b5fd;">Spark / ML</div>
+                    </div>
+                    <div style="flex:1; background:#0f2318; border:1.5px solid #22c55e; border-radius:8px; padding:8px; text-align:center;">
+                        <div style="font-size:11px; font-weight:700; color:#4ade80;">Palantir</div>
+                        <div style="font-size:9px; color:#86efac;">Foundry / AIP</div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:5px;">
+                    <div style="flex:1; background:rgba(255,153,0,0.1); border:1.5px solid #ff9900; border-radius:8px; padding:8px; text-align:center;">
+                        <div style="font-size:11px; font-weight:700; color:#ff9900;">Redshift</div>
+                        <div style="font-size:9px; color:#fcd34d;">SQL Analytics</div>
+                    </div>
+                    <div style="flex:1; background:rgba(255,255,255,0.04); border:1.5px solid #64748b; border-radius:8px; padding:8px; text-align:center;">
+                        <div style="font-size:11px; font-weight:700; color:#e2e8f0;">Snowflake</div>
+                        <div style="font-size:9px; color:#94a3b8;">If needed</div>
+                    </div>
+                </div>
+                <div style="background:rgba(255,153,0,0.1); border:1.5px solid #ff9900; border-radius:8px; padding:6px; text-align:center;">
+                    <div style="font-size:10px; font-weight:700; color:#ff9900;">SageMaker Unified Studio</div>
+                </div>
+            </div>
+            <div style="font-size:22px; color:#16a34a;">→</div>
+            <div style="flex:1; display:flex; flex-direction:column; gap:5px;">
+                <div style="background:rgba(255,153,0,0.15); border:1.5px solid #ff9900; border-radius:8px; padding:8px; text-align:center;">
+                    <div style="font-size:11px; font-weight:700; color:#ff9900;">Bedrock</div>
+                    <div style="font-size:9px; color:#fcd34d;">GenAI / RAG</div>
+                </div>
+                <div style="background:rgba(255,153,0,0.1); border:1.5px solid #ff9900; border-radius:8px; padding:8px; text-align:center;">
+                    <div style="font-size:11px; font-weight:700; color:#ff9900;">SageMaker</div>
+                    <div style="font-size:9px; color:#fcd34d;">Custom ML</div>
+                </div>
+                <div style="background:#0f2318; border:1.5px solid #22c55e; border-radius:8px; padding:8px; text-align:center;">
+                    <div style="font-size:11px; font-weight:700; color:#4ade80;">Palantir AIP</div>
+                    <div style="font-size:9px; color:#86efac;">Ontology AI</div>
+                </div>
+                <div style="background:#1e1b2e; border:1.5px solid #8b5cf6; border-radius:8px; padding:8px; text-align:center;">
+                    <div style="font-size:11px; font-weight:700; color:#a78bfa;">Databricks AI</div>
+                    <div style="font-size:9px; color:#c4b5fd;">If best fit</div>
+                </div>
+            </div>
+            <div style="font-size:22px; color:#16a34a;">→</div>
+            <div style="flex:0.7; display:flex; flex-direction:column; gap:5px;">
+                <div style="background:rgba(255,153,0,0.1); border:1.5px solid #ff9900; border-radius:8px; padding:8px; text-align:center;">
+                    <div style="font-size:11px; font-weight:700; color:#ff9900;">QuickSight</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.04); border:1.5px solid #64748b; border-radius:8px; padding:8px; text-align:center;">
+                    <div style="font-size:11px; font-weight:700; color:#e2e8f0;">Tableau</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.04); border:1.5px solid #64748b; border-radius:8px; padding:8px; text-align:center;">
+                    <div style="font-size:11px; font-weight:700; color:#e2e8f0;">Power BI</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.04); border:1.5px solid #64748b; border-radius:8px; padding:8px; text-align:center;">
+                    <div style="font-size:11px; font-weight:700; color:#e2e8f0;">MicroStrategy</div>
+                </div>
+            </div>
+        </div>
+        <!-- Why this is better -->
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-top:4px;">
+            <div style="background:rgba(134,239,172,0.08); border:1px solid rgba(134,239,172,0.3); border-radius:10px; padding:11px;">
+                <div style="font-size:11px; font-weight:700; color:#86efac; margin-bottom:3px;">✓ Near Real-Time with zETL</div>
+                <div style="font-size:10px; color:#d1fae5; line-height:1.4;">Postgres/Oracle connectors create Iceberg tables via zero-ETL through Redshift. Near real-time data availability — no batch dump to S3.</div>
+            </div>
+            <div style="background:rgba(134,239,172,0.08); border:1px solid rgba(134,239,172,0.3); border-radius:10px; padding:11px;">
+                <div style="font-size:11px; font-weight:700; color:#86efac; margin-bottom:3px;">✓ Best AI Tool for Each Use Case</div>
+                <div style="font-size:10px; color:#d1fae5; line-height:1.4;">Databricks ML for some use cases. Bedrock for GenAI. Palantir AIP for ontology-driven AI. SageMaker for custom models. Pick the best tool — data is open to all.</div>
+            </div>
+            <div style="background:rgba(134,239,172,0.08); border:1px solid rgba(134,239,172,0.3); border-radius:10px; padding:11px;">
+                <div style="font-size:11px; font-weight:700; color:#86efac; margin-bottom:3px;">✓ Open Governance + BI Freedom</div>
+                <div style="font-size:10px; color:#d1fae5; line-height:1.4;">Lake Formation for governance instead of Databricks catalog lock-in. Any BI tool connects to Iceberg — QuickSight, Tableau, Power BI, MicroStrategy. No connector risk.</div>
+            </div>
+        </div>
+        <div style="background:rgba(255,153,0,0.1); border:1px solid rgba(255,153,0,0.3); border-radius:10px; padding:10px 20px; text-align:center;">
+            <span style="font-size:13px; font-weight:700; color:#ff9900;">Key Principle: </span>
+            <span style="font-size:12px; color:#fcd34d;">Iceberg tables on S3 make your data open to every engine. Databricks, Palantir, Redshift, Snowflake, SageMaker — they all read the same tables. May the best service be aligned to the appropriate use case.</span>
+        </div>
+    </div>
+    <div class="footer-bar">
+        <span class="aws-logo">Amazon Web Services</span>
+        <span>Open Architecture | Iceberg + zETL + Best Service Per Use Case</span>
+    </div>
+</div>
+
+<!-- ==================== SLIDE: AWS Benefits at Each Step ==================== -->
+<div class="slide slide-multivendor" style="background: linear-gradient(135deg, #0a1628 0%, #132238 100%);">
+    <div class="top-bar"></div>
+    <div class="header-section" style="padding:22px 80px 6px;">
+        <h2 style="font-size:24px;">AWS Solves Every Problem in the Pipeline</h2>
+        <p style="font-size:12px;">Same architecture flow — but with an AWS benefit replacing each Databricks-only problem</p>
+    </div>
+    <div style="flex:1; padding:4px 50px 4px; display:flex; flex-direction:column; gap:6px;">
+        <!-- Column headers -->
+        <div style="display:flex; align-items:center; gap:6px;">
+            <div style="width:110px; text-align:center; font-size:9px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px;">Data Sources</div>
+            <div style="width:16px;"></div>
+            <div style="flex:1; text-align:center; font-size:9px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px;">Data Movement</div>
+            <div style="width:16px;"></div>
+            <div style="flex:1; text-align:center; font-size:9px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px;">Data Lake / Governance</div>
+            <div style="width:16px;"></div>
+            <div style="flex:1; text-align:center; font-size:9px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px;">Data Warehouse</div>
+            <div style="width:16px;"></div>
+            <div style="flex:1; text-align:center; font-size:9px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px;">AI</div>
+            <div style="width:16px;"></div>
+            <div style="flex:0.7; text-align:center; font-size:9px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px;">BI</div>
+        </div>
+        <!-- Flow boxes -->
+        <div style="display:flex; align-items:center; gap:6px;">
+            <div style="width:110px; display:flex; flex-direction:column; gap:4px;">
+                <div style="background:rgba(255,255,255,0.06); border:1px solid #64748b; border-radius:7px; padding:8px; text-align:center; font-size:11px; color:#e2e8f0; font-weight:600;">Postgres<br><span style="font-size:9px; color:#94a3b8;">AWS RDS</span></div>
+                <div style="background:rgba(255,255,255,0.06); border:1px solid #64748b; border-radius:7px; padding:8px; text-align:center; font-size:11px; color:#e2e8f0; font-weight:600;">Oracle<br><span style="font-size:9px; color:#94a3b8;">On-Prem</span></div>
+                <div style="background:rgba(255,255,255,0.06); border:1px solid #64748b; border-radius:7px; padding:8px; text-align:center; font-size:11px; color:#e2e8f0; font-weight:600;">Other<br><span style="font-size:9px; color:#94a3b8;">Sources</span></div>
+            </div>
+            <div style="font-size:22px; color:#ff9900;">→</div>
+            <div style="flex:1; background:rgba(255,153,0,0.12); border:2px solid #ff9900; border-radius:10px; padding:12px; text-align:center;">
+                <div style="font-size:15px; font-weight:700; color:#ff9900;">Redshift zETL</div>
+                <div style="font-size:10px; color:#fcd34d; margin-top:3px;">Zero-ETL connectors</div>
+            </div>
+            <div style="font-size:22px; color:#ff9900;">→</div>
+            <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                <div style="background:linear-gradient(135deg, rgba(37,99,235,0.2), rgba(96,165,250,0.2)); border:2px solid #60a5fa; border-radius:10px; padding:10px; text-align:center;">
+                    <div style="font-size:14px; font-weight:700; color:#60a5fa;">🧊 Iceberg on S3</div>
+                    <div style="font-size:9px; color:#93c5fd;">Open format · Lake Formation</div>
+                </div>
+                <div style="background:rgba(255,153,0,0.08); border:1.5px solid rgba(255,153,0,0.4); border-radius:8px; padding:6px; text-align:center;">
+                    <div style="font-size:10px; font-weight:600; color:#ff9900;">Glue Data Catalog</div>
+                </div>
+            </div>
+            <div style="font-size:22px; color:#ff9900;">→</div>
+            <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                <div style="background:rgba(255,153,0,0.12); border:2px solid #ff9900; border-radius:10px; padding:10px; text-align:center;">
+                    <div style="font-size:14px; font-weight:700; color:#ff9900;">Redshift Serverless</div>
+                    <div style="font-size:9px; color:#fcd34d;">+ OpenSearch</div>
+                </div>
+                <div style="background:rgba(255,153,0,0.08); border:1.5px solid rgba(255,153,0,0.4); border-radius:8px; padding:6px; text-align:center;">
+                    <div style="font-size:10px; font-weight:600; color:#ff9900;">Athena · EMR</div>
+                </div>
+            </div>
+            <div style="font-size:22px; color:#ff9900;">→</div>
+            <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                <div style="background:rgba(255,153,0,0.12); border:2px solid #ff9900; border-radius:10px; padding:10px; text-align:center;">
+                    <div style="font-size:14px; font-weight:700; color:#ff9900;">Amazon Bedrock</div>
+                    <div style="font-size:9px; color:#fcd34d;">+ SageMaker</div>
+                </div>
+                <div style="background:rgba(255,153,0,0.08); border:1.5px solid rgba(255,153,0,0.4); border-radius:8px; padding:6px; text-align:center;">
+                    <div style="font-size:10px; font-weight:600; color:#ff9900;">Nova · Titan · 100+ models</div>
+                </div>
+            </div>
+            <div style="font-size:22px; color:#ff9900;">→</div>
+            <div style="flex:0.7; display:flex; flex-direction:column; gap:4px;">
+                <div style="background:rgba(255,153,0,0.12); border:2px solid #ff9900; border-radius:10px; padding:10px; text-align:center;">
+                    <div style="font-size:13px; font-weight:700; color:#ff9900;">QuickSight</div>
+                    <div style="font-size:9px; color:#fcd34d;">+ Tableau / PBI</div>
+                </div>
+            </div>
+        </div>
+        <!-- Benefit callouts under each step -->
+        <div style="display:flex; align-items:flex-start; gap:6px; margin-top:4px;">
+            <div style="width:110px;"></div>
+            <div style="width:16px;"></div>
+            <!-- zETL benefit -->
+            <div style="flex:1; background:rgba(134,239,172,0.08); border:1.5px solid rgba(134,239,172,0.35); border-radius:9px; padding:10px;">
+                <div style="font-size:10px; font-weight:700; color:#86efac; margin-bottom:3px;">✓ Eliminate Glue/Informatica</div>
+                <div style="font-size:9px; color:#d1fae5; line-height:1.4;">No ETL tool to buy or maintain. No expensive ETL team. Redshift zETL auto-replicates from Postgres/Aurora in near real-time. Supports Oracle via DMS connectors.</div>
+            </div>
+            <div style="width:16px;"></div>
+            <!-- Governance benefit -->
+            <div style="flex:1; background:rgba(134,239,172,0.08); border:1.5px solid rgba(134,239,172,0.35); border-radius:9px; padding:10px;">
+                <div style="font-size:10px; font-weight:700; color:#86efac; margin-bottom:3px;">✓ Open Governance, Not Vendor Catalog</div>
+                <div style="font-size:9px; color:#d1fae5; line-height:1.4;">Lake Formation + Glue Catalog for governance — AWS-native, IAM-integrated. Iceberg tables are open format. No Databricks catalog lock-in for access control.</div>
+            </div>
+            <div style="width:16px;"></div>
+            <!-- Warehouse benefit -->
+            <div style="flex:1; background:rgba(134,239,172,0.08); border:1.5px solid rgba(134,239,172,0.35); border-radius:9px; padding:10px;">
+                <div style="font-size:10px; font-weight:700; color:#86efac; margin-bottom:3px;">✓ Serverless, Scales, No Load Cost</div>
+                <div style="font-size:9px; color:#d1fae5; line-height:1.4;">Redshift Serverless: pay per query, not per cluster. No costly data loading — queries Iceberg on S3 directly. Proven at petabyte scale. OpenSearch for search/RAG.</div>
+            </div>
+            <div style="width:16px;"></div>
+            <!-- AI benefit -->
+            <div style="flex:1; background:rgba(134,239,172,0.08); border:1.5px solid rgba(134,239,172,0.35); border-radius:9px; padding:10px;">
+                <div style="font-size:10px; font-weight:700; color:#86efac; margin-bottom:3px;">✓ 100+ Models, Best Price, Native</div>
+                <div style="font-size:9px; color:#d1fae5; line-height:1.4;">Bedrock: 100+ foundation models (Nova, Titan, Llama, Mistral). Use-case-driven model selection. Native KB integration with Redshift + OpenSearch. SageMaker for custom ML.</div>
+            </div>
+            <div style="width:16px;"></div>
+            <!-- BI benefit -->
+            <div style="flex:0.7; background:rgba(134,239,172,0.08); border:1.5px solid rgba(134,239,172,0.35); border-radius:9px; padding:10px;">
+                <div style="font-size:10px; font-weight:700; color:#86efac; margin-bottom:3px;">✓ Native + Any BI Tool</div>
+                <div style="font-size:9px; color:#d1fae5; line-height:1.4;">QuickSight: embedded, per-session, Q natural language. Plus Tableau, PBI, MicroStrategy all connect to Redshift/Iceberg natively. No connector risk.</div>
+            </div>
+        </div>
+        <!-- Problem → Solution comparison row -->
+        <div style="display:flex; align-items:flex-start; gap:6px; margin-top:4px;">
+            <div style="width:110px;"></div>
+            <div style="width:16px;"></div>
+            <div style="flex:1; background:rgba(252,165,165,0.06); border:1px solid rgba(252,165,165,0.2); border-radius:8px; padding:8px;">
+                <div style="font-size:9px; font-weight:700; color:#fca5a5; margin-bottom:2px;">Was: Glue/Informatica</div>
+                <div style="font-size:8px; color:#fecaca; line-height:1.3;">Expensive licenses. Dedicated team. Batch only — not real-time. Another vendor to manage.</div>
+            </div>
+            <div style="width:16px;"></div>
+            <div style="flex:1; background:rgba(252,165,165,0.06); border:1px solid rgba(252,165,165,0.2); border-radius:8px; padding:8px;">
+                <div style="font-size:9px; font-weight:700; color:#fca5a5; margin-bottom:2px;">Was: Databricks Catalog</div>
+                <div style="font-size:8px; color:#fecaca; line-height:1.3;">Vendor lock-in for governance. All access control through Databricks. Proprietary catalog.</div>
+            </div>
+            <div style="width:16px;"></div>
+            <div style="flex:1; background:rgba(252,165,165,0.06); border:1px solid rgba(252,165,165,0.2); border-radius:8px; padding:8px;">
+                <div style="font-size:9px; font-weight:700; color:#fca5a5; margin-bottom:2px;">Was: Load into Databricks</div>
+                <div style="font-size:8px; color:#fecaca; line-height:1.3;">Costly to load. Scaling challenges. Premium compute for every query. Data duplication.</div>
+            </div>
+            <div style="width:16px;"></div>
+            <div style="flex:1; background:rgba(252,165,165,0.06); border:1px solid rgba(252,165,165,0.2); border-radius:8px; padding:8px;">
+                <div style="font-size:9px; font-weight:700; color:#fca5a5; margin-bottom:2px;">Was: Databricks AI Only</div>
+                <div style="font-size:8px; color:#fecaca; line-height:1.3;">Limited models. Not all available. Limits use-case-driven AI. Higher prices than Bedrock.</div>
+            </div>
+            <div style="width:16px;"></div>
+            <div style="flex:0.7; background:rgba(252,165,165,0.06); border:1px solid rgba(252,165,165,0.2); border-radius:8px; padding:8px;">
+                <div style="font-size:9px; font-weight:700; color:#fca5a5; margin-bottom:2px;">Was: DB Dashboards</div>
+                <div style="font-size:8px; color:#fecaca; line-height:1.3;">Basic. Not embeddable. Connector risk with 3rd party BI.</div>
+            </div>
+        </div>
+        <!-- Bottom summary -->
+        <div style="background:rgba(255,153,0,0.1); border:1px solid rgba(255,153,0,0.3); border-radius:8px; padding:8px 20px; text-align:center; margin-top:2px;">
+            <span style="font-size:13px; font-weight:700; color:#ff9900;">Every problem has an AWS-native answer. </span>
+            <span style="font-size:12px; color:#fcd34d;">Eliminate ETL tools, remove vendor lock-in, get serverless scale, access 100+ AI models, and connect any BI tool — all on one bill, one IAM, one VPC.</span>
+        </div>
+    </div>
+    <div class="footer-bar">
+        <span class="aws-logo">Amazon Web Services</span>
+        <span>AWS Benefits | Problem → Solution at Every Step</span>
+    </div>
+</div>
+
+<!-- ==================== SLIDE: Open Architecture — Swim Lane Flow ==================== -->
+<div class="slide slide-multivendor">
+    <div class="top-bar"></div>
+    <div class="header-section" style="padding:22px 80px 4px;">
+        <h2 style="font-size:24px;">Open Architecture: Iceberg on S3 → Best Service for Each Use Case</h2>
+        <p style="font-size:12px;">zETL from Postgres/Oracle → Redshift → Iceberg Tables on S3. Three paths fan out. Each vendor stays in its lane. Data is open to all.</p>
+    </div>
+    <div style="flex:1; padding:4px 50px 4px; display:flex; flex-direction:column; gap:6px;">
+        <!-- LEFT SIDE: Sources + zETL + Iceberg center -->
+        <div style="display:flex; gap:10px; align-items:stretch;">
+            <!-- Data Sources + zETL + Iceberg (shared left column) -->
+            <div style="width:380px; display:flex; flex-direction:column; gap:6px; justify-content:center;">
+                <!-- Sources row -->
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; flex-direction:column; gap:4px; width:90px;">
+                        <div style="background:rgba(255,255,255,0.06); border:1px solid #64748b; border-radius:6px; padding:6px; text-align:center; font-size:10px; color:#e2e8f0; font-weight:600;">Postgres</div>
+                        <div style="background:rgba(255,255,255,0.06); border:1px solid #64748b; border-radius:6px; padding:6px; text-align:center; font-size:10px; color:#e2e8f0; font-weight:600;">Oracle</div>
+                        <div style="background:rgba(255,255,255,0.06); border:1px solid #64748b; border-radius:6px; padding:6px; text-align:center; font-size:10px; color:#e2e8f0; font-weight:600;">Other</div>
+                    </div>
+                    <div style="font-size:20px; color:#ff9900;">→</div>
+                    <div style="background:rgba(255,153,0,0.15); border:2px solid #ff9900; border-radius:8px; padding:8px 10px; text-align:center; width:70px;">
+                        <div style="font-size:12px; font-weight:700; color:#ff9900;">zETL</div>
+                        <div style="font-size:8px; color:#fcd34d;">Real-time</div>
+                    </div>
+                    <div style="font-size:20px; color:#60a5fa;">→</div>
+                    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                        <div style="background:rgba(37,99,235,0.2); border:1.5px solid #3b82f6; border-radius:8px; padding:7px; text-align:center;">
+                            <div style="font-size:11px; font-weight:700; color:#60a5fa;">Redshift Tables</div>
+                        </div>
+                        <div style="text-align:center; font-size:12px; color:#60a5fa;">↓</div>
+                        <div style="background:linear-gradient(135deg, rgba(37,99,235,0.2), rgba(96,165,250,0.2)); border:2px solid #60a5fa; border-radius:8px; padding:10px; text-align:center;">
+                            <div style="font-size:13px; font-weight:700; color:#60a5fa;">🧊 Iceberg on S3</div>
+                            <div style="font-size:9px; color:#93c5fd;">Open · Any engine reads</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDE: Three swim lanes -->
+            <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+                <!-- Lane labels -->
+                <div style="display:flex; gap:6px;">
+                    <div style="width:30px;"></div>
+                    <div style="flex:1; text-align:center; font-size:9px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px;">Analytics / Warehouse</div>
+                    <div style="flex:1; text-align:center; font-size:9px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px;">AI / ML</div>
+                    <div style="flex:0.6; text-align:center; font-size:9px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px;">BI</div>
+                </div>
+
+                <!-- DATABRICKS LANE (Purple) -->
+                <div style="display:flex; align-items:center; gap:6px; background:rgba(139,92,246,0.06); border:1.5px solid rgba(139,92,246,0.3); border-radius:10px; padding:8px 10px;">
+                    <div style="width:30px; font-size:18px; color:#8b5cf6;">→</div>
+                    <div style="flex:1; display:flex; gap:5px;">
+                        <div style="flex:1; background:#1e1b2e; border:1.5px solid #8b5cf6; border-radius:7px; padding:8px; text-align:center;">
+                            <div style="font-size:11px; font-weight:700; color:#a78bfa;">Databricks</div>
+                            <div style="font-size:9px; color:#c4b5fd;">Spark ETL · Delta Proton</div>
+                        </div>
+                    </div>
+                    <div style="font-size:14px; color:#8b5cf6;">→</div>
+                    <div style="flex:1; display:flex; gap:5px;">
+                        <div style="flex:1; background:#1e1b2e; border:1.5px solid #8b5cf6; border-radius:7px; padding:8px; text-align:center;">
+                            <div style="font-size:11px; font-weight:700; color:#a78bfa;">Databricks AI</div>
+                            <div style="font-size:9px; color:#c4b5fd;">MLflow · Mosaic</div>
+                        </div>
+                    </div>
+                    <div style="font-size:14px; color:#8b5cf6;">→</div>
+                    <div style="flex:0.6; display:flex; gap:4px; flex-direction:column;">
+                        <div style="background:#1e1b2e; border:1px solid #8b5cf6; border-radius:6px; padding:5px; text-align:center;">
+                            <div style="font-size:10px; font-weight:600; color:#a78bfa;">DB SQL Dash</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PALANTIR LANE (Green) -->
+                <div style="display:flex; align-items:center; gap:6px; background:rgba(34,197,94,0.06); border:1.5px solid rgba(34,197,94,0.3); border-radius:10px; padding:8px 10px;">
+                    <div style="width:30px; font-size:18px; color:#22c55e;">→</div>
+                    <div style="flex:1; display:flex; gap:5px;">
+                        <div style="flex:1; background:#0f2318; border:1.5px solid #22c55e; border-radius:7px; padding:8px; text-align:center;">
+                            <div style="font-size:11px; font-weight:700; color:#4ade80;">Palantir Foundry</div>
+                            <div style="font-size:9px; color:#86efac;">Ontology · Pipelines</div>
+                        </div>
+                    </div>
+                    <div style="font-size:14px; color:#22c55e;">→</div>
+                    <div style="flex:1; display:flex; gap:5px;">
+                        <div style="flex:1; background:#0f2318; border:1.5px solid #22c55e; border-radius:7px; padding:8px; text-align:center;">
+                            <div style="font-size:11px; font-weight:700; color:#4ade80;">Palantir AIP</div>
+                            <div style="font-size:9px; color:#86efac;">Ontology-driven AI · Ops</div>
+                        </div>
+                    </div>
+                    <div style="font-size:14px; color:#22c55e;">→</div>
+                    <div style="flex:0.6; display:flex; gap:4px; flex-direction:column;">
+                        <div style="background:#0f2318; border:1px solid #22c55e; border-radius:6px; padding:5px; text-align:center;">
+                            <div style="font-size:10px; font-weight:600; color:#4ade80;">Foundry Apps</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AWS LANE (Orange) -->
+                <div style="display:flex; align-items:center; gap:6px; background:rgba(255,153,0,0.06); border:1.5px solid rgba(255,153,0,0.3); border-radius:10px; padding:8px 10px;">
+                    <div style="width:30px; font-size:18px; color:#ff9900;">→</div>
+                    <div style="flex:1; display:flex; gap:5px;">
+                        <div style="flex:1; background:rgba(255,153,0,0.1); border:1.5px solid #ff9900; border-radius:7px; padding:8px; text-align:center;">
+                            <div style="font-size:11px; font-weight:700; color:#ff9900;">Redshift</div>
+                            <div style="font-size:9px; color:#fcd34d;">SQL · Serverless</div>
+                        </div>
+                        <div style="flex:1; background:rgba(255,153,0,0.1); border:1.5px solid #ff9900; border-radius:7px; padding:8px; text-align:center;">
+                            <div style="font-size:11px; font-weight:700; color:#ff9900;">OpenSearch</div>
+                            <div style="font-size:9px; color:#fcd34d;">Search · RAG</div>
+                        </div>
+                    </div>
+                    <div style="font-size:14px; color:#ff9900;">→</div>
+                    <div style="flex:1; display:flex; gap:5px;">
+                        <div style="flex:1; background:rgba(255,153,0,0.1); border:1.5px solid #ff9900; border-radius:7px; padding:8px; text-align:center;">
+                            <div style="font-size:11px; font-weight:700; color:#ff9900;">Bedrock</div>
+                            <div style="font-size:9px; color:#fcd34d;">GenAI · RAG · Agents</div>
+                        </div>
+                        <div style="flex:1; background:rgba(255,153,0,0.1); border:1.5px solid #ff9900; border-radius:7px; padding:8px; text-align:center;">
+                            <div style="font-size:11px; font-weight:700; color:#ff9900;">SageMaker</div>
+                            <div style="font-size:9px; color:#fcd34d;">Custom ML · Studio</div>
+                        </div>
+                    </div>
+                    <div style="font-size:14px; color:#ff9900;">→</div>
+                    <div style="flex:0.6; display:flex; gap:4px; flex-direction:column;">
+                        <div style="background:rgba(255,153,0,0.1); border:1px solid #ff9900; border-radius:6px; padding:5px; text-align:center;">
+                            <div style="font-size:10px; font-weight:600; color:#ff9900;">QuickSight</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.04); border:1px solid #64748b; border-radius:6px; padding:5px; text-align:center;">
+                            <div style="font-size:10px; font-weight:600; color:#cbd5e0;">Tableau / PBI</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom callouts -->
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:2px;">
+            <div style="background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.3); border-radius:8px; padding:10px;">
+                <div style="font-size:11px; font-weight:700; color:#a78bfa; margin-bottom:3px;">Databricks Path</div>
+                <div style="font-size:10px; color:#c4b5fd; line-height:1.4;">Best for large-scale Spark ETL, data engineering, and ML workloads where Databricks runtime excels. Reads Iceberg natively.</div>
+            </div>
+            <div style="background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.3); border-radius:8px; padding:10px;">
+                <div style="font-size:11px; font-weight:700; color:#4ade80; margin-bottom:3px;">Palantir Path</div>
+                <div style="font-size:10px; color:#86efac; line-height:1.4;">Best for ontology-driven operations, mission-critical decision-making, and AIP-powered workflows. Connects to S3/Iceberg directly.</div>
+            </div>
+            <div style="background:rgba(255,153,0,0.08); border:1px solid rgba(255,153,0,0.3); border-radius:8px; padding:10px;">
+                <div style="font-size:11px; font-weight:700; color:#ff9900; margin-bottom:3px;">AWS Analytics Path</div>
+                <div style="font-size:10px; color:#fcd34d; line-height:1.4;">Best for SQL analytics, GenAI/RAG, semantic search, BI dashboards, and custom ML. Native Bedrock integration. Serverless pricing.</div>
+            </div>
+        </div>
+        <div style="background:rgba(96,165,250,0.1); border:1px solid rgba(96,165,250,0.3); border-radius:8px; padding:8px 20px; text-align:center;">
+            <span style="font-size:13px; font-weight:700; color:#60a5fa;">🧊 Iceberg is the key: </span>
+            <span style="font-size:12px; color:#93c5fd;">One copy of data on S3. Three vendors read it natively. May the best service be aligned to the appropriate use case. Change your mind later — the data stays open.</span>
+        </div>
+    </div>
+    <div class="footer-bar">
+        <span class="aws-logo">Amazon Web Services</span>
+        <span>Open Architecture | Iceberg + zETL + Best Service Per Use Case</span>
+    </div>
+</div>
+
+<!-- ==================== SLIDE: Use Case Matrix — Best Service for Each Job ==================== -->
+<div class="slide slide-matrix">
+    <div class="header">
+        <h2>Best Service for Each Use Case — Let the Data Decide</h2>
+        <span class="badge">USE CASE ALIGNMENT</span>
+    </div>
+    <div class="matrix-layout">
+        <table class="matrix-table">
+            <thead>
+                <tr>
+                    <th class="col-usecase">Use Case</th>
+                    <th class="col-db">Databricks</th>
+                    <th class="col-aws">AWS Analytics</th>
+                    <th class="col-pal">Palantir</th>
+                    <th class="col-best">Best Fit</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><div class="uc-name">Large-Scale Spark ETL</div><div class="uc-desc">Batch data engineering, complex transformations</div></td>
+                    <td class="rating rating-best">✓ Strong — native Spark</td>
+                    <td class="rating rating-good">EMR / Glue Spark jobs</td>
+                    <td class="rating rating-gap">Not primary use case</td>
+                    <td><span class="best-pick best-db">Databricks</span></td>
+                </tr>
+                <tr>
+                    <td><div class="uc-name">SQL Analytics & Warehousing</div><div class="uc-desc">Ad-hoc SQL, dashboards, reporting</div></td>
+                    <td class="rating rating-good">Databricks SQL (costly)</td>
+                    <td class="rating rating-best">✓ Redshift Serverless — native Bedrock, zETL</td>
+                    <td class="rating rating-gap">Not primary use case</td>
+                    <td><span class="best-pick best-aws">Redshift</span></td>
+                </tr>
+                <tr>
+                    <td><div class="uc-name">Generative AI / RAG</div><div class="uc-desc">Natural language Q&A over documents and data</div></td>
+                    <td class="rating rating-gap">Limited models, no native RAG</td>
+                    <td class="rating rating-best">✓ Bedrock + OpenSearch + Redshift — native KB</td>
+                    <td class="rating rating-good">Palantir AIP (ontology-based)</td>
+                    <td><span class="best-pick best-aws">Bedrock</span></td>
+                </tr>
+                <tr>
+                    <td><div class="uc-name">Full-Text & Semantic Search</div><div class="uc-desc">Search millions of documents, hybrid vector search</div></td>
+                    <td class="rating rating-gap">No native search engine</td>
+                    <td class="rating rating-best">✓ OpenSearch — full-text + vector + serverless</td>
+                    <td class="rating rating-gap">Not primary use case</td>
+                    <td><span class="best-pick best-aws">OpenSearch</span></td>
+                </tr>
+                <tr>
+                    <td><div class="uc-name">Business Intelligence</div><div class="uc-desc">Dashboards, embedded analytics, executive reporting</div></td>
+                    <td class="rating rating-gap">Basic SQL dashboards only</td>
+                    <td class="rating rating-best">✓ QuickSight — embedded, per-session, Q natural language</td>
+                    <td class="rating rating-gap">Not primary use case</td>
+                    <td><span class="best-pick best-aws">QuickSight</span></td>
+                </tr>
+                <tr>
+                    <td><div class="uc-name">Custom ML Model Training</div><div class="uc-desc">Train, tune, deploy custom models</div></td>
+                    <td class="rating rating-good">MLflow notebooks</td>
+                    <td class="rating rating-best">✓ SageMaker — full MLOps, Bedrock fine-tuning</td>
+                    <td class="rating rating-good">Palantir Foundry ML</td>
+                    <td><span class="best-pick best-aws">SageMaker</span></td>
+                </tr>
+                <tr>
+                    <td><div class="uc-name">Operational Decision-Making</div><div class="uc-desc">Ontology-driven workflows, mission-critical ops</div></td>
+                    <td class="rating rating-gap">Not designed for this</td>
+                    <td class="rating rating-good">Step Functions + Bedrock Agents</td>
+                    <td class="rating rating-best">✓ Palantir Foundry / AIP — purpose-built</td>
+                    <td><span class="best-pick best-pal">Palantir</span></td>
+                </tr>
+                <tr>
+                    <td><div class="uc-name">Near Real-Time Ingestion</div><div class="uc-desc">Stream data from Postgres/Oracle with low latency</div></td>
+                    <td class="rating rating-gap">Requires custom Spark streaming</td>
+                    <td class="rating rating-best">✓ Redshift zETL — auto-replication, near real-time</td>
+                    <td class="rating rating-gap">Requires connectors</td>
+                    <td><span class="best-pick best-aws">Redshift zETL</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="bottom-callout">
+        <span class="icon">🧊</span>
+        <span class="text">
+            <span class="highlight">Iceberg makes this possible:</span>
+            All services read the same Iceberg tables on S3. No data duplication, no vendor lock-in. Pick the best tool for each use case — and change your mind later without migrating data.
+        </span>
+    </div>
+</div>
+
+<!-- ==================== SLIDE: Summary / CTA ==================== -->
+<div class="slide slide-7">
+    <div class="top-bar"></div>
+    <div class="header-section">
+        <h2>The AWS Analytics Advantage: Why Add Native Services</h2>
+        <p>Six reasons to complement Databricks with AWS-native analytics on your S3 data lake</p>
+    </div>
+    <div class="summary-grid">
+        <div class="sum-card">
+            <div class="sc-icon">💰</div>
+            <div class="sc-title">Cost at Scale</div>
+            <div class="sc-body">S3 storage at $0.023/GB vs. importing into Databricks. Serverless Redshift, OpenSearch, and QuickSight — pay only when you query. No idle cluster costs.</div>
+            <div class="sc-stat">Up to 90% storage cost reduction</div>
+        </div>
+        <div class="sum-card">
+            <div class="sc-icon">🤖</div>
+            <div class="sc-title">Native AI Integration</div>
+            <div class="sc-body">Redshift, OpenSearch, and S3 are all native Bedrock data sources. One AI layer queries all your data — structured and unstructured — with zero ETL.</div>
+            <div class="sc-stat">Zero custom integration code</div>
+        </div>
+        <div class="sum-card">
+            <div class="sc-icon">🔓</div>
+            <div class="sc-title">No Vendor Lock-In</div>
+            <div class="sc-body">Data stays in S3 in open formats (Iceberg, Parquet). Any engine can read it. Swap or add services without data migration. You own your data.</div>
+            <div class="sc-stat">Open formats, open architecture</div>
+        </div>
+        <div class="sum-card">
+            <div class="sc-icon">📈</div>
+            <div class="sc-title">Best Tool for Each Job</div>
+            <div class="sc-body">Redshift for SQL analytics. OpenSearch for search and RAG. QuickSight for BI. SageMaker for ML. Bedrock for GenAI. Each purpose-built, all integrated.</div>
+            <div class="sc-stat">5 services, one data lake</div>
+        </div>
+        <div class="sum-card">
+            <div class="sc-icon">🔒</div>
+            <div class="sc-title">Unified Security</div>
+            <div class="sc-body">One IAM identity model, one VPC, one Lake Formation governance layer. Data never leaves your AWS account. No cross-platform auth to manage.</div>
+            <div class="sc-stat">Single identity, single governance</div>
+        </div>
+        <div class="sum-card">
+            <div class="sc-icon">🤝</div>
+            <div class="sc-title">Co-Existence, Not Replace</div>
+            <div class="sc-body">Keep Databricks for Spark workloads and data engineering. Add AWS-native services for analytics, search, BI, and AI. Data flows from Databricks → S3 → everywhere.</div>
+            <div class="sc-stat">Databricks + AWS = better together</div>
+        </div>
+    </div>
+    <div class="cta-bar">
+        <div>
+            <div class="cta-text">Ready to Unlock the Full AWS Analytics Suite?</div>
+            <div class="cta-sub">Start with a POC: S3 data lake → Redshift + OpenSearch + Bedrock. See results in days, not months.</div>
+        </div>
+        <button class="cta-action">Let's Build a POC →</button>
+    </div>
+</div>
+
+</body>
+</html>
