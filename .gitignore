@@ -1,0 +1,115 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+*.dll
+.venv/
+venv/
+env/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# JavaScript/TypeScript
+node_modules/
+.npm/
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# AWS CDK output
+cdk.out/
+
+# Lambda deploy zips
+deploy-*.zip
+lambda-update.zip
+
+# Data files (too large for git)
+data/
+*.zip
+*.gz
+*.tar
+
+# Batch manifests and progress
+scripts/batch_manifests/
+scripts/face_match_log.json
+
+# Temporary check/debug JSON files
+check-*.json
+check2.json
+chk.json
+current-asl.json
+sm-full.json
+result.json
+check-embed-result.json
+check-embeddings.json
+check-now.json
+check-cols.json
+check-cols-resp.json
+check-docs.json
+
+# Credential files (real keys)
+scripts/set_brave_key.py
+.env
+
+# Deploy package
+deploy-package/
+deploy-package-colleague.zip
+
+# Streamlit
+.streamlit/
+
+# Workspace file
+*.code-workspace
+
+# Third-party pip packages installed in src/ for Lambda packaging
+# These should be installed via: pip install -r requirements.txt -t src/
+lambda-deps/
+src/PyPDF2/
+src/pymupdf/
+src/fitz/
+src/PIL/
+src/pillow.libs/
+src/pydantic/
+src/pydantic_core/
+src/annotated_types/
+src/typing_extensions*
+src/typing_inspection/
+src/aiohttp/
+src/aiosignal/
+src/aiohappyeyeballs/
+src/attrs/
+src/attr/
+src/frozenlist/
+src/multidict/
+src/propcache/
+src/yarl/
+src/idna/
+src/certifi/
+src/charset_normalizer/
+src/urllib3/
+src/requests/
+src/psycopg2/
+src/psycopg2_binary.libs/
+src/aenum/
+src/async_timeout/
+src/gremlin_python/
+src/isodate/
+src/nest_asyncio*
+src/bin/
+src/*.dist-info/
+src/*-*.dist-info/
