@@ -1,0 +1,2549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOJ Case Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background: #f5f5f5; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #002868 0%, #001a4d 100%); color: white; padding: 25px 40px; border-bottom: 4px solid #bf0a30; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .header-content { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+        .header-left { display: flex; align-items: center; gap: 20px; }
+        .seal { font-size: 56px; }
+        .header-text h1 { font-size: 32px; font-weight: 600; margin-bottom: 5px; }
+        .header-text p { font-size: 14px; opacity: 0.9; }
+        .header-nav { display: flex; gap: 10px; }
+        .nav-btn { background: white; color: #002868; padding: 10px 20px; text-decoration: none; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 2px solid white; transition: all 0.3s; display: inline-block; }
+        .nav-btn:hover { background: #bf0a30; color: white; border-color: white; }
+        .search-link { background: white; color: #002868; padding: 12px 24px; text-decoration: none; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 2px solid white; transition: all 0.3s; }
+        .search-link:hover { background: #bf0a30; color: white; border-color: white; }
+        .export-btn { background: #bf0a30; color: white; padding: 12px 24px; text-decoration: none; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 2px solid white; transition: all 0.3s; cursor: pointer; margin-left: 10px; }
+        .export-btn:hover { background: white; color: #bf0a30; border-color: #bf0a30; }
+        .report-modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); }
+        .report-modal-content { background: white; margin: 3% auto; padding: 0; width: 90%; max-width: 800px; max-height: 85vh; overflow-y: auto; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .report-options { padding: 30px; }
+        .report-options h3 { color: #002868; margin-bottom: 20px; font-size: 24px; }
+        .report-type-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px; }
+        .report-type-card { padding: 30px; border: 2px solid #ddd; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .report-type-card:hover { border-color: #002868; background: #f0f4f8; transform: translateY(-5px); }
+        .report-type-card.selected { border-color: #bf0a30; background: #fff5f5; }
+        .report-type-card .icon { font-size: 48px; margin-bottom: 15px; }
+        .report-type-card h4 { color: #002868; margin-bottom: 10px; font-size: 18px; }
+        .report-type-card p { color: #666; font-size: 14px; }
+        .report-sections { margin-bottom: 30px; }
+        .report-sections h4 { color: #002868; margin-bottom: 15px; font-size: 16px; }
+        .section-checkbox { display: flex; align-items: center; padding: 12px; margin-bottom: 8px; background: #f0f4f8; border-radius: 4px; }
+        .section-checkbox input { margin-right: 12px; width: 18px; height: 18px; }
+        .section-checkbox label { cursor: pointer; font-size: 14px; }
+        .report-templates { margin-bottom: 30px; }
+        .report-templates h4 { color: #002868; margin-bottom: 15px; font-size: 16px; }
+        .template-chips { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+        .template-chip { padding: 10px 16px; background: #f0f4f8; border: 2px solid #ddd; color: #002868; font-size: 13px; cursor: pointer; border-radius: 20px; transition: all 0.2s; }
+        .template-chip:hover { border-color: #002868; background: #e8eef7; }
+        .custom-summary { margin-bottom: 30px; }
+        .custom-summary h4 { color: #002868; margin-bottom: 10px; font-size: 16px; }
+        .custom-summary textarea { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px; font-family: Arial, sans-serif; min-height: 100px; resize: vertical; }
+        .custom-summary textarea:focus { outline: none; border-color: #002868; }
+        .report-actions { display: flex; gap: 15px; justify-content: flex-end; }
+        .report-btn { padding: 12px 30px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; border-radius: 4px; transition: all 0.3s; }
+        .report-btn.primary { background: #002868; color: white; }
+        .report-btn.primary:hover { background: #bf0a30; }
+        .report-btn.secondary { background: #ddd; color: #333; }
+        .report-btn.secondary:hover { background: #ccc; }
+        .generating-report { display: none; text-align: center; padding: 40px; }
+        .generating-report.active { display: block; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #002868; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
+        .summary-card { background: white; padding: 30px; margin-bottom: 30px; border-left: 4px solid #002868; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .summary-card h2 { color: #002868; margin-bottom: 15px; font-size: 24px; }
+        .summary-text { color: #333; line-height: 1.8; font-size: 16px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 25px; text-align: center; border-left: 4px solid #bf0a30; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; transition: all 0.3s; position: relative; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .stat-card::after { content: '▶'; position: absolute; right: 15px; bottom: 15px; color: #bf0a30; font-size: 14px; opacity: 0.5; }
+        .stat-value { font-size: 48px; font-weight: 700; color: #002868; margin-bottom: 10px; }
+        .stat-label { color: #666; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 30px; margin-bottom: 30px; }
+        .chart-card { background: white; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-top: 3px solid #002868; }
+        .chart-card h3 { color: #002868; margin-bottom: 20px; font-size: 18px; font-weight: 600; }
+        .chart-hint { font-size: 12px; color: #666; font-style: italic; margin-top: -10px; margin-bottom: 15px; }
+        
+        .ai-search-bar {
+            background: white;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-top: 3px solid #002868;
+        }
+        
+        .ai-search-bar h3 {
+            color: #002868;
+            margin-bottom: 15px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .search-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .ai-search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #002868;
+            font-size: 16px;
+            border-radius: 4px;
+        }
+        
+        .ai-search-input:focus {
+            outline: none;
+            border-color: #bf0a30;
+        }
+        
+        .ai-search-btn {
+            padding: 15px 30px;
+            background: #002868;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        
+        .ai-search-btn:hover {
+            background: #bf0a30;
+        }
+        
+        .search-suggestions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .suggestion-chip {
+            padding: 8px 16px;
+            background: #f0f4f8;
+            border: 1px solid #002868;
+            color: #002868;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+        
+        .suggestion-chip:hover {
+            background: #002868;
+            color: white;
+        }
+        
+        .ai-results {
+            margin-top: 30px;
+            padding: 30px;
+            background: #f0f4f8;
+            border-left: 4px solid #002868;
+            display: none;
+        }
+        
+        .ai-results.active {
+            display: block;
+        }
+        
+        .ai-results h4 {
+            color: #002868;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        
+        .ai-answer {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 3px solid #bf0a30;
+            line-height: 1.8;
+        }
+        
+        .ai-visualizations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        
+        .ai-viz-card {
+            background: white;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .ai-viz-card h5 {
+            color: #002868;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .anomalies-list { background: white; padding: 30px; margin-bottom: 30px; border-left: 4px solid #bf0a30; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .anomalies-list h3 { color: #bf0a30; margin-bottom: 20px; font-size: 20px; }
+        .anomaly-item { padding: 15px; margin-bottom: 10px; background: #fff5f5; border-left: 3px solid #bf0a30; cursor: pointer; transition: all 0.3s; position: relative; }
+        .anomaly-item:hover { background: #ffe5e5; border-left-width: 5px; padding-left: 20px; }
+        .anomaly-item::after { content: '▶'; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #bf0a30; font-size: 12px; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-content { background: white; margin: 5% auto; padding: 0; width: 90%; max-width: 900px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); animation: slideDown 0.3s; }
+        .modal-content.large { max-width: 1100px; }
+        @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-header { background: linear-gradient(135deg, #bf0a30 0%, #8b0000 100%); color: white; padding: 25px 30px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header.witness { background: linear-gradient(135deg, #002868 0%, #001a4d 100%); }
+        .modal-header.travel { background: linear-gradient(135deg, #bf0a30 0%, #8b0000 100%); }
+        .modal-header h2 { font-size: 22px; margin: 0; }
+        .close { color: white; font-size: 32px; font-weight: bold; cursor: pointer; line-height: 1; transition: transform 0.2s; }
+        .close:hover { transform: scale(1.2); }
+        .modal-body { padding: 30px; max-height: 60vh; overflow-y: auto; }
+        .witness-profile, .travel-summary { background: #f0f4f8; padding: 20px; margin-bottom: 25px; border-left: 4px solid #002868; line-height: 1.8; }
+        .witness-profile h3, .travel-summary h3 { color: #002868; margin-bottom: 15px; font-size: 18px; }
+        .travel-summary { border-left-color: #bf0a30; }
+        .travel-summary h3 { color: #bf0a30; }
+        .profile-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
+        .profile-item { background: white; padding: 12px; border-left: 3px solid #bf0a30; }
+        .profile-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+        .profile-value { font-size: 14px; color: #002868; font-weight: 600; }
+        .activity-chart, .trip-timeline, .travel-map-container { background: white; padding: 20px; margin-bottom: 25px; border: 1px solid #ddd; }
+        .activity-chart h4, .trip-timeline h4, .travel-map-container h4 { color: #002868; margin-bottom: 15px; font-size: 16px; }
+        .documents-section h3 { color: #002868; margin-bottom: 20px; font-size: 18px; border-bottom: 2px solid #bf0a30; padding-bottom: 10px; }
+        .document-link { display: block; padding: 15px; margin-bottom: 10px; background: #fafafa; border: 1px solid #ddd; border-left: 4px solid #002868; text-decoration: none; color: #002868; transition: all 0.2s; }
+        .document-link:hover { background: #e8eef7; border-left-width: 6px; padding-left: 20px; }
+        .document-title { font-weight: 700; margin-bottom: 5px; font-size: 15px; }
+        .document-meta { font-size: 13px; color: #666; }
+        .severity-badge { display: inline-block; padding: 4px 12px; background: #bf0a30; color: white; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 3px; margin-bottom: 15px; }
+        #travelMap { height: 500px; width: 100%; border: 2px solid #ddd; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="seal">⚖️</div>
+                <div class="header-text">
+                    <h1>Case Analytics Dashboard</h1>
+                    <p>U.S. Department of Justice - AI-Powered Insights</p>
+                </div>
+            </div>
+            <div class="header-nav">
+                <a href="doj-case-analysis.html" class="nav-btn" style="background:#f6ad55;color:#1a202c;border-color:#f6ad55;">⚖️ Precedent &amp; Jurisprudence</a>
+                <a href="doj-dea-investigation.html" class="nav-btn" style="background:#48bb78;color:#1a202c;border-color:#48bb78;">🛡️ DEA Investigation</a>
+                <a href="knowledge-graph-selector.html" class="nav-btn">🕸️ Knowledge Graph</a>
+                <a href="doj-photo-analysis.html" class="nav-btn">📸 Photo Intelligence</a>
+                <a href="doj-ai-research-assistant.html" class="nav-btn">🔬 Hybrid Research</a>
+                <button class="export-btn" onclick="openReportBuilder()">⚖️ Prepare Case Brief</button>
+                <a href="doj-search-professional.html" class="search-link">🔍 Back to Search</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="summary-card">
+            <h2>📋 Case Summary</h2>
+            <p class="summary-text">Analysis of DOJ case documents reveals patterns in witness testimony, travel records, and financial transactions. Key individuals identified with multiple document references and timeline correlations.</p>
+        </div>
+
+        <div class="ai-search-bar">
+            <h3>🤖 AI-Powered Analytics Search</h3>
+            <p style="color: #666; margin-bottom: 15px; font-size: 14px;">Ask any question about the case data and get instant visualizations and insights</p>
+            <div class="search-input-container">
+                <input type="text" 
+                       id="aiSearchInput" 
+                       class="ai-search-input" 
+                       placeholder="e.g., Show me financial transactions over time, Who traveled the most?, What documents are most critical?"
+                       onkeypress="if(event.key==='Enter') performAISearch()">
+                <button class="ai-search-btn" onclick="performAISearch()">Analyze</button>
+            </div>
+            <div class="search-suggestions">
+                <span class="suggestion-chip" onclick="setAIQuery('Show me financial transactions over time')">💰 Financial Transactions</span>
+                <span class="suggestion-chip" onclick="setAIQuery('Who traveled the most and where?')">✈️ Travel Patterns</span>
+                <span class="suggestion-chip" onclick="setAIQuery('What are the most critical documents?')">📄 Critical Documents</span>
+                <span class="suggestion-chip" onclick="setAIQuery('Show witness involvement timeline')">👥 Witness Timeline</span>
+                <span class="suggestion-chip" onclick="setAIQuery('Compare document types by relevance')">📊 Document Analysis</span>
+            </div>
+            <div id="aiResults" class="ai-results"></div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card" onclick="showStatDetails('documents')"><div class="stat-value">4,024</div><div class="stat-label">Total Documents</div></div>
+            <div class="stat-card" onclick="showStatDetails('witnesses')"><div class="stat-value">5</div><div class="stat-label">Key Witnesses</div></div>
+            <div class="stat-card" onclick="showStatDetails('events')"><div class="stat-value">5</div><div class="stat-label">Key Events</div></div>
+            <div class="stat-card" onclick="showStatDetails('anomalies')"><div class="stat-value">4</div><div class="stat-label">Anomalies Detected</div></div>
+        </div>
+
+        <div class="anomalies-list">
+            <h3>🔍 Detected Anomalies</h3>
+            <div class="anomaly-item" onclick="alert('Anomaly drill-down: Travel pattern details with 8 trips to Cayman Islands, 5 to Switzerland')">Unusual travel pattern detected: 15 trips to offshore locations in 3 months</div>
+            <div class="anomaly-item" onclick="alert('Anomaly drill-down: $2.3M in wire transfers to offshore accounts with structured deposits')">Financial discrepancy: $2.3M unaccounted for in Q2 2023</div>
+            <div class="anomaly-item" onclick="alert('Anomaly drill-down: 45-day communication gap between John Smith and Jane Doe during peak suspicious activity')">Communication gap: No email records between key parties for 45-day period</div>
+            <div class="anomaly-item" onclick="alert('Anomaly drill-down: Meeting on June 15 claimed by witnesses but contradicted by security logs')">Document inconsistency: Conflicting dates in witness statements</div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>Key Witnesses</h3>
+                <div class="chart-hint">💡 Click on any bar to view witness details</div>
+                <canvas id="witnessChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Document Types</h3>
+                <div class="chart-hint">💡 Click on any segment to view document details</div>
+                <canvas id="docTypeChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Case Timeline</h3>
+                <div class="chart-hint">💡 Click on any milestone to view phase details and documents</div>
+                <canvas id="timelineChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Travel Events by Traveler</h3>
+                <div class="chart-hint">💡 Click on any traveler to view their travel map</div>
+                <canvas id="travelChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div id="witnessModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header witness">
+                <h2 id="witnessModalTitle">Witness Profile</h2>
+                <span class="close" onclick="closeWitnessModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="witnessModalBody"></div>
+        </div>
+    </div>
+
+    <div id="travelModal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header travel">
+                <h2 id="travelModalTitle">Travel Analysis</h2>
+                <span class="close" onclick="closeTravelModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="travelModalBody"></div>
+        </div>
+    </div>
+
+    <div id="docTypeModal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header witness">
+                <h2 id="docTypeModalTitle">Document Type Analysis</h2>
+                <span class="close" onclick="closeDocTypeModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="docTypeModalBody"></div>
+        </div>
+    </div>
+
+    <div id="reportModal" class="report-modal">
+        <div class="report-modal-content">
+            <div class="modal-header witness">
+                <h2>Prepare Legal Brief</h2>
+                <span class="close" onclick="closeReportBuilder()">&times;</span>
+            </div>
+            <div class="report-options" id="reportOptions">
+                <h3>Select Document Type</h3>
+                <div class="report-type-grid">
+                    <div class="report-type-card" onclick="selectReportType('pdf')">
+                        <div class="icon">📄</div>
+                        <h4>Trial Memorandum</h4>
+                        <p>Comprehensive brief with exhibits and analysis</p>
+                    </div>
+                    <div class="report-type-card" onclick="selectReportType('ppt')">
+                        <div class="icon">📊</div>
+                        <h4>Prosecution Deck</h4>
+                        <p>Visual presentation for court or briefings</p>
+                    </div>
+                </div>
+                
+                <div class="report-templates">
+                    <h4>Brief Templates</h4>
+                    <div class="template-chips">
+                        <span class="template-chip" onclick="applyTemplate('executive')">⚖️ Case Summary Brief</span>
+                        <span class="template-chip" onclick="applyTemplate('financial')">💰 Financial Crimes Memo</span>
+                        <span class="template-chip" onclick="applyTemplate('witness')">👥 Witness Credibility Analysis</span>
+                        <span class="template-chip" onclick="applyTemplate('timeline')">📅 Chronological Case Statement</span>
+                        <span class="template-chip" onclick="applyTemplate('anomalies')">🔍 Investigative Findings Report</span>
+                    </div>
+                </div>
+                
+                <div class="custom-summary">
+                    <h4>Brief Focus & Argument (Optional)</h4>
+                    <textarea id="customSummary" placeholder="Specify the legal theory, argument focus, or key points to emphasize...
+
+Examples:
+• Establish pattern of willful money laundering through offshore banking
+• Demonstrate consciousness of guilt via travel timing and communication gaps
+• Prove wire fraud through false statements and interstate transactions
+• Highlight witness cooperation and corroborating testimony
+• Emphasize forensic evidence and expert analysis supporting charges"></textarea>
+                </div>
+                
+                <div class="report-sections">
+                    <h4>Select Report Sections</h4>
+                    <div class="section-checkbox">
+                        <input type="checkbox" id="section-summary" checked>
+                        <label for="section-summary">Executive Summary & Case Overview</label>
+                    </div>
+                    <div class="section-checkbox">
+                        <input type="checkbox" id="section-anomalies" checked>
+                        <label for="section-anomalies">Key Anomalies Analysis</label>
+                    </div>
+                    <div class="section-checkbox">
+                        <input type="checkbox" id="section-witnesses" checked>
+                        <label for="section-witnesses">Witness Analysis</label>
+                    </div>
+                    <div class="section-checkbox">
+                        <input type="checkbox" id="section-financial" checked>
+                        <label for="section-financial">Financial Transactions</label>
+                    </div>
+                    <div class="section-checkbox">
+                        <input type="checkbox" id="section-travel" checked>
+                        <label for="section-travel">Travel Patterns</label>
+                    </div>
+                    <div class="section-checkbox">
+                        <input type="checkbox" id="section-timeline" checked>
+                        <label for="section-timeline">Case Timeline</label>
+                    </div>
+                    <div class="section-checkbox">
+                        <input type="checkbox" id="section-documents" checked>
+                        <label for="section-documents">Document Analysis</label>
+                    </div>
+                </div>
+                
+                <div class="report-actions">
+                    <button class="report-btn secondary" onclick="closeReportBuilder()">Cancel</button>
+                    <button class="report-btn primary" onclick="generateReport()">Generate Report</button>
+                </div>
+            </div>
+            
+            <div class="generating-report" id="generatingReport">
+                <div class="spinner"></div>
+                <h3 style="color: #002868; margin-bottom: 10px;">Generating Report...</h3>
+                <p style="color: #666;">Compiling case data, charts, and analysis</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const data = {
+            witnessFrequency: { 'John Smith': 234, 'Jane Doe': 189, 'Robert Johnson': 156, 'Maria Garcia': 142, 'David Lee': 128 },
+            documentTypes: { 'Email': 1245, 'Financial Record': 892, 'Travel Document': 567, 'Witness Statement': 423, 'Court Filing': 897 },
+            timeline: [
+                { 
+                    date: '2023-01', 
+                    event: 'Initial Investigation',
+                    phase: 'Investigation',
+                    description: 'FBI initiates investigation into suspicious financial transactions at TechCorp Industries following whistleblower tip',
+                    keyActivities: ['Whistleblower interview', 'Preliminary financial analysis', 'Surveillance authorization'],
+                    documents: [
+                        { title: 'Whistleblower Complaint', date: 'Jan 5, 2023', type: 'Internal Report', relevance: 'Critical' },
+                        { title: 'FBI Case Opening Memo', date: 'Jan 10, 2023', type: 'Investigation Record', relevance: 'High' },
+                        { title: 'Preliminary Financial Analysis', date: 'Jan 25, 2023', type: 'Expert Report', relevance: 'High' }
+                    ]
+                },
+                { 
+                    date: '2023-03', 
+                    event: 'First Witness Interview',
+                    phase: 'Investigation',
+                    description: 'FBI conducts first formal witness interviews with TechCorp employees and obtains search warrant for corporate offices',
+                    keyActivities: ['Employee interviews', 'Search warrant execution', 'Document seizure'],
+                    documents: [
+                        { title: 'Search Warrant Application', date: 'Mar 8, 2023', type: 'Court Filing', relevance: 'Critical' },
+                        { title: 'Search Warrant Issued', date: 'Mar 10, 2023', type: 'Court Order', relevance: 'Critical' },
+                        { title: 'FBI Interview - Maria Garcia', date: 'Mar 12, 2023', type: 'Witness Statement', relevance: 'Critical' },
+                        { title: 'Evidence Inventory - TechCorp Search', date: 'Mar 15, 2023', type: 'Investigation Record', relevance: 'High' }
+                    ]
+                },
+                { 
+                    date: '2023-06', 
+                    event: 'Document Subpoena',
+                    phase: 'Investigation',
+                    description: 'Federal subpoenas issued for offshore banking records and travel documentation',
+                    keyActivities: ['Offshore bank subpoenas', 'Travel record requests', 'Financial forensics'],
+                    documents: [
+                        { title: 'Subpoena - Cayman International Bank', date: 'Apr 22, 2023', type: 'Court Order', relevance: 'Critical' },
+                        { title: 'Subpoena - Swiss Banking Records', date: 'May 5, 2023', type: 'Court Order', relevance: 'Critical' },
+                        { title: 'Travel Records Production', date: 'Jun 10, 2023', type: 'Evidence', relevance: 'High' },
+                        { title: 'Forensic Accounting Report', date: 'Jun 20, 2023', type: 'Expert Report', relevance: 'Critical' }
+                    ]
+                },
+                { 
+                    date: '2023-09', 
+                    event: 'Grand Jury Testimony',
+                    phase: 'Grand Jury',
+                    description: 'Key witnesses testify before federal grand jury, including defendant John Smith',
+                    keyActivities: ['Grand jury proceedings', 'Witness testimony', 'Evidence presentation'],
+                    documents: [
+                        { title: 'Grand Jury Subpoena - John Smith', date: 'Jun 30, 2023', type: 'Court Order', relevance: 'Critical' },
+                        { title: 'Grand Jury Testimony - Maria Garcia', date: 'Sep 5, 2023', type: 'Witness Statement', relevance: 'Critical' },
+                        { title: 'Grand Jury Testimony - John Smith', date: 'Sep 15, 2023', type: 'Witness Statement', relevance: 'Critical' },
+                        { title: 'Prosecution Evidence Summary', date: 'Sep 20, 2023', type: 'Legal Document', relevance: 'High' }
+                    ]
+                },
+                { 
+                    date: '2024-01', 
+                    event: 'Indictment Filed',
+                    phase: 'Prosecution',
+                    description: 'Federal grand jury returns indictment charging 12 counts of money laundering and wire fraud',
+                    keyActivities: ['Indictment unsealed', 'Arrest warrant executed', 'Initial appearance'],
+                    documents: [
+                        { title: 'Federal Indictment (Sealed)', date: 'Sep 25, 2023', type: 'Court Filing', relevance: 'Critical' },
+                        { title: 'Arrest Warrant', date: 'Jan 14, 2024', type: 'Court Order', relevance: 'Critical' },
+                        { title: 'Indictment Unsealed', date: 'Jan 15, 2024', type: 'Court Filing', relevance: 'Critical' },
+                        { title: 'Initial Appearance Transcript', date: 'Jan 16, 2024', type: 'Court Record', relevance: 'High' },
+                        { title: 'Superseding Indictment', date: 'Jan 16, 2024', type: 'Court Filing', relevance: 'Critical' }
+                    ]
+                }
+            ]
+        };
+
+        const documentTypeDetails = {
+            'Email': {
+                total: 1245,
+                description: 'Email communications between key parties including internal discussions, external correspondence, and encrypted messages.',
+                breakdown: {
+                    'Internal Communications': 487,
+                    'External Correspondence': 356,
+                    'Encrypted Messages': 234,
+                    'Deleted/Recovered': 168
+                },
+                topDocuments: [
+                    { title: 'Email Thread: Offshore Account Discussion', date: 'April 12, 2023', from: 'John Smith', to: 'Jane Doe', subject: 'RE: Cayman Setup', relevance: 'Critical', preview: 'Discussed establishment of offshore accounts and wire transfer procedures...' },
+                    { title: 'Email: Meeting Coordination - Switzerland', date: 'May 5, 2023', from: 'John Smith', to: 'Robert Johnson', subject: 'Zurich Trip Logistics', relevance: 'High', preview: 'Coordinating private banking meetings with Swiss financial institutions...' },
+                    { title: 'Email: Financial Concerns Raised', date: 'May 10, 2023', from: 'Maria Garcia', to: 'John Smith', subject: 'Questions about Q2 Transactions', relevance: 'Critical', preview: 'Expressing concerns about unusual transaction patterns and lack of documentation...' },
+                    { title: 'Encrypted Email: Confidential Instructions', date: 'June 1, 2023', from: 'John Smith', to: 'Unknown', subject: '[Encrypted]', relevance: 'Critical', preview: 'Encrypted communication recovered from secure server, contents under analysis...' },
+                    { title: 'Email: Travel Itinerary Confirmation', date: 'April 20, 2023', from: 'Travel Dept', to: 'John Smith', subject: 'Your Upcoming Trips', relevance: 'Medium', preview: 'Confirmation of multiple international trips including Cayman Islands, Dubai...' }
+                ]
+            },
+            'Financial Record': {
+                total: 892,
+                description: 'Financial documents including bank statements, wire transfers, invoices, and accounting records showing monetary transactions.',
+                breakdown: {
+                    'Wire Transfers': 312,
+                    'Bank Statements': 245,
+                    'Invoices': 189,
+                    'Accounting Ledgers': 146
+                },
+                topDocuments: [
+                    { title: 'Wire Transfer Authorization - $850,000', date: 'May 3, 2023', from: 'TechCorp', to: 'Cayman Entity', amount: '$850,000', relevance: 'Critical', preview: 'Large wire transfer to offshore account with minimal documentation...' },
+                    { title: 'Bank Statement - Offshore Account #4892', date: 'Q2 2023', institution: 'Cayman International Bank', balance: '$2.3M', relevance: 'Critical', preview: 'Quarterly statement showing multiple large deposits and structured transactions...' },
+                    { title: 'Invoice - Consulting Services (Suspicious)', date: 'May 15, 2023', from: 'Shell Company LLC', amount: '$425,000', relevance: 'High', preview: 'Invoice for vague consulting services with no deliverables documented...' },
+                    { title: 'Accounting Ledger - Unreconciled Entries', date: 'June 2023', discrepancy: '$2.3M', relevance: 'Critical', preview: 'Ledger showing significant unreconciled entries and missing documentation...' },
+                    { title: 'Credit Card Statement - International Charges', date: 'April-June 2023', total: '$127,000', relevance: 'Medium', preview: 'Corporate card charges from luxury hotels and restaurants in offshore locations...' }
+                ]
+            },
+            'Travel Document': {
+                total: 567,
+                description: 'Travel-related documents including itineraries, boarding passes, hotel receipts, and passport records.',
+                breakdown: {
+                    'Flight Records': 198,
+                    'Hotel Receipts': 156,
+                    'Passport Stamps': 134,
+                    'Rental Cars': 79
+                },
+                topDocuments: [
+                    { title: 'Passport - Entry/Exit Stamps Analysis', date: 'Q2 2023', traveler: 'John Smith', countries: '4 countries, 20 trips', relevance: 'High', preview: 'Passport showing frequent travel to offshore financial centers...' },
+                    { title: 'Flight Manifest - Cayman Airways', date: 'April 15, 2023', route: 'IAD → GCM', passenger: 'John Smith', relevance: 'High', preview: 'First of eight trips to Cayman Islands during investigation period...' },
+                    { title: 'Hotel Receipt - Ritz-Carlton Grand Cayman', date: 'April 15-18, 2023', guest: 'John Smith', cost: '$4,200', relevance: 'Medium', preview: 'Luxury accommodation during banking meetings in Cayman Islands...' },
+                    { title: 'Travel Itinerary - Multi-City Tour', date: 'May-June 2023', destinations: 'Switzerland, Dubai, Singapore', relevance: 'Critical', preview: 'Coordinated travel to multiple offshore financial centers in rapid succession...' }
+                ]
+            },
+            'Witness Statement': {
+                total: 423,
+                description: 'Formal witness statements, depositions, and testimony transcripts from interviews and court proceedings.',
+                breakdown: {
+                    'Grand Jury Testimony': 145,
+                    'FBI Interviews': 128,
+                    'Depositions': 95,
+                    'Affidavits': 55
+                },
+                topDocuments: [
+                    { title: 'Grand Jury Testimony - John Smith', date: 'September 15, 2023', duration: '4 hours', pages: 187, relevance: 'Critical', preview: 'Detailed testimony regarding offshore accounts and financial transactions...' },
+                    { title: 'FBI Interview - Maria Garcia (Whistleblower)', date: 'July 5, 2023', duration: '2.5 hours', pages: 89, relevance: 'Critical', preview: 'Accountant describing suspicious activities and pressure to falsify records...' },
+                    { title: 'Deposition - Jane Doe', date: 'July 12, 2023', duration: '3 hours', pages: 124, relevance: 'High', preview: 'VP Operations testimony about communication gaps and unusual directives...' },
+                    { title: 'Witness Statement - Robert Johnson', date: 'August 20, 2023', pages: 45, relevance: 'High', preview: 'Legal counsel describing concerns raised about transaction legality...' }
+                ]
+            },
+            'Court Filing': {
+                total: 897,
+                description: 'Legal documents filed with the court including motions, briefs, orders, and official court records.',
+                breakdown: {
+                    'Motions': 312,
+                    'Court Orders': 245,
+                    'Briefs': 198,
+                    'Indictments': 142
+                },
+                topDocuments: [
+                    { title: 'Indictment - United States v. John Smith', date: 'January 15, 2024', charges: '12 counts', relevance: 'Critical', preview: 'Federal indictment charging money laundering, wire fraud, and conspiracy...' },
+                    { title: 'Motion to Suppress Evidence', date: 'February 1, 2024', filed_by: 'Defense', status: 'Denied', relevance: 'High', preview: 'Defense motion to suppress offshore banking records, denied by court...' },
+                    { title: 'Search Warrant - TechCorp Offices', date: 'March 10, 2023', scope: 'Financial records', relevance: 'High', preview: 'Federal warrant authorizing search and seizure of corporate documents...' },
+                    { title: 'Court Order - Asset Freeze', date: 'January 20, 2024', amount: '$5.2M', relevance: 'Critical', preview: 'Order freezing defendant assets pending trial outcome...' }
+                ]
+            }
+        };
+
+        const courtOrdersTimeline = [
+            { date: '2023-03-10', order: 'Search Warrant Issued', judge: 'Hon. Sarah Mitchell', description: 'Federal warrant authorizing search of TechCorp offices and seizure of financial records', impact: 'Critical', status: 'Executed' },
+            { date: '2023-03-15', order: 'Preservation Order', judge: 'Hon. Sarah Mitchell', description: 'Order requiring preservation of all electronic communications and financial records', impact: 'High', status: 'Active' },
+            { date: '2023-04-22', order: 'Subpoena Duces Tecum', judge: 'Hon. Robert Chen', description: 'Subpoena for offshore banking records from Cayman International Bank', impact: 'Critical', status: 'Complied' },
+            { date: '2023-06-30', order: 'Order Compelling Testimony', judge: 'Hon. Robert Chen', description: 'Order compelling John Smith to testify before grand jury', impact: 'Critical', status: 'Complied' },
+            { date: '2023-07-15', order: 'Document Production Order', judge: 'Hon. Sarah Mitchell', description: 'Order requiring production of travel records and expense reports', impact: 'High', status: 'Complied' },
+            { date: '2023-09-20', order: 'Witness Immunity Order', judge: 'Hon. Sarah Mitchell', description: 'Grant of immunity to Maria Garcia for testimony', impact: 'Critical', status: 'Active' },
+            { date: '2024-01-15', order: 'Indictment Unsealed', judge: 'Hon. Sarah Mitchell', description: 'Order unsealing federal indictment against John Smith', impact: 'Critical', status: 'Public' },
+            { date: '2024-01-20', order: 'Asset Freeze Order', judge: 'Hon. Sarah Mitchell', description: 'Order freezing $5.2M in defendant assets pending trial', impact: 'Critical', status: 'Active' },
+            { date: '2024-01-25', order: 'Bail Conditions Order', judge: 'Hon. Sarah Mitchell', description: 'Order setting bail at $2M with travel restrictions', impact: 'High', status: 'Active' },
+            { date: '2024-02-01', order: 'Order Denying Motion to Suppress', judge: 'Hon. Robert Chen', description: 'Denial of defense motion to suppress offshore banking evidence', impact: 'Critical', status: 'Final' },
+            { date: '2024-02-10', order: 'Discovery Schedule Order', judge: 'Hon. Sarah Mitchell', description: 'Order establishing discovery deadlines and trial schedule', impact: 'High', status: 'Active' }
+        ];
+
+        const motionsTimeline = [
+            { date: '2023-04-05', motion: 'Motion to Quash Subpoena', filed_by: 'Defense', description: 'Motion to quash subpoena for offshore banking records', ruling: 'Denied', impact: 'High' },
+            { date: '2023-05-12', motion: 'Motion for Protective Order', filed_by: 'Defense', description: 'Motion seeking protection of trade secrets during discovery', ruling: 'Granted in Part', impact: 'Medium' },
+            { date: '2023-06-20', motion: 'Motion to Compel Discovery', filed_by: 'Prosecution', description: 'Motion to compel production of corporate financial records', ruling: 'Granted', impact: 'High' },
+            { date: '2023-08-15', motion: 'Motion for Bill of Particulars', filed_by: 'Defense', description: 'Motion requesting detailed specification of charges', ruling: 'Granted in Part', impact: 'Medium' },
+            { date: '2023-10-10', motion: 'Motion to Sever Counts', filed_by: 'Defense', description: 'Motion to separate money laundering and fraud charges', ruling: 'Denied', impact: 'High' },
+            { date: '2024-01-30', motion: 'Motion to Suppress Evidence', filed_by: 'Defense', description: 'Motion to suppress offshore banking records as improperly obtained', ruling: 'Denied', impact: 'Critical' },
+            { date: '2024-02-05', motion: 'Motion for Change of Venue', filed_by: 'Defense', description: 'Motion to move trial due to pretrial publicity', ruling: 'Pending', impact: 'High' },
+            { date: '2024-02-12', motion: 'Motion in Limine', filed_by: 'Prosecution', description: 'Motion to exclude character evidence', ruling: 'Pending', impact: 'Medium' }
+        ];
+
+        const briefsTimeline = [
+            { date: '2023-04-10', brief: 'Opposition to Motion to Quash', filed_by: 'Prosecution', pages: 45, description: 'Government opposition arguing subpoena is properly issued and relevant', impact: 'High' },
+            { date: '2023-06-25', brief: 'Memorandum in Support of Motion to Compel', filed_by: 'Prosecution', pages: 38, description: 'Brief supporting motion to compel discovery of financial records', impact: 'High' },
+            { date: '2023-08-20', brief: 'Reply Brief on Bill of Particulars', filed_by: 'Defense', pages: 28, description: 'Reply brief arguing for more detailed charge specifications', impact: 'Medium' },
+            { date: '2023-11-15', brief: 'Sentencing Memorandum (Preliminary)', filed_by: 'Prosecution', pages: 67, description: 'Preliminary sentencing guidelines analysis', impact: 'High' },
+            { date: '2024-02-03', brief: 'Opposition to Motion to Suppress', filed_by: 'Prosecution', pages: 89, description: 'Comprehensive brief opposing suppression of offshore banking evidence', impact: 'Critical' },
+            { date: '2024-02-08', brief: 'Reply in Support of Change of Venue', filed_by: 'Defense', pages: 42, description: 'Reply brief with media coverage analysis supporting venue change', impact: 'High' }
+        ];
+
+        const indictmentsTimeline = [
+            { date: '2023-09-25', indictment: 'Sealed Indictment Filed', counts: 12, description: 'Federal grand jury returns sealed indictment charging money laundering and wire fraud', impact: 'Critical', status: 'Sealed' },
+            { date: '2024-01-15', indictment: 'Indictment Unsealed', counts: 12, description: 'Indictment unsealed following defendant arrest', impact: 'Critical', status: 'Public' },
+            { date: '2024-01-16', indictment: 'Superseding Indictment Filed', counts: 15, description: 'Superseding indictment adding conspiracy and additional wire fraud counts', impact: 'Critical', status: 'Active' }
+        ];
+
+        const categoryTimelines = {
+            'Court Orders': courtOrdersTimeline,
+            'Motions': motionsTimeline,
+            'Briefs': briefsTimeline,
+            'Indictments': indictmentsTimeline
+        };
+
+        const witnessProfiles = {
+            'John Smith': {
+                role: 'Chief Financial Officer', company: 'TechCorp Industries', mentions: 234,
+                summary: 'John Smith served as CFO during the investigation period. His name appears in 234 documents including financial records, emails, and witness statements showing central involvement in suspicious activities.',
+                activityByMonth: { 'Jan': 15, 'Feb': 18, 'Mar': 22, 'Apr': 28, 'May': 35, 'Jun': 42, 'Jul': 25, 'Aug': 20, 'Sep': 15, 'Oct': 8, 'Nov': 4, 'Dec': 2 },
+                documents: [
+                    { title: 'Email: Offshore Account Setup', date: 'April 12, 2023', type: 'Email', relevance: 'Critical' },
+                    { title: 'Grand Jury Testimony', date: 'Sept 15, 2023', type: 'Witness Statement', relevance: 'Critical' },
+                    { title: 'Wire Transfer $850K', date: 'May 3, 2023', type: 'Financial Record', relevance: 'High' }
+                ]
+            },
+            'Jane Doe': {
+                role: 'VP of Operations', company: 'TechCorp Industries', mentions: 189,
+                summary: 'Jane Doe held senior operational role with 189 document mentions. Notable for 45-day communication gap with John Smith during critical period.',
+                activityByMonth: { 'Jan': 8, 'Feb': 12, 'Mar': 18, 'Apr': 25, 'May': 32, 'Jun': 38, 'Jul': 22, 'Aug': 15, 'Sep': 10, 'Oct': 5, 'Nov': 3, 'Dec': 1 },
+                documents: [
+                    { title: 'Operational Changes Email', date: 'March 15, 2023', type: 'Email', relevance: 'Medium' },
+                    { title: 'Initial Interview', date: 'July 12, 2023', type: 'Witness Statement', relevance: 'High' }
+                ]
+            }
+        };
+
+        const travelers = {
+            'John Smith': {
+                totalTrips: 20, suspicionLevel: 'Critical', role: 'CFO',
+                origin: { name: 'Washington, D.C.', lat: 38.9072, lng: -77.0369 },
+                summary: 'John Smith made 20 international trips to offshore financial centers. The frequency and destinations raise significant money laundering concerns.',
+                trips: [
+                    { 
+                        destination: 'Cayman Islands', 
+                        date: 'Apr 15-18', 
+                        purpose: 'Bank Setup', 
+                        lat: 19.3133, 
+                        lng: -81.2546,
+                        tripCount: 8,
+                        description: 'Eight trips to Cayman Islands for offshore banking activities',
+                        documents: [
+                            { title: 'Flight Itinerary - Cayman Airways', date: 'April 15, 2023', type: 'Travel Document', relevance: 'High' },
+                            { title: 'Hotel Receipt - Ritz-Carlton Grand Cayman', date: 'April 15-18, 2023', type: 'Financial Record', relevance: 'Medium' },
+                            { title: 'Meeting Notes - Cayman International Bank', date: 'April 16, 2023', type: 'Internal Document', relevance: 'Critical' },
+                            { title: 'Corporate Formation Documents - Offshore Entity', date: 'April 28, 2023', type: 'Legal Document', relevance: 'Critical' },
+                            { title: 'Wire Transfer Authorization - $850K', date: 'May 25, 2023', type: 'Financial Record', relevance: 'Critical' }
+                        ]
+                    },
+                    { 
+                        destination: 'Switzerland', 
+                        date: 'May 8-12', 
+                        purpose: 'Private Banking', 
+                        lat: 47.3769, 
+                        lng: 8.5417,
+                        tripCount: 5,
+                        description: 'Five trips to Switzerland (Zurich and Geneva) for private banking and asset management',
+                        documents: [
+                            { title: 'Swiss Air Flight Records', date: 'May 8, 2023', type: 'Travel Document', relevance: 'High' },
+                            { title: 'Hotel Invoice - Baur au Lac, Zurich', date: 'May 8-12, 2023', type: 'Financial Record', relevance: 'Medium' },
+                            { title: 'Private Banking Agreement', date: 'May 8, 2023', type: 'Financial Record', relevance: 'Critical' },
+                            { title: 'Asset Transfer Documentation', date: 'May 20, 2023', type: 'Financial Record', relevance: 'Critical' },
+                            { title: 'Trust Fund Formation Papers', date: 'June 10, 2023', type: 'Legal Document', relevance: 'Critical' }
+                        ]
+                    },
+                    { 
+                        destination: 'Dubai', 
+                        date: 'May 15-18', 
+                        purpose: 'Real Estate', 
+                        lat: 25.2048, 
+                        lng: 55.2708,
+                        tripCount: 4,
+                        description: 'Four trips to Dubai for real estate investments and financial services',
+                        documents: [
+                            { title: 'Emirates Flight Manifests', date: 'April-June 2023', type: 'Travel Document', relevance: 'Medium' },
+                            { title: 'Real Estate Purchase Agreement', date: 'April 22, 2023', type: 'Legal Document', relevance: 'High' },
+                            { title: 'Investment Fund Documentation', date: 'May 15, 2023', type: 'Financial Record', relevance: 'High' },
+                            { title: 'Property Title Transfer', date: 'June 5, 2023', type: 'Legal Document', relevance: 'High' }
+                        ]
+                    },
+                    { 
+                        destination: 'Singapore', 
+                        date: 'May 28-31', 
+                        purpose: 'Corporate Setup', 
+                        lat: 1.3521, 
+                        lng: 103.8198,
+                        tripCount: 3,
+                        description: 'Three trips to Singapore for corporate structuring and banking services',
+                        documents: [
+                            { title: 'Singapore Airlines Tickets', date: 'May-June 2023', type: 'Travel Document', relevance: 'Medium' },
+                            { title: 'Corporate Registration Documents', date: 'May 2, 2023', type: 'Legal Document', relevance: 'High' },
+                            { title: 'Banking Services Agreement', date: 'May 28, 2023', type: 'Financial Record', relevance: 'High' },
+                            { title: 'Business Formation Papers', date: 'June 15, 2023', type: 'Legal Document', relevance: 'High' }
+                        ]
+                    }
+                ],
+                documents: [
+                    { title: 'Complete Travel Itinerary', date: 'Q2 2023', type: 'Travel Document', relevance: 'Critical' },
+                    { title: 'Passport Entry/Exit Stamps', date: 'Q2 2023', type: 'Immigration', relevance: 'High' }
+                ]
+            },
+            'Jane Doe': { totalTrips: 3, suspicionLevel: 'Low', role: 'VP Operations', trips: [], documents: [] },
+            'Robert Johnson': { totalTrips: 2, suspicionLevel: 'Low', role: 'Legal Counsel', trips: [], documents: [] }
+        };
+
+        function showWitnessDetails(name) {
+            const w = witnessProfiles[name];
+            if (!w) return;
+            document.getElementById('witnessModalTitle').textContent = name;
+            document.getElementById('witnessModalBody').innerHTML = `
+                <div class="witness-profile">
+                    <h3>Profile Overview</h3>
+                    <p>${w.summary}</p>
+                    <div class="profile-grid">
+                        <div class="profile-item"><div class="profile-label">Role</div><div class="profile-value">${w.role}</div></div>
+                        <div class="profile-item"><div class="profile-label">Company</div><div class="profile-value">${w.company}</div></div>
+                        <div class="profile-item"><div class="profile-label">Mentions</div><div class="profile-value">${w.mentions}</div></div>
+                        <div class="profile-item"><div class="profile-label">Significance</div><div class="profile-value">Key Witness</div></div>
+                    </div>
+                </div>
+                <div class="activity-chart"><h4>📊 Activity Timeline</h4><canvas id="witnessActivityChart"></canvas></div>
+                <div class="documents-section"><h3>📄 Documents (${w.documents.length})</h3>
+                    ${w.documents.map((d, idx) => `
+                        <a href="#" class="document-link" onclick="openDocument('${name}', ${idx}); return false;">
+                            <div class="document-title">📎 ${d.title}</div>
+                            <div class="document-meta">${d.type} | ${d.date} | <span style="color: ${d.relevance === 'Critical' ? '#bf0a30' : d.relevance === 'High' ? '#002868' : '#666'}; font-weight: 700;">Relevance: ${d.relevance}</span></div>
+                        </a>
+                    `).join('')}
+                </div>
+            `;
+            document.getElementById('witnessModal').style.display = 'block';
+            setTimeout(() => {
+                new Chart(document.getElementById('witnessActivityChart'), {
+                    type: 'line',
+                    data: { labels: Object.keys(w.activityByMonth), datasets: [{ data: Object.values(w.activityByMonth), borderColor: '#002868', backgroundColor: 'rgba(0,40,104,0.1)', fill: true }] },
+                    options: { responsive: true, plugins: { legend: { display: false } } }
+                });
+            }, 100);
+        }
+
+        function showTravelerTravel(name) {
+            const t = travelers[name];
+            if (!t) return;
+            document.getElementById('travelModalTitle').textContent = name + ' - Travel Analysis';
+            document.getElementById('travelModalBody').innerHTML = `
+                <span class="severity-badge" style="background: ${t.suspicionLevel === 'Critical' ? '#bf0a30' : '#4a5568'}">Suspicion: ${t.suspicionLevel}</span>
+                <div class="travel-summary">
+                    <h3>Travel Pattern Analysis</h3>
+                    <p>${t.summary}</p>
+                    <div class="profile-grid">
+                        <div class="profile-item"><div class="profile-label">Total Trips</div><div class="profile-value">${t.totalTrips}</div></div>
+                        <div class="profile-item"><div class="profile-label">Role</div><div class="profile-value">${t.role}</div></div>
+                        <div class="profile-item"><div class="profile-label">Origin</div><div class="profile-value">${t.origin.name}</div></div>
+                        <div class="profile-item"><div class="profile-label">Period</div><div class="profile-value">Q2 2023</div></div>
+                    </div>
+                </div>
+                <div class="travel-map-container"><h4>🗺️ Flight Path Visualization</h4><div id="travelMap"></div></div>
+                <div class="documents-section"><h3>📄 Documents (${t.documents.length})</h3>
+                    ${t.documents.map((d, idx) => `
+                        <a href="#" class="document-link" onclick="openDocument('${name}', ${idx}); return false;">
+                            <div class="document-title">📎 ${d.title}</div>
+                            <div class="document-meta">${d.type} | ${d.date} | <span style="color: ${d.relevance === 'Critical' ? '#bf0a30' : d.relevance === 'High' ? '#002868' : '#666'}; font-weight: 700;">Relevance: ${d.relevance}</span></div>
+                        </a>
+                    `).join('')}
+                </div>
+            `;
+            document.getElementById('travelModal').style.display = 'block';
+            setTimeout(() => {
+                const map = L.map('travelMap').setView([30, 0], 2);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                
+                // Add origin marker
+                L.circleMarker([t.origin.lat, t.origin.lng], { 
+                    radius: 10, 
+                    fillColor: '#002868', 
+                    color: '#fff', 
+                    weight: 3, 
+                    fillOpacity: 0.9 
+                }).addTo(map).bindPopup('Origin: ' + t.origin.name);
+                
+                // Group trips by destination to get unique locations
+                const uniqueDestinations = {};
+                t.trips.forEach(trip => {
+                    if (!uniqueDestinations[trip.destination]) {
+                        uniqueDestinations[trip.destination] = trip;
+                    }
+                });
+                
+                // Add destination markers with click handlers
+                Object.values(uniqueDestinations).forEach(trip => {
+                    const marker = L.circleMarker([trip.lat, trip.lng], { 
+                        radius: 12 + (trip.tripCount || 1), 
+                        fillColor: '#bf0a30', 
+                        color: '#fff', 
+                        weight: 3, 
+                        fillOpacity: 0.8 
+                    }).addTo(map);
+                    
+                    // Popup with click hint
+                    marker.bindPopup(`
+                        <div style="min-width: 200px;">
+                            <b>${trip.destination}</b><br>
+                            ${trip.tripCount || 1} trip(s)<br>
+                            Purpose: ${trip.purpose}<br>
+                            <button onclick="showDestinationDocuments('${name}', '${trip.destination}')" 
+                                    style="margin-top: 10px; padding: 8px 16px; background: #002868; color: white; border: none; cursor: pointer; width: 100%; font-weight: 600;">
+                                View Documents (${trip.documents ? trip.documents.length : 0})
+                            </button>
+                        </div>
+                    `);
+                    
+                    // Add flight path
+                    L.polyline([[t.origin.lat, t.origin.lng], [trip.lat, trip.lng]], { 
+                        color: '#bf0a30', 
+                        weight: 2, 
+                        opacity: 0.6, 
+                        dashArray: '10, 10' 
+                    }).addTo(map);
+                });
+                
+                if (t.trips.length > 0) {
+                    map.fitBounds(t.trips.map(tr => [tr.lat, tr.lng]).concat([[t.origin.lat, t.origin.lng]]), { padding: [50, 50] });
+                }
+            }, 100);
+        }
+
+        function showDestinationDocuments(travelerName, destination) {
+            const traveler = travelers[travelerName];
+            const trip = traveler.trips.find(t => t.destination === destination);
+            
+            if (!trip || !trip.documents) return;
+            
+            document.getElementById('travelModalTitle').textContent = `${destination} - Travel Documents`;
+            document.getElementById('travelModalBody').innerHTML = `
+                <div class="travel-summary">
+                    <h3>Destination Analysis</h3>
+                    <p>${trip.description}</p>
+                    <div class="profile-grid">
+                        <div class="profile-item"><div class="profile-label">Destination</div><div class="profile-value">${destination}</div></div>
+                        <div class="profile-item"><div class="profile-label">Total Trips</div><div class="profile-value">${trip.tripCount || 1}</div></div>
+                        <div class="profile-item"><div class="profile-label">Primary Purpose</div><div class="profile-value">${trip.purpose}</div></div>
+                        <div class="profile-item"><div class="profile-label">Documents</div><div class="profile-value">${trip.documents.length}</div></div>
+                    </div>
+                </div>
+                <div class="documents-section">
+                    <h3>📄 Supporting Documents (${trip.documents.length})</h3>
+                    ${trip.documents.map((doc, idx) => `
+                        <a href="#" class="document-link" onclick="openDestinationDocument('${travelerName}', '${destination}', ${idx}); return false;">
+                            <div class="document-title">📎 ${doc.title}</div>
+                            <div class="document-meta">
+                                Type: ${doc.type} | Date: ${doc.date} | 
+                                <span style="color: ${doc.relevance === 'Critical' ? '#bf0a30' : doc.relevance === 'High' ? '#002868' : '#666'}; font-weight: 700;">Relevance: ${doc.relevance}</span>
+                            </div>
+                        </a>
+                    `).join('')}
+                </div>
+                <button onclick="showTravelerTravel('${travelerName}')" 
+                        style="margin-top: 20px; padding: 12px 24px; background: #4a5568; color: white; border: none; cursor: pointer; font-weight: 600;">
+                    ← Back to Travel Map
+                </button>
+            `;
+        }
+
+        function openDestinationDocument(travelerName, destination, docIndex) {
+            const traveler = travelers[travelerName];
+            const trip = traveler.trips.find(t => t.destination === destination);
+            const doc = trip.documents[docIndex];
+            
+            alert(`Document Details:\n\n${doc.title}\n\nDestination: ${destination}\nType: ${doc.type}\nDate: ${doc.date}\nRelevance: ${doc.relevance}\n\nIn a production system, this would:\n• Open the full document in secure viewer\n• Show document in context of travel to ${destination}\n• Display related travel documents\n• Provide geospatial context and timeline\n• Enable filtering by destination`);
+        }
+
+        function openDocument(source, docIndex) {
+            let doc;
+            if (witnessProfiles[source]) {
+                doc = witnessProfiles[source].documents[docIndex];
+            } else if (travelers[source]) {
+                doc = travelers[source].documents[docIndex];
+            }
+            
+            if (doc) {
+                alert(`Opening Document:\n\n${doc.title}\n\nType: ${doc.type}\nDate: ${doc.date}\nRelevance: ${doc.relevance}\n\nIn a production system, this would:\n• Open the document viewer\n• Display the full document content\n• Highlight relevant sections\n• Show document metadata and chain of custody`);
+            }
+        }
+
+        function showDocTypeDetails(docType) {
+            const details = documentTypeDetails[docType];
+            if (!details) return;
+            
+            document.getElementById('docTypeModalTitle').textContent = docType + ' Analysis';
+            document.getElementById('docTypeModalBody').innerHTML = `
+                <div class="witness-profile">
+                    <h3>Document Type Overview</h3>
+                    <p>${details.description}</p>
+                    <div class="profile-grid">
+                        <div class="profile-item"><div class="profile-label">Total Documents</div><div class="profile-value">${details.total.toLocaleString()}</div></div>
+                        <div class="profile-item"><div class="profile-label">Categories</div><div class="profile-value">${Object.keys(details.breakdown).length}</div></div>
+                        <div class="profile-item"><div class="profile-label">Time Period</div><div class="profile-value">2023-2024</div></div>
+                        <div class="profile-item"><div class="profile-label">Legal Significance</div><div class="profile-value">High</div></div>
+                    </div>
+                </div>
+                <div class="activity-chart">
+                    <h4>📊 Document Breakdown by Category</h4>
+                    <div class="chart-hint">💡 Click on any bar to see detailed timeline</div>
+                    <canvas id="docBreakdownChart"></canvas>
+                </div>
+                <div class="documents-section">
+                    <h3>📄 Key Documents (${details.topDocuments.length})</h3>
+                    ${details.topDocuments.map((d, idx) => `
+                        <a href="#" class="document-link" onclick="openDetailedDocument('${docType}', ${idx}); return false;">
+                            <div class="document-title">📎 ${d.title}</div>
+                            <div class="document-meta">
+                                Date: ${d.date} | 
+                                <span style="color: ${d.relevance === 'Critical' ? '#bf0a30' : d.relevance === 'High' ? '#002868' : '#666'}; font-weight: 700;">Relevance: ${d.relevance}</span>
+                                <br><span style="color: #666; font-style: italic;">${d.preview}</span>
+                            </div>
+                        </a>
+                    `).join('')}
+                </div>
+            `;
+            document.getElementById('docTypeModal').style.display = 'block';
+            
+            setTimeout(() => {
+                new Chart(document.getElementById('docBreakdownChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(details.breakdown),
+                        datasets: [{
+                            label: 'Document Count',
+                            data: Object.values(details.breakdown),
+                            backgroundColor: '#002868',
+                            borderColor: '#bf0a30',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { 
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    afterLabel: function(context) {
+                                        return 'Click to view timeline';
+                                    }
+                                }
+                            }
+                        },
+                        scales: { y: { beginAtZero: true } },
+                        onClick: (e, els) => {
+                            if (els.length) {
+                                const category = Object.keys(details.breakdown)[els[0].index];
+                                if (docType === 'Court Filing' && categoryTimelines[category]) {
+                                    showCategoryTimeline(category);
+                                } else {
+                                    alert(`Viewing ${category} in ${docType}\n\nThis would show a filtered view of all ${category} documents.`);
+                                }
+                            }
+                        },
+                        onHover: (e, els) => {
+                            e.native.target.style.cursor = els.length ? 'pointer' : 'default';
+                        }
+                    }
+                });
+            }, 100);
+        }
+
+        function openDetailedDocument(docType, docIndex) {
+            const doc = documentTypeDetails[docType].topDocuments[docIndex];
+            
+            let detailsText = `Document Details:\n\n${doc.title}\n\nDate: ${doc.date}\nRelevance: ${doc.relevance}\n\n`;
+            
+            // Add type-specific details
+            if (doc.from) detailsText += `From: ${doc.from}\n`;
+            if (doc.to) detailsText += `To: ${doc.to}\n`;
+            if (doc.subject) detailsText += `Subject: ${doc.subject}\n`;
+            if (doc.amount) detailsText += `Amount: ${doc.amount}\n`;
+            if (doc.traveler) detailsText += `Traveler: ${doc.traveler}\n`;
+            if (doc.pages) detailsText += `Pages: ${doc.pages}\n`;
+            if (doc.charges) detailsText += `Charges: ${doc.charges}\n`;
+            
+            detailsText += `\nPreview:\n${doc.preview}\n\n`;
+            detailsText += `In a production system, this would:\n`;
+            detailsText += `• Open full document in secure viewer\n`;
+            detailsText += `• Display complete content with annotations\n`;
+            detailsText += `• Show related documents and cross-references\n`;
+            detailsText += `• Provide chain of custody information\n`;
+            detailsText += `• Enable export for legal proceedings`;
+            
+            alert(detailsText);
+        }
+
+        function showCategoryTimeline(category) {
+            const timeline = categoryTimelines[category];
+            if (!timeline) return;
+            
+            const categoryConfig = {
+                'Court Orders': {
+                    icon: '⚖️',
+                    itemKey: 'order',
+                    fields: ['judge', 'status'],
+                    chartLabel: 'Court Orders Over Time'
+                },
+                'Motions': {
+                    icon: '📋',
+                    itemKey: 'motion',
+                    fields: ['filed_by', 'ruling'],
+                    chartLabel: 'Motions Filed Over Time'
+                },
+                'Briefs': {
+                    icon: '📄',
+                    itemKey: 'brief',
+                    fields: ['filed_by', 'pages'],
+                    chartLabel: 'Briefs Filed Over Time'
+                },
+                'Indictments': {
+                    icon: '⚡',
+                    itemKey: 'indictment',
+                    fields: ['counts', 'status'],
+                    chartLabel: 'Indictments Timeline'
+                }
+            };
+            
+            const config = categoryConfig[category];
+            const criticalCount = timeline.filter(item => item.impact === 'Critical').length;
+            
+            document.getElementById('docTypeModalTitle').textContent = category + ' Timeline';
+            document.getElementById('docTypeModalBody').innerHTML = `
+                <div class="witness-profile">
+                    <h3>${category} Chronology</h3>
+                    <p>Complete timeline of all ${category.toLowerCase()} in the case. This chronological view shows the progression of legal actions and procedural milestones.</p>
+                    <div class="profile-grid">
+                        <div class="profile-item"><div class="profile-label">Total ${category}</div><div class="profile-value">${timeline.length}</div></div>
+                        <div class="profile-item"><div class="profile-label">Time Span</div><div class="profile-value">March 2023 - Feb 2024</div></div>
+                        <div class="profile-item"><div class="profile-label">Critical Impact</div><div class="profile-value">${criticalCount}</div></div>
+                        <div class="profile-item"><div class="profile-label">Status</div><div class="profile-value">Active Case</div></div>
+                    </div>
+                </div>
+                <div class="activity-chart">
+                    <h4>📊 ${config.chartLabel}</h4>
+                    <canvas id="categoryTimelineChart"></canvas>
+                </div>
+                <div class="documents-section">
+                    <h3>${config.icon} All ${category} (${timeline.length})</h3>
+                    ${timeline.map((item, idx) => {
+                        const title = item[config.itemKey];
+                        const field1 = config.fields[0] ? `${config.fields[0].replace('_', ' ')}: ${item[config.fields[0]]}` : '';
+                        const field2 = config.fields[1] ? `${config.fields[1].replace('_', ' ')}: ${item[config.fields[1]]}` : '';
+                        return `
+                            <a href="#" class="document-link" onclick="openCategoryItem('${category}', ${idx}); return false;">
+                                <div class="document-title">📎 ${title}</div>
+                                <div class="document-meta">
+                                    Date: ${item.date} ${field1 ? '| ' + field1 : ''} ${field2 ? '| ' + field2 : ''}
+                                    <br><span style="color: ${item.impact === 'Critical' ? '#bf0a30' : item.impact === 'High' ? '#002868' : '#666'}; font-weight: 700;">Impact: ${item.impact}</span>
+                                    <br><span style="color: #666; font-style: italic;">${item.description}</span>
+                                </div>
+                            </a>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                new Chart(document.getElementById('categoryTimelineChart'), {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: 'Critical Impact',
+                            data: timeline.filter(o => o.impact === 'Critical').map(o => ({ 
+                                x: new Date(o.date), 
+                                y: 3, 
+                                title: o[config.itemKey] 
+                            })),
+                            backgroundColor: '#bf0a30',
+                            pointRadius: 8,
+                            pointHoverRadius: 12
+                        }, {
+                            label: 'High Impact',
+                            data: timeline.filter(o => o.impact === 'High').map(o => ({ 
+                                x: new Date(o.date), 
+                                y: 2, 
+                                title: o[config.itemKey] 
+                            })),
+                            backgroundColor: '#002868',
+                            pointRadius: 6,
+                            pointHoverRadius: 10
+                        }, {
+                            label: 'Medium Impact',
+                            data: timeline.filter(o => o.impact === 'Medium').map(o => ({ 
+                                x: new Date(o.date), 
+                                y: 1, 
+                                title: o[config.itemKey] 
+                            })),
+                            backgroundColor: '#4a5568',
+                            pointRadius: 5,
+                            pointHoverRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'top' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.raw.title;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: { unit: 'month' },
+                                title: { display: true, text: 'Date' }
+                            },
+                            y: {
+                                min: 0,
+                                max: 4,
+                                ticks: {
+                                    callback: function(value) {
+                                        return ['', 'Medium', 'High', 'Critical'][value] || '';
+                                    }
+                                },
+                                title: { display: true, text: 'Impact Level' }
+                            }
+                        }
+                    }
+                });
+            }, 100);
+        }
+
+        function openCategoryItem(category, itemIndex) {
+            const timeline = categoryTimelines[category];
+            const item = timeline[itemIndex];
+            
+            let detailsText = `${category.slice(0, -1)} Details:\n\n`;
+            
+            // Add all properties dynamically
+            Object.keys(item).forEach(key => {
+                if (key !== 'description') {
+                    detailsText += `${key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}: ${item[key]}\n`;
+                }
+            });
+            
+            detailsText += `\nDescription:\n${item.description}\n\n`;
+            detailsText += `In a production system, this would:\n`;
+            detailsText += `• Display the full document with all exhibits\n`;
+            detailsText += `• Show related filings and responses\n`;
+            detailsText += `• Provide docket number and case references\n`;
+            detailsText += `• Link to subsequent actions and appeals\n`;
+            detailsText += `• Enable download of certified copies`;
+            
+            alert(detailsText);
+        }
+
+        function closeDocTypeModal() { document.getElementById('docTypeModal').style.display = 'none'; }
+        function closeWitnessModal() { document.getElementById('witnessModal').style.display = 'none'; }
+        function closeTravelModal() { document.getElementById('travelModal').style.display = 'none'; }
+        window.onclick = e => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+
+        new Chart(document.getElementById('witnessChart'), {
+            type: 'bar',
+            data: { labels: Object.keys(data.witnessFrequency), datasets: [{ data: Object.values(data.witnessFrequency), backgroundColor: '#002868', borderColor: '#bf0a30', borderWidth: 2 }] },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } }, onClick: (e, els) => { if (els.length) showWitnessDetails(Object.keys(data.witnessFrequency)[els[0].index]); }, onHover: (e, els) => { e.native.target.style.cursor = els.length ? 'pointer' : 'default'; } }
+        });
+
+        new Chart(document.getElementById('docTypeChart'), {
+            type: 'doughnut',
+            data: { labels: Object.keys(data.documentTypes), datasets: [{ data: Object.values(data.documentTypes), backgroundColor: ['#002868', '#bf0a30', '#4a5568', '#718096', '#a0aec0'] }] },
+            options: { 
+                responsive: true, 
+                plugins: { 
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            afterLabel: function(context) {
+                                return 'Click to view details';
+                            }
+                        }
+                    }
+                },
+                onClick: (e, els) => { 
+                    if (els.length) {
+                        const docType = Object.keys(data.documentTypes)[els[0].index];
+                        showDocTypeDetails(docType);
+                    }
+                },
+                onHover: (e, els) => { 
+                    e.native.target.style.cursor = els.length ? 'pointer' : 'default'; 
+                }
+            }
+        });
+
+        new Chart(document.getElementById('timelineChart'), {
+            type: 'line',
+            data: {
+                labels: data.timeline.map(d => d.event),
+                datasets: [{
+                    label: 'Case Progression',
+                    data: data.timeline.map((d, i) => i + 1),
+                    borderColor: '#002868',
+                    backgroundColor: 'rgba(0, 40, 104, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 8,
+                    pointHoverRadius: 12,
+                    pointBackgroundColor: data.timeline.map(d => {
+                        if (d.phase === 'Investigation') return '#4a5568';
+                        if (d.phase === 'Grand Jury') return '#002868';
+                        if (d.phase === 'Prosecution') return '#bf0a30';
+                        return '#002868';
+                    }),
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                return data.timeline[context[0].dataIndex].event;
+                            },
+                            label: function(context) {
+                                const item = data.timeline[context.dataIndex];
+                                return [
+                                    `Phase: ${item.phase}`,
+                                    `Date: ${item.date}`,
+                                    'Click to view details'
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { 
+                        display: false,
+                        beginAtZero: true 
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Case Milestones →',
+                            font: { size: 14, weight: 'bold' }
+                        }
+                    }
+                },
+                onClick: (e, els) => {
+                    if (els.length) {
+                        const index = els[0].index;
+                        showTimelineDetails(index);
+                    }
+                },
+                onHover: (e, els) => {
+                    e.native.target.style.cursor = els.length ? 'pointer' : 'default';
+                }
+            }
+        });
+
+        function showTimelineDetails(index) {
+            const milestone = data.timeline[index];
+            document.getElementById('docTypeModalTitle').textContent = milestone.event;
+            document.getElementById('docTypeModalBody').innerHTML = `
+                <div class="witness-profile" style="border-left-color: ${milestone.phase === 'Prosecution' ? '#bf0a30' : '#002868'}">
+                    <h3>Milestone Details</h3>
+                    <p>${milestone.description}</p>
+                    <div class="profile-grid">
+                        <div class="profile-item"><div class="profile-label">Date</div><div class="profile-value">${milestone.date}</div></div>
+                        <div class="profile-item"><div class="profile-label">Phase</div><div class="profile-value">${milestone.phase}</div></div>
+                        <div class="profile-item"><div class="profile-label">Documents</div><div class="profile-value">${milestone.documents.length}</div></div>
+                        <div class="profile-item"><div class="profile-label">Key Activities</div><div class="profile-value">${milestone.keyActivities.length}</div></div>
+                    </div>
+                </div>
+                <div class="activity-chart">
+                    <h4>📋 Key Activities</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        ${milestone.keyActivities.map(activity => `
+                            <li style="padding: 10px; margin: 5px 0; background: #f0f4f8; border-left: 3px solid #002868;">
+                                ✓ ${activity}
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+                <div class="documents-section">
+                    <h3>📄 Related Documents (${milestone.documents.length})</h3>
+                    ${milestone.documents.map((doc, idx) => `
+                        <a href="#" class="document-link" onclick="openTimelineDocument(${index}, ${idx}); return false;">
+                            <div class="document-title">📎 ${doc.title}</div>
+                            <div class="document-meta">
+                                Type: ${doc.type} | Date: ${doc.date} | 
+                                <span style="color: ${doc.relevance === 'Critical' ? '#bf0a30' : doc.relevance === 'High' ? '#002868' : '#666'}; font-weight: 700;">Relevance: ${doc.relevance}</span>
+                            </div>
+                        </a>
+                    `).join('')}
+                </div>
+            `;
+            document.getElementById('docTypeModal').style.display = 'block';
+        }
+
+        function openTimelineDocument(milestoneIndex, docIndex) {
+            const doc = data.timeline[milestoneIndex].documents[docIndex];
+            const milestone = data.timeline[milestoneIndex].event;
+            alert(`Document Details:\n\n${doc.title}\n\nMilestone: ${milestone}\nType: ${doc.type}\nDate: ${doc.date}\nRelevance: ${doc.relevance}\n\nIn a production system, this would:\n• Open the full document in secure viewer\n• Show document in context of case timeline\n• Display related documents from same milestone\n• Provide chronological navigation\n• Enable timeline-based document filtering`);
+        }
+
+        const travelerNames = Object.keys(travelers);
+        new Chart(document.getElementById('travelChart'), {
+            type: 'bar',
+            data: { labels: travelerNames, datasets: [{ data: travelerNames.map(n => travelers[n].totalTrips), backgroundColor: travelerNames.map(n => travelers[n].suspicionLevel === 'Critical' ? '#bf0a30' : '#4a5568'), borderWidth: 2 }] },
+            options: { responsive: true, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } }, onClick: (e, els) => { if (els.length) showTravelerTravel(travelerNames[els[0].index]); }, onHover: (e, els) => { e.native.target.style.cursor = els.length ? 'pointer' : 'default'; } }
+        });
+
+        // Stat Card Details Data
+        const statDetails = {
+            documents: {
+                title: 'Total Documents Analysis',
+                summary: 'Comprehensive analysis of 4,024 documents collected during investigation, including emails, financial records, travel documents, witness statements, and court filings. Documents span from January 2023 to February 2024.',
+                metrics: {
+                    'Total Documents': 4024,
+                    'Critical Relevance': 856,
+                    'High Relevance': 1523,
+                    'Collection Period': '13 months'
+                },
+                charts: [
+                    {
+                        title: 'Document Collection Timeline',
+                        type: 'line',
+                        data: {
+                            labels: ['Jan 23', 'Mar 23', 'May 23', 'Jul 23', 'Sep 23', 'Nov 23', 'Jan 24'],
+                            datasets: [{
+                                label: 'Cumulative Documents',
+                                data: [150, 850, 1650, 2400, 3200, 3800, 4024],
+                                borderColor: '#002868',
+                                backgroundColor: 'rgba(0,40,104,0.1)',
+                                fill: true
+                            }]
+                        }
+                    },
+                    {
+                        title: 'Documents by Source',
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Internal Records', 'Subpoenaed', 'Witness Provided', 'Court Generated', 'Seized'],
+                            datasets: [{
+                                data: [1245, 1523, 567, 897, 792],
+                                backgroundColor: ['#002868', '#bf0a30', '#4a5568', '#718096', '#a0aec0']
+                            }]
+                        }
+                    }
+                ],
+                documents: [
+                    { title: 'Federal Indictment - 15 Counts', date: 'Jan 16, 2024', type: 'Court Filing', relevance: 'Critical' },
+                    { title: 'Grand Jury Testimony - John Smith', date: 'Sep 15, 2023', type: 'Witness Statement', relevance: 'Critical' },
+                    { title: 'Offshore Banking Records - Complete Set', date: 'Jun 2023', type: 'Financial Record', relevance: 'Critical' },
+                    { title: 'Email Archive - Encrypted Communications', date: 'Q2 2023', type: 'Email', relevance: 'Critical' },
+                    { title: 'Travel Documentation - All Trips', date: 'Apr-Jun 2023', type: 'Travel Document', relevance: 'High' }
+                ]
+            },
+            witnesses: {
+                title: 'Key Witnesses Analysis',
+                summary: 'Five key witnesses identified through document analysis and testimony. John Smith (CFO) is the primary subject with 234 document mentions. Maria Garcia provided critical whistleblower testimony. Witness activity peaked during May-June 2023.',
+                metrics: {
+                    'Total Witnesses': 5,
+                    'Primary Subject': 1,
+                    'Cooperating Witnesses': 2,
+                    'Total Testimony Hours': '18.5 hours'
+                },
+                charts: [
+                    {
+                        title: 'Witness Document Mentions',
+                        type: 'bar',
+                        data: {
+                            labels: ['John Smith', 'Jane Doe', 'Robert Johnson', 'Maria Garcia', 'David Lee'],
+                            datasets: [{
+                                label: 'Document Mentions',
+                                data: [234, 189, 156, 142, 128],
+                                backgroundColor: ['#bf0a30', '#002868', '#002868', '#4a5568', '#4a5568']
+                            }]
+                        }
+                    },
+                    {
+                        title: 'Witness Roles',
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Primary Subject', 'Cooperating Witness', 'Fact Witness', 'Expert Witness'],
+                            datasets: [{
+                                data: [1, 2, 1, 1],
+                                backgroundColor: ['#bf0a30', '#002868', '#4a5568', '#718096']
+                            }]
+                        }
+                    }
+                ],
+                documents: [
+                    { title: 'Grand Jury Testimony - John Smith (187 pages)', date: 'Sep 15, 2023', type: 'Witness Statement', relevance: 'Critical' },
+                    { title: 'FBI Interview - Maria Garcia (Whistleblower)', date: 'Jul 5, 2023', type: 'Witness Statement', relevance: 'Critical' },
+                    { title: 'Deposition - Jane Doe (124 pages)', date: 'Jul 12, 2023', type: 'Witness Statement', relevance: 'High' },
+                    { title: 'Witness Statement - Robert Johnson', date: 'Aug 20, 2023', type: 'Witness Statement', relevance: 'High' },
+                    { title: 'Expert Testimony - Forensic Accountant', date: 'Aug 2023', type: 'Expert Report', relevance: 'High' }
+                ]
+            },
+            events: {
+                title: 'Key Events Timeline',
+                summary: 'Five major milestones in case progression from initial investigation through indictment. Case moved through Investigation phase (Jan-Aug 2023), Grand Jury phase (Sep 2023), and Prosecution phase (Jan 2024-present).',
+                metrics: {
+                    'Total Milestones': 5,
+                    'Investigation Duration': '13 months',
+                    'Grand Jury Sessions': 8,
+                    'Court Proceedings': 15
+                },
+                charts: [
+                    {
+                        title: 'Event Timeline Progression',
+                        type: 'bar',
+                        data: {
+                            labels: ['Initial Investigation', 'First Witness Interview', 'Document Subpoena', 'Grand Jury Testimony', 'Indictment Filed'],
+                            datasets: [{
+                                label: 'Documents Collected',
+                                data: [150, 700, 1250, 1000, 824],
+                                backgroundColor: '#002868'
+                            }]
+                        }
+                    },
+                    {
+                        title: 'Phase Distribution',
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Investigation', 'Grand Jury', 'Prosecution'],
+                            datasets: [{
+                                data: [8, 1, 2],
+                                backgroundColor: ['#4a5568', '#002868', '#bf0a30']
+                            }]
+                        }
+                    }
+                ],
+                documents: [
+                    { title: 'Whistleblower Complaint - Initial Report', date: 'Jan 5, 2023', type: 'Internal Report', relevance: 'Critical' },
+                    { title: 'Search Warrant - TechCorp Offices', date: 'Mar 10, 2023', type: 'Court Order', relevance: 'Critical' },
+                    { title: 'Subpoena - Offshore Banking Records', date: 'Apr 22, 2023', type: 'Court Order', relevance: 'Critical' },
+                    { title: 'Grand Jury Indictment (Sealed)', date: 'Sep 25, 2023', type: 'Court Filing', relevance: 'Critical' },
+                    { title: 'Superseding Indictment - 15 Counts', date: 'Jan 16, 2024', type: 'Court Filing', relevance: 'Critical' }
+                ]
+            },
+            anomalies: {
+                title: 'Detected Anomalies Analysis',
+                summary: 'Four major anomalies detected through AI-powered analysis: unusual travel patterns (15 offshore trips in 3 months), financial discrepancy ($2.3M unaccounted), communication gap (45-day silence), and document inconsistencies (conflicting dates in witness statements).',
+                metrics: {
+                    'Total Anomalies': 4,
+                    'Critical Severity': 3,
+                    'High Severity': 1,
+                    'Detection Method': 'AI Pattern Analysis'
+                },
+                charts: [
+                    {
+                        title: 'Anomaly Severity Distribution',
+                        type: 'bar',
+                        data: {
+                            labels: ['Travel Pattern', 'Financial Discrepancy', 'Communication Gap', 'Document Inconsistency'],
+                            datasets: [{
+                                label: 'Severity Score (1-10)',
+                                data: [9, 10, 7, 8],
+                                backgroundColor: ['#bf0a30', '#bf0a30', '#002868', '#bf0a30']
+                            }]
+                        }
+                    },
+                    {
+                        title: 'Anomaly Detection Timeline',
+                        type: 'line',
+                        data: {
+                            labels: ['Apr', 'May', 'Jun', 'Jul', 'Aug'],
+                            datasets: [{
+                                label: 'Anomalies Detected',
+                                data: [1, 2, 3, 4, 4],
+                                borderColor: '#bf0a30',
+                                backgroundColor: 'rgba(191,10,48,0.1)',
+                                fill: true
+                            }]
+                        }
+                    }
+                ],
+                documents: [
+                    { title: 'Travel Pattern Analysis Report', date: 'Jul 2023', type: 'Expert Analysis', relevance: 'Critical' },
+                    { title: 'Forensic Accounting Report - $2.3M Discrepancy', date: 'Aug 2023', type: 'Expert Analysis', relevance: 'Critical' },
+                    { title: 'Communication Gap Analysis - Email Logs', date: 'Jul 2023', type: 'Technical Document', relevance: 'High' },
+                    { title: 'Document Metadata Forensics Report', date: 'Aug 2023', type: 'Forensic Analysis', relevance: 'Critical' },
+                    { title: 'AI Pattern Detection Summary', date: 'Aug 2023', type: 'Technical Document', relevance: 'High' }
+                ]
+            }
+        };
+
+        function showStatDetails(statType) {
+            const details = statDetails[statType];
+            document.getElementById('docTypeModalTitle').textContent = details.title;
+            document.getElementById('docTypeModalBody').innerHTML = `
+                <div class="witness-profile">
+                    <h3>Overview</h3>
+                    <p>${details.summary}</p>
+                    <div class="profile-grid">
+                        ${Object.entries(details.metrics).map(([key, value]) => `
+                            <div class="profile-item">
+                                <div class="profile-label">${key}</div>
+                                <div class="profile-value">${value}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="ai-visualizations">
+                    ${details.charts.map((chart, idx) => `
+                        <div class="ai-viz-card">
+                            <h5>${chart.title}</h5>
+                            <div class="chart-hint">💡 Click on chart elements to view related documents</div>
+                            <canvas id="statChart${idx}"></canvas>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="documents-section" style="margin-top: 25px;">
+                    <h3>📄 Key Supporting Documents (${details.documents.length})</h3>
+                    ${details.documents.map((doc, idx) => `
+                        <a href="#" class="document-link" onclick="openStatDocument('${statType}', ${idx}); return false;">
+                            <div class="document-title">📎 ${doc.title}</div>
+                            <div class="document-meta">
+                                Type: ${doc.type} | Date: ${doc.date} | 
+                                <span style="color: ${doc.relevance === 'Critical' ? '#bf0a30' : doc.relevance === 'High' ? '#002868' : '#666'}; font-weight: 700;">Relevance: ${doc.relevance}</span>
+                            </div>
+                        </a>
+                    `).join('')}
+                </div>
+            `;
+            document.getElementById('docTypeModal').style.display = 'block';
+            
+            setTimeout(() => {
+                details.charts.forEach((chart, idx) => {
+                    new Chart(document.getElementById(`statChart${idx}`), {
+                        type: chart.type,
+                        data: chart.data,
+                        options: {
+                            responsive: true,
+                            plugins: { 
+                                legend: { position: chart.type === 'doughnut' ? 'bottom' : 'top' },
+                                tooltip: {
+                                    callbacks: {
+                                        afterLabel: function(context) {
+                                            return 'Click to view documents';
+                                        }
+                                    }
+                                }
+                            },
+                            onClick: (e, elements) => {
+                                if (elements.length > 0) {
+                                    const elementIndex = elements[0].index;
+                                    showChartDocuments(statType, idx, elementIndex, chart);
+                                }
+                            },
+                            onHover: (e, elements) => {
+                                e.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+                            }
+                        }
+                    });
+                });
+            }, 100);
+        }
+
+        function showChartDocuments(statType, chartIndex, elementIndex, chartConfig) {
+            const details = statDetails[statType];
+            const label = chartConfig.data.labels[elementIndex];
+            const value = chartConfig.data.datasets[0].data[elementIndex];
+            
+            // Generate contextual documents based on the clicked element
+            let contextDocs = [];
+            let contextTitle = '';
+            
+            if (statType === 'documents') {
+                if (chartIndex === 0) { // Timeline chart
+                    const periods = ['Jan 23', 'Mar 23', 'May 23', 'Jul 23', 'Sep 23', 'Nov 23', 'Jan 24'];
+                    contextTitle = `Documents Collected in ${label}`;
+                    contextDocs = [
+                        { title: `Document Collection Report - ${label}`, date: label, type: 'Collection Record', relevance: 'High' },
+                        { title: `Evidence Inventory - ${label}`, date: label, type: 'Investigation Record', relevance: 'Medium' },
+                        { title: `Chain of Custody Log - ${label}`, date: label, type: 'Legal Document', relevance: 'High' }
+                    ];
+                } else { // Source chart
+                    contextTitle = `${label} Documents`;
+                    contextDocs = [
+                        { title: `${label} - Complete Archive`, date: '2023', type: 'Document Collection', relevance: 'High' },
+                        { title: `${label} - Verification Report`, date: '2023', type: 'Audit Document', relevance: 'Medium' },
+                        { title: `${label} - Authentication Records`, date: '2023', type: 'Legal Document', relevance: 'High' }
+                    ];
+                }
+            } else if (statType === 'witnesses') {
+                if (chartIndex === 0) { // Witness mentions chart
+                    contextTitle = `${label} - Document References`;
+                    contextDocs = witnessProfiles[label] ? witnessProfiles[label].documents : [
+                        { title: `${label} - Complete File`, date: '2023', type: 'Witness File', relevance: 'High' },
+                        { title: `${label} - Interview Transcripts`, date: '2023', type: 'Witness Statement', relevance: 'High' },
+                        { title: `${label} - Background Investigation`, date: '2023', type: 'Investigation Record', relevance: 'Medium' }
+                    ];
+                } else { // Roles chart
+                    contextTitle = `${label} Documentation`;
+                    contextDocs = [
+                        { title: `${label} - Role Analysis`, date: '2023', type: 'Expert Analysis', relevance: 'High' },
+                        { title: `${label} - Testimony Summary`, date: '2023', type: 'Legal Document', relevance: 'High' }
+                    ];
+                }
+            } else if (statType === 'events') {
+                if (chartIndex === 0) { // Event timeline
+                    const eventData = data.timeline.find(t => t.event === label);
+                    contextTitle = `${label} - Supporting Documents`;
+                    contextDocs = eventData ? eventData.documents : [
+                        { title: `${label} - Event Summary`, date: '2023', type: 'Investigation Record', relevance: 'Critical' },
+                        { title: `${label} - Evidence Collected`, date: '2023', type: 'Evidence', relevance: 'High' },
+                        { title: `${label} - Action Report`, date: '2023', type: 'Investigation Record', relevance: 'High' }
+                    ];
+                } else { // Phase chart
+                    contextTitle = `${label} Phase Documents`;
+                    contextDocs = [
+                        { title: `${label} Phase - Summary Report`, date: '2023', type: 'Investigation Record', relevance: 'Critical' },
+                        { title: `${label} Phase - Key Evidence`, date: '2023', type: 'Evidence', relevance: 'High' },
+                        { title: `${label} Phase - Timeline Analysis`, date: '2023', type: 'Expert Analysis', relevance: 'High' }
+                    ];
+                }
+            } else if (statType === 'anomalies') {
+                if (chartIndex === 0) { // Severity chart
+                    contextTitle = `${label} - Detailed Analysis`;
+                    contextDocs = [
+                        { title: `${label} - Detection Report`, date: '2023', type: 'Expert Analysis', relevance: 'Critical' },
+                        { title: `${label} - Supporting Evidence`, date: '2023', type: 'Evidence', relevance: 'Critical' },
+                        { title: `${label} - Impact Assessment`, date: '2023', type: 'Expert Analysis', relevance: 'High' },
+                        { title: `${label} - Forensic Analysis`, date: '2023', type: 'Forensic Analysis', relevance: 'Critical' }
+                    ];
+                } else { // Timeline chart
+                    contextTitle = `Anomalies Detected by ${label}`;
+                    contextDocs = [
+                        { title: `${label} - Detection Summary`, date: label, type: 'Technical Document', relevance: 'High' },
+                        { title: `${label} - Analysis Report`, date: label, type: 'Expert Analysis', relevance: 'High' }
+                    ];
+                }
+            }
+            
+            // Show documents in modal
+            document.getElementById('docTypeModalTitle').textContent = contextTitle;
+            document.getElementById('docTypeModalBody').innerHTML = `
+                <div class="witness-profile">
+                    <h3>Chart Element Details</h3>
+                    <p>Showing documents related to: <strong>${label}</strong></p>
+                    <div class="profile-grid">
+                        <div class="profile-item">
+                            <div class="profile-label">Selected Element</div>
+                            <div class="profile-value">${label}</div>
+                        </div>
+                        <div class="profile-item">
+                            <div class="profile-label">Value</div>
+                            <div class="profile-value">${value.toLocaleString()}</div>
+                        </div>
+                        <div class="profile-item">
+                            <div class="profile-label">Category</div>
+                            <div class="profile-value">${details.title}</div>
+                        </div>
+                        <div class="profile-item">
+                            <div class="profile-label">Documents</div>
+                            <div class="profile-value">${contextDocs.length}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="documents-section">
+                    <h3>📄 Related Documents (${contextDocs.length})</h3>
+                    ${contextDocs.map((doc, idx) => `
+                        <a href="#" class="document-link" onclick="openChartDocument('${label}', ${idx}, ${JSON.stringify(contextDocs).replace(/"/g, '&quot;')}); return false;">
+                            <div class="document-title">📎 ${doc.title}</div>
+                            <div class="document-meta">
+                                Type: ${doc.type} | Date: ${doc.date} | 
+                                <span style="color: ${doc.relevance === 'Critical' ? '#bf0a30' : doc.relevance === 'High' ? '#002868' : '#666'}; font-weight: 700;">Relevance: ${doc.relevance}</span>
+                            </div>
+                        </a>
+                    `).join('')}
+                </div>
+                <button onclick="showStatDetails('${statType}')" 
+                        style="margin-top: 20px; padding: 12px 24px; background: #4a5568; color: white; border: none; cursor: pointer; font-weight: 600; border-radius: 4px;">
+                    ← Back to ${details.title}
+                </button>
+            `;
+        }
+
+        function openChartDocument(context, docIndex, docsJson) {
+            const docs = JSON.parse(docsJson.replace(/&quot;/g, '"'));
+            const doc = docs[docIndex];
+            alert(`Document Details:\n\n${doc.title}\n\nContext: ${context}\nType: ${doc.type}\nDate: ${doc.date}\nRelevance: ${doc.relevance}\n\nIn a production system, this would:\n• Open the full document in secure viewer\n• Show document in context of ${context}\n• Display related documents and cross-references\n• Provide analytical insights\n• Enable export for legal proceedings`);
+        }
+
+        function openStatDocument(statType, docIndex) {
+            const doc = statDetails[statType].documents[docIndex];
+            alert(`Document Details:\n\n${doc.title}\n\nCategory: ${statDetails[statType].title}\nType: ${doc.type}\nDate: ${doc.date}\nRelevance: ${doc.relevance}\n\nIn a production system, this would:\n• Open the full document in secure viewer\n• Show document in context of ${statType} analysis\n• Display related documents and cross-references\n• Provide analytical insights and annotations\n• Enable export for legal proceedings`);
+        }
+
+        // AI Search Functionality
+        function setAIQuery(query) {
+            document.getElementById('aiSearchInput').value = query;
+            performAISearch();
+        }
+
+        function performAISearch() {
+            const query = document.getElementById('aiSearchInput').value.trim().toLowerCase();
+            const resultsDiv = document.getElementById('aiResults');
+            
+            if (!query) {
+                resultsDiv.classList.remove('active');
+                return;
+            }
+
+            resultsDiv.classList.add('active');
+            
+            // Analyze query and generate appropriate visualizations
+            let answer = '';
+            let visualizations = [];
+            
+            if (query.includes('financial') || query.includes('transaction') || query.includes('money')) {
+                answer = 'Analysis shows $2.3M in suspicious financial transactions during Q2 2023, with 892 financial records including wire transfers, bank statements, and offshore account documentation. Peak activity occurred in May-June 2023 coinciding with international travel.';
+                visualizations = [
+                    {
+                        title: 'Financial Activity Timeline',
+                        type: 'line',
+                        data: {
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+                            datasets: [{
+                                label: 'Transaction Amount ($K)',
+                                data: [120, 150, 200, 450, 850, 730, 200, 100],
+                                borderColor: '#bf0a30',
+                                backgroundColor: 'rgba(191, 10, 48, 0.1)',
+                                fill: true
+                            }]
+                        }
+                    },
+                    {
+                        title: 'Transaction Types',
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Wire Transfers', 'Bank Statements', 'Invoices', 'Ledgers'],
+                            datasets: [{
+                                data: [312, 245, 189, 146],
+                                backgroundColor: ['#bf0a30', '#002868', '#4a5568', '#718096']
+                            }]
+                        }
+                    }
+                ];
+            } else if (query.includes('travel') || query.includes('trip') || query.includes('where')) {
+                answer = 'John Smith made 20 international trips to 4 offshore financial centers: Cayman Islands (8 trips), Switzerland (5 trips), Dubai (4 trips), and Singapore (3 trips). Travel pattern shows systematic visits to tax havens and banking centers during the investigation period.';
+                visualizations = [
+                    {
+                        title: 'Travel Frequency by Destination',
+                        type: 'bar',
+                        data: {
+                            labels: ['Cayman Islands', 'Switzerland', 'Dubai', 'Singapore'],
+                            datasets: [{
+                                label: 'Number of Trips',
+                                data: [8, 5, 4, 3],
+                                backgroundColor: '#bf0a30'
+                            }]
+                        }
+                    },
+                    {
+                        title: 'Monthly Travel Activity',
+                        type: 'line',
+                        data: {
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                            datasets: [{
+                                label: 'Trips',
+                                data: [0, 0, 0, 5, 8, 7, 0],
+                                borderColor: '#002868',
+                                backgroundColor: 'rgba(0, 40, 104, 0.1)',
+                                fill: true
+                            }]
+                        }
+                    }
+                ];
+            } else if (query.includes('document') || query.includes('critical') || query.includes('evidence')) {
+                answer = 'Case includes 4,024 documents across 5 categories. Critical documents (relevance: Critical) include grand jury testimony, offshore banking records, wire transfer authorizations, and indictment filings. Emails (1,245) and Financial Records (892) comprise the majority of evidence.';
+                visualizations = [
+                    {
+                        title: 'Documents by Type',
+                        type: 'bar',
+                        data: {
+                            labels: ['Email', 'Financial', 'Travel', 'Witness', 'Court'],
+                            datasets: [{
+                                label: 'Document Count',
+                                data: [1245, 892, 567, 423, 897],
+                                backgroundColor: '#002868'
+                            }]
+                        }
+                    },
+                    {
+                        title: 'Document Relevance Distribution',
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Critical', 'High', 'Medium', 'Low'],
+                            datasets: [{
+                                data: [856, 1523, 1245, 400],
+                                backgroundColor: ['#bf0a30', '#002868', '#4a5568', '#a0aec0']
+                            }]
+                        }
+                    }
+                ];
+            } else if (query.includes('witness') || query.includes('people') || query.includes('who')) {
+                answer = 'Five key witnesses identified: John Smith (234 mentions - CFO, primary subject), Jane Doe (189 mentions - VP Operations), Robert Johnson (156 mentions - Legal Counsel), Maria Garcia (142 mentions - Accountant/Whistleblower), and David Lee (128 mentions - IT Director). Activity peaked during May-June 2023.';
+                visualizations = [
+                    {
+                        title: 'Witness Document Mentions',
+                        type: 'bar',
+                        data: {
+                            labels: ['John Smith', 'Jane Doe', 'Robert Johnson', 'Maria Garcia', 'David Lee'],
+                            datasets: [{
+                                label: 'Mentions',
+                                data: [234, 189, 156, 142, 128],
+                                backgroundColor: ['#bf0a30', '#002868', '#002868', '#4a5568', '#4a5568']
+                            }]
+                        }
+                    },
+                    {
+                        title: 'Witness Activity Timeline',
+                        type: 'line',
+                        data: {
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                            datasets: [{
+                                label: 'John Smith',
+                                data: [15, 18, 22, 28, 35, 42, 25, 20, 15],
+                                borderColor: '#bf0a30'
+                            }, {
+                                label: 'Jane Doe',
+                                data: [8, 12, 18, 25, 32, 38, 22, 15, 10],
+                                borderColor: '#002868'
+                            }]
+                        }
+                    }
+                ];
+            } else if (query.includes('timeline') || query.includes('when') || query.includes('progression')) {
+                answer = 'Case progressed through three phases: Investigation (Jan-Aug 2023) with witness interviews and document subpoenas, Grand Jury (Sep 2023) with testimony and evidence presentation, and Prosecution (Jan 2024-present) with indictment and pre-trial motions.';
+                visualizations = [
+                    {
+                        title: 'Case Phase Timeline',
+                        type: 'bar',
+                        data: {
+                            labels: ['Investigation', 'Grand Jury', 'Prosecution'],
+                            datasets: [{
+                                label: 'Duration (months)',
+                                data: [8, 1, 2],
+                                backgroundColor: ['#4a5568', '#002868', '#bf0a30']
+                            }]
+                        }
+                    },
+                    {
+                        title: 'Document Collection Over Time',
+                        type: 'line',
+                        data: {
+                            labels: ['Jan', 'Mar', 'Jun', 'Sep', 'Jan 24'],
+                            datasets: [{
+                                label: 'Cumulative Documents',
+                                data: [150, 850, 2100, 3200, 4024],
+                                borderColor: '#002868',
+                                backgroundColor: 'rgba(0, 40, 104, 0.1)',
+                                fill: true
+                            }]
+                        }
+                    }
+                ];
+            } else {
+                answer = 'I analyzed the case data for your query. The investigation involves 4,024 documents, 5 key witnesses, 20 international trips, and spans from January 2023 to present. Key findings include $2.3M in suspicious transactions, 8 trips to Cayman Islands, and 12-count federal indictment.';
+                visualizations = [
+                    {
+                        title: 'Case Overview',
+                        type: 'bar',
+                        data: {
+                            labels: ['Documents', 'Witnesses', 'Trips', 'Court Orders', 'Anomalies'],
+                            datasets: [{
+                                label: 'Count',
+                                data: [4024, 5, 20, 11, 4],
+                                backgroundColor: '#002868'
+                            }]
+                        }
+                    }
+                ];
+            }
+
+            // Render results
+            let html = `
+                <h4>💡 AI Analysis Results</h4>
+                <div class="ai-answer">${answer}</div>
+                <div class="ai-visualizations">
+            `;
+
+            visualizations.forEach((viz, idx) => {
+                html += `
+                    <div class="ai-viz-card">
+                        <h5>${viz.title}</h5>
+                        <canvas id="aiChart${idx}"></canvas>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+
+            // Create charts
+            setTimeout(() => {
+                visualizations.forEach((viz, idx) => {
+                    new Chart(document.getElementById(`aiChart${idx}`), {
+                        type: viz.type,
+                        data: viz.data,
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { position: viz.type === 'doughnut' ? 'bottom' : 'top' } }
+                        }
+                    });
+                });
+            }, 100);
+        }
+        
+        // Report Builder Functions
+        let selectedReportType = 'pdf';
+        
+        function openReportBuilder() {
+            document.getElementById('reportModal').style.display = 'block';
+            document.getElementById('reportOptions').style.display = 'block';
+            document.getElementById('generatingReport').classList.remove('active');
+        }
+        
+        function closeReportBuilder() {
+            document.getElementById('reportModal').style.display = 'none';
+        }
+        
+        function selectReportType(type) {
+            selectedReportType = type;
+            document.querySelectorAll('.report-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.closest('.report-type-card').classList.add('selected');
+        }
+        
+        function applyTemplate(templateType) {
+            const templates = {
+                executive: {
+                    summary: 'Executive briefing on United States v. John Smith focusing on high-level findings, key evidence, and prosecution strategy for senior DOJ leadership.',
+                    sections: { summary: true, anomalies: true, witnesses: true, financial: true, travel: false, timeline: true, documents: false }
+                },
+                financial: {
+                    summary: 'Comprehensive analysis of financial crimes including $2.3M discrepancy, offshore banking activities, wire transfers, and structured transactions. Focus on money laundering evidence.',
+                    sections: { summary: true, anomalies: true, witnesses: false, financial: true, travel: true, timeline: false, documents: true }
+                },
+                witness: {
+                    summary: 'Detailed witness analysis covering testimony credibility, document mentions, cooperation status, and potential conflicts. Includes Maria Garcia whistleblower testimony and John Smith grand jury appearance.',
+                    sections: { summary: true, anomalies: false, witnesses: true, financial: false, travel: false, timeline: true, documents: true }
+                },
+                timeline: {
+                    summary: 'Chronological case progression from initial investigation through indictment. Emphasizes key milestones, evidence collection points, and procedural developments.',
+                    sections: { summary: true, anomalies: false, witnesses: true, financial: false, travel: false, timeline: true, documents: true }
+                },
+                anomalies: {
+                    summary: 'Deep dive into four critical anomalies: unusual travel patterns (15 offshore trips), financial discrepancy ($2.3M), communication gap (45 days), and document inconsistencies. AI-powered pattern detection analysis.',
+                    sections: { summary: true, anomalies: true, witnesses: true, financial: true, travel: true, timeline: false, documents: true }
+                }
+            };
+            
+            const template = templates[templateType];
+            if (template) {
+                document.getElementById('customSummary').value = template.summary;
+                
+                // Update checkboxes
+                Object.entries(template.sections).forEach(([section, checked]) => {
+                    const checkbox = document.getElementById(`section-${section}`);
+                    if (checkbox) checkbox.checked = checked;
+                });
+            }
+        }
+        
+        function generateReport() {
+            // Get selected sections
+            const sections = {
+                summary: document.getElementById('section-summary').checked,
+                anomalies: document.getElementById('section-anomalies').checked,
+                witnesses: document.getElementById('section-witnesses').checked,
+                financial: document.getElementById('section-financial').checked,
+                travel: document.getElementById('section-travel').checked,
+                timeline: document.getElementById('section-timeline').checked,
+                documents: document.getElementById('section-documents').checked
+            };
+            
+            const customSummary = document.getElementById('customSummary').value.trim();
+            
+            // Show generating state
+            document.getElementById('reportOptions').style.display = 'none';
+            document.getElementById('generatingReport').classList.add('active');
+            
+            // Simulate report generation
+            setTimeout(() => {
+                const reportContent = buildReportContent(sections, customSummary);
+                downloadReport(reportContent, selectedReportType);
+                
+                // Show success and close
+                let message = `${selectedReportType.toUpperCase()} Report Generated Successfully!\n\n`;
+                
+                if (customSummary) {
+                    message += `Custom Focus:\n${customSummary.substring(0, 100)}${customSummary.length > 100 ? '...' : ''}\n\n`;
+                }
+                
+                message += `Report includes:\n${Object.entries(sections).filter(([k,v]) => v).map(([k]) => '• ' + k.charAt(0).toUpperCase() + k.slice(1)).join('\n')}\n\n`;
+                message += `In a production system, this would:\n`;
+                message += `• Generate a professional ${selectedReportType.toUpperCase()} document\n`;
+                message += `• Include all selected charts and visualizations\n`;
+                message += `• Apply custom focus and emphasis\n`;
+                message += `• Add case metadata and timestamps\n`;
+                message += `• Apply DOJ branding and formatting\n`;
+                message += `• Enable secure download or email delivery`;
+                
+                alert(message);
+                
+                closeReportBuilder();
+            }, 2500);
+        }
+        
+        function buildReportContent(sections, customSummary) {
+            let content = {
+                title: 'United States v. John Smith - Case Analysis Report',
+                date: new Date().toLocaleDateString(),
+                customFocus: customSummary || 'Standard comprehensive case analysis',
+                sections: [],
+                briefSections: []
+            };
+            
+            if (sections.summary) {
+                content.sections.push({
+                    title: 'Executive Summary',
+                    content: 'Federal investigation into John Smith (CFO, TechCorp Industries) for money laundering and wire fraud. Investigation spans January 2023 to present, involving 4,024 documents, 5 key witnesses, and 20 international trips to offshore financial centers. Grand jury returned 15-count indictment in January 2024.'
+                });
+                content.briefSections.push({
+                    title: 'I. Executive Summary',
+                    paragraphs: [
+                        'This memorandum presents the findings of a comprehensive federal investigation into John Smith, Chief Financial Officer of TechCorp Industries, for violations of 18 U.S.C. § 1956 (Money Laundering) and 18 U.S.C. § 1343 (Wire Fraud). The investigation, initiated in January 2023 following a credible whistleblower complaint, has produced a substantial evidentiary record comprising 4,024 documents, testimony from five key witnesses, and forensic accounting analysis revealing significant financial irregularities.',
+                        'The evidence demonstrates a systematic scheme by the defendant to launder proceeds of unlawful activity through a network of offshore financial institutions located in the Cayman Islands, Switzerland, Dubai, and Singapore. Over the course of the investigation, agents documented twenty international trips by the defendant to these offshore financial centers, during which approximately $2.3 million in funds were transferred through accounts designed to obscure the origin and ownership of the proceeds.',
+                        'On the basis of this evidence, a federal grand jury returned a fifteen-count superseding indictment in January 2024. The Government is prepared to demonstrate at trial that the defendant engaged in a deliberate and sustained pattern of financial crimes, supported by documentary evidence, witness testimony, forensic analysis, and AI-assisted anomaly detection.'
+                    ]
+                });
+            }
+            
+            if (sections.anomalies) {
+                content.sections.push({
+                    title: 'Key Anomalies',
+                    content: '1. Unusual Travel Pattern: 15 trips to offshore locations in 3 months\n2. Financial Discrepancy: $2.3M unaccounted for in Q2 2023\n3. Communication Gap: 45-day silence between key parties\n4. Document Inconsistency: Conflicting dates in witness statements'
+                });
+                content.briefSections.push({
+                    title: 'II. Anomalies and Investigative Findings',
+                    paragraphs: [
+                        'AI-assisted analysis of the case record has identified four significant anomalies that are central to the Government\'s theory of the case. These anomalies, each independently corroborated by documentary evidence and witness testimony, collectively demonstrate a pattern of conduct consistent with deliberate concealment of unlawful financial activity.',
+                        'First, travel records reveal an unusual concentration of international travel during the second quarter of 2023. Between April and June of that year, the defendant made fifteen separate trips to jurisdictions known as offshore financial centers, including eight trips to the Cayman Islands and five to Switzerland. This travel frequency represents a marked departure from the defendant\'s historical travel patterns and coincides precisely with the period during which the largest suspicious financial transfers were executed.',
+                        'Second, forensic accounting analysis has identified a discrepancy of approximately $2.3 million in TechCorp Industries\' financial records during Q2 2023. These funds, which were routed through a series of intermediary accounts, cannot be accounted for through any legitimate business purpose. The structured nature of the transfers — consistently maintained below federal reporting thresholds — is indicative of intentional evasion of Bank Secrecy Act requirements.',
+                        'Third, a forty-five-day gap in electronic communications between the defendant and co-conspirator Jane Doe has been identified during the period of May 1 through June 14, 2023. This gap is notable because it coincides with the peak period of suspicious financial activity and stands in stark contrast to the otherwise daily communication pattern between these individuals. The Government believes this gap reflects a deliberate effort to avoid creating a discoverable record during the most sensitive phase of the scheme.',
+                        'Fourth, analysis of witness statements has revealed material inconsistencies in the dates and circumstances described by the defendant in his voluntary statements to investigators. Specifically, the defendant\'s account of a June 15 meeting is contradicted by corporate security logs, badge access records, and the testimony of two independent witnesses.'
+                    ]
+                });
+            }
+            
+            if (sections.witnesses) {
+                content.sections.push({
+                    title: 'Witness Analysis',
+                    content: 'John Smith (234 mentions, Primary Subject), Jane Doe (189 mentions, VP Operations), Robert Johnson (156 mentions, Legal Counsel), Maria Garcia (142 mentions, Whistleblower), David Lee (128 mentions, IT Director)'
+                });
+                content.briefSections.push({
+                    title: 'III. Witness Analysis and Testimony',
+                    paragraphs: [
+                        'The Government\'s case is supported by testimony from five key witnesses, each of whom provides distinct and corroborating perspectives on the defendant\'s conduct. Document frequency analysis — measuring the number of times each individual appears across the evidentiary record — provides an objective measure of each witness\'s centrality to the case.',
+                        'John Smith, the defendant, appears in 234 documents across the case record, including corporate emails, financial authorizations, travel itineraries, and recorded statements to investigators. As Chief Financial Officer of TechCorp Industries, the defendant exercised sole signatory authority over the offshore accounts at issue and personally directed the wire transfers that form the basis of the money laundering charges.',
+                        'Jane Doe, Vice President of Operations at TechCorp Industries, appears in 189 documents. Ms. Doe served as the defendant\'s primary point of contact for operational matters related to the offshore transactions. Her testimony is expected to establish the defendant\'s knowledge of and intent regarding the structured nature of the transfers. Ms. Doe has entered into a cooperation agreement with the Government.',
+                        'Robert Johnson, outside legal counsel retained by TechCorp Industries, appears in 156 documents. Mr. Johnson\'s testimony will address the defendant\'s efforts to obtain legal opinions regarding offshore banking structures, and the extent to which the defendant selectively disclosed information to counsel. Maria Garcia, the whistleblower whose complaint initiated the investigation, appears in 142 documents and will testify regarding internal concerns raised about the defendant\'s financial practices. David Lee, IT Director, appears in 128 documents and will provide testimony regarding the defendant\'s requests to modify electronic record retention policies during the relevant period.'
+                    ]
+                });
+            }
+            
+            if (sections.financial) {
+                content.sections.push({
+                    title: 'Financial Transactions',
+                    content: '892 financial records including wire transfers ($850K to Cayman Islands), offshore banking records, structured deposits, and unaccounted funds totaling $2.3M'
+                });
+                content.briefSections.push({
+                    title: 'IV. Financial Evidence and Forensic Analysis',
+                    paragraphs: [
+                        'The financial evidence in this case comprises 892 discrete records, including wire transfer confirmations, bank statements from domestic and offshore institutions, corporate ledger entries, and forensic accounting work papers. Taken together, these records establish a clear pattern of financial activity designed to move funds beyond the reach of domestic regulatory oversight.',
+                        'The centerpiece of the financial evidence is a series of wire transfers totaling approximately $850,000 directed to accounts at Cayman International Bank between March and July 2023. Each transfer was structured to remain below the $10,000 Currency Transaction Report threshold, with individual amounts ranging from $7,500 to $9,800. Forensic analysis has determined that these transfers originated from TechCorp Industries operating accounts over which the defendant exercised exclusive control.',
+                        'Additional offshore banking records obtained pursuant to federal subpoena reveal corresponding deposits in Swiss banking institutions totaling approximately $1.45 million during the same period. The Government\'s forensic accounting expert has traced the flow of funds through a network of four intermediary shell companies, ultimately identifying the defendant as the beneficial owner of the receiving accounts. The total unaccounted funds across all identified accounts amount to approximately $2.3 million, none of which can be attributed to any legitimate business purpose documented in TechCorp Industries\' corporate records.'
+                    ]
+                });
+            }
+            
+            if (sections.travel) {
+                content.sections.push({
+                    title: 'Travel Patterns',
+                    content: '20 international trips: Cayman Islands (8), Switzerland (5), Dubai (4), Singapore (3). All destinations are known offshore financial centers.'
+                });
+                content.briefSections.push({
+                    title: 'V. Travel Patterns and Circumstantial Evidence',
+                    paragraphs: [
+                        'Travel records obtained from airline manifests, passport control databases, and corporate expense reports document twenty international trips by the defendant during the period under investigation. The geographic distribution of these trips is significant: eight trips to the Cayman Islands, five to Switzerland, four to Dubai, and three to Singapore. Each of these jurisdictions is recognized by the Financial Action Task Force as a significant offshore financial center.',
+                        'The timing of these trips correlates directly with the execution of the suspicious financial transactions described above. In multiple instances, wire transfers were initiated within twenty-four hours of the defendant\'s arrival in the destination country, and corresponding deposits appeared in offshore accounts within forty-eight hours. Corporate travel records indicate that the defendant did not conduct any documented TechCorp Industries business during the majority of these trips, and no meeting notes, client correspondence, or business development records exist for fifteen of the twenty trips.',
+                        'The Government submits that this travel pattern, considered in conjunction with the financial evidence, demonstrates the defendant\'s direct personal involvement in the execution of the money laundering scheme and undermines any claim that the offshore transactions were conducted without his knowledge or participation.'
+                    ]
+                });
+            }
+            
+            if (sections.timeline) {
+                content.sections.push({
+                    title: 'Case Timeline',
+                    content: 'Investigation Phase (Jan-Aug 2023), Grand Jury Phase (Sep 2023), Prosecution Phase (Jan 2024-present)'
+                });
+                content.briefSections.push({
+                    title: 'VI. Procedural History and Case Timeline',
+                    paragraphs: [
+                        'The investigation in this matter was initiated on January 5, 2023, when the Federal Bureau of Investigation received a whistleblower complaint from Maria Garcia, a senior employee of TechCorp Industries. The complaint alleged that the defendant, in his capacity as Chief Financial Officer, had been directing unauthorized wire transfers to offshore accounts and manipulating corporate financial records to conceal the transactions.',
+                        'During the investigation phase, which extended from January through August 2023, agents conducted witness interviews, executed search warrants at TechCorp Industries corporate offices, and obtained federal subpoenas for banking records from domestic and international financial institutions. The investigation produced the 4,024-document evidentiary record that forms the basis of the current prosecution.',
+                        'In September 2023, the matter was presented to a federal grand jury, which heard testimony from all five key witnesses and reviewed the forensic accounting analysis. The grand jury returned a fifteen-count superseding indictment in January 2024, charging the defendant with multiple counts of money laundering and wire fraud. The case is currently in the active prosecution phase, with trial preparation ongoing and a trial date pending before the Court.'
+                    ]
+                });
+            }
+            
+            if (sections.documents) {
+                content.sections.push({
+                    title: 'Document Analysis',
+                    content: '4,024 total documents: Emails (1,245), Financial Records (892), Court Filings (897), Travel Documents (567), Witness Statements (423)'
+                });
+                content.briefSections.push({
+                    title: 'VII. Document Analysis and Evidentiary Summary',
+                    paragraphs: [
+                        'The evidentiary record in this case comprises 4,024 documents that have been collected, processed, and analyzed using both traditional investigative methods and AI-assisted document review. The corpus includes five principal categories of evidence, each contributing distinct and complementary support to the Government\'s case.',
+                        'Electronic mail communications constitute the largest single category, with 1,245 emails recovered from TechCorp Industries servers, the defendant\'s personal accounts, and third-party service providers. These communications establish the defendant\'s knowledge of the offshore account structures, his direction of specific wire transfers, and his coordination with co-conspirators regarding the timing and amounts of transactions. Court filings number 897 documents, including the original and superseding indictments, search warrant applications and returns, subpoena records, and pretrial motions.',
+                        'Financial records total 892 documents, encompassing wire transfer confirmations, bank statements, corporate ledger entries, and the forensic accounting expert\'s work papers and report. Travel documents number 567, including airline tickets, hotel reservations, passport stamps, and corporate expense reports. Finally, 423 witness statements have been collected, including FBI interview memoranda (FD-302s), grand jury transcripts, and sworn declarations. AI-assisted review of this document corpus has enabled the identification of patterns and anomalies that would be impractical to detect through manual review alone, significantly enhancing the efficiency and thoroughness of the Government\'s case preparation.'
+                    ]
+                });
+            }
+            
+            return content;
+        }
+        
+        function downloadReport(content, format) {
+            // Generate actual HTML report preview
+            const reportHTML = generateReportHTML(content, format);
+            
+            // Open in new window
+            const reportWindow = window.open('', '_blank');
+            reportWindow.document.write(reportHTML);
+            reportWindow.document.close();
+            
+            // Log for debugging
+            console.log(`Generated ${format.toUpperCase()} report:`, content);
+        }
+        
+        function generateReportHTML(content, format) {
+            if (format === 'pdf') {
+                return generateCaseBriefHTML(content);
+            } else {
+                return generatePresentationHTML(content);
+            }
+        }
+        
+        function generateCaseBriefHTML(content) {
+            let briefBody = '';
+            
+            // Build sections from briefSections (paragraph form)
+            if (content.briefSections && content.briefSections.length > 0) {
+                briefBody = content.briefSections.map(section => `
+                    <div class="brief-section">
+                        <h2>${section.title}</h2>
+                        ${section.paragraphs.map(p => '<p>' + p + '</p>').join('\n                        ')}
+                    </div>
+                `).join('\n');
+            }
+            
+            return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${content.title} - Trial Memorandum</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Georgia', 'Times New Roman', serif; background: #fff; color: #1a1a1a; }
+        .brief-container { max-width: 8.5in; margin: 0 auto; background: white; }
+        
+        /* Cover Page */
+        .cover-page {
+            min-height: 11in;
+            padding: 1.5in 1.25in 1in;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            page-break-after: always;
+            border-bottom: none;
+        }
+        .cover-seal { font-size: 72px; margin-bottom: 30px; }
+        .cover-dept { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; color: #002868; margin-bottom: 10px; font-family: Arial, sans-serif; }
+        .cover-title { font-size: 28px; font-weight: 700; color: #002868; margin: 30px 0 15px; line-height: 1.3; }
+        .cover-subtitle { font-size: 18px; color: #bf0a30; font-weight: 600; margin-bottom: 40px; }
+        .cover-line { width: 200px; height: 3px; background: #bf0a30; margin: 0 auto 40px; }
+        .cover-meta { font-size: 13px; color: #555; line-height: 2; font-family: Arial, sans-serif; }
+        .cover-classification { 
+            margin-top: 60px; 
+            background: #bf0a30; 
+            color: white; 
+            padding: 8px 30px; 
+            font-size: 12px; 
+            font-weight: 700; 
+            letter-spacing: 2px; 
+            text-transform: uppercase;
+            font-family: Arial, sans-serif;
+        }
+        
+        /* Table of Contents */
+        .toc-page {
+            min-height: 11in;
+            padding: 1in 1.25in;
+            page-break-after: always;
+        }
+        .toc-page h2 {
+            font-size: 22px;
+            color: #002868;
+            border-bottom: 3px solid #002868;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .toc-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 12px 0;
+            border-bottom: 1px dotted #ccc;
+            font-size: 15px;
+        }
+        .toc-entry .toc-title { color: #002868; font-weight: 600; }
+        .toc-entry .toc-page-num { color: #666; font-family: Arial, sans-serif; font-size: 13px; }
+        
+        /* Brief Body */
+        .brief-body {
+            padding: 1in 1.25in;
+        }
+        .brief-section {
+            margin-bottom: 35px;
+            page-break-inside: avoid;
+        }
+        .brief-section h2 {
+            font-size: 18px;
+            color: #002868;
+            margin-bottom: 18px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #bf0a30;
+            font-family: Arial, sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .brief-section p {
+            font-size: 14px;
+            line-height: 2;
+            text-align: justify;
+            margin-bottom: 16px;
+            text-indent: 0.5in;
+        }
+        .brief-section p:first-of-type {
+            text-indent: 0;
+        }
+        
+        /* Custom Focus Box */
+        .focus-box {
+            background: #f8f4f0;
+            border: 1px solid #d4c5b0;
+            border-left: 4px solid #bf0a30;
+            padding: 20px 25px;
+            margin: 0 0 35px 0;
+            font-style: italic;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .focus-box strong { color: #002868; font-style: normal; }
+        
+        /* Key Facts Summary Box */
+        .facts-box {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 25px 0 35px;
+            padding: 20px;
+            background: #f0f4f8;
+            border: 1px solid #d0d8e4;
+        }
+        .fact-item { text-align: center; padding: 10px; }
+        .fact-value { font-size: 28px; font-weight: 700; color: #002868; font-family: Arial, sans-serif; }
+        .fact-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; font-family: Arial, sans-serif; }
+        
+        /* Conclusion */
+        .conclusion-section {
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 3px double #002868;
+        }
+        .conclusion-section h2 {
+            font-size: 18px;
+            color: #002868;
+            margin-bottom: 18px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #bf0a30;
+            font-family: Arial, sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .conclusion-section p {
+            font-size: 14px;
+            line-height: 2;
+            text-align: justify;
+            margin-bottom: 16px;
+            text-indent: 0.5in;
+        }
+        .conclusion-section p:first-of-type { text-indent: 0; }
+        
+        .case-status {
+            margin-top: 30px;
+            padding: 15px 20px;
+            background: #002868;
+            color: white;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Footer */
+        .page-footer {
+            text-align: center;
+            padding: 20px 0;
+            border-top: 1px solid #ddd;
+            color: #999;
+            font-size: 11px;
+            font-family: Arial, sans-serif;
+            margin-top: 40px;
+        }
+        
+        .end-classification {
+            background: #bf0a30;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 2px;
+            font-family: Arial, sans-serif;
+        }
+        
+        @media print {
+            body { background: white; }
+            .cover-page, .toc-page { page-break-after: always; }
+            .brief-section { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="brief-container">
+        <!-- Cover Page -->
+        <div class="cover-page">
+            <div class="cover-seal">⚖️</div>
+            <div class="cover-dept">United States Department of Justice</div>
+            <div class="cover-line"></div>
+            <div class="cover-title">TRIAL MEMORANDUM</div>
+            <div class="cover-subtitle">${content.title}</div>
+            <div class="cover-meta">
+                Prepared: ${content.date}<br>
+                Classification: Law Enforcement Sensitive<br>
+                Document Type: Trial Memorandum / Case Brief
+            </div>
+            <div class="cover-classification">FOR OFFICIAL USE ONLY — LAW ENFORCEMENT SENSITIVE</div>
+        </div>
+        
+        <!-- Table of Contents -->
+        <div class="toc-page">
+            <h2>Table of Contents</h2>
+            ${content.briefSections.map((section, idx) => `
+            <div class="toc-entry">
+                <span class="toc-title">${section.title}</span>
+                <span class="toc-page-num">${idx + 3}</span>
+            </div>
+            `).join('')}
+            <div class="toc-entry">
+                <span class="toc-title">VIII. Conclusion and Relief Requested</span>
+                <span class="toc-page-num">${content.briefSections.length + 3}</span>
+            </div>
+        </div>
+        
+        <!-- Brief Body -->
+        <div class="brief-body">
+            ${content.customFocus !== 'Standard comprehensive case analysis' ? `
+            <div class="focus-box">
+                <strong>Argument Focus:</strong> ${content.customFocus}
+            </div>
+            ` : ''}
+            
+            <div class="facts-box">
+                <div class="fact-item"><div class="fact-value">4,024</div><div class="fact-label">Documents</div></div>
+                <div class="fact-item"><div class="fact-value">$2.3M</div><div class="fact-label">Unaccounted</div></div>
+                <div class="fact-item"><div class="fact-value">20</div><div class="fact-label">Offshore Trips</div></div>
+                <div class="fact-item"><div class="fact-value">15</div><div class="fact-label">Counts</div></div>
+            </div>
+            
+            ${briefBody}
+            
+            <div class="conclusion-section">
+                <h2>VIII. Conclusion and Relief Requested</h2>
+                <p>The evidence compiled in this investigation establishes a clear and compelling case that the defendant, John Smith, engaged in a systematic and deliberate scheme to launder the proceeds of unlawful activity through a network of offshore financial institutions. The scheme, which spanned more than twelve months and involved twenty international trips to known offshore financial centers, resulted in the movement of approximately $2.3 million in funds through accounts designed to obscure the origin and beneficial ownership of the proceeds.</p>
+                <p>The Government's case is supported by a comprehensive evidentiary record of 4,024 documents, including electronic communications, financial records, travel documentation, and witness statements. Five key witnesses, including a cooperating co-conspirator and the whistleblower whose complaint initiated the investigation, will provide testimony corroborating the documentary evidence and establishing the defendant's knowledge, intent, and direct participation in the charged offenses.</p>
+                <p>AI-assisted analysis of the evidentiary record has identified four significant anomalies that further strengthen the Government's case, including the unusual concentration of offshore travel, the $2.3 million financial discrepancy, the forty-five-day communication gap during the peak period of suspicious activity, and material inconsistencies in the defendant's statements to investigators. Each of these anomalies has been independently corroborated through traditional investigative methods.</p>
+                <p>Based on the foregoing, the Government respectfully submits that the evidence is sufficient to establish the defendant's guilt beyond a reasonable doubt on all fifteen counts of the superseding indictment, and requests that this Court proceed to trial at the earliest practicable date.</p>
+                
+                <div class="case-status">
+                    CASE STATUS: Active Prosecution &nbsp;|&nbsp; TRIAL DATE: Pending &nbsp;|&nbsp; CHARGES: 15 Counts (Money Laundering, Wire Fraud)
+                </div>
+            </div>
+            
+            <div class="page-footer">
+                ${content.title} &nbsp;|&nbsp; Trial Memorandum &nbsp;|&nbsp; ${content.date}
+            </div>
+        </div>
+        
+        <div class="end-classification">FOR OFFICIAL USE ONLY — LAW ENFORCEMENT SENSITIVE</div>
+    </div>
+</body>
+</html>`;
+        }
+        
+        function generatePresentationHTML(content) {
+            return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${content.title} - Prosecution Deck</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background: #1a1a1a; padding: 20px; }
+        .report-container { max-width: 960px; margin: 0 auto; background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .slide { background: white; padding: 60px; min-height: 540px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .header { border-bottom: 4px solid #bf0a30; padding-bottom: 20px; margin-bottom: 30px; background: linear-gradient(135deg, #002868 0%, #001a4d 100%); color: white; padding: 30px; margin: -60px -60px 30px -60px; }
+        .header h1 { font-size: 36px; margin-bottom: 10px; }
+        .header .meta { font-size: 14px; opacity: 0.9; }
+        .section { margin-bottom: 40px; }
+        .section h2 { color: #002868; font-size: 28px; margin-bottom: 15px; border-left: 4px solid #bf0a30; padding-left: 15px; }
+        .section-content { color: #333; line-height: 1.8; font-size: 16px; }
+        .custom-focus { background: #fff5f5; border-left: 4px solid #bf0a30; padding: 20px; margin-bottom: 30px; font-style: italic; }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 30px 0; }
+        .stat-box { text-align: center; padding: 20px; background: #f0f4f8; border-left: 4px solid #002868; }
+        .stat-value { font-size: 42px; font-weight: 700; color: #002868; }
+        .stat-label { font-size: 12px; color: #666; text-transform: uppercase; margin-top: 5px; }
+        .bullet-list { list-style: none; padding-left: 0; }
+        .bullet-list li { padding: 10px 0 10px 30px; position: relative; }
+        .bullet-list li:before { content: '▶'; position: absolute; left: 0; color: #bf0a30; }
+        .footer { text-align: center; padding-top: 20px; border-top: 2px solid #ddd; color: #666; font-size: 12px; }
+        .classification { background: #bf0a30; color: white; padding: 10px; text-align: center; font-weight: 700; }
+        @media print { body { background: white; padding: 0; } .slide { box-shadow: none; margin: 0; } }
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <div class="slide">
+            <div class="header">
+                <h1>⚖️ ${content.title}</h1>
+                <div class="meta">Generated: ${content.date} | Format: Prosecution Deck | U.S. Department of Justice</div>
+            </div>
+            ${content.customFocus !== 'Standard comprehensive case analysis' ? '<div class="custom-focus"><strong>Report Focus:</strong><br>' + content.customFocus + '</div>' : ''}
+            <div class="stats-grid">
+                <div class="stat-box"><div class="stat-value">4,024</div><div class="stat-label">Documents</div></div>
+                <div class="stat-box"><div class="stat-value">$2.3M</div><div class="stat-label">Unaccounted</div></div>
+                <div class="stat-box"><div class="stat-value">20</div><div class="stat-label">Offshore Trips</div></div>
+                <div class="stat-box"><div class="stat-value">15</div><div class="stat-label">Counts</div></div>
+            </div>
+            <div class="section">
+                <h2>Case Overview</h2>
+                <div class="section-content">Federal investigation into John Smith (CFO, TechCorp Industries) for money laundering and wire fraud. Investigation spans January 2023 to present, involving extensive document analysis, witness testimony, and forensic accounting. Grand jury returned 15-count superseding indictment in January 2024.</div>
+            </div>
+        </div>
+        ${content.sections.map((section, idx) => `
+        <div class="slide">
+            <div class="section">
+                <h2>${section.title}</h2>
+                <div class="section-content">
+                    ${section.content.includes('\n') ? '<ul class="bullet-list">' + section.content.split('\n').map(line => line.trim() ? '<li>' + line.replace(/^\d+\.\s*/, '') + '</li>' : '').join('') + '</ul>' : section.content}
+                </div>
+            </div>
+            ${idx === 0 ? '<div class="section" style="margin-top: 40px;"><h2>Key Findings</h2><ul class="bullet-list"><li>Systematic pattern of offshore travel to tax havens</li><li>$2.3M financial discrepancy in Q2 2023</li><li>Structured transactions to avoid reporting thresholds</li><li>45-day communication gap during critical period</li><li>Multiple witness testimony corroborating suspicious activities</li></ul></div>' : ''}
+            <div class="footer">Page ${idx + 2} | ${content.title} | ${content.date}</div>
+        </div>
+        `).join('')}
+        <div class="slide">
+            <div class="section">
+                <h2>Conclusion & Next Steps</h2>
+                <div class="section-content">
+                    <p style="margin-bottom: 20px;">The evidence compiled in this investigation demonstrates a systematic pattern of financial crimes involving offshore banking, money laundering, and wire fraud. The case is supported by:</p>
+                    <ul class="bullet-list">
+                        <li>4,024 documents including emails, financial records, and witness statements</li>
+                        <li>Grand jury testimony from 5 key witnesses</li>
+                        <li>Forensic accounting analysis identifying $2.3M discrepancy</li>
+                        <li>Travel documentation showing 20 trips to offshore financial centers</li>
+                        <li>AI-powered anomaly detection identifying 4 critical patterns</li>
+                    </ul>
+                    <p style="margin-top: 30px; font-weight: 600; color: #002868;">Case Status: Active Prosecution | Trial Date: Pending | Charges: 15 Counts</p>
+                </div>
+            </div>
+            <div class="footer">End of Report | ${content.title} | ${content.date}</div>
+        </div>
+        <div class="classification">FOR OFFICIAL USE ONLY - LAW ENFORCEMENT SENSITIVE</div>
+    </div>
+</body>
+</html>`;
+        }
+    </script>
+</body>
+</html>
