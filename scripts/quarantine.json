@@ -1,0 +1,3483 @@
+{
+  "quarantined_keys": [
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01262782.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:24:07.018882+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01262784.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:24:10.602630+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01262791.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:24:14.111968+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01262798.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:24:18.155960+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01262805.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:24:21.599507+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01262829.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:24:24.999626+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01262863.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:24:28.402475+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01262891.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:24:31.806330+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01262895.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:24:35.282650+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01262900.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:24:38.707691+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01262956.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:24:42.071664+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01262960.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:24:45.510750+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01262965.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:24:48.944685+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263024.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:24:52.319920+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263085.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:24:55.715369+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263089.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:24:59.147755+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263093.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:25:02.628201+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263102.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:25:06.105234+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263112.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:25:09.513202+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263117.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:25:12.906180+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263124.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:25:16.326422+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263145.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:25:19.758737+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263148.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:25:23.176617+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263152.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:25:26.568723+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263156.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:25:29.967630+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263197.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:25:33.363821+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263204.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:25:36.848919+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263210.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:25:40.343213+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263213.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:25:43.755762+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263227.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:25:47.198078+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263240.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:25:50.642713+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263246.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:25:54.040110+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263272.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:25:57.449714+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263288.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:00.896546+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263289.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:04.462664+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263290.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:07.853922+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263291.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:11.236536+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263292.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:15.191314+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263293.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:18.710802+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263329.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:22.264911+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263330.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:25.674895+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263332.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:29.074922+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263414.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:32.483516+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01263776.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:35.823970+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01264031.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:39.193198+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01264040.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:42.569214+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01264248.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:46.004379+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01264394.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:49.517113+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01264396.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:53.008620+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet10/EFTA01264397.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:56.391012+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02205655.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:26:59.783606+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02205827.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:27:03.211761+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02209622.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:27:06.793843+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02209722.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:27:10.185503+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212883.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:27:13.725564+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212885.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:27:17.806116+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212889.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:27:21.177404+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212890.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:27:24.614633+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212891.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:27:28.132815+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212892.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:27:31.552326+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212893.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:27:35.015677+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212894.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:27:38.545253+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212896.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:27:41.860929+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212897.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:27:45.270556+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212899.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:27:48.782716+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212900.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:27:52.188463+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212901.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:27:55.668664+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212902.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:27:59.026415+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212904.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:28:02.400720+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212905.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:28:05.828697+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212906.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:28:10.111549+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212907.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:28:13.516998+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212908.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:28:17.008597+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212919.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:28:20.558535+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212920.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:28:23.922508+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212921.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:28:27.290518+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212922.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:28:30.747390+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212924.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:28:34.180611+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212925.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:28:37.599766+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212928.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:28:41.066390+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212929.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:28:44.504151+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212932.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:28:47.995295+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212936.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:28:51.497990+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212937.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:28:54.878390+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212940.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:28:58.239308+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212946.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:01.597430+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212949.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:05.091133+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212953.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:08.495273+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212956.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:11.951745+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212957.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:15.415382+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212958.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:18.835611+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212959.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:22.264799+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212960.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:25.659672+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212961.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:29.079522+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212962.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:32.474216+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212963.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:35.863784+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212964.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:39.197864+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212965.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:42.712247+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212966.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:46.159534+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet11/EFTA02212968.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:49.679658+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02730265.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:53.020614+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02730267.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:56.405204+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02730271.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:29:59.878238+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02730468.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:30:04.001604+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02730469.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:30:07.472445+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02730471.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:30:10.927402+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02730473.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:30:14.375502+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02730477.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:30:17.747384+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02730481.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:30:21.241844+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02730483.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:30:24.753527+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02730485.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:30:28.241353+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02730486.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:30:31.650393+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02730996.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:30:35.042007+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731018.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:30:38.468105+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731023.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:30:41.884167+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731039.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:30:45.466313+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731069.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:30:48.886665+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731168.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:30:52.223950+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731226.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:30:55.613428+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731254.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:30:59.105697+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731341.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:31:02.566778+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731361.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:31:06.010736+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731393.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:31:09.471801+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731410.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:31:13.500458+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731411.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:31:17.197893+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731412.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:31:20.577637+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731413.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:31:23.954163+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731414.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:31:27.292317+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731415.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:31:30.914544+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731416.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:31:34.511283+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731417.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:31:38.117172+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731418.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:31:41.649080+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731419.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:31:45.321232+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731420.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:31:49.604979+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731433.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:31:53.156133+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731465.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:31:56.702563+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731473.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:32:00.133072+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731475.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:32:04.222661+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731477.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:32:07.643485+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731478.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:32:11.023373+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731479.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:32:14.566527+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731480.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:32:17.920405+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731482.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:32:21.351826+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731484.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:32:24.826661+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731485.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:32:28.327105+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731486.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:32:31.698425+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731488.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:32:35.093627+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731490.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:32:38.499848+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731497.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:32:41.909379+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet12/EFTA02731498.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-01T23:32:45.296961+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet3/VOL00003/IMAGES/0001/EFTA00004043.pdf",
+      "reason": "S3 download failed: Could not connect to the endpoint URL: \"https://doj-cases-974220725866-us-east-1.s3.amazonaws.com/bw-documents/DataSet3/VOL00003/IMAGES/0001/EFTA00004043.pdf\"",
+      "failed_at": "2026-04-02T12:19:27.653896+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009676.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:25:05.567668+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009713.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:25:08.775127+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009747.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:25:11.968873+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009767.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:25:15.261645+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009775.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:25:18.465418+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009781.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:25:21.742823+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009786.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:25:24.998728+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009791.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:25:28.241148+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009794.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:25:31.434495+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009796.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:25:34.692892+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009798.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:25:38.128686+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009800.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:25:41.384074+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009802.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:25:44.544681+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009807.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:25:47.718967+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009808.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:25:51.105661+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009809.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:25:54.261902+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009823.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:25:57.463216+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009825.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:00.660628+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009826.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:03.842902+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009827.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:07.031873+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009829.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:10.203243+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009831.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:13.396634+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009832.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:16.538504+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009834.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:19.697062+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009853.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:22.881733+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009854.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:26.063104+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009856.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:29.262066+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009858.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:32.817198+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009859.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:36.128380+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009860.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:39.448598+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009863.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:42.637537+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009864.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:45.804317+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009865.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:49.001001+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009868.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:52.153206+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009869.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:55.320407+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009870.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:26:58.469671+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009873.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:01.672291+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009877.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:05.058624+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009879.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:08.493999+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009881.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:11.805499+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009882.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:14.964686+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009883.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:18.193000+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009884.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:21.356884+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009885.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:24.523677+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009886.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:27.736846+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009887.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:30.910489+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009888.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:34.098679+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009889.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:37.271355+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet8/EFTA00009890.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:40.409587+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039025.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:43.639006+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039153.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:46.805733+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039156.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:49.941426+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039190.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:53.131816+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039208.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:56.287120+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039220.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:27:59.552118+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039227.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:02.716227+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039282.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:05.868556+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039295.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:09.102086+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039312.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:12.273036+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039351.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:15.503836+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039356.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:18.707841+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039357.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:22.295757+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039367.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:25.494530+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039383.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:28.638261+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039416.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:31.829922+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039419.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:35.112848+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039420.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:38.460069+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039660.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:41.624233+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039662.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:44.864502+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039663.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:48.042765+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039665.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:51.250871+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039689.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:54.923656+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039790.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:28:58.126078+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039791.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:01.336023+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039794.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:04.534844+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039796.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:07.745608+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039797.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:10.900949+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039798.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:14.086112+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039799.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:17.237320+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039802.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:20.394244+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039806.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:23.578249+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039809.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:26.742540+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039813.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:29.922840+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039815.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:33.128916+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039816.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:36.422062+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039817.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:39.636976+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039820.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:42.796306+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039825.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:45.988450+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039826.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:49.174766+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039828.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:52.326681+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039867.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:55.493785+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039868.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:29:58.665035+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039872.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:30:01.823220+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039875.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:30:05.009561+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039878.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:30:08.903699+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039879.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:30:12.079060+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039880.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:30:15.272043+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039881.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:30:18.440101+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet9/EFTA00039882.pdf",
+      "reason": "PyPDF2 failed: EOF marker not found",
+      "failed_at": "2026-04-02T12:30:21.587377+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000105.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000108.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000109.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000110.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000111.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000112.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000113.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000119.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000121.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000124.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000125.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000127.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000130.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000131.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000132.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000133.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000134.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000135.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000136.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000139.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000140.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000149.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000153.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000158.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000160.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000163.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000166.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000172.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000184.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000191.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000192.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000193.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000194.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000195.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000196.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000203.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000206.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000207.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000208.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000209.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000212.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000214.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000216.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "bw-documents/DataSet1/VOL00001/IMAGES/0001/EFTA00000222.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T12:44:39.195271+00:00",
+      "retry_count": 3,
+      "batch_number": 2
+    },
+    {
+      "s3_key": "pdfs/DataSet1/VOL00001/IMAGES/0001/EFTA00000842.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T15:49:43.930156+00:00",
+      "retry_count": 3,
+      "batch_number": 3
+    },
+    {
+      "s3_key": "pdfs/DataSet1/VOL00001/IMAGES/0001/EFTA00000943.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T15:59:25.090480+00:00",
+      "retry_count": 3,
+      "batch_number": 4
+    },
+    {
+      "s3_key": "pdfs/DataSet1/VOL00001/IMAGES/0002/EFTA00001042.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T16:12:45.367135+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "pdfs/DataSet1/VOL00001/IMAGES/0002/EFTA00001149.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-02T16:20:36.633737+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247390.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.317890+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247391.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.317890+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247395.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.317890+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247396.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.317890+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247397.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.317890+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247398.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.317890+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247399.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.317890+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247403.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.317890+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247404.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.317890+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247406.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.317890+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247407.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.317890+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247408.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.318902+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247409.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.318902+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247411.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.318902+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247412.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.318902+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247413.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.318902+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247414.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.318902+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247415.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.318902+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247419.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.318902+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247423.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.318902+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247424.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.318902+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247425.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.318902+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247426.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.318902+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247427.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.318902+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247429.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.318902+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247430.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.318902+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247431.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.318902+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247432.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.318902+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247433.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247434.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247436.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247438.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247439.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247441.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247442.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247444.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247447.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247448.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247449.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247450.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247452.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247453.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247454.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247455.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247456.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247459.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247462.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247463.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247464.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247465.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247466.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247467.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247470.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247472.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247473.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247475.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247476.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247477.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247481.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247482.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247483.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247485.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247486.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.319410+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247487.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247488.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247489.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247490.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247495.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247498.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247499.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247500.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247501.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247502.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247503.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247505.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247506.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247507.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247508.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247509.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247510.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247511.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247512.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247513.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247514.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247515.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247516.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247517.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247521.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247522.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247523.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247524.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247526.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247529.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247530.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247531.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247532.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247533.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247537.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247538.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02247539.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T07:13:24.320419+00:00",
+      "retry_count": 3,
+      "batch_number": 5
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02256976.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.675859+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02256977.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.677374+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02256979.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.677374+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02256980.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02256982.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02256983.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02256985.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02256986.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02256987.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02256988.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02256989.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02256990.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02256993.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02256994.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02256995.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257005.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257013.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257015.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257017.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257021.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257022.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257023.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257024.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257027.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257028.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257029.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257034.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257040.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257041.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257042.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257043.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257044.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257045.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.678383+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257046.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.679889+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257050.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.679889+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257053.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.679889+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257058.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.679889+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257060.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.679889+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257061.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.679889+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257062.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.679889+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257066.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.679889+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257067.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.679889+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257074.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.679889+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257075.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.679889+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257076.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.679889+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257077.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257082.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257083.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257085.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257087.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257089.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257091.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257093.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257098.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257101.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257102.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257104.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257105.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257106.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257108.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257110.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257111.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257113.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257114.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257118.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257127.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.680501+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257129.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257133.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257135.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257139.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257140.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257141.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257142.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257144.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257145.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257147.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257150.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257151.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257156.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257157.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257159.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257160.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257161.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257162.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257163.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257166.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257170.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257171.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257172.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257175.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257177.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257187.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257188.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257189.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257191.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.681507+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257193.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.682506+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257194.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.682506+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257196.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.682506+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    },
+    {
+      "s3_key": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02257198.pdf",
+      "reason": "Pipeline failed",
+      "failed_at": "2026-04-14T13:33:32.682506+00:00",
+      "retry_count": 3,
+      "batch_number": 6
+    }
+  ]
+}
