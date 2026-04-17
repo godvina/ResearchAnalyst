@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>How AI Transforms Raw Documents into Investigative Intelligence</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #0a1628 0%, #0d1f3c 50%, #0a1628 100%); color: #e2e8f0; }
+.slide { width: 1280px; height: 720px; margin: 0 auto; padding: 40px 60px; position: relative; overflow: hidden; }
+.slide-title { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 6px; letter-spacing: -0.5px; }
+.slide-subtitle { font-size: 14px; color: #63b3ed; margin-bottom: 30px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+.pipeline { display: flex; gap: 20px; align-items: flex-start; }
+.stage { flex: 1; background: rgba(26,54,93,0.4); border: 1px solid rgba(99,179,237,0.2); border-radius: 12px; padding: 18px; position: relative; }
+.stage-num { position: absolute; top: -12px; left: 16px; background: linear-gradient(135deg, #2b6cb0, #3182ce); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; }
+.stage-icon { font-size: 32px; margin-bottom: 8px; }
+.stage-title { font-size: 14px; font-weight: 700; color: #63b3ed; margin-bottom: 6px; }
+.stage-desc { font-size: 11px; color: #a0aec0; line-height: 1.5; }
+.stage-tech { margin-top: 8px; display: flex; gap: 4px; flex-wrap: wrap; }
+.tech-badge { background: rgba(99,179,237,0.15); border: 1px solid rgba(99,179,237,0.3); color: #90cdf4; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 600; }
+.arrow { display: flex; align-items: center; color: #4a9eff; font-size: 24px; margin-top: 30px; }
+.bottom-section { display: flex; gap: 30px; margin-top: 24px; }
+.concept-box { flex: 1; background: rgba(26,54,93,0.3); border-radius: 12px; padding: 18px; border-left: 4px solid; }
+.concept-box.embeddings { border-left-color: #48bb78; }
+.concept-box.entities { border-left-color: #f6ad55; }
+.concept-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.concept-title .icon { font-size: 20px; }
+.concept-box.embeddings .concept-title { color: #48bb78; }
+.concept-box.entities .concept-title { color: #f6ad55; }
+.concept-desc { font-size: 11.5px; color: #cbd5e0; line-height: 1.6; }
+.concept-example { margin-top: 10px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px 14px; font-size: 10.5px; }
+.concept-example .label { color: #718096; font-weight: 600; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px; margin-bottom: 4px; }
+.concept-example .query { color: #63b3ed; font-style: italic; }
+.concept-example .result { color: #68d391; margin-top: 4px; }
+.concept-example .entity-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.entity-tag { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+.entity-tag.person { background: rgba(99,179,237,0.2); color: #90cdf4; }
+.entity-tag.org { background: rgba(246,173,85,0.2); color: #fbd38d; }
+.entity-tag.location { background: rgba(72,187,120,0.2); color: #9ae6b4; }
+.entity-tag.date { background: rgba(159,122,234,0.2); color: #d6bcfa; }
+.footer { position: absolute; bottom: 16px; left: 60px; right: 60px; display: flex; justify-content: space-between; align-items: center; }
+.footer-left { font-size: 10px; color: #4a5568; }
+.footer-right { font-size: 10px; color: #4a5568; }
+.aws-logo { color: #f6ad55; font-weight: 800; }
+</style>
+</head>
+<body>
+<div class="slide">
+    <div class="slide-title">How AI Transforms Raw Documents into Investigative Intelligence</div>
+    <div class="slide-subtitle">From 82,000 unstructured documents to searchable, connected intelligence</div>
+
+    <div class="pipeline">
+        <div class="stage">
+            <div class="stage-num">1</div>
+            <div class="stage-icon">📄</div>
+            <div class="stage-title">Ingest</div>
+            <div class="stage-desc">Raw documents (PDFs, scans, emails) uploaded to S3. OCR extracts text from scanned images.</div>
+            <div class="stage-tech"><span class="tech-badge">S3</span><span class="tech-badge">Textract</span><span class="tech-badge">Step Functions</span></div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="stage">
+            <div class="stage-num">2</div>
+            <div class="stage-icon">🧠</div>
+            <div class="stage-title">Embed</div>
+            <div class="stage-desc">AI reads each document and converts its meaning into a 1,536-number coordinate — its position in "meaning space."</div>
+            <div class="stage-tech"><span class="tech-badge">Bedrock</span><span class="tech-badge">Titan Embed</span><span class="tech-badge">pgvector</span></div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="stage">
+            <div class="stage-num">3</div>
+            <div class="stage-icon">🔍</div>
+            <div class="stage-title">Extract</div>
+            <div class="stage-desc">AI identifies every person, organization, location, date, and financial amount mentioned in each document.</div>
+            <div class="stage-tech"><span class="tech-badge">Bedrock</span><span class="tech-badge">Claude Haiku</span><span class="tech-badge">NER</span></div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="stage">
+            <div class="stage-num">4</div>
+            <div class="stage-icon">🕸️</div>
+            <div class="stage-title">Connect</div>
+            <div class="stage-desc">Entities become nodes in a knowledge graph. Relationships between people, places, and organizations are mapped.</div>
+            <div class="stage-tech"><span class="tech-badge">Neptune</span><span class="tech-badge">Gremlin</span><span class="tech-badge">Graph DB</span></div>
+        </div>
+    </div>
+
+    <div class="bottom-section">
+        <div class="concept-box embeddings">
+            <div class="concept-title"><span class="icon">📐</span> Vector Embeddings — Semantic Search</div>
+            <div class="concept-desc">
+                Every document gets a mathematical fingerprint that captures what it's <em>about</em>, not just what words it contains. Documents about similar topics cluster together — enabling search by meaning.
+            </div>
+            <div class="concept-example">
+                <div class="label">Example</div>
+                <div class="query">Search: "financial fraud involving shell companies"</div>
+                <div class="result">✓ Finds documents about "suspicious wire transfers to offshore accounts" — even though no words match</div>
+            </div>
+        </div>
+
+        <div class="concept-box entities">
+            <div class="concept-title"><span class="icon">🏷️</span> Entity Extraction — Knowledge Graph</div>
+            <div class="concept-desc">
+                AI reads every document and highlights the important stuff — who, what, where, when. These become connected nodes in a graph that reveals hidden patterns across thousands of documents.
+            </div>
+            <div class="concept-example">
+                <div class="label">Extracted from one document</div>
+                <div class="entity-tags">
+                    <span class="entity-tag person">👤 Jeffrey Epstein</span>
+                    <span class="entity-tag org">🏢 JP Morgan Chase</span>
+                    <span class="entity-tag org">🏢 LSJE LLC</span>
+                    <span class="entity-tag location">📍 Palm Beach, FL</span>
+                    <span class="entity-tag date">📅 March 2005</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="footer-left"><span class="aws-logo">AWS</span> Investigative Intelligence Platform — Bedrock · Aurora pgvector · Neptune · S3</div>
+        <div class="footer-right">82,529 documents · 115,422 entities · 175,690 relationships</div>
+    </div>
+</div>
+</body>
+</html>
