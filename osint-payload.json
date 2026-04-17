@@ -1,0 +1,1 @@
+﻿{"httpMethod":"POST","path":"/v1/case-files/d72b81fc-a4e1-4de5-a4d3-8c74a1a7e7f7/osint-research","pathParameters":{"id":"d72b81fc-a4e1-4de5-a4d3-8c74a1a7e7f7"},"body":"{\"research_type\":\"pattern\",\"context\":{\"pattern_summary\":\"Antarctica\"},\"force_refresh\":true}","headers":{"Content-Type":"application/json"},"requestContext":{"httpMethod":"POST"}}
