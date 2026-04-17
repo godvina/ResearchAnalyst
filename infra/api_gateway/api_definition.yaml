@@ -1,0 +1,6157 @@
+﻿openapi: "3.0.1"
+info:
+  title: Research Analyst Platform API
+  description: API for managing research case files, ingestion, pattern discovery, semantic search, drill-down investigation, cross-case analysis, pipeline configuration, and investigative tools.
+  version: "1.0.0"
+
+paths:
+  /case-files:
+    post:
+      summary: Create a new case file
+      operationId: createCaseFile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCaseFileRequest"
+      responses:
+        "201":
+          description: Case file created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseFileResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    get:
+      summary: List case files with optional filters
+      operationId: listCaseFiles
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [created, ingesting, indexed, investigating, archived, error]
+        - name: topic_keyword
+          in: query
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: entity_count_min
+          in: query
+          schema:
+            type: integer
+        - name: entity_count_max
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of case files
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseFileListResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files
+      operationId: optionsCaseFiles
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}:
+    get:
+      summary: Get case file details
+      operationId: getCaseFile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Case file details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseFileResponse"
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    delete:
+      summary: Delete case file and all associated data
+      operationId: deleteCaseFile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Case file deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}
+      operationId: optionsCaseFileById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/archive:
+    post:
+      summary: Archive a case file
+      operationId: archiveCaseFile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Case file archived
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseFileResponse"
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/archive
+      operationId: optionsArchiveCaseFile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/ingest:
+    post:
+      summary: Upload and ingest documents into a case file
+      operationId: ingestDocuments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IngestRequest"
+      responses:
+        "200":
+          description: Batch ingestion result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchResultResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${IngestionLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/ingest
+      operationId: optionsIngestDocuments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${IngestionLambdaArn}/invocations"
+
+  /case-files/{id}/patterns:
+    post:
+      summary: Trigger pattern discovery for a case file
+      operationId: discoverPatterns
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Pattern report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatternReportResponse"
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PatternsLambdaArn}/invocations"
+    get:
+      summary: Get pattern reports for a case file
+      operationId: getPatterns
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of pattern reports
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatternReportListResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PatternsLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/patterns
+      operationId: optionsPatterns
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PatternsLambdaArn}/invocations"
+
+  /case-files/{id}/search:
+    post:
+      summary: Semantic search within a case file
+      operationId: semanticSearch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchRequest"
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResultListResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SearchLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/search
+      operationId: optionsSearch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SearchLambdaArn}/invocations"
+
+  /case-files/{id}/drill-down:
+    post:
+      summary: Create a sub-case file from a pattern or entity
+      operationId: drillDown
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DrillDownRequest"
+      responses:
+        "201":
+          description: Sub-case file created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseFileResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Parent case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DrillDownLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/drill-down
+      operationId: optionsDrillDown
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DrillDownLambdaArn}/invocations"
+
+  /case-files/{id}/question-answer:
+    post:
+      summary: Generate progressive intelligence answer for an investigative question
+      operationId: questionAnswer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [entity_name, question]
+              properties:
+                entity_name:
+                  type: string
+                question:
+                  type: string
+                level:
+                  type: integer
+                  enum: [1, 2, 3]
+                  default: 2
+      responses:
+        "200":
+          description: Intelligence answer generated
+        "400":
+          description: Validation error
+        "500":
+          description: Internal error
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/question-answer
+      operationId: optionsQuestionAnswer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /cross-case/analyze:
+    post:
+      summary: Run cross-case analysis on selected case files
+      operationId: analyzeCrossCase
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CrossCaseAnalyzeRequest"
+      responses:
+        "200":
+          description: Cross-reference report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrossReferenceReportResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CrossCaseLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /cross-case/analyze
+      operationId: optionsCrossCaseAnalyze
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CrossCaseLambdaArn}/invocations"
+
+  /cross-case/graphs:
+    post:
+      summary: Create a cross-case graph
+      operationId: createCrossCaseGraph
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCrossCaseGraphRequest"
+      responses:
+        "201":
+          description: Cross-case graph created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrossCaseGraphResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CrossCaseLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /cross-case/graphs
+      operationId: optionsCrossCaseGraphs
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CrossCaseLambdaArn}/invocations"
+
+  /cross-case/graphs/{id}:
+    patch:
+      summary: Update cross-case graph membership
+      operationId: updateCrossCaseGraph
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCrossCaseGraphRequest"
+      responses:
+        "200":
+          description: Cross-case graph updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrossCaseGraphResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Graph not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CrossCaseLambdaArn}/invocations"
+    get:
+      summary: Get cross-case graph details
+      operationId: getCrossCaseGraph
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Cross-case graph details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrossCaseGraphResponse"
+        "404":
+          description: Graph not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CrossCaseLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /cross-case/graphs/{id}
+      operationId: optionsCrossCaseGraphById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CrossCaseLambdaArn}/invocations"
+
+  # --- Prosecutor Case Review Routes ---
+
+  /case-files/{id}/element-assessment:
+    post:
+      summary: Run element assessment for a case against a statute
+      operationId: runElementAssessment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Element assessment result
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/element-assessment
+      operationId: optionsElementAssessment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/decisions:
+    get:
+      summary: List all decisions for a case
+      operationId: listCaseDecisions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: decision_type
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of decisions
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    post:
+      summary: Create a decision for a case
+      operationId: createCaseDecision
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Decision created
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/decisions
+      operationId: optionsCaseDecisions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/charging-memo:
+    post:
+      summary: Generate charging memo for a case
+      operationId: generateChargingMemo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Charging memo generated
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/charging-memo
+      operationId: optionsChargingMemo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/case-weaknesses:
+    post:
+      summary: Analyze case weaknesses
+      operationId: analyzeCaseWeaknesses
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Case weakness analysis
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/case-weaknesses
+      operationId: optionsCaseWeaknesses
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/precedent-analysis:
+    post:
+      summary: Run precedent analysis for a case
+      operationId: runPrecedentAnalysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Precedent analysis results
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/precedent-analysis
+      operationId: optionsPrecedentAnalysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /statutes:
+    get:
+      summary: List all statutes in the library
+      operationId: listStatutes
+      responses:
+        "200":
+          description: List of statutes
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /statutes
+      operationId: optionsStatutes
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  # --- Network Discovery Routes ---
+
+  /case-files/{id}/network-analysis:
+    post:
+      summary: Trigger network analysis for a case
+      operationId: triggerNetworkAnalysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Network analysis result
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    get:
+      summary: Get cached network analysis results
+      operationId: getNetworkAnalysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Network analysis results
+        "404":
+          description: No analysis found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/network-analysis
+      operationId: optionsNetworkAnalysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/network-patterns:
+    get:
+      summary: Get detected hidden network patterns
+      operationId: getNetworkPatterns
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: pattern_type
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of network patterns
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/network-patterns
+      operationId: optionsNetworkPatterns
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/persons-of-interest:
+    get:
+      summary: List persons of interest for a case
+      operationId: listPersonsOfInterest
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: risk_level
+          in: query
+          schema:
+            type: string
+        - name: min_score
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of persons of interest
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/persons-of-interest
+      operationId: optionsPersonsOfInterest
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/persons-of-interest/{pid}:
+    get:
+      summary: Get full co-conspirator profile
+      operationId: getPersonOfInterest
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: pid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Person of interest profile
+        "404":
+          description: Person not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/persons-of-interest/{pid}
+      operationId: optionsPersonOfInterest
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: pid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  # --- Document Assembly Routes ---
+
+  /case-files/{id}/documents:
+    get:
+      summary: List generated documents for a case
+      operationId: listCaseDocuments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of documents
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/documents
+      operationId: optionsCaseDocuments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/documents/generate:
+    post:
+      summary: Generate a court document
+      operationId: generateDocument
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Document generated
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/documents/generate
+      operationId: optionsGenerateDocument
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/documents/{doc_id}:
+    get:
+      summary: Get document details with sections
+      operationId: getDocument
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: doc_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Document details
+        "404":
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/documents/{doc_id}
+      operationId: optionsDocumentById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: doc_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/documents/{doc_id}/sign-off:
+    post:
+      summary: Attorney sign-off on a document
+      operationId: signOffDocument
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: doc_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Document signed off
+        "404":
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/documents/{doc_id}/sign-off
+      operationId: optionsDocumentSignOff
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: doc_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/documents/{doc_id}/export:
+    post:
+      summary: Export a document in specified format
+      operationId: exportDocument
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: doc_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Exported document
+        "404":
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/documents/{doc_id}/export
+      operationId: optionsDocumentExport
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: doc_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/discovery:
+    get:
+      summary: Get discovery status for a case
+      operationId: getDiscoveryStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Discovery status with privilege categories
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/discovery
+      operationId: optionsDiscovery
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/discovery/produce:
+    post:
+      summary: Produce discovery documents
+      operationId: produceDiscovery
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Discovery production result
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/discovery/produce
+      operationId: optionsDiscoveryProduce
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  # --- Pipeline Configuration Routes ---
+
+  /case-files/{id}/pipeline-status:
+    get:
+      summary: Get real-time pipeline processing status with AI health assessment
+      operationId: getPipelineStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Pipeline status with metrics, health score, and step-level details
+
+  /case-files/{id}/entity-resolution:
+    post:
+      summary: Trigger entity resolution to merge duplicate entities in the knowledge graph
+      operationId: triggerEntityResolution
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "202":
+          description: Entity resolution triggered asynchronously
+
+  /case-files/{id}/entity-photos:
+    get:
+      summary: Get presigned URLs for entity face photos
+      operationId: getEntityPhotos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Entity photo presigned URL mapping
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entity_photos:
+                    type: object
+                    additionalProperties:
+                      type: string
+                  photo_count:
+                    type: integer
+                  source_breakdown:
+                    type: object
+                    properties:
+                      pipeline:
+                        type: integer
+                      demo:
+                        type: integer
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/entity-photos
+      operationId: optionsEntityPhotos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/pipeline-config:
+    get:
+      summary: Get effective pipeline configuration for a case file
+      operationId: getEffectiveConfig
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Effective pipeline configuration with origin annotations
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    put:
+      summary: Create or update pipeline configuration for a case file
+      operationId: updatePipelineConfig
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Configuration updated, new version created
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/pipeline-config
+      operationId: optionsPipelineConfig
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  /case-files/{id}/pipeline-config/versions:
+    get:
+      summary: List all configuration versions for a case file
+      operationId: listConfigVersions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of configuration versions
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/pipeline-config/versions
+      operationId: optionsConfigVersions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  /case-files/{id}/pipeline-config/versions/{v}:
+    get:
+      summary: Get a specific configuration version
+      operationId: getConfigVersion
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: v
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Configuration version details
+        "404":
+          description: Version not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/pipeline-config/versions/{v}
+      operationId: optionsConfigVersionById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: v
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  /case-files/{id}/pipeline-config/rollback:
+    post:
+      summary: Rollback pipeline configuration to a previous version
+      operationId: rollbackConfig
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target_version]
+              properties:
+                target_version:
+                  type: integer
+      responses:
+        "200":
+          description: Configuration rolled back, new version created
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Version not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/pipeline-config/rollback
+      operationId: optionsConfigRollback
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  /case-files/{id}/pipeline-config/export:
+    post:
+      summary: Export active pipeline configuration
+      operationId: exportConfig
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Exported configuration with metadata
+        "404":
+          description: Case file or config not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/pipeline-config/export
+      operationId: optionsConfigExport
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  /case-files/{id}/pipeline-config/import:
+    post:
+      summary: Import pipeline configuration from JSON
+      operationId: importConfig
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Configuration imported, new version created
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/pipeline-config/import
+      operationId: optionsConfigImport
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  /case-files/{id}/pipeline-config/template:
+    post:
+      summary: Apply a configuration template to a case file
+      operationId: applyConfigTemplate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [template_name]
+              properties:
+                template_name:
+                  type: string
+                  enum: [antitrust, criminal, financial_fraud]
+      responses:
+        "200":
+          description: Template applied, new version created
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/pipeline-config/template
+      operationId: optionsConfigTemplate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  # --- Sample Run Routes ---
+
+  /case-files/{id}/sample-runs:
+    post:
+      summary: Start a sample pipeline run
+      operationId: startSampleRun
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [document_ids]
+              properties:
+                document_ids:
+                  type: array
+                  minItems: 1
+                  maxItems: 50
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Sample run started
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    get:
+      summary: List sample runs for a case file
+      operationId: listSampleRuns
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of sample runs
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/sample-runs
+      operationId: optionsSampleRuns
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  /case-files/{id}/sample-runs/{run_id}:
+    get:
+      summary: Get sample run details
+      operationId: getSampleRun
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Sample run details with snapshot
+        "404":
+          description: Sample run not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/sample-runs/{run_id}
+      operationId: optionsSampleRunById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  /case-files/{id}/sample-runs/compare:
+    post:
+      summary: Compare two sample run snapshots
+      operationId: compareSampleRuns
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [run_id_a, run_id_b]
+              properties:
+                run_id_a:
+                  type: string
+                  format: uuid
+                run_id_b:
+                  type: string
+                  format: uuid
+      responses:
+        "200":
+          description: Comparison results with quality deltas
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Sample run not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/sample-runs/compare
+      operationId: optionsSampleRunsCompare
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  # --- Pipeline Run Monitoring Routes ---
+
+  /case-files/{id}/pipeline-runs:
+    get:
+      summary: List pipeline runs for a case file
+      operationId: listPipelineRuns
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of pipeline runs
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/pipeline-runs
+      operationId: optionsPipelineRuns
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  /case-files/{id}/pipeline-runs/{run_id}:
+    get:
+      summary: Get pipeline run metrics
+      operationId: getPipelineRunMetrics
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Pipeline run metrics and quality data
+        "404":
+          description: Pipeline run not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/pipeline-runs/{run_id}
+      operationId: optionsPipelineRunById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  /case-files/{id}/pipeline-runs/{run_id}/steps/{step}:
+    get:
+      summary: Get per-step pipeline run details
+      operationId: getPipelineStepDetails
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: step
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [parse, extract, embed, graph_load, store_artifact]
+      responses:
+        "200":
+          description: Step-level metrics, config, and error details
+        "404":
+          description: Run or step not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/pipeline-runs/{run_id}/steps/{step}
+      operationId: optionsPipelineStepDetails
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: step
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  # --- System Default Config Routes ---
+
+  /system/default-config:
+    get:
+      summary: Get the system default pipeline configuration
+      operationId: getSystemDefaultConfig
+      responses:
+        "200":
+          description: System default configuration
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    put:
+      summary: Update the system default pipeline configuration
+      operationId: updateSystemDefaultConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: System default configuration updated
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /system/default-config
+      operationId: optionsSystemDefaultConfig
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  /system/default-config/export:
+    post:
+      summary: Export the system default configuration
+      operationId: exportSystemDefaultConfig
+      responses:
+        "200":
+          description: Exported system default configuration with metadata
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /system/default-config/export
+      operationId: optionsSystemDefaultConfigExport
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  /system/default-config/import:
+    post:
+      summary: Import a system default configuration
+      operationId: importSystemDefaultConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: System default configuration imported
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /system/default-config/import
+      operationId: optionsSystemDefaultConfigImport
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  # --- Document Download Route ---
+
+  /case-files/{id}/documents/{docId}/download:
+    get:
+      summary: Download a document from a case file
+      operationId: downloadDocument
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: docId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Document download URL or content
+        "404":
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/documents/{docId}/download
+      operationId: optionsDocumentDownload
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: docId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  # --- Investigative Chatbot Routes ---
+
+  /case-files/{id}/chat:
+    post:
+      summary: Send a message to the investigative chatbot
+      operationId: sendChatMessage
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message:
+                  type: string
+                conversation_id:
+                  type: string
+                  format: uuid
+      responses:
+        "200":
+          description: AI response with citations
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ChatLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/chat
+      operationId: optionsChat
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ChatLambdaArn}/invocations"
+
+  /case-files/{id}/chat/history:
+    get:
+      summary: Get chat conversation history for a case file
+      operationId: getChatHistory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Conversation history
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ChatLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/chat/history
+      operationId: optionsChatHistory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ChatLambdaArn}/invocations"
+
+  /case-files/{id}/chat/share:
+    post:
+      summary: Share a chat finding as a case note
+      operationId: shareChatFinding
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message_id]
+              properties:
+                message_id:
+                  type: string
+                  format: uuid
+                note:
+                  type: string
+      responses:
+        "200":
+          description: Finding shared successfully
+        "404":
+          description: Case file or message not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ChatLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/chat/share
+      operationId: optionsChatShare
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ChatLambdaArn}/invocations"
+
+  # --- Case Assessment Routes ---
+
+  /case-files/{id}/assessment:
+    get:
+      summary: Get case assessment dashboard data
+      operationId: getCaseAssessment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Case assessment with strength score and evidence coverage
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AssessmentLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/assessment
+      operationId: optionsCaseAssessment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AssessmentLambdaArn}/invocations"
+
+  /case-files/{id}/assessment/brief:
+    post:
+      summary: Generate an AI case brief
+      operationId: generateCaseBrief
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Generated case brief
+        "404":
+          description: Case file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AssessmentLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /case-files/{id}/assessment/brief
+      operationId: optionsCaseBrief
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AssessmentLambdaArn}/invocations"
+
+  # --- Portfolio Dashboard Routes ---
+
+  /portfolio/summary:
+    get:
+      summary: Get portfolio summary statistics
+      operationId: getPortfolioSummary
+      responses:
+        "200":
+          description: Portfolio summary with aggregate stats
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PortfolioLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /portfolio/summary
+      operationId: optionsPortfolioSummary
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PortfolioLambdaArn}/invocations"
+
+  /portfolio/cases:
+    get:
+      summary: List cases with filtering, sorting, and pagination
+      operationId: listPortfolioCases
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: priority
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Paginated list of cases
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PortfolioLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /portfolio/cases
+      operationId: optionsPortfolioCases
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PortfolioLambdaArn}/invocations"
+
+  /portfolio/cases/{id}/priority:
+    put:
+      summary: Set case priority
+      operationId: setCasePriority
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [priority]
+              properties:
+                priority:
+                  type: string
+      responses:
+        "200":
+          description: Priority updated
+        "404":
+          description: Case not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PortfolioLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /portfolio/cases/{id}/priority
+      operationId: optionsCasePriority
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PortfolioLambdaArn}/invocations"
+
+  /portfolio/cases/{id}/assign:
+    put:
+      summary: Assign a case to a team member
+      operationId: assignCase
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [assigned_to]
+              properties:
+                assigned_to:
+                  type: string
+      responses:
+        "200":
+          description: Case assigned
+        "404":
+          description: Case not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PortfolioLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /portfolio/cases/{id}/assign
+      operationId: optionsCaseAssign
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PortfolioLambdaArn}/invocations"
+
+  /portfolio/bulk-action:
+    post:
+      summary: Perform bulk action on multiple cases
+      operationId: portfolioBulkAction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [case_ids, action]
+              properties:
+                case_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                action:
+                  type: string
+      responses:
+        "200":
+          description: Bulk action result
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PortfolioLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /portfolio/bulk-action
+      operationId: optionsPortfolioBulkAction
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PortfolioLambdaArn}/invocations"
+
+  /portfolio/analytics:
+    get:
+      summary: Get portfolio analytics data
+      operationId: getPortfolioAnalytics
+      responses:
+        "200":
+          description: Portfolio analytics and trends
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PortfolioLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /portfolio/analytics
+      operationId: optionsPortfolioAnalytics
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PortfolioLambdaArn}/invocations"
+
+  /portfolio/attention:
+    get:
+      summary: Get cases requiring attention
+      operationId: getAttentionCases
+      responses:
+        "200":
+          description: Cases requiring attention
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PortfolioLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /portfolio/attention
+      operationId: optionsPortfolioAttention
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PortfolioLambdaArn}/invocations"
+
+  # --- Investigator Workbench Routes ---
+
+  /workbench/my-cases:
+    get:
+      summary: Get cases assigned to the current user
+      operationId: getWorkbenchMyCases
+      responses:
+        "200":
+          description: Assigned cases grouped by swim lane
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WorkbenchLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /workbench/my-cases
+      operationId: optionsWorkbenchMyCases
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WorkbenchLambdaArn}/invocations"
+
+  /workbench/priorities:
+    get:
+      summary: Get AI-generated daily priorities
+      operationId: getWorkbenchPriorities
+      responses:
+        "200":
+          description: Daily priority recommendations
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WorkbenchLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /workbench/priorities
+      operationId: optionsWorkbenchPriorities
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WorkbenchLambdaArn}/invocations"
+
+  /workbench/activity:
+    get:
+      summary: Get recent investigator activity feed
+      operationId: getWorkbenchActivity
+      responses:
+        "200":
+          description: Recent activity feed
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WorkbenchLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /workbench/activity
+      operationId: optionsWorkbenchActivity
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WorkbenchLambdaArn}/invocations"
+
+  /workbench/findings:
+    get:
+      summary: Get investigator findings across cases
+      operationId: getWorkbenchFindings
+      responses:
+        "200":
+          description: List of investigator findings
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WorkbenchLambdaArn}/invocations"
+    post:
+      summary: Add a new investigator finding
+      operationId: addWorkbenchFinding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [case_id, content]
+              properties:
+                case_id:
+                  type: string
+                  format: uuid
+                content:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "201":
+          description: Finding created
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WorkbenchLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /workbench/findings
+      operationId: optionsWorkbenchFindings
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WorkbenchLambdaArn}/invocations"
+
+  /workbench/metrics:
+    get:
+      summary: Get investigator performance metrics
+      operationId: getWorkbenchMetrics
+      responses:
+        "200":
+          description: Investigator metrics
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WorkbenchLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /workbench/metrics
+      operationId: optionsWorkbenchMetrics
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WorkbenchLambdaArn}/invocations"
+
+  # --- Pipeline Configuration Wizard Routes ---
+
+  /wizard/generate-config:
+    post:
+      summary: Generate pipeline configuration from wizard answers
+      operationId: wizardGenerateConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Generated pipeline configuration
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WizardLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /wizard/generate-config
+      operationId: optionsWizardGenerateConfig
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WizardLambdaArn}/invocations"
+
+  /wizard/estimate-cost:
+    post:
+      summary: Generate cost estimate from wizard answers
+      operationId: wizardEstimateCost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Cost estimate with tiers
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WizardLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /wizard/estimate-cost
+      operationId: optionsWizardEstimateCost
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WizardLambdaArn}/invocations"
+
+  /wizard/create-case:
+    post:
+      summary: Create a case with wizard-generated configuration
+      operationId: wizardCreateCase
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Case created with generated config
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WizardLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /wizard/create-case
+      operationId: optionsWizardCreateCase
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WizardLambdaArn}/invocations"
+
+  /wizard/templates:
+    get:
+      summary: List available configuration templates
+      operationId: wizardListTemplates
+      responses:
+        "200":
+          description: List of available templates
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WizardLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /wizard/templates
+      operationId: optionsWizardTemplates
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WizardLambdaArn}/invocations"
+
+  /wizard/export-summary:
+    post:
+      summary: Generate shareable HTML summary of wizard configuration
+      operationId: wizardExportSummary
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: HTML summary document
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WizardLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /wizard/export-summary
+      operationId: optionsWizardExportSummary
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WizardLambdaArn}/invocations"
+
+  /wizard/save-progress:
+    post:
+      summary: Save partial wizard state
+      operationId: wizardSaveProgress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Progress saved
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WizardLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /wizard/save-progress
+      operationId: optionsWizardSaveProgress
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WizardLambdaArn}/invocations"
+
+  /wizard/load-progress/{id}:
+    get:
+      summary: Load saved wizard state
+      operationId: wizardLoadProgress
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Saved wizard state
+        "404":
+          description: Saved state not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WizardLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /wizard/load-progress/{id}
+      operationId: optionsWizardLoadProgress
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WizardLambdaArn}/invocations"
+
+  /wizard/generate-deployment:
+    post:
+      summary: Generate one-click deployment package from wizard answers
+      operationId: wizardGenerateDeployment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Deployment bundle with CFN template and guide
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WizardLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /wizard/generate-deployment
+      operationId: optionsWizardGenerateDeployment
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WizardLambdaArn}/invocations"
+
+  # --- Triage Queue Routes (Req 23.6) ---
+
+  /triage-queue:
+    get:
+      summary: List documents in the triage queue
+      operationId: getTriageQueue
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, assigned, new_case]
+            default: pending
+      responses:
+        "200":
+          description: List of triage queue items
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /triage-queue
+      operationId: optionsTriageQueue
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  /triage-queue/{docId}/assign:
+    post:
+      summary: Assign a triaged document to an existing case
+      operationId: assignFromTriage
+      parameters:
+        - name: docId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [case_id, assigned_by]
+              properties:
+                case_id:
+                  type: string
+                  format: uuid
+                assigned_by:
+                  type: string
+      responses:
+        "200":
+          description: Document assigned to case
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Triage item not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /triage-queue/{docId}/assign
+      operationId: optionsTriageAssign
+      parameters:
+        - name: docId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  /triage-queue/{docId}/create-case:
+    post:
+      summary: Create a new case from a triaged document
+      operationId: createCaseFromTriage
+      parameters:
+        - name: docId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [case_name, created_by]
+              properties:
+                case_name:
+                  type: string
+                created_by:
+                  type: string
+      responses:
+        "201":
+          description: New case created and document assigned
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Triage item not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /triage-queue/{docId}/create-case
+      operationId: optionsTriageCreateCase
+      parameters:
+        - name: docId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PipelineConfigLambdaArn}/invocations"
+
+  # --- Report Generation (Req 26) ---
+  /case-files/{id}/reports/generate:
+    post:
+      summary: Generate an investigative report
+      operationId: generateReport
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ReportsLambdaArn}/invocations"
+    options:
+      summary: CORS preflight
+      operationId: optionsGenerateReport
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        "200": {description: CORS preflight response}
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ReportsLambdaArn}/invocations"
+
+  /case-files/{id}/reports:
+    get:
+      summary: List previous reports
+      operationId: listReports
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ReportsLambdaArn}/invocations"
+
+  # --- Hypothesis Testing (Req 27) ---
+  /case-files/{id}/hypothesis/evaluate:
+    post:
+      summary: Evaluate an investigative hypothesis
+      operationId: evaluateHypothesis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HypothesisLambdaArn}/invocations"
+    options:
+      summary: CORS preflight
+      operationId: optionsEvaluateHypothesis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        "200": {description: CORS preflight response}
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HypothesisLambdaArn}/invocations"
+
+  # --- Document Annotations (Req 29) ---
+  /case-files/{id}/documents/{docId}/annotations:
+    post:
+      summary: Create a document annotation
+      operationId: createAnnotation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+        - name: docId
+          in: path
+          required: true
+          schema: {type: string}
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AnnotationsLambdaArn}/invocations"
+    get:
+      summary: List annotations for a document
+      operationId: listAnnotations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+        - name: docId
+          in: path
+          required: true
+          schema: {type: string}
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AnnotationsLambdaArn}/invocations"
+    options:
+      summary: CORS preflight
+      operationId: optionsAnnotations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+        - name: docId
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        "200": {description: CORS preflight response}
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AnnotationsLambdaArn}/invocations"
+
+  /case-files/{id}/evidence-board:
+    get:
+      summary: Get case-wide evidence board
+      operationId: getEvidenceBoard
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AnnotationsLambdaArn}/invocations"
+
+  # --- Investigator AI-First Routes ---
+
+  /case-files/{id}/investigator-analysis:
+    post:
+      summary: Trigger AI case analysis
+      operationId: triggerInvestigatorAnalysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Analysis result
+        "202":
+          description: Processing (large case)
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    get:
+      summary: Get cached analysis
+      operationId: getInvestigatorAnalysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Cached analysis
+        "404":
+          description: No analysis found
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight
+      operationId: optionsInvestigatorAnalysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/investigative-leads:
+    get:
+      summary: Get ranked investigative leads
+      operationId: getInvestigativeLeads
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: min_score
+          in: query
+          schema:
+            type: integer
+        - name: state
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Ranked leads
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight
+      operationId: optionsInvestigativeLeads
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/evidence-triage:
+    get:
+      summary: Get evidence triage results
+      operationId: getEvidenceTriage
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: doc_type
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Triage results
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight
+      operationId: optionsEvidenceTriage
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/ai-hypotheses:
+    get:
+      summary: Get AI-generated hypotheses
+      operationId: getAIHypotheses
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Hypotheses
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight
+      operationId: optionsAIHypotheses
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/subpoena-recommendations:
+    get:
+      summary: Get subpoena recommendations
+      operationId: getSubpoenaRecommendations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Recommendations
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight
+      operationId: optionsSubpoenaRecommendations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /case-files/{id}/session-briefing:
+    get:
+      summary: Get session briefing
+      operationId: getSessionBriefing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Session briefing
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight
+      operationId: optionsSessionBriefing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  # --- Organization and Matter-Collection Hierarchy Routes ---
+
+  /organizations:
+    get:
+      summary: List all organizations
+      operationId: listOrganizations
+      responses:
+        "200":
+          description: List of organizations
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    post:
+      summary: Create a new organization
+      operationId: createOrganization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [org_name]
+              properties:
+                org_name:
+                  type: string
+                settings:
+                  type: object
+      responses:
+        "201":
+          description: Organization created
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /organizations
+      operationId: optionsOrganizations
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /organizations/{id}:
+    get:
+      summary: Get organization details
+      operationId: getOrganization
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Organization details
+        "404":
+          description: Organization not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    patch:
+      summary: Update organization settings
+      operationId: updateOrganization
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                org_name:
+                  type: string
+                settings:
+                  type: object
+      responses:
+        "200":
+          description: Organization updated
+        "404":
+          description: Organization not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /organizations/{id}
+      operationId: optionsOrganizationById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /organizations/{org_id}/matters:
+    get:
+      summary: List matters for an organization
+      operationId: listMattersForOrg
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [created, ingesting, indexed, investigating, archived, error]
+      responses:
+        "200":
+          description: List of matters
+        "404":
+          description: Organization not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    post:
+      summary: Create a new matter within an organization
+      operationId: createMatter
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [matter_name]
+              properties:
+                matter_name:
+                  type: string
+                description:
+                  type: string
+                matter_type:
+                  type: string
+                  default: investigation
+                created_by:
+                  type: string
+      responses:
+        "201":
+          description: Matter created
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Organization not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /organizations/{org_id}/matters
+      operationId: optionsMattersForOrg
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /matters/{id}:
+    get:
+      summary: Get matter details
+      operationId: getMatter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Matter details
+        "404":
+          description: Matter not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    put:
+      summary: Update a matter
+      operationId: updateMatter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                matter_name:
+                  type: string
+                description:
+                  type: string
+                status:
+                  type: string
+                matter_type:
+                  type: string
+      responses:
+        "200":
+          description: Matter updated
+        "404":
+          description: Matter not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    delete:
+      summary: Delete a matter
+      operationId: deleteMatter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Matter deleted
+        "404":
+          description: Matter not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /matters/{id}
+      operationId: optionsMatterById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /matters/{id}/collections:
+    get:
+      summary: List collections for a matter
+      operationId: listCollections
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of collections
+        "404":
+          description: Matter not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    post:
+      summary: Create a new collection within a matter
+      operationId: createCollection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [collection_name]
+              properties:
+                collection_name:
+                  type: string
+                source_description:
+                  type: string
+                uploaded_by:
+                  type: string
+      responses:
+        "201":
+          description: Collection created
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Matter not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /matters/{id}/collections
+      operationId: optionsCollections
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /matters/{id}/collections/{cid}:
+    get:
+      summary: Get collection details
+      operationId: getCollection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: cid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Collection details
+        "404":
+          description: Collection not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /matters/{id}/collections/{cid}
+      operationId: optionsCollectionById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: cid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /matters/{id}/collections/{cid}/promote:
+    post:
+      summary: Promote a collection to merge entities into the matter graph
+      operationId: promoteCollection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: cid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Collection promoted with promotion snapshot
+        "404":
+          description: Collection not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Collection not in qa_review status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /matters/{id}/collections/{cid}/promote
+      operationId: optionsPromoteCollection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: cid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  /matters/{id}/collections/{cid}/reject:
+    post:
+      summary: Reject a collection without merging entities
+      operationId: rejectCollection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: cid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Collection rejected
+        "404":
+          description: Collection not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Collection not in qa_review status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /matters/{id}/collections/{cid}/reject
+      operationId: optionsRejectCollection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: cid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CaseFilesLambdaArn}/invocations"
+
+  # --- Batch Loader Routes ---
+
+  /batch-loader/discover:
+    get:
+      summary: Preview batch discovery for a case
+      operationId: batchLoaderDiscover
+      parameters:
+        - name: case_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: batch_size
+          in: query
+          schema:
+            type: integer
+            default: 5000
+        - name: source_prefixes
+          in: query
+          schema:
+            type: string
+            default: "pdfs/,bw-documents/"
+      responses:
+        "200":
+          description: Discovery preview with file counts and cost estimate
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BatchLoaderLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /batch-loader/discover
+      operationId: optionsBatchLoaderDiscover
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BatchLoaderLambdaArn}/invocations"
+
+  /batch-loader/start:
+    post:
+      summary: Start a new batch load
+      operationId: batchLoaderStart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [case_id]
+              properties:
+                case_id:
+                  type: string
+                  format: uuid
+                batch_size:
+                  type: integer
+                  default: 5000
+                sub_batch_size:
+                  type: integer
+                  default: 50
+                source_prefixes:
+                  type: array
+                  items:
+                    type: string
+                enable_entity_resolution:
+                  type: boolean
+                  default: true
+                ocr_threshold:
+                  type: integer
+                  default: 50
+                blank_threshold:
+                  type: integer
+                  default: 10
+      responses:
+        "202":
+          description: Batch processing started
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Batch already in progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BatchLoaderLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /batch-loader/start
+      operationId: optionsBatchLoaderStart
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BatchLoaderLambdaArn}/invocations"
+
+  /batch-loader/status:
+    get:
+      summary: Get batch processing status
+      operationId: batchLoaderStatus
+      parameters:
+        - name: case_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Current batch progress
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No batch progress found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BatchLoaderLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /batch-loader/status
+      operationId: optionsBatchLoaderStatus
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BatchLoaderLambdaArn}/invocations"
+
+  /batch-loader/manifests:
+    get:
+      summary: List batch manifests for a case
+      operationId: batchLoaderListManifests
+      parameters:
+        - name: case_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of batch manifests with summary stats
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BatchLoaderLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /batch-loader/manifests
+      operationId: optionsBatchLoaderManifests
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BatchLoaderLambdaArn}/invocations"
+
+  /batch-loader/manifests/{batch_id}:
+    get:
+      summary: Get a specific batch manifest
+      operationId: batchLoaderGetManifest
+      parameters:
+        - name: batch_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: case_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Full batch manifest JSON
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Manifest not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BatchLoaderLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /batch-loader/manifests/{batch_id}
+      operationId: optionsBatchLoaderManifestById
+      parameters:
+        - name: batch_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BatchLoaderLambdaArn}/invocations"
+
+  /batch-loader/quarantine:
+    get:
+      summary: Get quarantined files for a case
+      operationId: batchLoaderQuarantine
+      parameters:
+        - name: case_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Quarantined files list with summary
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BatchLoaderLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /batch-loader/quarantine
+      operationId: optionsBatchLoaderQuarantine
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BatchLoaderLambdaArn}/invocations"
+
+  /batch-loader/history:
+    get:
+      summary: Get batch load history for a case
+      operationId: batchLoaderHistory
+      parameters:
+        - name: case_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Batch history with cumulative statistics
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BatchLoaderLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /batch-loader/history
+      operationId: optionsBatchLoaderHistory
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BatchLoaderLambdaArn}/invocations"
+
+  # --- Access Control Admin Routes ---
+
+  /admin/users:
+    post:
+      summary: Create a platform user
+      operationId: createPlatformUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username]
+              properties:
+                username:
+                  type: string
+                display_name:
+                  type: string
+                role:
+                  type: string
+                clearance_level:
+                  type: string
+                  enum: [public, restricted, confidential, top_secret]
+      responses:
+        "201":
+          description: User created
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AccessControlAdminLambdaArn}/invocations"
+    get:
+      summary: List platform users
+      operationId: listPlatformUsers
+      responses:
+        "200":
+          description: List of platform users
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AccessControlAdminLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /admin/users
+      operationId: optionsAdminUsers
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AccessControlAdminLambdaArn}/invocations"
+
+  /admin/users/{id}:
+    get:
+      summary: Get platform user details
+      operationId: getPlatformUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User details
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AccessControlAdminLambdaArn}/invocations"
+    put:
+      summary: Update platform user
+      operationId: updatePlatformUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                clearance_level:
+                  type: string
+                  enum: [public, restricted, confidential, top_secret]
+                role:
+                  type: string
+      responses:
+        "200":
+          description: User updated
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AccessControlAdminLambdaArn}/invocations"
+    delete:
+      summary: Delete platform user
+      operationId: deletePlatformUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User deleted
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AccessControlAdminLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /admin/users/{id}
+      operationId: optionsAdminUserById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AccessControlAdminLambdaArn}/invocations"
+
+  /matters/{id}/security-label:
+    put:
+      summary: Update case default security label
+      operationId: updateMatterSecurityLabel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [security_label]
+              properties:
+                security_label:
+                  type: string
+                  enum: [public, restricted, confidential, top_secret]
+      responses:
+        "200":
+          description: Label updated
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AccessControlAdminLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /matters/{id}/security-label
+      operationId: optionsMatterSecurityLabel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AccessControlAdminLambdaArn}/invocations"
+
+  /documents/{id}/security-label:
+    put:
+      summary: Set document security label override
+      operationId: setDocumentSecurityLabel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [security_label]
+              properties:
+                security_label:
+                  type: string
+                  enum: [public, restricted, confidential, top_secret]
+      responses:
+        "200":
+          description: Document label override set
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AccessControlAdminLambdaArn}/invocations"
+    delete:
+      summary: Clear document security label override
+      operationId: clearDocumentSecurityLabel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Document label override cleared
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AccessControlAdminLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /documents/{id}/security-label
+      operationId: optionsDocumentSecurityLabel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AccessControlAdminLambdaArn}/invocations"
+
+  /admin/audit-log:
+    get:
+      summary: Query audit log with filters
+      operationId: queryAuditLog
+      parameters:
+        - name: entity_type
+          in: query
+          schema:
+            type: string
+        - name: entity_id
+          in: query
+          schema:
+            type: string
+        - name: changed_by
+          in: query
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Audit log entries
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AccessControlAdminLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /admin/audit-log
+      operationId: optionsAdminAuditLog
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AccessControlAdminLambdaArn}/invocations"
+
+components:
+  schemas:
+    # --- Request Schemas ---
+
+    CreateCaseFileRequest:
+      type: object
+      required: [topic_name, description]
+      properties:
+        topic_name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        parent_case_id:
+          type: string
+          format: uuid
+
+    IngestRequest:
+      type: object
+      required: [files]
+      properties:
+        files:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [filename, content_base64]
+            properties:
+              filename:
+                type: string
+              content_base64:
+                type: string
+                format: byte
+
+    SearchRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+        top_k:
+          type: integer
+          default: 10
+          minimum: 1
+
+    DrillDownRequest:
+      type: object
+      required: [topic_name, description]
+      properties:
+        topic_name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        entity_names:
+          type: array
+          items:
+            type: string
+        pattern_id:
+          type: string
+
+    CrossCaseAnalyzeRequest:
+      type: object
+      required: [case_ids]
+      properties:
+        case_ids:
+          type: array
+          minItems: 2
+          items:
+            type: string
+            format: uuid
+
+    CreateCrossCaseGraphRequest:
+      type: object
+      required: [name, case_ids]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        case_ids:
+          type: array
+          minItems: 2
+          items:
+            type: string
+            format: uuid
+
+    UpdateCrossCaseGraphRequest:
+      type: object
+      properties:
+        add_case_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        remove_case_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    # --- Response Schemas ---
+
+    CaseFileResponse:
+      type: object
+      properties:
+        case_id:
+          type: string
+          format: uuid
+        topic_name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [created, ingesting, indexed, investigating, archived, error]
+        created_at:
+          type: string
+          format: date-time
+        parent_case_id:
+          type: string
+          format: uuid
+          nullable: true
+        s3_prefix:
+          type: string
+        neptune_subgraph_label:
+          type: string
+        document_count:
+          type: integer
+        entity_count:
+          type: integer
+        relationship_count:
+          type: integer
+        findings:
+          type: array
+          items: {}
+        last_activity:
+          type: string
+          format: date-time
+          nullable: true
+        error_details:
+          type: string
+          nullable: true
+        requestId:
+          type: string
+
+    CaseFileListResponse:
+      type: object
+      properties:
+        case_files:
+          type: array
+          items:
+            $ref: "#/components/schemas/CaseFileResponse"
+        requestId:
+          type: string
+
+    DeleteResponse:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        case_id:
+          type: string
+          format: uuid
+        requestId:
+          type: string
+
+    BatchResultResponse:
+      type: object
+      properties:
+        case_file_id:
+          type: string
+          format: uuid
+        total_documents:
+          type: integer
+        successful:
+          type: integer
+        failed:
+          type: integer
+        document_count:
+          type: integer
+        entity_count:
+          type: integer
+        relationship_count:
+          type: integer
+        failures:
+          type: array
+          items:
+            type: object
+            properties:
+              document_id:
+                type: string
+              error:
+                type: string
+        requestId:
+          type: string
+
+    Pattern:
+      type: object
+      properties:
+        pattern_id:
+          type: string
+        entities_involved:
+          type: array
+          items:
+            type: object
+        connection_type:
+          type: string
+        explanation:
+          type: string
+        confidence_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        novelty_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        source_documents:
+          type: array
+          items:
+            type: string
+
+    PatternReportResponse:
+      type: object
+      properties:
+        report_id:
+          type: string
+        case_file_id:
+          type: string
+          format: uuid
+        patterns:
+          type: array
+          items:
+            $ref: "#/components/schemas/Pattern"
+        graph_patterns_count:
+          type: integer
+        vector_patterns_count:
+          type: integer
+        combined_count:
+          type: integer
+        requestId:
+          type: string
+
+    PatternReportListResponse:
+      type: object
+      properties:
+        reports:
+          type: array
+          items:
+            $ref: "#/components/schemas/PatternReportResponse"
+        requestId:
+          type: string
+
+    SearchResult:
+      type: object
+      properties:
+        document_id:
+          type: string
+        passage:
+          type: string
+        relevance_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        source_document_ref:
+          type: string
+        surrounding_context:
+          type: string
+
+    SearchResultListResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchResult"
+        requestId:
+          type: string
+
+    CrossCaseMatch:
+      type: object
+      properties:
+        entity_a:
+          type: object
+        entity_b:
+          type: object
+        similarity_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        ai_explanation:
+          type: string
+
+    CrossReferenceReportResponse:
+      type: object
+      properties:
+        report_id:
+          type: string
+        case_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        shared_entities:
+          type: array
+          items:
+            $ref: "#/components/schemas/CrossCaseMatch"
+        parallel_patterns:
+          type: array
+          items:
+            type: object
+        ai_analysis:
+          type: string
+        requestId:
+          type: string
+
+    CrossCaseGraphResponse:
+      type: object
+      properties:
+        graph_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        linked_case_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        created_at:
+          type: string
+          format: date-time
+        neptune_subgraph_label:
+          type: string
+        analyst_notes:
+          type: string
+        status:
+          type: string
+        requestId:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+        requestId:
+          type: string
