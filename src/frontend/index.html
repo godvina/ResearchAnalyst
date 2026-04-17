@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOJ Research Analyst Platform — Antitrust Division</title>
+    <link rel="stylesheet" href="common.css">
+    <style>
+        /* Section headers */
+        .section-header { font-size: 1em; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+        .section-header .accent-bar { width: 4px; height: 20px; border-radius: 2px; }
+        .accent-green { background: #48bb78; }
+        .accent-blue { background: #63b3ed; }
+        .accent-purple { background: #d6bcfa; }
+        .accent-amber { background: #f6ad55; }
+
+        /* Card grid */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 32px; }
+
+        /* Feature cards */
+        .feature-card { background: linear-gradient(135deg, #1a2332, #243447); border: 1px solid #2d3748; border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.25s; text-decoration: none; color: inherit; display: block; position: relative; }
+        .feature-card:hover { border-color: #48bb78; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(72,187,120,0.15); }
+        .feature-card .card-icon { font-size: 1.8em; margin-bottom: 10px; }
+        .feature-card .card-title { font-size: 0.92em; font-weight: 700; color: #e2e8f0; margin-bottom: 6px; }
+        .feature-card .card-desc { font-size: 0.78em; color: #a0aec0; line-height: 1.5; }
+
+        /* Accent borders on hover per section */
+        .card-green:hover { border-color: #48bb78; box-shadow: 0 8px 24px rgba(72,187,120,0.15); }
+        .card-blue:hover { border-color: #63b3ed; box-shadow: 0 8px 24px rgba(99,179,237,0.15); }
+        .card-purple:hover { border-color: #d6bcfa; box-shadow: 0 8px 24px rgba(214,188,250,0.15); }
+        .card-amber:hover { border-color: #f6ad55; box-shadow: 0 8px 24px rgba(246,173,85,0.15); }
+
+        /* API pending badge */
+        .api-badge { position: absolute; top: 12px; right: 12px; background: rgba(246,224,94,0.15); border: 1px solid rgba(246,224,94,0.3); color: #f6e05e; padding: 2px 8px; border-radius: 10px; font-size: 0.6em; font-weight: 600; }
+
+        /* Platform status */
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+        .status-item { background: rgba(255,255,255,0.03); border: 1px solid #2d3748; border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .dot-green { background: #48bb78; }
+        .dot-yellow { background: #f6e05e; }
+        .dot-red { background: #fc8181; }
+        .status-label { font-size: 0.8em; color: #e2e8f0; font-weight: 600; }
+        .status-detail { font-size: 0.68em; color: #718096; }
+        .total-cases-val { font-size: 1.6em; font-weight: 800; color: #48bb78; }
+    </style>
+</head>
+<body>
+<script src="config.js"></script>
+
+<!-- HEADER -->
+<div class="header">
+    <h1>⚖️ DOJ Research Analyst Platform — <span>Antitrust Division</span></h1>
+    <div class="header-right">
+        <div class="header-badge">Department of Justice</div>
+        <div class="header-badge">Central Dashboard</div>
+    </div>
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav-bar">
+    <a href="index.html" class="nav-link active">🏠 Home</a>
+    <a href="investigator.html" class="nav-link">📋 Cases</a>
+    <a href="pipeline-config.html" class="nav-link">⚙️ Pipeline Config</a>
+    <a href="data-loader.html" class="nav-link">📥 Data Loader</a>
+    <a href="admin.html" class="nav-link">🔐 Admin</a>
+    <a href="chatbot.html" class="nav-link">💬 Chat</a>
+    <a href="wizard.html" class="nav-link">🧙 Wizard</a>
+    <a href="portfolio.html" class="nav-link">📊 Portfolio</a>
+    <a href="workbench.html" class="nav-link">🔬 Workbench</a>
+</div>
+
+<div class="page-content">
+
+    <!-- ============================================================ -->
+    <!-- SECTION 1: Investigation & Analysis -->
+    <!-- ============================================================ -->
+    <div class="section-header">
+        <div class="accent-bar accent-green"></div>
+        <span style="color:#48bb78;">Investigation &amp; Analysis</span>
+    </div>
+    <div class="card-grid">
+        <a href="investigator.html" class="feature-card card-green">
+            <div class="card-icon">📋</div>
+            <div class="card-title">Case Management</div>
+            <div class="card-desc">Investigate cases, search documents, discover patterns, knowledge graph</div>
+        </a>
+        <a href="prosecutor.html" class="feature-card card-green">
+            <div class="card-icon">⚖️</div>
+            <div class="card-title">Prosecutor Review</div>
+            <div class="card-desc">Evidence matrix, charging decisions, case weaknesses, precedent analysis</div>
+        </a>
+        <a href="network_discovery.html" class="feature-card card-green">
+            <div class="card-icon">🕸️</div>
+            <div class="card-title">Network Discovery</div>
+            <div class="card-desc">Conspiracy network analysis, persons of interest, relationship mapping</div>
+        </a>
+        <a href="document_assembly.html" class="feature-card card-green">
+            <div class="card-icon">📄</div>
+            <div class="card-title">Document Assembly</div>
+            <div class="card-desc">Generate court documents, section review, discovery production</div>
+        </a>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 2: Data Ingestion & Pipeline -->
+    <!-- ============================================================ -->
+    <div class="section-header">
+        <div class="accent-bar accent-blue"></div>
+        <span style="color:#63b3ed;">Data Ingestion &amp; Pipeline</span>
+    </div>
+    <div class="card-grid">
+        <a href="data-loader.html" class="feature-card card-blue">
+            <div class="card-icon">📥</div>
+            <div class="card-title">Data Loader</div>
+            <div class="card-desc">Load case data via S3 pipeline, select case type profiles, monitor ingestion progress</div>
+        </a>
+        <a href="pipeline-config.html" class="feature-card card-blue">
+            <div class="card-icon">⚙️</div>
+            <div class="card-title">Pipeline Config</div>
+            <div class="card-desc">Configure processing pipeline, monitor runs, manage templates</div>
+        </a>
+        <a href="chatbot.html" class="feature-card card-blue">
+            <div class="card-icon">💬</div>
+            <div class="card-title">AI Chat</div>
+            <div class="card-desc">RAG-powered document Q&amp;A with Amazon Bedrock</div>
+        </a>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 3: Analytics & Reporting -->
+    <!-- ============================================================ -->
+    <div class="section-header">
+        <div class="accent-bar accent-purple"></div>
+        <span style="color:#d6bcfa;">Analytics &amp; Reporting</span>
+    </div>
+    <div class="card-grid">
+        <a href="portfolio.html" class="feature-card card-purple">
+            <div class="card-icon">📊</div>
+            <div class="card-title">Case Portfolio</div>
+            <div class="card-desc">Manager view of all cases, assessment scores, status overview</div>
+        </a>
+        <a href="workbench.html" class="feature-card card-purple">
+            <div class="card-icon">🔬</div>
+            <div class="card-title">Research Workbench</div>
+            <div class="card-desc">Personal research dashboard and workspace</div>
+        </a>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 4: Administration -->
+    <!-- ============================================================ -->
+    <div class="section-header">
+        <div class="accent-bar accent-amber"></div>
+        <span style="color:#f6ad55;">Administration</span>
+    </div>
+    <div class="card-grid">
+        <a href="admin.html" class="feature-card card-amber">
+            <div class="card-icon">🔐</div>
+            <div class="card-title">Access Control</div>
+            <div class="card-desc">Manage users, clearance levels, case security labels, audit log</div>
+        </a>
+        <a href="deployment-wizard.html" class="feature-card card-amber">
+            <div class="card-icon">🧙</div>
+            <div class="card-title">Deployment Wizard</div>
+            <div class="card-desc">Customer deployment configuration and cost estimation</div>
+        </a>
+        <a href="wizard.html" class="feature-card card-amber">
+            <div class="card-icon">🧙</div>
+            <div class="card-title">Setup Wizard</div>
+            <div class="card-desc">Guided case setup and configuration</div>
+        </a>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- PLATFORM STATUS -->
+    <!-- ============================================================ -->
+    <div class="section-card">
+        <h3>📡 Platform Status</h3>
+        <div style="display:flex;align-items:center;gap:20px;margin-bottom:16px;">
+            <div>
+                <div style="font-size:0.68em;color:#718096;text-transform:uppercase;letter-spacing:0.5px;">Total Cases</div>
+                <div class="total-cases-val" id="totalCases">—</div>
+            </div>
+        </div>
+        <div class="status-grid" id="statusGrid">
+            <div class="status-item">
+                <div class="status-dot dot-green"></div>
+                <div><div class="status-label">Case Management</div><div class="status-detail">investigator.html</div></div>
+            </div>
+            <div class="status-item">
+                <div class="status-dot dot-green"></div>
+                <div><div class="status-label">Prosecutor Review</div><div class="status-detail">prosecutor.html</div></div>
+            </div>
+            <div class="status-item">
+                <div class="status-dot dot-green"></div>
+                <div><div class="status-label">Network Discovery</div><div class="status-detail">network_discovery.html</div></div>
+            </div>
+            <div class="status-item">
+                <div class="status-dot dot-green"></div>
+                <div><div class="status-label">Document Assembly</div><div class="status-detail">document_assembly.html</div></div>
+            </div>
+            <div class="status-item">
+                <div class="status-dot dot-green"></div>
+                <div><div class="status-label">Data Loader</div><div class="status-detail">data-loader.html</div></div>
+            </div>
+            <div class="status-item">
+                <div class="status-dot dot-green"></div>
+                <div><div class="status-label">Pipeline Config</div><div class="status-detail">pipeline-config.html</div></div>
+            </div>
+            <div class="status-item">
+                <div class="status-dot dot-green"></div>
+                <div><div class="status-label">AI Chat</div><div class="status-detail">chatbot.html</div></div>
+            </div>
+            <div class="status-item">
+                <div class="status-dot dot-green"></div>
+                <div><div class="status-label">Case Portfolio</div><div class="status-detail">portfolio.html</div></div>
+            </div>
+            <div class="status-item">
+                <div class="status-dot dot-green"></div>
+                <div><div class="status-label">Research Workbench</div><div class="status-detail">workbench.html</div></div>
+            </div>
+            <div class="status-item">
+                <div class="status-dot dot-green"></div>
+                <div><div class="status-label">Access Control</div><div class="status-detail">admin.html</div></div>
+            </div>
+            <div class="status-item">
+                <div class="status-dot dot-green"></div>
+                <div><div class="status-label">Deployment Wizard</div><div class="status-detail">deployment-wizard.html</div></div>
+            </div>
+            <div class="status-item">
+                <div class="status-dot dot-green"></div>
+                <div><div class="status-label">Setup Wizard</div><div class="status-detail">wizard.html</div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const API_URL = typeof API_BASE_URL !== 'undefined' ? API_BASE_URL
+    : (window.APP_CONFIG ? window.APP_CONFIG.API_URL : '');
+
+async function loadCaseCount() {
+    try {
+        const resp = await fetch(API_URL + '/case-files', { headers: { 'Content-Type': 'application/json' } });
+        if (!resp.ok) throw new Error(resp.statusText);
+        const data = await resp.json();
+        const cases = data.case_files || [];
+        document.getElementById('totalCases').textContent = cases.length;
+    } catch (e) {
+        document.getElementById('totalCases').textContent = '—';
+    }
+}
+
+loadCaseCount();
+</script>
+</body>
+</html>
