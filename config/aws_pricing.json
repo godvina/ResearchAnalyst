@@ -1,0 +1,65 @@
+{
+  "textract": {
+    "per_1000_pages": 1.50
+  },
+  "bedrock": {
+    "anthropic.claude-3-sonnet-20240229-v1:0": {
+      "input_per_1m": 3.0,
+      "output_per_1m": 15.0,
+      "label": "Claude 3 Sonnet"
+    },
+    "anthropic.claude-3-haiku-20240307-v1:0": {
+      "input_per_1m": 0.25,
+      "output_per_1m": 1.25,
+      "label": "Claude 3 Haiku"
+    },
+    "amazon.nova-pro-v1:0": {
+      "input_per_1m": 0.80,
+      "output_per_1m": 3.20,
+      "label": "Nova Pro"
+    },
+    "amazon.titan-embed-text-v1": {
+      "input_per_1m": 0.10,
+      "output_per_1m": 0.0,
+      "label": "Titan Embed Text v1"
+    }
+  },
+  "opensearch_serverless": {
+    "ocu_per_hour": 0.24,
+    "min_ocu": {
+      "standard": 2,
+      "enterprise": 4
+    }
+  },
+  "neptune_serverless": {
+    "ncu_per_hour": 0.22,
+    "min_ncu": 1.0,
+    "max_ncu": 128.0
+  },
+  "aurora_serverless": {
+    "acu_per_hour": 0.12,
+    "min_acu": 0.5,
+    "max_acu": 64.0
+  },
+  "rekognition": {
+    "image_per_1000": 1.0,
+    "face_compare_each": 0.10,
+    "video_label_per_min": 0.10,
+    "video_face_per_min": 0.10
+  },
+  "s3": {
+    "gb_per_month": 0.023,
+    "put_per_1000": 0.005,
+    "get_per_1000": 0.0004
+  },
+  "lambda": {
+    "per_1m_requests": 0.20,
+    "per_gb_second": 0.0000166667,
+    "avg_duration_ms": 3000,
+    "avg_memory_mb": 512
+  },
+  "api_gateway": {
+    "per_1m_requests": 3.50
+  },
+  "hours_per_month": 730
+}
