@@ -1,0 +1,62 @@
+/* === DOJ Investigative Case Management — Shared Styles === */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f1923; color: #e2e8f0; min-height: 100vh; }
+
+/* Header */
+.header { background: linear-gradient(135deg, #1a365d 0%, #2a4a7f 50%, #1e3a5f 100%); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #48bb78; }
+.header h1 { font-size: 1.35em; color: #fff; }
+.header h1 span { color: #48bb78; }
+.header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.header-badge { background: rgba(72,187,120,0.15); border: 1px solid #48bb78; color: #48bb78; padding: 4px 12px; border-radius: 20px; font-size: 0.72em; font-weight: 600; }
+
+/* Navigation */
+.nav-bar { background: #1a2332; border-bottom: 1px solid #2d3748; display: flex; gap: 0; padding: 0 16px; }
+.nav-link { padding: 10px 16px; font-size: 0.75em; font-weight: 600; color: #718096; border-bottom: 2px solid transparent; text-decoration: none; transition: color 0.2s; }
+.nav-link:hover { color: #e2e8f0; }
+.nav-link.active { color: #48bb78; border-bottom-color: #48bb78; }
+
+/* Cards & Sections */
+.section-card { background: #1a2332; border: 1px solid #2d3748; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+.section-card h3 { font-size: 0.85em; color: #48bb78; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+.page-content { padding: 32px; max-width: 1400px; margin: 0 auto; }
+
+/* Buttons */
+.btn-primary { background: linear-gradient(135deg, #48bb78, #38a169); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 0.82em; cursor: pointer; transition: all 0.2s; }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(72,187,120,0.3); }
+.btn-secondary { background: rgba(255,255,255,0.05); border: 1px solid #2d3748; color: #e2e8f0; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.8em; cursor: pointer; transition: all 0.2s; }
+.btn-secondary:hover { border-color: #48bb78; color: #48bb78; }
+.btn-warning { background: linear-gradient(135deg, #f6e05e, #d69e2e); color: #1a202c; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.8em; cursor: pointer; }
+
+/* Forms */
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 0.72em; color: #48bb78; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; font-weight: 700; }
+.form-input { width: 100%; background: #0d1520; border: 1px solid #2d3748; border-radius: 8px; padding: 10px 14px; color: #e2e8f0; font-size: 0.85em; outline: none; }
+.form-input:focus { border-color: #48bb78; }
+.form-select { width: 100%; background: #0d1520; border: 1px solid #2d3748; border-radius: 8px; padding: 10px 14px; color: #e2e8f0; font-size: 0.85em; outline: none; appearance: none; }
+
+/* Status badges */
+.badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.68em; font-weight: 600; }
+.badge-green { background: rgba(72,187,120,0.15); color: #48bb78; }
+.badge-yellow { background: rgba(246,224,94,0.15); color: #f6e05e; }
+.badge-red { background: rgba(252,129,129,0.15); color: #fc8181; }
+.badge-blue { background: rgba(144,205,244,0.15); color: #90cdf4; }
+.badge-gray { background: rgba(113,128,150,0.15); color: #a0aec0; }
+
+/* Stat cards */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.stat-card { background: rgba(255,255,255,0.03); border: 1px solid #2d3748; border-radius: 10px; padding: 16px; text-align: center; }
+.stat-value { font-size: 1.8em; font-weight: 700; color: #e2e8f0; }
+.stat-label { font-size: 0.7em; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+/* Loading */
+.loading { text-align: center; padding: 40px; color: #718096; font-size: 0.85em; }
+.spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid #2d3748; border-top-color: #48bb78; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Toast notifications */
+.toast { position: fixed; top: 20px; right: 20px; background: #1a2332; border: 1px solid #48bb78; border-radius: 10px; padding: 14px 20px; color: #e2e8f0; font-size: 0.82em; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,0.4); transition: opacity 0.3s; }
+.toast.error { border-color: #fc8181; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 3px; }
