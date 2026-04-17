@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Investigative Intelligence — Deployment Challenge & Solution</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #0a1628; color: #e2e8f0; }
+
+/* SLIDE 1: THE CHALLENGE */
+.slide { width: 1280px; height: 720px; margin: 0 auto 40px; padding: 36px 50px; position: relative; overflow: hidden; page-break-after: always; }
+.slide-1 { background: linear-gradient(135deg, #1a0a0a 0%, #2d1010 30%, #0a1628 100%); }
+.slide-2 { background: linear-gradient(135deg, #0a1628 0%, #0d2a1a 50%, #0a1628 100%); }
+
+.badge { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.badge-red { background: rgba(252,129,129,0.2); color: #fc8181; border: 1px solid rgba(252,129,129,0.3); }
+.badge-green { background: rgba(72,187,120,0.2); color: #68d391; border: 1px solid rgba(72,187,120,0.3); }
+
+.slide-title { font-size: 26px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+.slide-subtitle { font-size: 13px; color: #a0aec0; margin-bottom: 24px; line-height: 1.5; }
+
+.columns { display: flex; gap: 24px; }
+.col-left { flex: 1.1; }
+.col-right { flex: 0.9; }
+
+.challenge-box { background: rgba(252,129,129,0.06); border: 1px solid rgba(252,129,129,0.2); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; border-left: 4px solid #fc8181; }
+.challenge-title { font-size: 13px; font-weight: 700; color: #fc8181; margin-bottom: 4px; }
+.challenge-desc { font-size: 11px; color: #cbd5e0; line-height: 1.5; }
+
+.team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.team-card { background: rgba(99,179,237,0.06); border: 1px solid rgba(99,179,237,0.2); border-radius: 8px; padding: 12px; }
+.team-num { font-size: 20px; font-weight: 800; color: #63b3ed; float: left; margin-right: 8px; line-height: 1; }
+.team-name { font-size: 11px; font-weight: 700; color: #90cdf4; }
+.team-role { font-size: 10px; color: #a0aec0; margin-top: 2px; line-height: 1.4; }
+
+.risk-box { background: rgba(246,173,85,0.08); border: 1px solid rgba(246,173,85,0.25); border-radius: 10px; padding: 14px 16px; margin-top: 12px; }
+.risk-title { font-size: 12px; font-weight: 700; color: #f6ad55; margin-bottom: 6px; }
+.risk-item { font-size: 10.5px; color: #cbd5e0; line-height: 1.6; padding-left: 14px; text-indent: -14px; margin-bottom: 3px; }
+
+/* SLIDE 2: THE SOLUTION */
+.solution-box { background: rgba(72,187,120,0.06); border: 1px solid rgba(72,187,120,0.2); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; border-left: 4px solid #48bb78; }
+.solution-title { font-size: 13px; font-weight: 700; color: #48bb78; margin-bottom: 4px; }
+.solution-desc { font-size: 11px; color: #cbd5e0; line-height: 1.5; }
+
+.approach-card { background: rgba(159,122,234,0.06); border: 1px solid rgba(159,122,234,0.2); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+.approach-title { font-size: 12px; font-weight: 700; color: #b794f4; margin-bottom: 4px; }
+.approach-desc { font-size: 10.5px; color: #cbd5e0; line-height: 1.5; }
+
+.timeline { display: flex; gap: 8px; margin-top: 12px; }
+.timeline-item { flex: 1; background: rgba(99,179,237,0.08); border: 1px solid rgba(99,179,237,0.2); border-radius: 8px; padding: 10px; text-align: center; }
+.timeline-week { font-size: 18px; font-weight: 800; color: #63b3ed; }
+.timeline-label { font-size: 9px; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; }
+.timeline-desc { font-size: 10px; color: #cbd5e0; margin-top: 4px; line-height: 1.4; }
+
+.ask-box { background: rgba(246,173,85,0.08); border: 2px solid rgba(246,173,85,0.4); border-radius: 10px; padding: 14px 16px; margin-top: 10px; }
+.ask-title { font-size: 13px; font-weight: 700; color: #f6ad55; margin-bottom: 6px; }
+.ask-item { font-size: 11px; color: #e2e8f0; line-height: 1.6; padding-left: 16px; text-indent: -16px; margin-bottom: 3px; }
+
+.footer { position: absolute; bottom: 14px; left: 50px; right: 50px; font-size: 9px; color: #4a5568; display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: THE CHALLENGE -->
+<div class="slide slide-1">
+    <div class="badge badge-red">⚠ Escalation Required</div>
+    <div class="slide-title">Investigative Intelligence Platform — Deployment Challenge</div>
+    <div class="slide-subtitle">A cross-service solution built by Emerging Tech is ready for customer deployment, but our organizational structure creates gaps that no single team can fill.</div>
+
+    <div class="columns">
+        <div class="col-left">
+            <div style="font-size:12px;font-weight:700;color:#90cdf4;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Internal Teams Engaged (4 workstreams)</div>
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-num">1</div>
+                    <div class="team-name">OpenSearch Service Team</div>
+                    <div class="team-role">Building a configurable Data Loader as a separate AWS service component</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-num">2</div>
+                    <div class="team-name">Solution Acceleration Team</div>
+                    <div class="team-role">Creating GitHub repo, testing overall application, approving for internal use → customer (3-4 month timeline)</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-num">3</div>
+                    <div class="team-name">Account SA</div>
+                    <div class="team-role">Rebuilding the application using Kiro prompts for GovCloud deployment</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-num">4</div>
+                    <div class="team-name">WWSO Service Team</div>
+                    <div class="team-role">Neptune SA Leader + OpenSearch SA Leader providing architecture guidance</div>
+                </div>
+            </div>
+
+            <div class="challenge-box" style="margin-top:14px;">
+                <div class="challenge-title">🔴 The Deployment Gap</div>
+                <div class="challenge-desc">ProServe is the natural deployment partner, but they lack specialists in OpenSearch, Neptune, and cross-service architecture. Partners don't have this expertise either. No single team owns the end-to-end deployment of a multi-service solution.</div>
+            </div>
+        </div>
+
+        <div class="col-right">
+            <div class="challenge-box">
+                <div class="challenge-title">🔴 IP Fragmentation Risk</div>
+                <div class="challenge-desc">The Account SA is rebuilding the app from scratch using Kiro prompts instead of deploying the existing CDK/CloudFormation template. This risks losing months of battle-tested infrastructure code, 30+ resolved deployment issues, and config-driven GovCloud support that's already built.</div>
+            </div>
+
+            <div class="challenge-box">
+                <div class="challenge-title">🔴 Organizational Misalignment</div>
+                <div class="challenge-desc">AWS is organized by individual service teams. This solution requires 6+ services working together (Bedrock, Aurora pgvector, Neptune, OpenSearch, Lambda, Step Functions). No team owns "cross-service investigative solutions." Each team optimizes for their service, not the integrated outcome.</div>
+            </div>
+
+            <div class="risk-box">
+                <div class="risk-title">⚠ Timeline Risk</div>
+                <div class="risk-item">⏱ Customer expects pilot in 8-12 weeks</div>
+                <div class="risk-item">⏱ Solution Acceleration approval: 3-4 months</div>
+                <div class="risk-item">⏱ Kiro rebuild: unknown timeline, untested at scale</div>
+                <div class="risk-item">⏱ ProServe staffing gap: no cross-service architects available</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <span>AWS Emerging Tech Solutions — Investigative Intelligence Platform</span>
+        <span>Confidential — For Internal Leadership Review</span>
+    </div>
+</div>
+
+<!-- SLIDE 2: THE SOLUTION -->
+<div class="slide slide-2">
+    <div class="badge badge-green">✓ Proposed Path Forward</div>
+    <div class="slide-title">Solution-in-a-Box: Deploy What's Built, Not Rebuild</div>
+    <div class="slide-subtitle">The application is production-tested with 82K documents, config-driven for GovCloud, and deployable via CloudFormation in 20 minutes. The fastest path to customer value is deploying the existing asset.</div>
+
+    <div class="columns">
+        <div class="col-left">
+            <div class="solution-box">
+                <div class="solution-title">✅ What Already Exists</div>
+                <div class="solution-desc">
+                    • Config-driven CDK with 3 deployment tiers (Demo → GovCloud Test → Production)<br>
+                    • CloudFormation template deployable via console — no CDK expertise needed<br>
+                    • 82,529 documents processed, 115K entities, 175K relationships<br>
+                    • Well-Architected review completed, FedRAMP model registry built<br>
+                    • 30+ deployment issues documented and resolved in lessons-learned<br>
+                    • Label-based access control, audit trail, data governance designed
+                </div>
+            </div>
+
+            <div class="approach-card">
+                <div class="approach-title">🎯 Recommended Approach: "Solution-in-a-Box"</div>
+                <div class="approach-desc">
+                    Instead of individual service teams each contributing components, package the entire solution as a deployable asset. One CloudFormation template, one Lambda zip, one frontend file. A single SA or ProServe consultant deploys it in a day — no Neptune specialist, no OpenSearch specialist needed.
+                </div>
+            </div>
+
+            <div class="approach-card">
+                <div class="approach-title">⚠ Why Kiro Rebuild Is Risky</div>
+                <div class="approach-desc">
+                    Kiro-generated code won't include the 30+ battle-tested fixes (VPC endpoint SG rules, Neptune HTTP API vs WebSocket, chunked entity extraction, embed token truncation). These took weeks to discover and resolve. A rebuild starts from zero on all of them.
+                </div>
+            </div>
+        </div>
+
+        <div class="col-right">
+            <div style="font-size:12px;font-weight:700;color:#90cdf4;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Proposed Timeline</div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-week">W1</div>
+                    <div class="timeline-label">Now</div>
+                    <div class="timeline-desc">Deploy template to GovCloud Isengard. Validate with SA.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">W2-3</div>
+                    <div class="timeline-label">Pilot</div>
+                    <div class="timeline-desc">Customer GovCloud with synthetic data. ProServe observes.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">W4-8</div>
+                    <div class="timeline-label">Scale</div>
+                    <div class="timeline-desc">150GB customer data. Auth + RBAC. Production hardening.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">W8-12</div>
+                    <div class="timeline-label">Production</div>
+                    <div class="timeline-desc">ATO process. Full deployment. ProServe handoff.</div>
+                </div>
+            </div>
+
+            <div class="ask-box">
+                <div class="ask-title">📋 The Ask</div>
+                <div class="ask-item">1️⃣ Align Account SA to deploy existing template vs. Kiro rebuild — preserve IP</div>
+                <div class="ask-item">2️⃣ Fast-track Solution Acceleration review — application is ready now, not in 3-4 months</div>
+                <div class="ask-item">3️⃣ Assign one cross-service architect (ProServe or WWSO) for GovCloud deployment support</div>
+                <div class="ask-item">4️⃣ Sponsor "Solution-in-a-Box" model for cross-service solutions — deploy the integrated asset, not individual service components</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <span>AWS Emerging Tech Solutions — Investigative Intelligence Platform</span>
+        <span>Confidential — For Internal Leadership Review</span>
+    </div>
+</div>
+
+</body>
+</html>
