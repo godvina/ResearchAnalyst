@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Clean __pycache__ before deploy",
+  "description": "Removes all __pycache__ directories and .pyc files from src/ before creating Lambda deployment zips, preventing stale bytecode from causing import errors.",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "Get-ChildItem -Path src -Recurse -Directory -Filter '__pycache__' | Remove-Item -Recurse -Force; Get-ChildItem -Path src -Recurse -Filter '*.pyc' | Remove-Item -Force; Write-Host 'Cleaned __pycache__ and .pyc files from src/'\""
+  }
+}
