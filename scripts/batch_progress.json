@@ -1,0 +1,12 @@
+{
+  "case_id": "7f05e8d5-4492-4f19-8894-25367606db96",
+  "total_files_discovered": 332321,
+  "total_processed": 10000,
+  "total_remaining": 322321,
+  "current_batch_number": 6,
+  "cursor": "cases/7f05e8d5-4492-4f19-8894-25367606db96/raw/EFTA02268031.pdf",
+  "cumulative_blanks": 0,
+  "cumulative_quarantined": 199,
+  "cumulative_cost": 31.758,
+  "last_updated": "2026-04-14T13:38:20Z"
+}
