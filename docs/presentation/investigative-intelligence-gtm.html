@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investigative Intelligence Platform — GTM Presentation</title>
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 30%, #1a1a2e 60%, #2d1b3d 100%); color: #e2e8f0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+
+/* ===== SLIDE CONTAINER ===== */
+.deck { position: relative; width: 100vw; height: 100vh; }
+.slide { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center;
+  padding: 60px 80px; opacity: 0; pointer-events: none; transition: opacity 0.45s ease; overflow-y: auto; background: linear-gradient(160deg, #1a1a2e 0%, #16213e 35%, #1a1a2e 65%, #2d1b3d 100%); }
+.slide.active { opacity: 1; pointer-events: auto; }
+
+/* ===== COUNTER ===== */
+#counter { position: fixed; bottom: 24px; right: 36px; font-size: 14px; color: #718096; z-index: 100; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
+
+/* ===== NAV HINT ===== */
+#nav-hint { position: fixed; bottom: 24px; left: 36px; font-size: 12px; color: #4a5568; z-index: 100; }
+
+/* ===== TYPOGRAPHY ===== */
+h1 { font-size: 2.8rem; font-weight: 700; color: #FF9900; margin-bottom: 12px; line-height: 1.15; }
+h2 { font-size: 2rem; font-weight: 700; color: #FF9900; margin-bottom: 28px; letter-spacing: -0.5px; }
+h3 { font-size: 1.25rem; font-weight: 600; color: #FFB84D; margin-bottom: 10px; }
+p, li { font-size: 1rem; line-height: 1.65; color: #cbd5e0; }
+.subtitle { font-size: 1.3rem; color: #a0aec0; margin-bottom: 8px; }
+.tagline { font-size: 1rem; color: #48bb78; margin-top: 18px; font-style: italic; }
+.powered { font-size: 0.95rem; color: #718096; margin-top: 6px; }
+.accent { color: #FF9900; }
+.highlight { color: #FFB84D; }
+.stat-big { font-size: 2.4rem; font-weight: 800; color: #FF9900; }
+.stat-label { font-size: 0.9rem; color: #a0aec0; }
+
+/* ===== LAYOUT HELPERS ===== */
+.full-w { width: 100%; max-width: 1100px; }
+.cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
+.cols-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+.gap-sm { gap: 16px; }
+.text-center { text-align: center; }
+.mt-8 { margin-top: 8px; }
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-24 { margin-bottom: 24px; }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+<div id="counter"></div>
+<div id="nav-hint">← → arrow keys to navigate</div>
+
+<style>
+/* ===== CARDS ===== */
+.card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 24px; }
+.card-green { border-left: 3px solid #FF9900; }
+.card-yellow { border-left: 3px solid #FFB84D; }
+.card-red { border-left: 3px solid #fc8181; }
+.card-blue { border-left: 3px solid #63b3ed; }
+
+/* ===== TABLES ===== */
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th { background: rgba(255,153,0,0.12); color: #FF9900; text-align: left; padding: 10px 14px; font-weight: 600; border-bottom: 2px solid rgba(255,153,0,0.3); }
+td { padding: 8px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #cbd5e0; }
+tr:hover td { background: rgba(255,255,255,0.03); }
+tr.total-row td { font-weight: 700; color: #FF9900; border-top: 2px solid rgba(255,153,0,0.3); background: rgba(255,153,0,0.05); }
+
+/* ===== ARCHITECTURE BOXES ===== */
+.arch-layer { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.arch-label { width: 140px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #718096; text-align: right; flex-shrink: 0; }
+.arch-boxes { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; }
+.arch-box { background: rgba(255,153,0,0.08); border: 1px solid rgba(255,153,0,0.2); border-radius: 6px; padding: 8px 14px; font-size: 0.78rem; color: #e2e8f0; white-space: nowrap; }
+.arch-box.bedrock { background: rgba(255,184,77,0.1); border-color: rgba(255,184,77,0.3); }
+.arch-box.security { background: rgba(99,179,237,0.1); border-color: rgba(99,179,237,0.25); }
+.arch-box small { display: block; color: #718096; font-size: 0.68rem; margin-top: 2px; }
+
+/* ===== FLOW ===== */
+.flow { display: flex; align-items: flex-start; gap: 0; width: 100%; }
+.flow-step { flex: 1; position: relative; padding: 16px 14px; }
+.flow-step::after { content: '→'; position: absolute; right: -8px; top: 18px; color: #FF9900; font-size: 1.2rem; font-weight: 700; }
+.flow-step:last-child::after { display: none; }
+.flow-num { display: inline-block; width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 50%; background: #FF9900; color: #1a1a2e; font-weight: 700; font-size: 0.8rem; margin-bottom: 8px; }
+.flow-title { font-size: 0.85rem; font-weight: 700; color: #FFB84D; margin-bottom: 6px; }
+.flow-items { font-size: 0.72rem; color: #a0aec0; line-height: 1.5; }
+
+/* ===== RISK CARDS ===== */
+.risk-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 20px; }
+.risk-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 3px 10px; border-radius: 4px; display: inline-block; margin-bottom: 8px; }
+.risk-label.risk { background: rgba(252,129,129,0.15); color: #fc8181; }
+.risk-label.mitigation { background: rgba(255,153,0,0.15); color: #FF9900; }
+
+/* ===== TRANSFORM ARROW ===== */
+.transform { display: flex; align-items: center; gap: 24px; width: 100%; }
+.transform-side { flex: 1; }
+.transform-arrow { font-size: 2.5rem; color: #FF9900; flex-shrink: 0; }
+
+/* ===== BAR CHART ===== */
+.bar-chart { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.bar-row { display: flex; align-items: center; gap: 10px; }
+.bar-label { width: 80px; font-size: 0.72rem; color: #a0aec0; text-align: right; flex-shrink: 0; }
+.bar-track { flex: 1; height: 22px; background: rgba(255,255,255,0.04); border-radius: 4px; overflow: hidden; position: relative; }
+.bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #FF9900, #cc7a00); display: flex; align-items: center; padding-left: 8px; font-size: 0.7rem; color: #fff; font-weight: 600; }
+.bar-fill.dod { background: linear-gradient(90deg, #63b3ed, #4299e1); }
+
+/* ===== TIMELINE ===== */
+.timeline { display: flex; flex-direction: column; gap: 0; width: 100%; max-width: 700px; }
+.tl-item { display: flex; gap: 16px; position: relative; padding-bottom: 20px; }
+.tl-item::before { content: ''; position: absolute; left: 15px; top: 32px; bottom: 0; width: 2px; background: rgba(255,153,0,0.3); }
+.tl-item:last-child::before { display: none; }
+.tl-dot { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,153,0,0.15); border: 2px solid #FF9900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.7rem; font-weight: 700; color: #FF9900; }
+.tl-content { flex: 1; }
+.tl-time { font-size: 0.8rem; font-weight: 700; color: #FFB84D; }
+.tl-desc { font-size: 0.88rem; color: #cbd5e0; margin-top: 2px; }
+
+/* ===== PERSONA SPLIT ===== */
+.persona-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; width: 100%; align-items: start; }
+.persona-center { display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 40px; }
+.persona-center .divider { width: 2px; height: 120px; background: linear-gradient(180deg, transparent, #FF9900, transparent); margin: 12px 0; }
+
+/* ===== ISV DIAGRAM ===== */
+.isv-stack { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 800px; }
+.isv-layer { border-radius: 10px; padding: 16px 24px; text-align: center; }
+.isv-top { background: rgba(99,179,237,0.1); border: 1px solid rgba(99,179,237,0.25); }
+.isv-mid { background: rgba(255,153,0,0.1); border: 2px solid rgba(255,153,0,0.35); }
+.isv-bot { background: rgba(246,224,94,0.08); border: 1px solid rgba(246,224,94,0.2); }
+.isv-arrow { text-align: center; font-size: 1.4rem; color: #FF9900; }
+
+/* ===== PRINT ===== */
+@media print {
+  .slide { position: relative; opacity: 1; pointer-events: auto; page-break-after: always; height: 100vh; overflow: hidden; }
+  #counter, #nav-hint { display: none; }
+  body { overflow: visible; }
+  .deck { height: auto; }
+}
+</style>
+
+<!-- ==================== SLIDE 1: TITLE ==================== -->
+<div class="slide active" data-slide="1">
+  <div style="display:flex; flex-direction:column; justify-content:center; align-items:flex-start; height:100%; padding-left:60px; max-width:800px;">
+    <h1 style="font-size:3.2rem; font-weight:300; color:#fff; margin-bottom:0; line-height:1.15;">Investigative Intelligence:</h1>
+    <h1 style="font-size:3.2rem; font-weight:700; color:#FF9900; margin-bottom:24px; line-height:1.15;">AI for Federal Law Enforcement</h1>
+    <p style="font-size:1.1rem; color:#a0aec0; margin-bottom:32px; letter-spacing:0.5px;">AWS Investigative Intelligence Platform 2026</p>
+    <div style="margin-bottom:40px;">
+      <p style="font-size:1rem; font-weight:600; color:#e2e8f0; margin-bottom:4px;">Department of Justice — Antitrust Division</p>
+      <p style="font-size:0.88rem; color:#718096; line-height:1.6;">How generative AI, knowledge graphs, and intelligent search transform<br>500TB of case evidence into actionable intelligence</p>
+    </div>
+    <div style="border-top:1px solid rgba(255,153,0,0.3); padding-top:20px;">
+      <p style="font-size:0.88rem; color:#FF9900; font-weight:600;">David Eyre</p>
+      <p style="font-size:0.78rem; color:#a0aec0;">Emerging Tech Solutions — Amazon Web Services</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 2: INDUSTRY CHALLENGE ==================== -->
+<div class="slide" data-slide="2">
+  <div class="full-w">
+    <h2>The Two Challenges Defining Federal Investigations</h2>
+    <div class="cols-2" style="gap:28px;">
+      <div>
+        <div class="card" style="border-left:4px solid #fc8181; margin-bottom:16px; padding:20px;">
+          <div style="font-size:1.6rem; margin-bottom:8px;">🏛️</div>
+          <h3 style="color:#fc8181; font-size:1.15rem; margin-bottom:12px;">Challenge 1: Do More With Less</h3>
+          <p style="font-size:0.95rem; line-height:1.7; color:#e2e8f0; margin-bottom:12px;">Federal workforce reductions mean fewer investigators handling the same — or growing — caseload. Experienced analysts leave with no backfills. Institutional knowledge walks out the door.</p>
+          <div style="background:rgba(252,129,129,0.08); border-radius:6px; padding:12px; margin-top:10px;">
+            <div style="font-size:0.78rem; color:#fc8181; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">The Compounding Effect</div>
+            <ul style="list-style:none; padding:0; font-size:0.85rem; color:#cbd5e0;">
+              <li style="padding:4px 0;">📉 Workforce reductions with no new backfills</li>
+              <li style="padding:4px 0;">📚 Thousands of cases queued — throughput must increase, not decrease</li>
+              <li style="padding:4px 0;">⏱️ Investigators spend <span class="highlight">60–80%</span> of time on manual document review</li>
+              <li style="padding:4px 0;">📅 Cases take <span class="highlight">18–24 months</span> average — too slow for the current pace</li>
+              <li style="padding:4px 0;">📝 Brief preparation is manual, repetitive, and error-prone</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card card-yellow" style="text-align:center; padding:16px;">
+          <span class="stat-big">500TB+</span>
+          <p class="stat-label">of case evidence per major federal investigation</p>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="border-left:4px solid #f6e05e; margin-bottom:16px; padding:20px;">
+          <div style="font-size:1.6rem; margin-bottom:8px;">🔍</div>
+          <h3 style="color:#f6e05e; font-size:1.15rem; margin-bottom:12px;">Challenge 2: Find the Needle You Don't Know Exists</h3>
+          <p style="font-size:0.95rem; line-height:1.7; color:#e2e8f0; margin-bottom:12px;">The hardest cases aren't about finding a known document — they're about discovering connections, patterns, and anomalies that no one knew to look for. The evidence that cracks the case is buried in 500TB of data, invisible to keyword search.</p>
+          <div style="background:rgba(246,224,94,0.08); border-radius:6px; padding:12px; margin-top:10px;">
+            <div style="font-size:0.78rem; color:#f6e05e; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">What's Missing Today</div>
+            <ul style="list-style:none; padding:0; font-size:0.85rem; color:#cbd5e0;">
+              <li style="padding:4px 0;">🚫 No AI-assisted pattern discovery across evidence</li>
+              <li style="padding:4px 0;">🔒 Evidence silos across agencies — connections invisible</li>
+              <li style="padding:4px 0;">🕸️ No knowledge graph linking entities across cases</li>
+              <li style="padding:4px 0;">📦 Legacy tools (Relativity, Nuix) find documents, not intelligence</li>
+              <li style="padding:4px 0;">🎯 No way to assess prosecution readiness until months into a case</li>
+            </ul>
+          </div>
+          <div style="background:rgba(246,224,94,0.05); border-radius:6px; padding:12px; margin-top:10px; border:1px solid rgba(246,224,94,0.12);">
+            <div style="font-size:0.72rem; color:#f6e05e; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Antitrust: The Data Challenge</div>
+            <div style="font-size:0.82rem; color:#a0aec0; line-height:1.6;">Millions of corporate communications, financial records, market data, pricing spreadsheets, and board minutes — the smoking gun is a pattern across data types, not a single document.</div>
+          </div>
+        </div>
+        <div class="card" style="border-left:3px solid #48bb78; padding:14px; text-align:center;">
+          <p style="font-size:0.92rem; color:#48bb78; font-weight:600;">AI doesn't replace investigators — it gives each one the throughput of ten.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 3: SOLUTION OVERVIEW ==================== -->
+<div class="slide" data-slide="3">
+  <div class="full-w">
+    <h2>Solution Overview — Two Personas</h2>
+    <div class="persona-grid">
+      <div class="card card-green">
+        <h3 style="color:#48bb78; font-size:1.1rem;">🔍 Investigator Intelligence</h3>
+        <ul style="list-style:none; padding:0; font-size:0.9rem;">
+          <li style="padding:5px 0;">🤖 AI Briefing &amp; Case Summary</li>
+          <li style="padding:5px 0;">🕸️ Entity Network Discovery</li>
+          <li style="padding:5px 0;">📋 Evidence Triage</li>
+          <li style="padding:5px 0;">📖 Investigative Playbooks</li>
+          <li style="padding:5px 0;">🗺️ Geospatial Analysis</li>
+          <li style="padding:5px 0;">⏳ Timeline Intelligence</li>
+        </ul>
+      </div>
+      <div class="persona-center">
+        <div style="font-size:0.7rem; color:#718096; text-transform:uppercase; letter-spacing:2px;">Shared</div>
+        <div class="divider"></div>
+        <div style="text-align:center;">
+          <div style="font-size:0.78rem; color:#48bb78; margin-bottom:6px;">Knowledge Graph</div>
+          <div style="font-size:0.78rem; color:#48bb78; margin-bottom:6px;">Semantic Search</div>
+          <div style="font-size:0.78rem; color:#48bb78;">Cross-Case Analysis</div>
+        </div>
+        <div class="divider"></div>
+      </div>
+      <div class="card card-yellow">
+        <h3 style="color:#f6e05e; font-size:1.1rem;">⚖️ Prosecutor Intelligence</h3>
+        <ul style="list-style:none; padding:0; font-size:0.9rem;">
+          <li style="padding:5px 0;">📊 Case Strength Scorecard</li>
+          <li style="padding:5px 0;">✅ Element Assessment</li>
+          <li style="padding:5px 0;">📚 Precedent Matching</li>
+          <li style="padding:5px 0;">📄 Court Document Assembly</li>
+          <li style="padding:5px 0;">🎯 Prosecution Funnel</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card mt-24 text-center" style="background:rgba(72,187,120,0.06); border-color:rgba(72,187,120,0.2);">
+      <p style="font-size:0.95rem;">One platform, two workflows — from <span class="accent">first lead</span> to <span class="highlight">court-ready case</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 4: PROCESS FLOW ==================== -->
+<div class="slide" data-slide="4">
+  <div class="full-w">
+    <h2>Functional Process Flow</h2>
+    <p class="mb-24" style="color:#a0aec0; font-size:0.9rem;">The investigation lifecycle — from raw evidence to prosecution readiness</p>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-title">INGEST</div>
+        <div class="flow-items">Documents → S3<br>Textract / Rekognition<br>Parse &amp; Extract text<br>OCR scanned docs</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-title">ENRICH</div>
+        <div class="flow-items">Entity Extraction<br>Neptune Graph Load<br>OpenSearch Index<br>Bedrock Embeddings</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-title">ANALYZE</div>
+        <div class="flow-items">AI Briefing<br>Pattern Discovery<br>Cross-Case Analysis<br>Lead Generation</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-title">INVESTIGATE</div>
+        <div class="flow-items">Playbook Workflow<br>Entity Tracking<br>Graph Exploration<br>Timeline Analysis</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <div class="flow-title">PROSECUTE</div>
+        <div class="flow-items">Case Strength Score<br>Subject Evaluation<br>Court Doc Assembly<br>Prosecution Readiness</div>
+      </div>
+    </div>
+    <div class="cols-3 mt-24 gap-sm">
+      <div class="card text-center" style="padding:14px;">
+        <div style="font-size:1.6rem;">📥</div>
+        <div style="font-size:0.78rem; color:#48bb78; font-weight:600;">S3 + Textract + Rekognition</div>
+        <div style="font-size:0.7rem; color:#718096;">Data ingestion layer</div>
+      </div>
+      <div class="card text-center" style="padding:14px;">
+        <div style="font-size:1.6rem;">🧠</div>
+        <div style="font-size:0.78rem; color:#f6e05e; font-weight:600;">Bedrock + Neptune + OpenSearch</div>
+        <div style="font-size:0.7rem; color:#718096;">Intelligence layer</div>
+      </div>
+      <div class="card text-center" style="padding:14px;">
+        <div style="font-size:1.6rem;">⚖️</div>
+        <div style="font-size:0.78rem; color:#63b3ed; font-weight:600;">AI Scoring + Document Assembly</div>
+        <div style="font-size:0.7rem; color:#718096;">Prosecution layer</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 5: ARCHITECTURE ==================== -->
+<div class="slide" data-slide="5">
+  <div class="full-w">
+    <h2>Architecture — AWS Lego Blocks</h2>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <div class="arch-layer">
+        <div class="arch-label">Data Layer</div>
+        <div class="arch-boxes">
+          <div class="arch-box">Amazon S3<small>Data Lake — $11,500/mo</small></div>
+          <div class="arch-box">Amazon S3<small>Frontend Hosting</small></div>
+        </div>
+      </div>
+      <div class="arch-layer">
+        <div class="arch-label">Ingestion</div>
+        <div class="arch-boxes">
+          <div class="arch-box">AWS Step Functions<small>Orchestration — $500/mo</small></div>
+          <div class="arch-box">AWS Lambda<small>Compute — $2,400/mo</small></div>
+          <div class="arch-box">Amazon Textract<small>Doc Parsing — $4,500/mo</small></div>
+          <div class="arch-box">Amazon Rekognition<small>Image Analysis — $2,800/mo</small></div>
+        </div>
+      </div>
+      <div class="arch-layer">
+        <div class="arch-label" style="color:#f6e05e;">Intelligence</div>
+        <div class="arch-boxes">
+          <div class="arch-box bedrock">OpenSearch Serverless<small>Vector + Full-text — $8,200/mo</small></div>
+          <div class="arch-box bedrock">Amazon Neptune<small>Knowledge Graph — $3,800/mo</small></div>
+          <div class="arch-box bedrock">Amazon Bedrock<small>Claude/Titan AI — $12,000/mo</small></div>
+        </div>
+      </div>
+      <div class="arch-layer">
+        <div class="arch-label">API Layer</div>
+        <div class="arch-boxes">
+          <div class="arch-box">API Gateway<small>REST API — $350/mo</small></div>
+          <div class="arch-box">AWS Lambda<small>API Compute</small></div>
+        </div>
+      </div>
+      <div class="arch-layer">
+        <div class="arch-label">Security</div>
+        <div class="arch-boxes">
+          <div class="arch-box security">AWS IAM<small>Access Control</small></div>
+          <div class="arch-box security">Amazon Cognito<small>Auth (future)</small></div>
+          <div class="arch-box security">AWS KMS<small>Encryption — $100/mo</small></div>
+        </div>
+      </div>
+      <div class="arch-layer">
+        <div class="arch-label">Infrastructure</div>
+        <div class="arch-boxes">
+          <div class="arch-box">AWS CDK<small>IaC — $0</small></div>
+          <div class="arch-box">CloudWatch<small>Monitoring — $200/mo</small></div>
+        </div>
+      </div>
+    </div>
+    <div class="text-center mt-16" style="font-size:0.85rem; color:#718096;">Estimated total: <span class="highlight">$46,350/mo</span> for a 500TB deployment</div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 6: INGESTION PIPELINE — TODAY & FUTURE ==================== -->
+<div class="slide" data-slide="6">
+  <div class="full-w">
+    <h2>Data Ingestion Pipeline</h2>
+
+    <!-- TOP HALF: What We Built — Two-Phase Pipeline -->
+    <div style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <span style="background:linear-gradient(135deg,#48bb78,#38a169);color:#fff;padding:4px 14px;border-radius:5px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;">Today</span>
+        <span style="font-size:0.95rem;color:#e2e8f0;font-weight:700;">Custom Pipeline &mdash; 30,000+ Documents Loaded</span>
+        <span style="font-size:0.68rem;color:#718096;margin-left:auto;font-style:italic;">Step Functions &bull; Lambda &bull; CDK</span>
+      </div>
+
+      <!-- Phase 1: Document Processing -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:0.62rem;color:#48bb78;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Phase 1 &mdash; Document Processing Pipeline</div>
+        <div style="display:flex;align-items:stretch;gap:8px;">
+          <div style="flex:1;background:rgba(72,187,120,0.07);border:1px solid rgba(72,187,120,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#48bb78;margin-bottom:3px;">📁 S3 Upload</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">Raw docs into data lake</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#FF9900;font-size:1rem;font-weight:700;">→</div>
+          <div style="flex:1;background:rgba(255,153,0,0.07);border:1px solid rgba(255,153,0,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#FF9900;margin-bottom:3px;">📄 Textract</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">OCR &amp; text extraction</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#FF9900;font-size:1rem;font-weight:700;">→</div>
+          <div style="flex:1;background:rgba(255,184,77,0.07);border:1px solid rgba(255,184,77,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#FFB84D;margin-bottom:3px;">🧠 Entity Extract</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">Bedrock AI &mdash; people, orgs, locations</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#FF9900;font-size:1rem;font-weight:700;">→</div>
+          <div style="flex:1;background:rgba(99,179,237,0.07);border:1px solid rgba(99,179,237,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#63b3ed;margin-bottom:3px;">🔢 Embeddings</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">Titan vectors for semantic search</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#FF9900;font-size:1rem;font-weight:700;">→</div>
+          <div style="flex:1;background:rgba(159,122,234,0.07);border:1px solid rgba(159,122,234,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#9f7aea;margin-bottom:3px;">🔍 OpenSearch</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">Full-text + kNN index</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#FF9900;font-size:1rem;font-weight:700;">→</div>
+          <div style="flex:1;background:rgba(252,129,129,0.07);border:1px solid rgba(252,129,129,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#fc8181;margin-bottom:3px;">📸 Rekognition</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">Face &amp; label detection</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 2: Graph Build -->
+      <div>
+        <div style="font-size:0.62rem;color:#f6ad55;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Phase 2 &mdash; Knowledge Graph Build</div>
+        <div style="display:flex;align-items:stretch;gap:8px;">
+          <div style="flex:1;background:rgba(246,173,85,0.07);border:1px solid rgba(246,173,85,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#f6ad55;margin-bottom:3px;">📊 Entity Index</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">Canonical dedup across docs</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#f6ad55;font-size:1rem;font-weight:700;">→</div>
+          <div style="flex:1;background:rgba(246,173,85,0.07);border:1px solid rgba(246,173,85,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#f6ad55;margin-bottom:3px;">📝 CSV Generation</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">Nodes + edges relationship files</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#f6ad55;font-size:1rem;font-weight:700;">→</div>
+          <div style="flex:1;background:rgba(246,173,85,0.07);border:1px solid rgba(246,173,85,0.22);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#f6ad55;margin-bottom:3px;">🕸️ Neptune Load</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">CSV bulk load → knowledge graph</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#48bb78;font-size:1rem;font-weight:700;">→</div>
+          <div style="flex:1;background:rgba(72,187,120,0.1);border:2px solid rgba(72,187,120,0.35);border-radius:8px;padding:10px 8px;text-align:center;">
+            <div style="font-size:0.78rem;font-weight:700;color:#48bb78;margin-bottom:3px;">✅ Intelligence Ready</div>
+            <div style="font-size:0.6rem;color:#a0aec0;">Graph + Search + AI operational</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BRIDGE: Requirements Flow -->
+    <div style="display:flex;align-items:center;gap:14px;margin:6px 0 16px;padding:12px 20px;background:rgba(255,153,0,0.05);border:1px dashed rgba(255,153,0,0.25);border-radius:8px;">
+      <span style="font-size:1.3rem;">🔄</span>
+      <div style="flex:1;">
+        <div style="font-size:0.82rem;color:#FF9900;font-weight:700;">Alignment Path to Managed Service</div>
+        <div style="font-size:0.72rem;color:#a0aec0;line-height:1.5;">Custom pipeline code mirrors the future Batch Loader API. ATR pilot requirements feed directly into the service team roadmap. Migration is straightforward when the managed service ships in GovCloud.</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <span style="background:rgba(72,187,120,0.12);color:#48bb78;padding:4px 10px;border-radius:5px;font-size:0.68rem;font-weight:600;">ATR Requirements →</span>
+        <span style="background:rgba(99,179,237,0.12);color:#63b3ed;padding:4px 10px;border-radius:5px;font-size:0.68rem;font-weight:600;">Service Roadmap</span>
+      </div>
+    </div>
+
+    <!-- BOTTOM HALF: Future Managed Service -->
+    <div style="margin-top:8px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <span style="background:linear-gradient(135deg,#63b3ed,#4299e1);color:#fff;padding:4px 14px;border-radius:5px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;">Future</span>
+        <span style="font-size:0.95rem;color:#e2e8f0;font-weight:700;">Managed Batch Loader &mdash; AWS Service</span>
+        <span style="font-size:0.68rem;color:#718096;margin-left:auto;font-style:italic;">Karl Meadows &bull; Sarat Vemulapalli</span>
+      </div>
+      <div style="background:rgba(99,179,237,0.04);border:2px solid rgba(99,179,237,0.18);border-radius:10px;padding:16px 20px;">
+        <div style="display:flex;gap:20px;align-items:center;">
+          <div style="flex:1;display:flex;align-items:stretch;gap:8px;">
+            <div style="flex:1;background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.25);border-radius:8px;padding:10px 8px;text-align:center;">
+              <div style="font-size:0.78rem;font-weight:700;color:#63b3ed;margin-bottom:3px;">⚙️ Config</div>
+              <div style="font-size:0.6rem;color:#718096;">YAML/JSON pipeline def</div>
+            </div>
+            <div style="display:flex;align-items:center;color:#63b3ed;font-size:1rem;">→</div>
+            <div style="flex:1;background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.25);border-radius:8px;padding:10px 8px;text-align:center;">
+              <div style="font-size:0.78rem;font-weight:700;color:#63b3ed;margin-bottom:3px;">📥 Ingest</div>
+              <div style="font-size:0.6rem;color:#718096;">Managed bulk loading</div>
+            </div>
+            <div style="display:flex;align-items:center;color:#63b3ed;font-size:1rem;">→</div>
+            <div style="flex:1;background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.25);border-radius:8px;padding:10px 8px;text-align:center;">
+              <div style="font-size:0.78rem;font-weight:700;color:#63b3ed;margin-bottom:3px;">🔄 Transform</div>
+              <div style="font-size:0.6rem;color:#718096;">Built-in enrichment</div>
+            </div>
+            <div style="display:flex;align-items:center;color:#63b3ed;font-size:1rem;">→</div>
+            <div style="flex:1;background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.25);border-radius:8px;padding:10px 8px;text-align:center;">
+              <div style="font-size:0.78rem;font-weight:700;color:#63b3ed;margin-bottom:3px;">🔍 Index</div>
+              <div style="font-size:0.6rem;color:#718096;">Auto-index to OpenSearch</div>
+            </div>
+          </div>
+          <div style="width:1px;background:rgba(99,179,237,0.2);align-self:stretch;"></div>
+          <div style="width:160px;flex-shrink:0;">
+            <div style="font-size:0.65rem;color:#63b3ed;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">Status</div>
+            <div style="font-size:0.75rem;color:#a0aec0;line-height:1.7;">
+              ✅ In development<br>
+              ⏳ GovCloud: TBD<br>
+              🎯 ATR = beta customer
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 7: DOJ PILOT ==================== -->
+<div class="slide" data-slide="7">
+  <div class="full-w">
+    <h2>DOJ Antitrust Pilot — 500TB</h2>
+    <div class="cols-2">
+      <div>
+        <div class="card card-green mb-16">
+          <h3>Pilot Scope</h3>
+          <table style="font-size:0.88rem;">
+            <tr><td style="color:#718096; width:120px;">Data Volume</td><td><span class="highlight">500 TB</span> of case evidence</td></tr>
+            <tr><td style="color:#718096;">Division</td><td>DOJ Antitrust Division</td></tr>
+            <tr><td style="color:#718096;">Timeline</td><td><span class="accent">12-week</span> pilot</td></tr>
+            <tr><td style="color:#718096;">Budget</td><td>~$200K (ProServe + AWS services)</td></tr>
+          </table>
+        </div>
+        <div class="card card-blue">
+          <h3 style="color:#63b3ed;">Beta Customer Benefit</h3>
+          <p style="font-size:0.88rem;">Requirements feed directly to AWS service team for <span class="accent">OpenSearch Batch Loader</span>. DOJ shapes the managed service roadmap.</p>
+        </div>
+      </div>
+      <div>
+        <h3>Expected Outcomes</h3>
+        <div class="card mb-16" style="padding:16px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+            <span style="font-size:2rem; color:#48bb78;">70%</span>
+            <span style="font-size:0.9rem;">reduction in manual document review time</span>
+          </div>
+          <ul style="padding-left:18px; font-size:0.88rem;">
+            <li style="padding:4px 0;">AI-discovered patterns humans miss</li>
+            <li style="padding:4px 0;">Cross-case intelligence across historical matters</li>
+            <li style="padding:4px 0;">Prosecution readiness scoring</li>
+            <li style="padding:4px 0;">Entity network discovery across 500TB</li>
+          </ul>
+        </div>
+        <div class="card" style="background:rgba(246,224,94,0.06); border-color:rgba(246,224,94,0.2); padding:14px; text-align:center;">
+          <div style="font-size:0.78rem; color:#f6e05e; font-weight:600;">PILOT → PRODUCTION PATH</div>
+          <div style="font-size:0.82rem; color:#a0aec0; margin-top:4px;">12 weeks to prove value → expand to full division</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 8: ISV COEXISTENCE ==================== -->
+<div class="slide" data-slide="8">
+  <div class="full-w">
+    <h2>ISV Coexistence — Intelligence Layer, Not Replacement</h2>
+    <div class="isv-stack" style="max-width:900px; margin:0 auto;">
+      <div class="isv-layer isv-top">
+        <div style="font-size:0.75rem; color:#63b3ed; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Existing eDiscovery &amp; Case Management Tools</div>
+        <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
+          <span style="background:rgba(99,179,237,0.15); padding:6px 16px; border-radius:20px; font-size:0.82rem; color:#e2e8f0;">Relativity</span>
+          <span style="background:rgba(99,179,237,0.15); padding:6px 16px; border-radius:20px; font-size:0.82rem; color:#e2e8f0;">Nuix</span>
+          <span style="background:rgba(99,179,237,0.15); padding:6px 16px; border-radius:20px; font-size:0.82rem; color:#e2e8f0;">CasePoint</span>
+          <span style="background:rgba(99,179,237,0.15); padding:6px 16px; border-radius:20px; font-size:0.82rem; color:#e2e8f0;">Concordance</span>
+          <span style="background:rgba(99,179,237,0.15); padding:6px 16px; border-radius:20px; font-size:0.82rem; color:#e2e8f0;">DISCO</span>
+        </div>
+        <p style="font-size:0.7rem; color:#718096; margin-top:8px;">These tools find documents — they don't discover intelligence, patterns, or hidden connections</p>
+      </div>
+      <div class="isv-arrow">↕️</div>
+      <div class="isv-layer isv-mid">
+        <div style="font-size:0.75rem; color:#48bb78; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">⚡ Our Intelligence Layer</div>
+        <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap; font-size:0.82rem;">
+          <span>AI Briefing</span><span>•</span>
+          <span>Entity Graph</span><span>•</span>
+          <span>Cross-Case Analysis</span><span>•</span>
+          <span>Pattern Discovery</span><span>•</span>
+          <span>Prosecution Scoring</span>
+        </div>
+        <p style="font-size:0.78rem; color:#a0aec0; margin-top:8px;">Enriches, not replaces. Data flows both ways.</p>
+      </div>
+      <div class="isv-arrow">↕️</div>
+      <div class="isv-layer isv-bot">
+        <div style="font-size:0.75rem; color:#f6e05e; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">AWS Foundation Services</div>
+        <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap; font-size:0.82rem;">
+          <span>Bedrock</span><span>•</span>
+          <span>Neptune</span><span>•</span>
+          <span>OpenSearch</span><span>•</span>
+          <span>S3</span><span>•</span>
+          <span>Lambda</span>
+        </div>
+      </div>
+    </div>
+    <div class="cols-2 mt-24 gap-sm">
+      <div class="card card-green">
+        <h3 style="font-size:0.9rem;">Key Message</h3>
+        <p style="font-size:0.88rem;">"We add AI intelligence <span class="accent">ON TOP</span> of existing case management tools"</p>
+      </div>
+      <div class="card card-yellow">
+        <h3 style="font-size:0.9rem;">ISV Benefit</h3>
+        <p style="font-size:0.88rem;">Their customers consume <span class="highlight">MORE</span> AWS services, not fewer. Ingest from ISV exports, feed insights back.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 9: RISKS ==================== -->
+<div class="slide" data-slide="9">
+  <div class="full-w">
+    <h2>Risks and Mitigation</h2>
+    <div class="cols-3" style="gap:20px;">
+      <div class="risk-card">
+        <div class="risk-label risk">RISK 1</div>
+        <p style="font-size:0.88rem; margin-bottom:14px;">Service teams know <span class="highlight">1 of 3</span> services. Neptune SA doesn't know OpenSearch. Bedrock SA doesn't know Neptune.</p>
+        <div class="risk-label mitigation">MITIGATION</div>
+        <p style="font-size:0.85rem;">Cross-train SAs across Neptune / OpenSearch / Bedrock. Sell as a <span class="accent">solution with Kiro</span>, not individual services.</p>
+      </div>
+      <div class="risk-card">
+        <div class="risk-label risk">RISK 2</div>
+        <p style="font-size:0.88rem; margin-bottom:14px;">Partners / ProServe lack <span class="highlight">solution expertise</span> across all three services.</p>
+        <div class="risk-label mitigation">MITIGATION</div>
+        <p style="font-size:0.85rem;">Solution blueprints + <span class="accent">Kiro-assisted deployment</span>. Reduce dependency on deep multi-service expertise.</p>
+      </div>
+      <div class="risk-card">
+        <div class="risk-label risk">RISK 3</div>
+        <p style="font-size:0.88rem; margin-bottom:14px;">OpenSearch Batch Loader <span class="highlight">not in GovCloud / FedRAMP</span> yet.</p>
+        <div class="risk-label mitigation">MITIGATION</div>
+        <p style="font-size:0.85rem;">Service team builds interim pipeline code. DOJ becomes <span class="accent">beta customer</span> with requirements flowing to service team. One-time build mimics future Batch Loader.</p>
+      </div>
+    </div>
+    <div class="card mt-24 text-center" style="background:rgba(72,187,120,0.06); border-color:rgba(72,187,120,0.2);">
+      <p style="font-size:0.92rem;">Every risk has a clear mitigation path. The biggest risk is <span class="highlight">doing nothing</span> — competitors are building this.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 10: GTM TRANSFORMATION (INTERNAL CONCEPTUAL) ==================== -->
+<div class="slide" data-slide="10">
+  <div class="full-w">
+    <h2>GTM Transformation — Service Focus → Solution Focus</h2>
+    <div class="transform">
+      <div class="transform-side">
+        <div class="card card-red">
+          <h3 style="color:#fc8181; font-size:1rem;">Today: Siloed</h3>
+          <div style="font-size:0.88rem; margin-top:10px;">
+            <div style="display:flex; gap:8px; margin-bottom:8px;">
+              <span style="background:rgba(252,129,129,0.15); padding:4px 10px; border-radius:4px; font-size:0.78rem;">Seller</span>
+              <span style="background:rgba(252,129,129,0.15); padding:4px 10px; border-radius:4px; font-size:0.78rem;">SA</span>
+              <span style="color:#718096; font-size:0.78rem; align-self:center;">→ Neptune</span>
+            </div>
+            <div style="display:flex; gap:8px; margin-bottom:8px;">
+              <span style="background:rgba(252,129,129,0.15); padding:4px 10px; border-radius:4px; font-size:0.78rem;">Seller</span>
+              <span style="background:rgba(252,129,129,0.15); padding:4px 10px; border-radius:4px; font-size:0.78rem;">SA</span>
+              <span style="color:#718096; font-size:0.78rem; align-self:center;">→ OpenSearch</span>
+            </div>
+            <div style="display:flex; gap:8px; margin-bottom:8px;">
+              <span style="background:rgba(252,129,129,0.15); padding:4px 10px; border-radius:4px; font-size:0.78rem;">Seller</span>
+              <span style="background:rgba(252,129,129,0.15); padding:4px 10px; border-radius:4px; font-size:0.78rem;">SA</span>
+              <span style="color:#718096; font-size:0.78rem; align-self:center;">→ Bedrock</span>
+            </div>
+            <p style="font-size:0.82rem; color:#fc8181; margin-top:12px;">6 people. Customer sees 3 separate conversations.</p>
+          </div>
+        </div>
+      </div>
+      <div class="transform-arrow">→</div>
+      <div class="transform-side">
+        <div class="card card-green">
+          <h3 style="color:#48bb78; font-size:1rem;">Tomorrow: Unified</h3>
+          <div style="font-size:0.88rem; margin-top:10px;">
+            <div style="display:flex; gap:8px; margin-bottom:8px;">
+              <span style="background:rgba(72,187,120,0.15); padding:4px 10px; border-radius:4px; font-size:0.78rem;">Cross-trained SA</span>
+              <span style="color:#718096; font-size:0.78rem; align-self:center;">→ Full Solution</span>
+            </div>
+            <div style="display:flex; gap:8px; margin-bottom:8px;">
+              <span style="background:rgba(72,187,120,0.15); padding:4px 10px; border-radius:4px; font-size:0.78rem;">Cross-trained SA</span>
+              <span style="color:#718096; font-size:0.78rem; align-self:center;">→ Full Solution</span>
+            </div>
+            <div style="display:flex; gap:8px; margin-bottom:8px;">
+              <span style="background:rgba(72,187,120,0.15); padding:4px 10px; border-radius:4px; font-size:0.78rem;">Cross-trained SA</span>
+              <span style="color:#718096; font-size:0.78rem; align-self:center;">→ Full Solution</span>
+            </div>
+            <p style="font-size:0.82rem; color:#48bb78; margin-top:12px;">3 SAs + Kiro. Customer sees ONE conversation.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card mt-24 text-center" style="background:rgba(246,224,94,0.06); border-color:rgba(246,224,94,0.2);">
+      <span class="stat-big" style="font-size:1.8rem;">Same headcount → 3× coverage → Solution-led selling</span>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 11: THE ASK — SOLUTION-LED GTM ==================== -->
+<div class="slide" data-slide="11">
+  <div class="full-w">
+    <h2>The Ask — From Service Selling to Solution Selling</h2>
+
+    <!-- TOP: Before / After -->
+    <div style="display:flex; align-items:stretch; gap:0; margin-bottom:24px;">
+      <!-- BEFORE -->
+      <div style="flex:1; background:rgba(252,129,129,0.04); border:1px solid rgba(252,129,129,0.2); border-radius:10px 0 0 10px; padding:20px 24px;">
+        <div style="font-size:0.68rem; color:#fc8181; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:10px;">❌ Today — Service-Led</div>
+        <ul style="list-style:none; padding:0; font-size:0.82rem; color:#cbd5e0; line-height:1.8;">
+          <li>SAs know one service, not the customer's problem</li>
+          <li>Every deal starts from scratch — no reusable solutions</li>
+          <li>6 people per engagement, customer sees 3 conversations</li>
+          <li>No cross-service expertise — Neptune SA can't help with OpenSearch</li>
+          <li>Competitors ship solutions while we sell components</li>
+        </ul>
+      </div>
+      <!-- ARROW -->
+      <div style="display:flex; align-items:center; justify-content:center; width:60px; font-size:2rem; color:#FF9900; font-weight:700;">→</div>
+      <!-- AFTER -->
+      <div style="flex:1; background:rgba(72,187,120,0.04); border:1px solid rgba(72,187,120,0.2); border-radius:0 10px 10px 0; padding:20px 24px;">
+        <div style="font-size:0.68rem; color:#48bb78; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:10px;">✅ Tomorrow — Solution-Led</div>
+        <ul style="list-style:none; padding:0; font-size:0.82rem; color:#cbd5e0; line-height:1.8;">
+          <li>Start with the customer problem, build a repeatable solution</li>
+          <li>Solutions built once, deployed many times across accounts</li>
+          <li>One cross-trained SA owns the full conversation</li>
+          <li>Code is free — customers pay only for AWS services consumed</li>
+          <li>AWS leads with outcomes, not SKUs</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- BOTTOM: Three-tier escalation -->
+    <div style="display:flex; gap:16px; align-items:stretch;">
+      <!-- Tier 1: Prove -->
+      <div style="flex:1; background:rgba(255,153,0,0.06); border:2px solid rgba(255,153,0,0.3); border-radius:10px; padding:18px; position:relative;">
+        <div style="font-size:0.62rem; color:#FF9900; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px;">Phase 1 — Prove It</div>
+        <div style="font-size:1.05rem; font-weight:700; color:#e2e8f0; margin-bottom:8px;">Investigative Intelligence</div>
+        <ul style="list-style:none; padding:0; font-size:0.78rem; color:#a0aec0; line-height:1.6;">
+          <li>→ DOJ Antitrust pilot — 500TB, 12 weeks</li>
+          <li>→ 61 deployments across FedCiv + DoD</li>
+          <li>→ Validate solution-led model works</li>
+        </ul>
+        <div style="margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,153,0,0.2);">
+          <div style="font-size:0.68rem; color:#718096;">US Federal only</div>
+          <div style="font-size:1.1rem; font-weight:800; color:#FF9900;">$101M ARR</div>
+        </div>
+      </div>
+      <!-- Arrow -->
+      <div style="display:flex; align-items:center; font-size:1.4rem; color:#FF9900; font-weight:700;">→</div>
+      <!-- Tier 2: Scale -->
+      <div style="flex:1; background:rgba(255,184,77,0.06); border:2px solid rgba(255,184,77,0.3); border-radius:10px; padding:18px; position:relative;">
+        <div style="font-size:0.62rem; color:#FFB84D; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px;">Phase 2 — Scale It</div>
+        <div style="font-size:1.05rem; font-weight:700; color:#e2e8f0; margin-bottom:8px;">Federal Solution Factory</div>
+        <ul style="list-style:none; padding:0; font-size:0.78rem; color:#a0aec0; line-height:1.6;">
+          <li>→ 3–4 solutions/yr from real customer needs</li>
+          <li>→ <span style="color:#FFB84D;">Fraud Detection</span> — HHS Medicare, then DOJ, Treasury</li>
+          <li>→ Each solution: $25–50M Federal ARR</li>
+          <li>→ Small team: architect + builder + GTM</li>
+        </ul>
+        <div style="margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,184,77,0.2);">
+          <div style="font-size:0.68rem; color:#718096;">US Federal — multiple solutions</div>
+          <div style="font-size:1.1rem; font-weight:800; color:#FFB84D;">$200–300M ARR</div>
+        </div>
+      </div>
+      <!-- Arrow -->
+      <div style="display:flex; align-items:center; font-size:1.4rem; color:#FF9900; font-weight:700;">→</div>
+      <!-- Tier 3: Transform -->
+      <div style="flex:1; background:rgba(72,187,120,0.06); border:2px solid rgba(72,187,120,0.3); border-radius:10px; padding:18px; position:relative;">
+        <div style="font-size:0.62rem; color:#48bb78; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px;">Phase 3 — Transform It</div>
+        <div style="font-size:1.05rem; font-weight:700; color:#e2e8f0; margin-bottom:8px;">Global Solution-Led GTM</div>
+        <ul style="list-style:none; padding:0; font-size:0.78rem; color:#a0aec0; line-height:1.6;">
+          <li>→ Investigative Intel goes global — law enforcement worldwide</li>
+          <li>→ Fraud Detection → Financial Services, Insurance, Healthcare</li>
+          <li>→ New solutions per sector from regional teams</li>
+          <li>→ New AWS GTM motion — solutions from the field</li>
+        </ul>
+        <div style="margin-top:10px; padding-top:8px; border-top:1px solid rgba(72,187,120,0.2);">
+          <div style="font-size:0.68rem; color:#718096;">Global cross-sector</div>
+          <div style="font-size:1.1rem; font-weight:800; color:#48bb78;">$500M+ ARR</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:16px; font-size:0.88rem; color:#718096;">One pilot proves the model. The model changes how AWS sells.</div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 12: BILL OF MATERIALS ==================== -->
+<div class="slide" data-slide="12">
+  <div class="full-w">
+    <h2>AWS Services Bill of Materials</h2>
+    <p class="mb-16" style="color:#a0aec0; font-size:0.85rem;">Per deployment — 500TB case evidence workload</p>
+    <table>
+      <thead>
+        <tr><th>Service</th><th>Role</th><th style="text-align:right;">Est. Monthly Cost</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Amazon S3</td><td>Data Lake + Frontend Hosting</td><td style="text-align:right;">$11,500</td></tr>
+        <tr><td>Amazon OpenSearch Serverless</td><td>Vector search + full-text</td><td style="text-align:right;">$8,200</td></tr>
+        <tr><td>Amazon Bedrock (Claude 3)</td><td>AI analysis, embeddings, RAG</td><td style="text-align:right;">$12,000</td></tr>
+        <tr><td>Amazon Textract</td><td>Document parsing / OCR</td><td style="text-align:right;">$4,500</td></tr>
+        <tr><td>Amazon Neptune</td><td>Knowledge graph</td><td style="text-align:right;">$3,800</td></tr>
+        <tr><td>Amazon Rekognition</td><td>Image / face analysis</td><td style="text-align:right;">$2,800</td></tr>
+        <tr><td>AWS Lambda</td><td>API + Ingestion compute</td><td style="text-align:right;">$2,400</td></tr>
+        <tr><td>AWS Step Functions</td><td>Pipeline orchestration</td><td style="text-align:right;">$500</td></tr>
+        <tr><td>Amazon API Gateway</td><td>REST API</td><td style="text-align:right;">$350</td></tr>
+        <tr><td>Amazon CloudWatch</td><td>Monitoring &amp; logging</td><td style="text-align:right;">$200</td></tr>
+        <tr><td>AWS KMS</td><td>Encryption at rest</td><td style="text-align:right;">$100</td></tr>
+        <tr><td>AWS CDK</td><td>Infrastructure as code</td><td style="text-align:right;">$0</td></tr>
+        <tr class="total-row"><td>Total per deployment</td><td></td><td style="text-align:right;">$46,350/mo</td></tr>
+        <tr class="total-row"><td>Annual per deployment</td><td></td><td style="text-align:right;">$556,200/yr</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 13: ARR OPPORTUNITY ==================== -->
+<div class="slide" data-slide="13">
+  <div class="full-w">
+    <h2>Federal ARR Opportunity — Path to $100M</h2>
+    <div class="cols-2" style="gap:20px;">
+      <div>
+        <div style="font-size:0.72rem; color:#FF9900; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Deal Tier Model — Based on Actual CBP Anchor</div>
+        <table style="font-size:0.75rem;">
+          <thead>
+            <tr><th>Deal Tier</th><th>Avg $/mo</th><th>Annual</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr><td style="color:#fc8181; font-weight:600;">🔴 Tier 1: High-Volume Transaction</td><td style="text-align:right;">$600K</td><td style="text-align:right;">$7.2M</td><td style="color:#718096;">CBP Biometrics (current $300K, doubling)</td></tr>
+            <tr><td style="color:#FFB84D; font-weight:600;">🟠 Tier 2: Large Investigation</td><td style="text-align:right;">$150K</td><td style="text-align:right;">$1.8M</td><td style="color:#718096;">CBP TASPD/PSPD/BEMS/Cargo</td></tr>
+            <tr><td style="color:#FF9900; font-weight:600;">🟡 Tier 3: Standard Investigation</td><td style="text-align:right;">$46K</td><td style="text-align:right;">$556K</td><td style="color:#718096;">DOJ Antitrust, SEC Enforcement</td></tr>
+          </tbody>
+        </table>
+
+        <div style="font-size:0.72rem; color:#FF9900; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin:14px 0 8px;">Department Breakdown</div>
+        <table style="font-size:0.72rem;">
+          <thead>
+            <tr><th>Department</th><th style="text-align:center;">T1</th><th style="text-align:center;">T2</th><th style="text-align:center;">T3</th><th style="text-align:right;">Annual</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>DHS/CBP</td><td style="text-align:center;">2</td><td style="text-align:center;">5</td><td style="text-align:center;">4</td><td style="text-align:right;color:#FFB84D;font-weight:600;">$25.6M</td></tr>
+            <tr><td>DHS <span style="color:#4a5568;font-size:0.65rem;">(ICE, SS, CISA, TSA)</span></td><td style="text-align:center;">1</td><td style="text-align:center;">3</td><td style="text-align:center;">4</td><td style="text-align:right;">$14.8M</td></tr>
+            <tr><td>DOJ <span style="color:#4a5568;font-size:0.65rem;">(Antitrust, Criminal, FBI, DEA, ATF)</span></td><td style="text-align:center;">1</td><td style="text-align:center;">4</td><td style="text-align:center;">8</td><td style="text-align:right;">$18.9M</td></tr>
+            <tr><td>Treasury <span style="color:#4a5568;font-size:0.65rem;">(IRS-CI, FinCEN, OFAC)</span></td><td style="text-align:center;">1</td><td style="text-align:center;">2</td><td style="text-align:center;">3</td><td style="text-align:right;">$12.5M</td></tr>
+            <tr><td>HHS <span style="color:#4a5568;font-size:0.65rem;">(OIG, FDA, CMS Fraud)</span></td><td style="text-align:center;">0</td><td style="text-align:center;">2</td><td style="text-align:center;">3</td><td style="text-align:right;">$5.3M</td></tr>
+            <tr><td>Other FedCiv <span style="color:#4a5568;font-size:0.65rem;">(SEC, FTC, EPA, USPS, State)</span></td><td style="text-align:center;">0</td><td style="text-align:center;">2</td><td style="text-align:center;">5</td><td style="text-align:right;">$6.4M</td></tr>
+            <tr class="total-row"><td>FedCiv Total</td><td style="text-align:center;">5</td><td style="text-align:center;">18</td><td style="text-align:center;">27</td><td style="text-align:right;">$83.5M</td></tr>
+            <tr style="color:#63b3ed;"><td>DoD <span style="color:#4a5568;font-size:0.65rem;">(JAG, CID, NCIS, OSI, DCIS)</span></td><td style="text-align:center;">1</td><td style="text-align:center;">4</td><td style="text-align:center;">6</td><td style="text-align:right;">$17.7M</td></tr>
+            <tr class="total-row"><td>Combined Federal</td><td style="text-align:center;">6</td><td style="text-align:center;">22</td><td style="text-align:center;">33</td><td style="text-align:right;">$101.2M</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="card" style="border-left:3px solid #fc8181; margin-bottom:12px; padding:14px;">
+          <div style="font-size:0.72rem; color:#fc8181; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">🔴 Anchor: CBP Biometrics (Proven)</div>
+          <div style="font-size:0.82rem; color:#e2e8f0;">Current: <span style="color:#FF9900; font-weight:700;">$300K/mo</span> (OpenSearch only) → doubling to <span style="color:#FF9900; font-weight:700;">$600K/mo</span></div>
+          <div style="font-size:0.75rem; color:#a0aec0; margin-top:4px;">+ 5 additional deals at TASPD, PSPD, BEMS, Cargo (~$150K/mo each)</div>
+        </div>
+        <div class="card" style="border-left:3px solid #FFB84D; margin-bottom:12px; padding:14px;">
+          <div style="font-size:0.72rem; color:#FFB84D; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">🟠 Use Case: Fentanyl Detection Pipeline</div>
+          <div style="font-size:0.78rem; color:#cbd5e0; line-height:1.5;">Millions of daily transactions → OpenSearch pattern filtering → Bedrock AI risk scoring → Neptune graph identifies hidden networks → Border officers act in real-time to intercept fentanyl</div>
+          <div style="font-size:0.72rem; color:#a0aec0; margin-top:6px;">Transferable to: tariffs, transshipments, any high-volume screening</div>
+        </div>
+        <div class="bar-chart" style="margin-bottom:12px;">
+          <div style="font-size:0.72rem; color:#FF9900; font-weight:600; margin-bottom:6px;">Annual AWS Spend by Department</div>
+          <div class="bar-row"><div class="bar-label">DHS/CBP</div><div class="bar-track"><div class="bar-fill" style="width:100%;">$25.6M</div></div></div>
+          <div class="bar-row"><div class="bar-label">DOJ</div><div class="bar-track"><div class="bar-fill" style="width:73.8%;">$18.9M</div></div></div>
+          <div class="bar-row"><div class="bar-label">DHS Other</div><div class="bar-track"><div class="bar-fill" style="width:57.8%;">$14.8M</div></div></div>
+          <div class="bar-row"><div class="bar-label">Treasury</div><div class="bar-track"><div class="bar-fill" style="width:48.8%;">$12.5M</div></div></div>
+          <div class="bar-row"><div class="bar-label">HHS</div><div class="bar-track"><div class="bar-fill" style="width:20.7%;">$5.3M</div></div></div>
+          <div class="bar-row"><div class="bar-label">Other</div><div class="bar-track"><div class="bar-fill" style="width:25%;">$6.4M</div></div></div>
+          <div class="bar-row" style="margin-top:6px; padding-top:6px; border-top:1px solid rgba(99,179,237,0.2);"><div class="bar-label" style="color:#63b3ed;">DoD</div><div class="bar-track"><div class="bar-fill dod" style="width:69.1%;">$17.7M</div></div></div>
+        </div>
+        <div class="card text-center" style="background:rgba(255,153,0,0.08); border-color:rgba(255,153,0,0.3); padding:14px;">
+          <span class="stat-big" style="font-size:2.2rem;">$101.2M</span>
+          <p class="stat-label">Combined Federal ARR Opportunity</p>
+          <p style="font-size:0.72rem; color:#718096; margin-top:4px;">6 Tier 1 × $7.2M + 22 Tier 2 × $1.8M + 33 Tier 3 × $556K</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 14: CALL TO ACTION ==================== -->
+<div class="slide" data-slide="14">
+  <div class="full-w">
+    <h2>Call to Action — Next Steps</h2>
+    <div class="cols-2" style="gap:36px;">
+      <div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-dot">⚡</div>
+            <div class="tl-content">
+              <div class="tl-time">Immediate</div>
+              <div class="tl-desc">Complete DOJ Antitrust questionnaire. Finalize 500TB pilot scope.</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot">30</div>
+            <div class="tl-content">
+              <div class="tl-time">30 Days</div>
+              <div class="tl-desc">Deploy pilot environment. Begin data ingestion with service team support.</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot">90</div>
+            <div class="tl-content">
+              <div class="tl-time">90 Days</div>
+              <div class="tl-desc">Pilot complete. Measure outcomes. Build case study.</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot">6m</div>
+            <div class="tl-content">
+              <div class="tl-time">6 Months</div>
+              <div class="tl-desc">Expand to 3 additional FedCiv departments.</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot">1y</div>
+            <div class="tl-content">
+              <div class="tl-time">12 Months</div>
+              <div class="tl-desc">Target 10+ deployments. $5.5M+ ARR.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; justify-content:center; gap:20px;">
+        <div class="card card-green text-center">
+          <div style="font-size:2.2rem; margin-bottom:8px;">🎯</div>
+          <h3 style="color:#48bb78;">The Ask</h3>
+          <p style="font-size:0.92rem;">Approve the DOJ Antitrust pilot.<br>12 weeks. ~$200K. Prove the platform.</p>
+        </div>
+        <div class="card text-center" style="background:rgba(246,224,94,0.06); border-color:rgba(246,224,94,0.2);">
+          <div style="font-size:2.2rem; margin-bottom:8px;">💰</div>
+          <h3>The Prize</h3>
+          <p style="font-size:0.92rem;"><span class="highlight">$101M</span> federal ARR opportunity.<br><span class="accent">61 deployments</span> across FedCiv + DoD.</p>
+        </div>
+        <div class="card text-center" style="background:rgba(99,179,237,0.06); border-color:rgba(99,179,237,0.2);">
+          <div style="font-size:2.2rem; margin-bottom:8px;">🚀</div>
+          <h3 style="color:#63b3ed;">The Advantage</h3>
+          <p style="font-size:0.92rem;">Solution is built. Code is free.<br>Customers pay only for AWS services.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end .deck -->
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.getElementById('counter');
+  const total = slides.length;
+  let current = 0;
+
+  function show(idx) {
+    if (idx < 0 || idx >= total) return;
+    slides[current].classList.remove('active');
+    current = idx;
+    slides[current].classList.add('active');
+    counter.textContent = (current + 1) + ' / ' + total;
+    // Reset scroll position for overflowing slides
+    slides[current].scrollTop = 0;
+  }
+
+  // Initialize counter
+  counter.textContent = '1 / ' + total;
+
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault();
+      show(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      show(current - 1);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      show(0);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      show(total - 1);
+    }
+  });
+
+  // Click navigation (left half = prev, right half = next)
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('a, button, input, select, textarea')) return;
+    if (e.clientX < window.innerWidth / 2) {
+      show(current - 1);
+    } else {
+      show(current + 1);
+    }
+  });
+
+  // Touch swipe support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    const diff = touchStartX - e.changedTouches[0].screenX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) show(current + 1);
+      else show(current - 1);
+    }
+  }, { passive: true });
+})();
+</script>
+</body>
+</html>
