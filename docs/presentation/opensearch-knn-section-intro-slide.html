@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Section Intro — Learning from Past Cases</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Amazon Ember', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0f1923;
+  color: #e2e8f0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slide {
+  width: 1280px;
+  height: 720px;
+  background: linear-gradient(135deg, #0f1923 0%, #1a2736 50%, #0d2137 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle radial accents */
+.slide::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(0, 168, 225, 0.04) 0%, transparent 55%),
+    radial-gradient(circle at 20% 80%, rgba(255, 153, 0, 0.02) 0%, transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(72, 187, 120, 0.02) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.content {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+}
+
+.section-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  color: #ff9900;
+  font-weight: 700;
+  margin-bottom: 28px;
+}
+
+h1 {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.3;
+  letter-spacing: -0.5px;
+}
+
+h1 .highlight {
+  color: #00a8e1;
+}
+
+/* Footer */
+.footer {
+  position: absolute;
+  bottom: 36px;
+  left: 56px;
+  right: 56px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-left {
+  font-size: 0.62rem;
+  color: #4a5568;
+}
+
+.footer-right {
+  font-size: 0.62rem;
+  color: #4a5568;
+}
+</style>
+</head>
+<body>
+
+<div class="slide">
+  <div class="content">
+    <div class="section-label">Pattern Recognition Engine</div>
+    <h1>How do we process the data to<br><span class="highlight">learn from the patterns</span><br>found in past cases?</h1>
+  </div>
+
+  <div class="footer">
+    <div class="footer-left">Investigative Intelligence — Art of the Possible | AWS</div>
+    <div class="footer-right">OpenSearch Serverless · Amazon Bedrock · k-NN Vector Search</div>
+  </div>
+</div>
+
+</body>
+</html>
