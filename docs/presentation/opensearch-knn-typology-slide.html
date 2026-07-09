@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenSearch k-NN Vector Search — Crime Typology Pattern Matching</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Amazon Ember', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0f1923;
+  color: #e2e8f0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slide {
+  width: 1280px;
+  height: 720px;
+  background: linear-gradient(135deg, #0f1923 0%, #1a2736 50%, #0d2137 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 24px 48px 24px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.slide::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(255, 153, 0, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(0, 168, 225, 0.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.title-block h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+  margin-bottom: 4px;
+}
+
+.title-block .subtitle {
+  font-size: 0.82rem;
+  color: #ff9900;
+  font-weight: 600;
+}
+
+.badge-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-aoss { background: rgba(0, 168, 225, 0.15); color: #00a8e1; border: 1px solid rgba(0,168,225,0.3); }
+.badge-titan { background: rgba(255, 153, 0, 0.12); color: #ff9900; border: 1px solid rgba(255,153,0,0.25); }
+.badge-serverless { background: rgba(72, 187, 120, 0.12); color: #48bb78; border: 1px solid rgba(72,187,120,0.25); }
+
+/* Main content — two columns */
+.content {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Left: Pipeline steps */
+.pipeline {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+.pipeline-title {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #718096;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+}
+
+.step:hover { border-color: rgba(0,168,225,0.3); }
+
+.step-num {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 168, 225, 0.15);
+  color: #00a8e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.step-content h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 3px;
+}
+
+.step-content p {
+  font-size: 0.92rem;
+  color: #a0aec0;
+  line-height: 1.4;
+}
+
+.step-content code {
+  font-size: 0.8rem;
+  background: rgba(0,168,225,0.08);
+  color: #00a8e1;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* Right: Models + How it's used */
+.right-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+}
+
+/* Models section */
+.models-section {
+  padding: 18px 20px;
+  background: rgba(0,0,0,0.25);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+}
+
+.models-two-col {
+  display: flex;
+  gap: 0;
+}
+
+.models-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.models-divider {
+  width: 1px;
+  background: rgba(255,255,255,0.1);
+  margin: 0 18px;
+}
+
+.models-col-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.models-col-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.58rem;
+  font-weight: 800;
+  color: #ffffff;
+  border: 1.5px solid;
+  flex-shrink: 0;
+}
+
+.models-col-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.models-col-subtitle {
+  font-size: 0.78rem;
+  color: #718096;
+  margin-bottom: 6px;
+}
+
+.models-col-subtitle code {
+  font-size: 0.66rem;
+  background: rgba(0,168,225,0.08);
+  color: #00a8e1;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.models-col-subtitle strong { color: #00a8e1; }
+
+.model-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 5px;
+}
+
+.model-chip.active {
+  border-color: rgba(255, 153, 0, 0.4);
+  background: rgba(255, 153, 0, 0.06);
+}
+
+.chip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.chip-dot-orange { background: #ff9900; }
+.chip-dot-blue { background: #00a8e1; }
+
+.chip-label { font-size: 0.82rem; font-weight: 600; color: #e2e8f0; }
+.chip-dim { font-size: 0.7rem; color: #718096; }
+
+.chip-badge {
+  font-size: 0.52rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: rgba(72, 187, 120, 0.15);
+  color: #48bb78;
+  border: 1px solid rgba(72,187,120,0.3);
+}
+
+.os-point {
+  font-size: 0.85rem;
+  color: #cbd5e0;
+  padding-left: 16px;
+  position: relative;
+  line-height: 1.7;
+}
+
+.os-point::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #48bb78;
+  font-weight: 700;
+}
+
+/* Use-case callout */
+.use-case {
+  background: rgba(255, 153, 0, 0.05);
+  border: 1px solid rgba(255, 153, 0, 0.2);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.use-case h4 {
+  font-size: 0.72rem;
+  color: #ff9900;
+  font-weight: 700;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.use-case p {
+  font-size: 0.85rem;
+  color: #cbd5e0;
+  line-height: 1.5;
+}
+
+.use-case .example {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: #a0aec0;
+  font-style: italic;
+  line-height: 1.45;
+}
+
+.use-case .example strong { color: #48bb78; font-style: normal; }
+
+.score-explain {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(0, 168, 225, 0.05);
+  border: 1px solid rgba(0, 168, 225, 0.2);
+  border-radius: 6px;
+  font-size: 0.76rem;
+  color: #a0aec0;
+  line-height: 1.5;
+}
+
+.score-explain .score-label {
+  color: #00a8e1;
+  font-weight: 700;
+}
+
+.score-explain strong {
+  color: #e2e8f0;
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.footer-left { font-size: 0.62rem; color: #4a5568; }
+
+.footer-right {
+  display: flex;
+  gap: 16px;
+  font-size: 0.62rem;
+  color: #4a5568;
+}
+
+.footer-right span { display: flex; align-items: center; gap: 4px; }
+.footer-right .dot { width: 6px; height: 6px; border-radius: 50%; }
+.dot-blue { background: #00a8e1; }
+.dot-orange { background: #ff9900; }
+.dot-green { background: #48bb78; }
+</style>
+</head>
+<body>
+
+<div class="slide">
+  <div class="header">
+    <div class="title-block">
+      <h1>k-NN Vector Search for Crime Typology Pattern Matching</h1>
+      <div class="subtitle">Investigative Intelligence Platform — OpenSearch Serverless</div>
+    </div>
+    <div class="badge-row">
+      <span class="badge badge-aoss">AOSS k-NN</span>
+      <span class="badge badge-titan">Titan Embed v2</span>
+      <span class="badge badge-serverless">Serverless</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Left: Pipeline steps -->
+    <div class="pipeline">
+      <div class="pipeline-title">Ingestion → Embedding → k-NN Retrieval</div>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Define Crime Typologies</h3>
+          <p>Known patterns from past prosecutions (e.g., Human Trafficking → Financial Control)</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Embed with Titan Embed v2</h3>
+          <p>Each typology + case document → <code>bedrock:invoke_model</code> → 1536-dim vector</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Index into OpenSearch</h3>
+          <p>Stored as <code>knn_vector</code> — HNSW algorithm, cosine similarity</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>k-NN Query → Pattern Match</h3>
+          <p>New evidence → top-K nearest typology vectors → surface matching patterns</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Models + Use case (no code blocks) -->
+    <div class="right-col">
+      <div class="models-section">
+        <div class="models-two-col">
+          <div class="models-col">
+            <div class="models-col-header">
+              <span class="models-col-icon" style="background:rgba(255,153,0,0.12); border-color:rgba(255,153,0,0.3);">B</span>
+              <span class="models-col-title" style="color:#ff9900;">Bedrock Generates</span>
+            </div>
+            <div class="models-col-subtitle">Models via <code>invoke_model</code></div>
+            <div class="model-chip active">
+              <span class="chip-dot chip-dot-orange"></span>
+              <span class="chip-label">Titan Embed Text v2</span>
+              <span class="chip-dim">1,536d</span>
+              <span class="chip-badge">CURRENT</span>
+            </div>
+            <div class="model-chip">
+              <span class="chip-dot chip-dot-orange"></span>
+              <span class="chip-label">Titan Embed Text v1</span>
+              <span class="chip-dim">1,536d</span>
+            </div>
+            <div class="model-chip">
+              <span class="chip-dot chip-dot-orange"></span>
+              <span class="chip-label">Titan Multimodal v1</span>
+              <span class="chip-dim">1,024d</span>
+            </div>
+            <div class="model-chip">
+              <span class="chip-dot chip-dot-blue"></span>
+              <span class="chip-label">Cohere Embed EN v3</span>
+              <span class="chip-dim">1,024d</span>
+            </div>
+            <div class="model-chip">
+              <span class="chip-dot chip-dot-blue"></span>
+              <span class="chip-label">Cohere Multilingual v3</span>
+              <span class="chip-dim">1,024d</span>
+            </div>
+          </div>
+          <div class="models-divider"></div>
+          <div class="models-col">
+            <div class="models-col-header">
+              <span class="models-col-icon" style="background:rgba(0,168,225,0.12); border-color:rgba(0,168,225,0.3);">OS</span>
+              <span class="models-col-title" style="color:#00a8e1;">OpenSearch Stores</span>
+            </div>
+            <div class="models-col-subtitle">Accepts vectors from <strong>any source</strong></div>
+            <div class="os-point">Stores floats at declared dimension</div>
+            <div class="os-point">k-NN math: cosine, L2, inner product</div>
+            <div class="os-point">Model-agnostic — doesn't care who made the vector</div>
+            <div class="os-point">Non-Bedrock models work too (push vectors directly)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="use-case">
+        <h4>How It's Used</h4>
+        <p>Known crime typology indicators from past prosecutions are embedded and indexed. New case evidence is embedded with the same model, then k-NN surfaces which historical patterns the evidence most resembles.</p>
+        <div class="example">
+          <strong>Example:</strong> New financial docs → Titan Embed → k-NN returns <strong>0.91</strong> similarity to "Human Trafficking → Financial Control" → flag for investigator
+        </div>
+        <div class="score-explain">
+          <span class="score-label">What is 0.91?</span> Cosine similarity score (0–1). <strong>1.0</strong> = identical meaning, <strong>0.0</strong> = completely unrelated. <strong>0.91</strong> = very high confidence this evidence matches a known prosecution pattern.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-left">Investigative Intelligence — Art of the Possible | AWS</div>
+    <div class="footer-right">
+      <span><span class="dot dot-blue"></span> OpenSearch Serverless (AOSS)</span>
+      <span><span class="dot dot-orange"></span> Amazon Bedrock</span>
+      <span><span class="dot dot-green"></span> Hybrid BM25 + k-NN also supported</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
