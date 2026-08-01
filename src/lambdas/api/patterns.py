@@ -265,11 +265,12 @@ def _get_graph(case_id: str, event: dict) -> dict:
     esc_label = _escape(label)
 
     # Query locations separately to ensure ALL are included (they may be low-degree)
-    # Limit to 200 and compute degree — this avoids timeout on large graphs
+    # Query locations sorted by degree (most connected first) — ensures key locations always appear
     q_locations = (
         f"g.V().hasLabel('{esc_label}')"
         f".has('entity_type','location')"
-        f".limit(200)"
+        f".order().by(bothE().count(), desc)"
+        f".limit(100)"
         f".project('n','t','c','d')"
         f".by('canonical_name').by('entity_type').by('confidence').by(bothE().count())"
     )
@@ -343,8 +344,10 @@ def _get_graph(case_id: str, event: dict) -> dict:
     top_nodes = location_nodes + other_nodes[:max_others]
     top_names = {n["name"] for n in top_nodes}
 
-    # Get edges between top nodes
+    # Get edges — include any edge where at least ONE endpoint is in top_names
+    # Then add missing endpoint nodes so the frontend can render them
     edges = []
+    edge_node_names = set()  # track nodes referenced by edges but not in top_names
     if top_names:
         q_edges = (
             f"g.V().hasLabel('{esc_label}').outE('RELATED_TO')"
@@ -353,7 +356,7 @@ def _get_graph(case_id: str, event: dict) -> dict:
             f".by(inV().values('canonical_name'))"
             f".by('relationship_type')"
             f".by('confidence')"
-            f".limit(500)"
+            f".limit(1000)"
         )
         raw_edges = _neptune_query(q_edges)
         logger.info("Graph edge query returned %d edges", len(raw_edges))
@@ -362,12 +365,32 @@ def _get_graph(case_id: str, event: dict) -> dict:
                 continue
             src = e.get("s", "")
             tgt = e.get("t", "")
-            if src in top_names and tgt in top_names:
+            # Include edge if at least one endpoint is a top node
+            if src in top_names or tgt in top_names:
                 edges.append({
                     "from": src, "to": tgt,
                     "type": e.get("r", "related"),
                     "confidence": e.get("c", 0.5),
                 })
+                # Track nodes we need to add
+                if src not in top_names:
+                    edge_node_names.add(src)
+                if tgt not in top_names:
+                    edge_node_names.add(tgt)
+
+    # Add missing edge endpoint nodes from the full node_list
+    node_lookup = {n["name"]: n for n in node_list}
+    for name in edge_node_names:
+        if name in node_lookup:
+            top_nodes.append(node_lookup[name])
+            top_names.add(name)
+        else:
+            # Node exists in edges but wasn't in our initial queries — add minimal entry
+            top_nodes.append({"name": name, "type": "unknown", "confidence": 0.5, "degree": 1})
+            top_names.add(name)
+
+    # Cap edges to avoid overwhelming the frontend
+    edges = edges[:500]
 
     return success_response({
         "nodes": top_nodes,
@@ -550,16 +573,84 @@ def top_patterns_handler(event, context):
 def _analyze_travel_intelligence(case_id: str, event: dict) -> dict:
     """Analyze travel patterns from Neptune graph and generate AI insights.
 
-    Computes:
-    1. Person→location edge frequencies (corridors)
-    2. Hub locations (convergence points)
-    3. Outlier destinations
-    4. Feeds to Bedrock for narrative intelligence
+    Enhanced with IPS cache integration:
+    1. Check case_ips_results for cached IPS data
+    2. If cached, return IPS-ranked patterns with full breakdowns
+    3. If not cached, fall back to real-time computation with co-travel,
+       convergence, and anomaly detection
     """
     import re
     import boto3
     from lambdas.api.response_helper import success_response, error_response
 
+    # --- Step 0: Check IPS cache ---
+    try:
+        from db.connection import ConnectionManager
+        cm = ConnectionManager()
+        with cm.cursor() as cur:
+            cur.execute("""
+                SELECT result_id, pattern_index, pattern_type,
+                       ips_total, ips_partial,
+                       l1_betweenness, l1_temporal_clustering, l1_cross_type_bridge, l1_isolation_anomaly, l1_total,
+                       l2_the_act, l2_the_means, l2_the_network, l2_the_pattern, l2_the_gap, l2_total,
+                       l3_ai_insight,
+                       title, narrative, icon, priority,
+                       persons, locations, pattern_metadata, evidence_gaps,
+                       is_facilitator, computed_at
+                FROM case_ips_results
+                WHERE case_file_id = %s
+                ORDER BY ips_total DESC
+                LIMIT 20
+            """, (case_id,))
+            cached_rows = cur.fetchall()
+
+        if cached_rows:
+            logger.info("IPS cache hit: %d patterns for case %s", len(cached_rows), case_id)
+            cached_insights = []
+            for row in cached_rows:
+                persons_data = row[21] if isinstance(row[21], list) else json.loads(row[21]) if isinstance(row[21], str) else []
+                locations_data = row[22] if isinstance(row[22], list) else json.loads(row[22]) if isinstance(row[22], str) else []
+                metadata = row[23] if isinstance(row[23], dict) else json.loads(row[23]) if isinstance(row[23], str) else {}
+                gaps = row[24] if isinstance(row[24], list) else json.loads(row[24]) if isinstance(row[24], str) else []
+
+                cached_insights.append({
+                    "icon": row[19] or "📊",
+                    "title": row[17],
+                    "narrative": row[18],
+                    "type": row[2],
+                    "locations": locations_data,
+                    "persons": persons_data,
+                    "priority": row[20],
+                    "ips_total": float(row[3]),
+                    "ips_partial": bool(row[4]),
+                    "layer1": {
+                        "betweenness": float(row[5]), "temporal_clustering": float(row[6]),
+                        "cross_type_bridge": float(row[7]), "isolation_anomaly": float(row[8]),
+                        "total": float(row[9]),
+                    },
+                    "layer2": {
+                        "the_act": float(row[10]), "the_means": float(row[11]),
+                        "the_network": float(row[12]), "the_pattern": float(row[13]),
+                        "the_gap": float(row[14]), "total": float(row[15]),
+                    },
+                    "layer3": {"ai_insight": float(row[16])},
+                    "evidence_gaps": gaps,
+                    "pattern_metadata": metadata,
+                    "is_facilitator": bool(row[25]),
+                })
+
+            return success_response({
+                "insights": cached_insights[:10],
+                "corridors": [],
+                "hubs": [],
+                "outliers": [],
+                "stats": {"cached": True, "total_patterns": len(cached_insights)},
+                "ips_cached": True,
+            }, 200, event)
+    except Exception as exc:
+        logger.warning("IPS cache check failed (falling back to real-time): %s", str(exc)[:200])
+
+    # --- Fallback: Real-time computation ---
     label = f"Entity_{case_id}"
     esc_label = _escape(label)
 
@@ -653,6 +744,71 @@ def _analyze_travel_intelligence(case_id: str, event: dict) -> dict:
                 })
     outliers = sorted(outliers, key=lambda x: x["person_avg_frequency"], reverse=True)[:10]
 
+    # --- Step 4b: Co-travel pattern detection ---
+    co_travel_cards = []
+    person_list = sorted(person_locs.keys())
+    for i in range(len(person_list)):
+        for j in range(i + 1, len(person_list)):
+            shared = set(person_locs[person_list[i]].keys()) & set(person_locs[person_list[j]].keys())
+            if len(shared) >= 3:
+                co_travel_cards.append({
+                    "icon": "✈️",
+                    "title": f"Co-Travel: {person_list[i]} & {person_list[j]}",
+                    "narrative": (
+                        f"{person_list[i]} and {person_list[j]} share {len(shared)} locations: "
+                        f"{', '.join(sorted(shared)[:4])}. "
+                        f"Cross-reference flight manifests for overlapping dates at these locations."
+                    ),
+                    "type": "co-travel",
+                    "locations": sorted(shared)[:6],
+                    "persons": [person_list[i], person_list[j]],
+                    "priority": "high" if len(shared) >= 5 else "medium",
+                })
+    co_travel_cards = co_travel_cards[:5]
+
+    # --- Step 4c: Convergence point detection ---
+    convergence_cards = []
+    for loc, persons_set in sorted(loc_persons.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(persons_set) >= 3:
+            convergence_cards.append({
+                "icon": "👥",
+                "title": f"Convergence: {loc}",
+                "narrative": (
+                    f"{len(persons_set)} subjects converge at {loc}: "
+                    f"{', '.join(sorted(persons_set)[:4])}. "
+                    f"Investigate what meetings or events drew multiple subjects here."
+                ),
+                "type": "convergence",
+                "locations": [loc],
+                "persons": sorted(persons_set)[:6],
+                "priority": "high" if len(persons_set) >= 5 else "medium",
+            })
+    convergence_cards = convergence_cards[:5]
+
+    # --- Step 4d: Anomaly destination detection ---
+    anomaly_cards = []
+    for person, locs in person_locs.items():
+        total = sum(locs.values())
+        if total < 3 or len(locs) < 2:
+            continue
+        avg_freq = total / len(locs)
+        for loc, freq in locs.items():
+            if freq == 1 and len(loc_persons.get(loc, set())) <= 1 and avg_freq >= 3.0:
+                anomaly_cards.append({
+                    "icon": "⚠️",
+                    "title": f"Anomaly: {person} → {loc}",
+                    "narrative": (
+                        f"{person} visited {loc} only once (avg {avg_freq:.1f}x elsewhere). "
+                        f"No other subjects visited this location. "
+                        f"Cross-reference with known associates at this location."
+                    ),
+                    "type": "outlier",
+                    "locations": [loc],
+                    "persons": [person],
+                    "priority": "medium",
+                })
+    anomaly_cards = anomaly_cards[:5]
+
     # --- Step 5: Bedrock AI narrative ---
     try:
         bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
@@ -689,11 +845,17 @@ CONVERGENCE POINTS (multiple subjects at same location):
 OUTLIER DESTINATIONS (unusual single visits):
 {outlier_summary or 'None.'}
 
+CO-TRAVEL PATTERNS (persons sharing 3+ locations):
+{chr(10).join([f"- {c['persons'][0]} & {c['persons'][1]}: {len(c['locations'])} shared locations ({', '.join(c['locations'][:3])})" for c in co_travel_cards[:5]]) or 'None.'}
+
 Generate exactly 6 investigative lead cards as a JSON array. Each card tells a story an investigator needs to hear. Mix these types:
-- ROUTINE CORRIDORS: "Epstein flew NYC↔Palm Beach 230 times between 2001-2005. This is the primary shuttle route — subpoena flight manifests for passenger lists on this corridor."
-- OUTLIER ALERTS: "Single trip to Marrakesh stands out against the NYC/Paris/Palm Beach pattern. Cross-reference with known associates in Morocco."
-- CONVERGENCE WARNINGS: "Paris is the only international city where Epstein, Maxwell, AND Groff all appear. Investigate what meetings or events drew all three."
-- INVESTIGATIVE LEADS: "Larry Visoski (pilot) appears at every major hub — Teterboro, Islip, PBI. His flight logs would map the complete travel network."
+- ROUTINE CORRIDORS: "Subject flew City A↔City B repeatedly. This is the primary shuttle route — subpoena flight manifests for passenger lists on this corridor."
+- OUTLIER ALERTS: "Single trip to an unusual destination stands out against the normal pattern. Cross-reference with known associates at that location."
+- CONVERGENCE WARNINGS: "City X is the only location where multiple key subjects all appear. Investigate what meetings or events drew them all together."
+- CO-TRAVEL PATTERNS: "Person A and Person B share 5 locations — investigate coordinated travel."
+- INVESTIGATIVE LEADS: "A specific person appears at every major hub. Their records would map the complete travel network."
+
+CRITICAL: Use ONLY the actual person names and location names from the data provided above. Do NOT use names from your training data. Do NOT reference any real-world cases.
 
 Each JSON object must have:
 - "icon": emoji (🔁 routine, ⚠️ outlier, 👥 convergence, 🔍 lead, ✈️ corridor, 🚨 alert)
@@ -775,11 +937,20 @@ Return ONLY the JSON array."""
                 "priority": "medium",
             })
 
+    # Merge co-travel, convergence, and anomaly cards into insights
+    all_insights = insights[:6] + co_travel_cards + convergence_cards + anomaly_cards
+    # Sort by priority (high first)
+    priority_order = {"high": 0, "medium": 1, "low": 2}
+    all_insights.sort(key=lambda x: priority_order.get(x.get("priority", "low"), 2))
+
     return success_response({
-        "insights": insights[:6],
+        "insights": all_insights[:10],
         "corridors": corridors[:10],
         "hubs": hubs[:10],
         "outliers": outliers[:10],
+        "co_travel": co_travel_cards,
+        "convergence_points": convergence_cards,
+        "anomaly_destinations": anomaly_cards,
         "stats": {
             "total_persons": len(person_locs),
             "total_locations": len(all_locations),
@@ -787,5 +958,120 @@ Return ONLY the JSON array."""
             "corridor_count": len(corridors),
             "hub_count": len(hubs),
             "outlier_count": len(outliers),
+            "co_travel_count": len(co_travel_cards),
+            "convergence_count": len(convergence_cards),
+            "anomaly_count": len(anomaly_cards),
         },
+        "ips_cached": False,
     }, 200, event)
+
+
+# ------------------------------------------------------------------
+# POST /case-files/{id}/anomaly/{type} — Pattern Library "Try It"
+# ------------------------------------------------------------------
+
+@with_access_control
+def anomaly_detect_handler(event, context):
+    """Run a specific anomaly detector against the current case."""
+    from lambdas.api.response_helper import CORS_HEADERS, error_response, success_response
+    import re as _re
+
+    if event.get("httpMethod") == "OPTIONS":
+        return {"statusCode": 200, "headers": CORS_HEADERS, "body": ""}
+
+    case_id = (event.get("pathParameters") or {}).get("id", "")
+    if not case_id:
+        return error_response(400, "VALIDATION_ERROR", "Missing case file ID", event)
+
+    # Extract anomaly type from path: /case-files/{id}/anomaly/{type}
+    path = event.get("path", "")
+    anomaly_match = _re.search(r'/anomaly/(\w+)', path)
+    if not anomaly_match:
+        return error_response(400, "VALIDATION_ERROR", "Missing anomaly type in path", event)
+    anomaly_type = anomaly_match.group(1)
+
+    try:
+        from services.anomaly_detectors import (
+            StructuringDetector, TemporalConvergenceDetector,
+            GhostEntityDetector, AbsencePatternDetector,
+            DecayPatternDetector, ProxyNetworkDetector,
+            AnomalyDestinationDetector,
+        )
+
+        detector_map = {
+            "structuring": StructuringDetector(),
+            "temporal_convergence": TemporalConvergenceDetector(),
+            "ghost_entity": GhostEntityDetector(),
+            "absence_pattern": AbsencePatternDetector(),
+            "decay_pattern": DecayPatternDetector(),
+            "proxy_network": ProxyNetworkDetector(),
+            "anomaly_destination": AnomalyDestinationDetector(),
+        }
+
+        detector = detector_map.get(anomaly_type)
+        if not detector:
+            return error_response(400, "INVALID_TYPE",
+                f"Unknown anomaly type: {anomaly_type}. Valid: {', '.join(detector_map.keys())}",
+                event)
+
+        # Get graph data from Neptune
+        label = f"Entity_{case_id}"
+        esc_label = _escape(label)
+
+        q_nodes = (
+            f"g.V().hasLabel('{esc_label}')"
+            f".limit(500)"
+            f".project('n','t','c','d')"
+            f".by('canonical_name').by('entity_type').by('confidence').by(bothE().count())"
+        )
+        raw_nodes = _neptune_query(q_nodes)
+        nodes = []
+        for r in raw_nodes:
+            if not isinstance(r, dict):
+                continue
+            d = r.get("d", 0)
+            if isinstance(d, dict):
+                d = d.get("@value", 0)
+            nodes.append({
+                "name": r.get("n", ""),
+                "type": r.get("t", ""),
+                "confidence": r.get("c", 0.5),
+                "degree": int(d),
+            })
+
+        q_edges = (
+            f"g.V().hasLabel('{esc_label}').outE('RELATED_TO')"
+            f".project('s','t','r','c')"
+            f".by(outV().values('canonical_name'))"
+            f".by(inV().values('canonical_name'))"
+            f".by('relationship_type')"
+            f".by('confidence')"
+            f".limit(2000)"
+        )
+        raw_edges = _neptune_query(q_edges)
+        edges = []
+        for e in raw_edges:
+            if not isinstance(e, dict):
+                continue
+            edges.append({
+                "from": e.get("s", ""),
+                "to": e.get("t", ""),
+                "type": e.get("r", "related"),
+                "confidence": e.get("c", 0.5),
+            })
+
+        results = detector.detect(nodes, edges, case_id)
+
+        return success_response({
+            "anomaly_type": anomaly_type,
+            "count": len(results),
+            "patterns": results,
+            "message": f"Found {len(results)} instances of {anomaly_type} pattern" if results
+                       else f"No instances of {anomaly_type} pattern found in the current case",
+        }, 200, event)
+
+    except ImportError:
+        return error_response(500, "MODULE_ERROR", "Anomaly detectors module not available", event)
+    except Exception as exc:
+        logger.exception("Anomaly detection failed for type %s", anomaly_type)
+        return error_response(500, "DETECTION_FAILED", str(exc)[:300], event)
