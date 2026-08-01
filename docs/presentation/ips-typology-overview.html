@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPS + Crime Typology — How It Works</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0f19;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .slide {
+            max-width: 1280px;
+            width: 100%;
+        }
+
+        .title-section {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        .title-section .eyebrow {
+            color: #f6ad55;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .title-section h1 {
+            font-size: 36px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+        .title-section .subtitle {
+            font-size: 16px;
+            color: #a0aec0;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 48px;
+        }
+
+        .col-card {
+            background: rgba(26, 35, 50, 0.9);
+            border-radius: 16px;
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+        .col-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+        .col-card.ips::before { background: linear-gradient(90deg, #63b3ed, #4299e1); }
+        .col-card.typology::before { background: linear-gradient(90deg, #e53e3e, #fc8181); }
+
+        .col-card .card-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        .col-card h2 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .col-card .card-question {
+            font-size: 14px;
+            color: #f6ad55;
+            font-style: italic;
+            margin-bottom: 16px;
+        }
+
+        .layer {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding: 10px 14px;
+            background: rgba(0,0,0,0.25);
+            border-radius: 8px;
+        }
+        .layer .layer-num {
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            background: #4299e1;
+            padding: 3px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .col-card.typology .layer .layer-num { background: #e53e3e; }
+
+        .layer .layer-text {
+            font-size: 13px;
+            color: #cbd5e0;
+            line-height: 1.5;
+        }
+        .layer .layer-text strong { color: #fff; }
+
+        .output-box {
+            margin-top: 18px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .col-card.ips .output-box {
+            background: rgba(66, 153, 225, 0.08);
+            border: 1px solid rgba(66, 153, 225, 0.25);
+            color: #90cdf4;
+        }
+        .col-card.typology .output-box {
+            background: rgba(229, 62, 62, 0.08);
+            border: 1px solid rgba(229, 62, 62, 0.25);
+            color: #feb2b2;
+        }
+        .output-box .output-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+        .col-card.ips .output-box .output-label { color: #63b3ed; }
+        .col-card.typology .output-box .output-label { color: #fc8181; }
+
+        /* Bottom section: Together */
+        .together-section {
+            background: rgba(26, 35, 50, 0.9);
+            border: 1px solid rgba(246, 173, 85, 0.3);
+            border-radius: 16px;
+            padding: 28px 36px;
+            text-align: center;
+        }
+        .together-section h3 {
+            font-size: 18px;
+            color: #f6ad55;
+            margin-bottom: 12px;
+        }
+        .together-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .flow-box {
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .flow-box.ips-box { background: rgba(66,153,225,0.15); border: 1px solid rgba(66,153,225,0.4); color: #90cdf4; }
+        .flow-box.plus { background: none; border: none; color: #718096; font-size: 20px; }
+        .flow-box.typ-box { background: rgba(229,62,62,0.15); border: 1px solid rgba(229,62,62,0.4); color: #feb2b2; }
+        .flow-box.arrow { background: none; border: none; color: #f6ad55; font-size: 20px; }
+        .flow-box.result-box { background: rgba(72,187,120,0.15); border: 1px solid rgba(72,187,120,0.4); color: #68d391; }
+
+        .together-section .together-desc {
+            font-size: 14px;
+            color: #a0aec0;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        .footer {
+            margin-top: 32px;
+            text-align: center;
+            font-size: 11px;
+            color: #4a5568;
+        }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+
+    <div class="title-section">
+        <div class="eyebrow">Investigative Intelligence Platform</div>
+        <h1>IPS + Crime Typology Scoring</h1>
+        <div class="subtitle">
+            Two complementary AI systems that automatically analyze case evidence —
+            one tells you <strong>where to look</strong>, the other tells you <strong>what kind of crime</strong> you're looking at.
+        </div>
+    </div>
+
+    <div class="two-col">
+
+        <!-- IPS Column -->
+        <div class="col-card ips">
+            <div class="card-icon">📊</div>
+            <h2>IPS — Investigative Priority Score</h2>
+            <div class="card-question">"Which connections should I investigate first?"</div>
+
+            <div class="layer">
+                <span class="layer-num">L1</span>
+                <div class="layer-text"><strong>Graph Topology</strong> — Betweenness centrality, temporal clustering, cross-type bridges, isolation anomalies. Computed from Neptune graph structure.</div>
+            </div>
+            <div class="layer">
+                <span class="layer-num">L2</span>
+                <div class="layer-text"><strong>Prosecutorial Pillars</strong> — The Act, The Means, The Network, The Pattern. Maps evidence to elements required for federal prosecution.</div>
+            </div>
+            <div class="layer">
+                <span class="layer-num">L3</span>
+                <div class="layer-text"><strong>AI Insight</strong> — Bedrock generates prosecutorial confidence score and narrative assessment for each detected pattern.</div>
+            </div>
+
+            <div class="output-box">
+                <div class="output-label">→ Output</div>
+                Ranked list of investigative patterns scored 0-100.<br>
+                <em>"Marcus Blackwell ↔ 6 persons ↔ 3 locations" = IPS 78/100</em>
+            </div>
+        </div>
+
+        <!-- Typology Column -->
+        <div class="col-card typology">
+            <div class="card-icon">🔴</div>
+            <h2>Crime Typology — Pattern Recognition</h2>
+            <div class="card-question">"What type of criminal operation does this evidence suggest?"</div>
+
+            <div class="layer">
+                <span class="layer-num">1</span>
+                <div class="layer-text"><strong>Entity Analysis</strong> — Classifies entities by type (persons, victims, locations, financial, communications, venues) and maps to 6 trafficking categories.</div>
+            </div>
+            <div class="layer">
+                <span class="layer-num">2</span>
+                <div class="layer-text"><strong>Flag Detection</strong> — 30 typology flags across 6 categories. Each flag triggers on specific entity/relationship combinations (e.g., "structuring + controlled accounts").</div>
+            </div>
+            <div class="layer">
+                <span class="layer-num">3</span>
+                <div class="layer-text"><strong>Situation Clustering</strong> — Groups entities into detected "situations" — specific instances of a pattern with AI-generated investigative briefs.</div>
+            </div>
+
+            <div class="output-box">
+                <div class="output-label">→ Output</div>
+                Case scored against 6 crime categories with drill-down into detected situations.<br>
+                <em>"Recruitment & Grooming: 72% — 4 situations detected"</em>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Together Section -->
+    <div class="together-section">
+        <h3>Combined: From Raw Evidence → Actionable Intelligence</h3>
+        <div class="together-flow">
+            <div class="flow-box ips-box">📊 IPS<br><span style="font-size:11px;font-weight:400;">Where to look</span></div>
+            <div class="flow-box plus">+</div>
+            <div class="flow-box typ-box">🔴 Typology<br><span style="font-size:11px;font-weight:400;">What crime type</span></div>
+            <div class="flow-box arrow">→</div>
+            <div class="flow-box result-box">🎯 Findings<br><span style="font-size:11px;font-weight:400;">Detected situations<br>with AI briefs</span></div>
+        </div>
+        <div class="together-desc">
+            The pipeline processes 9,500+ documents through Bedrock entity extraction, loads entities and relationships into Neptune graph database, then runs IPS + Typology scoring automatically.
+            Investigators see prioritized patterns, categorized by crime type, with AI-generated briefs and network visualizations — ready to act on.
+        </div>
+    </div>
+
+    <div class="footer">
+        Investigative Intelligence Platform · Powered by Amazon Bedrock, Neptune, Aurora, OpenSearch · DC Summit 2026
+    </div>
+
+</div>
+
+</body>
+</html>
