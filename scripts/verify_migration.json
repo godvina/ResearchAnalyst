@@ -1,0 +1,1 @@
+{"sql": "SELECT COUNT(*) as cnt FROM case_ips_results"}
