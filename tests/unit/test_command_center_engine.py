@@ -62,13 +62,13 @@ def mock_case_assessment_svc():
         "case_id": CASE_ID,
         "strength_score": 65,
         "evidence_coverage": {
-            "people": {"count": 10, "status": "covered"},
-            "organizations": {"count": 5, "status": "covered"},
-            "financial_connections": {"count": 3, "status": "covered"},
-            "communication_patterns": {"count": 2, "status": "covered"},
-            "physical_evidence": {"count": 1, "status": "covered"},
-            "timeline": {"count": 8, "status": "covered"},
-            "geographic_scope": {"count": 0, "status": "gap"},
+            "people": {"count": 10, "status": "strong", "covered": True},
+            "organizations": {"count": 5, "status": "partial", "covered": True},
+            "financial_connections": {"count": 3, "status": "partial", "covered": True},
+            "communication_patterns": {"count": 2, "status": "partial", "covered": True},
+            "physical_evidence": {"count": 1, "status": "partial", "covered": True},
+            "timeline": {"count": 8, "status": "partial", "covered": True},
+            "geographic_scope": {"count": 0, "status": "gap", "covered": False},
         },
     }
     return svc
@@ -469,8 +469,36 @@ class TestComputeTemporalCoherence:
 # ---------------------------------------------------------------------------
 
 class TestComputeProsecutionReadiness:
-    def test_all_covered_no_weaknesses(self, mock_aurora, mock_case_assessment_svc, mock_case_weakness_svc):
-        """7/7 covered + 0 critical → score > 80."""
+    def test_all_strong_no_weaknesses(self, mock_aurora, mock_case_assessment_svc, mock_case_weakness_svc):
+        """7/7 strong + 0 critical → score = 100."""
+        mock_case_assessment_svc.get_assessment.return_value = {
+            "evidence_coverage": {
+                "people": {"count": 50, "status": "strong"},
+                "organizations": {"count": 20, "status": "strong"},
+                "financial_connections": {"count": 15, "status": "strong"},
+                "communication_patterns": {"count": 12, "status": "strong"},
+                "physical_evidence": {"count": 10, "status": "strong"},
+                "timeline": {"count": 30, "status": "strong"},
+                "geographic_scope": {"count": 25, "status": "strong"},
+            },
+        }
+        mock_case_weakness_svc.analyze_weaknesses.return_value = []
+
+        eng = CommandCenterEngine(
+            aurora_cm=mock_aurora, bedrock_client=None,
+            neptune_endpoint="", neptune_port="8182",
+            case_assessment_svc=mock_case_assessment_svc,
+            case_weakness_svc=mock_case_weakness_svc,
+            investigator_engine=MagicMock(),
+        )
+        result = eng.compute_prosecution_readiness(CASE_ID)
+        assert result.score == 100
+        assert result.key == "prosecution_readiness"
+        assert result.raw_data["strong_categories"] == 7
+        assert result.raw_data["partial_categories"] == 0
+
+    def test_all_covered_legacy_compat(self, mock_aurora, mock_case_assessment_svc, mock_case_weakness_svc):
+        """Legacy 'covered' status treated as full weight (backward compat)."""
         mock_case_assessment_svc.get_assessment.return_value = {
             "evidence_coverage": {
                 "people": {"status": "covered"},
@@ -492,20 +520,20 @@ class TestComputeProsecutionReadiness:
             investigator_engine=MagicMock(),
         )
         result = eng.compute_prosecution_readiness(CASE_ID)
-        assert result.score > 80
-        assert result.key == "prosecution_readiness"
+        # Legacy "covered" → full weight → 7/7 * 80 + 20 = 100
+        assert result.score == 100
 
-    def test_partial_coverage(self, mock_aurora, mock_case_assessment_svc, mock_case_weakness_svc):
-        """3/7 covered → lower score."""
+    def test_mixed_strong_partial_gap(self, mock_aurora, mock_case_assessment_svc, mock_case_weakness_svc):
+        """Mix of strong/partial/gap produces weighted score < 100."""
         mock_case_assessment_svc.get_assessment.return_value = {
             "evidence_coverage": {
-                "people": {"status": "covered"},
-                "organizations": {"status": "covered"},
-                "financial_connections": {"status": "covered"},
-                "communication_patterns": {"status": "gap"},
-                "physical_evidence": {"status": "gap"},
-                "timeline": {"status": "gap"},
-                "geographic_scope": {"status": "gap"},
+                "people": {"count": 50, "status": "strong"},           # 1.0
+                "organizations": {"count": 5, "status": "partial"},    # 0.5
+                "financial_connections": {"count": 3, "status": "partial"},  # 0.5
+                "communication_patterns": {"count": 2, "status": "partial"},  # 0.5
+                "physical_evidence": {"count": 1, "status": "partial"},  # 0.5
+                "timeline": {"count": 30, "status": "strong"},         # 1.0
+                "geographic_scope": {"count": 0, "status": "gap"},     # 0.0
             },
         }
         mock_case_weakness_svc.analyze_weaknesses.return_value = []
@@ -518,19 +546,79 @@ class TestComputeProsecutionReadiness:
             investigator_engine=MagicMock(),
         )
         result = eng.compute_prosecution_readiness(CASE_ID)
-        # (3/7)*80 + 20 = 34.28 + 20 = 54
+        # weighted = 1.0 + 0.5 + 0.5 + 0.5 + 0.5 + 1.0 + 0.0 = 4.0
+        # score = int((4.0 / 7) * 80 + 20) = int(45.71 + 20) = 65
+        assert result.score == 65
+        assert result.raw_data["strong_categories"] == 2
+        assert result.raw_data["partial_categories"] == 4
+        assert result.raw_data["gap_categories"] == 1
+        assert "strong" in result.insight
+        assert "partial" in result.insight
+
+    def test_all_partial_no_weaknesses(self, mock_aurora, mock_case_assessment_svc, mock_case_weakness_svc):
+        """7/7 partial + 0 critical → weighted = 3.5 → score = 60."""
+        mock_case_assessment_svc.get_assessment.return_value = {
+            "evidence_coverage": {
+                "people": {"count": 5, "status": "partial"},
+                "organizations": {"count": 3, "status": "partial"},
+                "financial_connections": {"count": 2, "status": "partial"},
+                "communication_patterns": {"count": 1, "status": "partial"},
+                "physical_evidence": {"count": 4, "status": "partial"},
+                "timeline": {"count": 8, "status": "partial"},
+                "geographic_scope": {"count": 6, "status": "partial"},
+            },
+        }
+        mock_case_weakness_svc.analyze_weaknesses.return_value = []
+
+        eng = CommandCenterEngine(
+            aurora_cm=mock_aurora, bedrock_client=None,
+            neptune_endpoint="", neptune_port="8182",
+            case_assessment_svc=mock_case_assessment_svc,
+            case_weakness_svc=mock_case_weakness_svc,
+            investigator_engine=MagicMock(),
+        )
+        result = eng.compute_prosecution_readiness(CASE_ID)
+        # weighted = 7 * 0.5 = 3.5, score = int((3.5/7)*80 + 20) = int(40+20) = 60
+        assert result.score == 60
+
+    def test_partial_coverage_with_gaps(self, mock_aurora, mock_case_assessment_svc, mock_case_weakness_svc):
+        """3 strong, 0 partial, 4 gaps → lower score."""
+        mock_case_assessment_svc.get_assessment.return_value = {
+            "evidence_coverage": {
+                "people": {"count": 20, "status": "strong"},
+                "organizations": {"count": 15, "status": "strong"},
+                "financial_connections": {"count": 12, "status": "strong"},
+                "communication_patterns": {"count": 0, "status": "gap"},
+                "physical_evidence": {"count": 0, "status": "gap"},
+                "timeline": {"count": 0, "status": "gap"},
+                "geographic_scope": {"count": 0, "status": "gap"},
+            },
+        }
+        mock_case_weakness_svc.analyze_weaknesses.return_value = []
+
+        eng = CommandCenterEngine(
+            aurora_cm=mock_aurora, bedrock_client=None,
+            neptune_endpoint="", neptune_port="8182",
+            case_assessment_svc=mock_case_assessment_svc,
+            case_weakness_svc=mock_case_weakness_svc,
+            investigator_engine=MagicMock(),
+        )
+        result = eng.compute_prosecution_readiness(CASE_ID)
+        # weighted = 3.0, score = int((3.0/7)*80 + 20) = int(34.28 + 20) = 54
         assert result.score == 54
 
-    def test_score_formula(self):
-        """Verify formula: clamp(int((covered/7)*80 + (20 if zero_critical else 0)))."""
-        # 7/7 + 0 critical = 80 + 20 = 100
-        assert _clamp(int((7 / 7) * 80 + 20)) == 100
-        # 0/7 + 0 critical = 0 + 20 = 20
-        assert _clamp(int((0 / 7) * 80 + 20)) == 20
-        # 0/7 + critical = 0 + 0 = 0
-        assert _clamp(int((0 / 7) * 80 + 0)) == 0
-        # 5/7 + critical = 57.14 + 0 = 57
-        assert _clamp(int((5 / 7) * 80 + 0)) == 57
+    def test_score_formula_weighted(self):
+        """Verify new weighted formula: clamp(int((weighted/7)*80 + (20 if zero_critical else 0)))."""
+        # 7 strong + 0 critical = (7.0/7)*80 + 20 = 100
+        assert _clamp(int((7.0 / 7) * 80 + 20)) == 100
+        # 7 partial + 0 critical = (3.5/7)*80 + 20 = 60
+        assert _clamp(int((3.5 / 7) * 80 + 20)) == 60
+        # 0 coverage + 0 critical = 0 + 20 = 20
+        assert _clamp(int((0.0 / 7) * 80 + 20)) == 20
+        # 0 coverage + critical = 0 + 0 = 0
+        assert _clamp(int((0.0 / 7) * 80 + 0)) == 0
+        # 3 strong + 2 partial + 2 gap + 0 critical = (4.0/7)*80 + 20 = 65
+        assert _clamp(int((4.0 / 7) * 80 + 20)) == 65
 
     def test_service_failure_returns_zero(self, mock_aurora, mock_case_assessment_svc, mock_case_weakness_svc):
         mock_case_assessment_svc.get_assessment.side_effect = Exception("Service down")
