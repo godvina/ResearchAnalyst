@@ -1,0 +1,220 @@
+{
+  "Comment": "IPS Pipeline — 3-layer Investigative Priority Score computation with anomaly detection",
+  "StartAt": "InitRun",
+  "States": {
+    "InitRun": {
+      "Type": "Pass",
+      "Comment": "Initialize run tracking metadata",
+      "Result": {
+        "layer1": null,
+        "layer2": null,
+        "anomalies": null,
+        "layer3": null
+      },
+      "ResultPath": "$.results",
+      "Next": "Layer1_GraphTopology"
+    },
+
+    "Layer1_GraphTopology": {
+      "Type": "Task",
+      "Comment": "Layer 1: Compute 4 graph topology sub-signals from Neptune",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${IPSWorkerLambdaArn}",
+        "Payload": {
+          "phase": "layer1_graph_topology",
+          "case_id.$": "$.case_id",
+          "run_id.$": "$.run_id"
+        }
+      },
+      "ResultPath": "$.results.layer1",
+      "ResultSelector": {
+        "scores.$": "$.Payload.scores",
+        "status.$": "$.Payload.status"
+      },
+      "TimeoutSeconds": 120,
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.results.layer1",
+          "Next": "Layer2_Prosecutorial"
+        }
+      ],
+      "Next": "Layer2_Prosecutorial"
+    },
+
+    "Layer2_Prosecutorial": {
+      "Type": "Task",
+      "Comment": "Layer 2: Compute 5 prosecutorial evidence sub-signals",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${IPSWorkerLambdaArn}",
+        "Payload": {
+          "phase": "layer2_prosecutorial",
+          "case_id.$": "$.case_id",
+          "run_id.$": "$.run_id",
+          "layer1.$": "$.results.layer1"
+        }
+      },
+      "ResultPath": "$.results.layer2",
+      "ResultSelector": {
+        "scores.$": "$.Payload.scores",
+        "status.$": "$.Payload.status"
+      },
+      "TimeoutSeconds": 120,
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.results.layer2",
+          "Next": "AnomalyDetection"
+        }
+      ],
+      "Next": "AnomalyDetection"
+    },
+
+    "AnomalyDetection": {
+      "Type": "Task",
+      "Comment": "Run 6 anomaly detection algorithms in parallel within the Lambda",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${IPSWorkerLambdaArn}",
+        "Payload": {
+          "phase": "anomaly_detection",
+          "case_id.$": "$.case_id",
+          "run_id.$": "$.run_id",
+          "layer1.$": "$.results.layer1",
+          "layer2.$": "$.results.layer2"
+        }
+      },
+      "ResultPath": "$.results.anomalies",
+      "ResultSelector": {
+        "patterns.$": "$.Payload.patterns",
+        "status.$": "$.Payload.status"
+      },
+      "TimeoutSeconds": 120,
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.results.anomalies",
+          "Next": "Layer3_AIInsight"
+        }
+      ],
+      "Next": "Layer3_AIInsight"
+    },
+
+    "Layer3_AIInsight": {
+      "Type": "Task",
+      "Comment": "Layer 3: Send top 10 patterns to Bedrock for prosecutorial analysis",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${IPSWorkerLambdaArn}",
+        "Payload": {
+          "phase": "layer3_ai_insight",
+          "case_id.$": "$.case_id",
+          "run_id.$": "$.run_id",
+          "layer1.$": "$.results.layer1",
+          "layer2.$": "$.results.layer2",
+          "anomalies.$": "$.results.anomalies"
+        }
+      },
+      "ResultPath": "$.results.layer3",
+      "ResultSelector": {
+        "scores.$": "$.Payload.scores",
+        "status.$": "$.Payload.status"
+      },
+      "TimeoutSeconds": 120,
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.results.layer3",
+          "Next": "StoreResults"
+        }
+      ],
+      "Next": "StoreResults"
+    },
+
+    "StoreResults": {
+      "Type": "Task",
+      "Comment": "Compute final IPS scores and store results in Aurora case_ips_results",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${IPSWorkerLambdaArn}",
+        "Payload": {
+          "phase": "store_results",
+          "case_id.$": "$.case_id",
+          "run_id.$": "$.run_id",
+          "layer1.$": "$.results.layer1",
+          "layer2.$": "$.results.layer2",
+          "anomalies.$": "$.results.anomalies",
+          "layer3.$": "$.results.layer3"
+        }
+      },
+      "ResultPath": "$.final",
+      "ResultSelector": {
+        "patterns_stored.$": "$.Payload.patterns_stored",
+        "status.$": "$.Payload.status"
+      },
+      "TimeoutSeconds": 120,
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.final",
+          "Next": "PipelineFailed"
+        }
+      ],
+      "Next": "PipelineComplete"
+    },
+
+    "PipelineComplete": {
+      "Type": "Succeed",
+      "Comment": "IPS computation completed successfully"
+    },
+
+    "PipelineFailed": {
+      "Type": "Fail",
+      "Comment": "IPS computation failed at StoreResults phase",
+      "Cause": "StoreResults phase failed",
+      "Error": "IPSPipelineError"
+    }
+  }
+}
