@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sex Trafficking Crime Typology — Pattern Recognition Lens</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0f19;
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 40px;
+        }
+
+        .header {
+            max-width: 1200px;
+            margin: 0 auto 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-left .subtitle {
+            color: #e53e3e;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.8px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .header-left h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #e2e8f0;
+        }
+        .close-btn {
+            background: none;
+            border: 1px solid #4a5568;
+            color: #e2e8f0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .close-btn:hover { background: #2d3748; }
+
+        .grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 22px;
+        }
+
+        .card {
+            background: rgba(26, 35, 50, 0.92);
+            border-radius: 14px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-title .icon { font-size: 22px; }
+        .card-title .name { font-size: 15px; font-weight: 700; color: #e2e8f0; }
+
+        .score-badge {
+            padding: 4px 12px;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .indicators {
+            font-size: 11.5px;
+            color: #a0aec0;
+            line-height: 1.5;
+            margin-bottom: 14px;
+        }
+
+        .evidence-box {
+            border-radius: 0 10px 10px 0;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            flex: 1;
+            background: rgba(0, 0, 0, 0.35);
+        }
+        .evidence-box .label {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+        .evidence-box .text {
+            font-size: 11.5px;
+            color: #cbd5e0;
+            line-height: 1.65;
+        }
+        .evidence-box .text em {
+            font-style: italic;
+        }
+
+        .stat-footer {
+            font-size: 10.5px;
+            color: #718096;
+            line-height: 1.5;
+            padding-top: 10px;
+            border-top: 1px solid #2d3748;
+        }
+
+        /* Card-specific colors */
+        .card-recruitment { border: 1px solid rgba(229,62,62,0.35); border-top: 3px solid #e53e3e; }
+        .card-recruitment .score-badge { background: rgba(229,62,62,0.15); border: 1px solid rgba(229,62,62,0.5); color: #fc8181; }
+        .card-recruitment .evidence-box { border-left: 3px solid #e53e3e; }
+        .card-recruitment .evidence-box .label { color: #fc8181; }
+
+        .card-transport { border: 1px solid rgba(237,137,54,0.35); border-top: 3px solid #ed8936; }
+        .card-transport .score-badge { background: rgba(237,137,54,0.15); border: 1px solid rgba(237,137,54,0.5); color: #fbd38d; }
+        .card-transport .evidence-box { border-left: 3px solid #ed8936; }
+        .card-transport .evidence-box .label { color: #fbd38d; }
+
+        .card-comms { border: 1px solid rgba(128,90,213,0.35); border-top: 3px solid #805ad5; }
+        .card-comms .score-badge { background: rgba(128,90,213,0.15); border: 1px solid rgba(128,90,213,0.5); color: #b794f4; }
+        .card-comms .evidence-box { border-left: 3px solid #805ad5; }
+        .card-comms .evidence-box .label { color: #b794f4; }
+
+        .card-financial { border: 1px solid rgba(214,158,46,0.35); border-top: 3px solid #d69e2e; }
+        .card-financial .score-badge { background: rgba(214,158,46,0.15); border: 1px solid rgba(214,158,46,0.5); color: #fbd38d; }
+        .card-financial .evidence-box { border-left: 3px solid #d69e2e; }
+        .card-financial .evidence-box .label { color: #fbd38d; }
+
+        .card-venue { border: 1px solid rgba(56,161,105,0.35); border-top: 3px solid #38a169; }
+        .card-venue .score-badge { background: rgba(56,161,105,0.15); border: 1px solid rgba(56,161,105,0.5); color: #68d391; }
+        .card-venue .evidence-box { border-left: 3px solid #38a169; }
+        .card-venue .evidence-box .label { color: #68d391; }
+
+        .card-power { border: 1px solid rgba(229,62,62,0.35); border-top: 3px solid #c53030; }
+        .card-power .score-badge { background: rgba(197,48,48,0.15); border: 1px solid rgba(197,48,48,0.5); color: #feb2b2; }
+        .card-power .evidence-box { border-left: 3px solid #c53030; }
+        .card-power .evidence-box .label { color: #feb2b2; }
+
+        @media (max-width: 1100px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-left">
+        <div class="subtitle">SEX TRAFFICKING CRIME TYPOLOGY</div>
+        <h1>🔴 Pattern Recognition Lens</h1>
+    </div>
+    <button class="close-btn" onclick="window.close()">Close</button>
+</div>
+
+<div class="grid">
+
+    <!-- Card 1: Recruitment & Grooming -->
+    <div class="card card-recruitment">
+        <div class="card-header">
+            <div class="card-title">
+                <span class="icon">🎭</span>
+                <span class="name">Recruitment & Grooming</span>
+            </div>
+            <div class="score-badge">83% social media</div>
+        </div>
+        <div class="indicators">
+            Social media contact patterns, age disparity, gift-giving, isolation from family, false employment promises, Romeo pimp tactics
+        </div>
+        <div class="evidence-box">
+            <div class="label">EVIDENCE EXAMPLE</div>
+            <div class="text">
+                Subject A (age 42) contacted 6 females aged 16-19 via Instagram over 3 months. Initial flattery within 24hrs, gifts by day 3, requests to relocate by week 2. 4 of 6 targets isolated from family within 30 days. Typology flags: <em>love bombing + age disparity + communication isolation + geographic relocation</em>.
+            </div>
+        </div>
+        <div class="stat-footer">
+            83% of sex trafficking victims were recruited by someone they knew or met through social media. Average recruiter-victim age gap: 14 years. (DOJ National Human Trafficking Hotline Data, 2023)
+        </div>
+    </div>
+
+    <!-- Card 2: Transportation & Movement -->
+    <div class="card card-transport">
+        <div class="card-header">
+            <div class="card-title">
+                <span class="icon">✈️</span>
+                <span class="name">Transportation & Movement</span>
+            </div>
+            <div class="score-badge">71% interstate</div>
+        </div>
+        <div class="indicators">
+            Hotel patterns and short-stay bookings, interstate travel, charter/private aviation, multiple cities in compressed timeframes, circuit rotation schedules
+        </div>
+        <div class="evidence-box">
+            <div class="label">EVIDENCE EXAMPLE</div>
+            <div class="text">
+                Subject B booked hotels in 4 cities over 9 days (Miami→Atlanta→Charlotte→DC). All under alias, paid by Subject A's prepaid card. Victim C's phone GPS confirms presence at each location. Pattern repeats on 14-day cycle. Typology flags: <em>hotel clustering + geographic velocity + circuit rotation + third-party booking</em>.
+            </div>
+        </div>
+        <div class="stat-footer">
+            71% of federally prosecuted sex trafficking cases involved interstate transportation. Average circuit covers 4.2 cities over 2-week rotation. (USSC Sourcebook 2019-2023, 18 U.S.C. § 1591 cases)
+        </div>
+    </div>
+
+    <!-- Card 3: Communication Networks -->
+    <div class="card card-comms">
+        <div class="card-header">
+            <div class="card-title">
+                <span class="icon">📱</span>
+                <span class="name">Communication Networks</span>
+            </div>
+            <div class="score-badge">94% multi-phone</div>
+        </div>
+        <div class="indicators">
+            Burner phone clusters, encrypted app usage, coded language in ads/messages, scheduling coordination patterns, star topology networks
+        </div>
+        <div class="evidence-box">
+            <div class="label">EVIDENCE EXAMPLE</div>
+            <div class="text">
+                8 prepaid phones activated same day, same Walmart location. Star topology with Subject A's primary phone as central hub connecting to all 8. Phones used exclusively for ad posting on 3 platforms. Activity spikes 4-6pm daily (booking coordination window). Typology flags: <em>disposable cluster + star topology + coordination window + platform spread</em>.
+            </div>
+        </div>
+        <div class="stat-footer">
+            94% of sex trafficking operations use multiple phones/accounts. Average operation manages 6.3 advertising accounts across 2.8 platforms. (Thorn/Spotlight Program Data, 2023)
+        </div>
+    </div>
+
+    <!-- Card 4: Financial Control -->
+    <div class="card card-financial">
+        <div class="card-header">
+            <div class="card-title">
+                <span class="icon">🏦</span>
+                <span class="name">Financial Control</span>
+            </div>
+            <div class="score-badge">62% structuring</div>
+        </div>
+        <div class="indicators">
+            Structuring deposits below CTR threshold, victim accounts controlled by others, prepaid card networks, shell LLCs, cryptocurrency for ad payments, quota ledgers
+        </div>
+        <div class="evidence-box">
+            <div class="label">EVIDENCE EXAMPLE</div>
+            <div class="text">
+                12 bank accounts opened in victims' names at 4 different banks. All accounts show identical deposit patterns: $8,500-$9,800 cash deposits 2-3x/week. Subject A is authorized signer on all 12. Daily ledger on phone shows $1,000/night quota per victim. Typology flags: <em>structuring + controlled accounts + quota evidence + shell entity</em>.
+            </div>
+        </div>
+        <div class="stat-footer">
+            Structuring/Money Laundering present in 62% of sex trafficking prosecutions. Average trafficker controls 3.7 victim bank accounts. (FinCEN SAR Trend Analysis, FY2022-2024)
+        </div>
+    </div>
+
+    <!-- Card 5: Venue & Infrastructure -->
+    <div class="card card-venue">
+        <div class="card-header">
+            <div class="card-title">
+                <span class="icon">🏨</span>
+                <span class="name">Venue & Infrastructure</span>
+            </div>
+            <div class="score-badge">55% residential</div>
+        </div>
+        <div class="indicators">
+            Massage parlor/spa fronts, hotel room rotation, residential brothels in suburbs, online platform ad cadence, multi-location operations under same control
+        </div>
+        <div class="evidence-box">
+            <div class="label">EVIDENCE EXAMPLE</div>
+            <div class="text">
+                Subject A leases 3 apartments in different zip codes under LLC "Serenity Wellness." Each occupied 2-3 days/week on rotation. Online ads match rotation schedule exactly — new city posted as previous location goes dark. Neighbors report high foot traffic of males at odd hours. Typology flags: <em>venue rotation + ad posting cadence + multi-location operation + front business</em>.
+            </div>
+        </div>
+        <div class="stat-footer">
+            55% of sex trafficking venues are residential properties. Average operation rotates across 3.1 locations on 2-4 day cycles. Hotel-based operations average 4.7 different rooms/week. (Polaris Project Typology Study, 2024)
+        </div>
+    </div>
+
+    <!-- Card 6: Power & Control -->
+    <div class="card card-power">
+        <div class="card-header">
+            <div class="card-title">
+                <span class="icon">⛓️</span>
+                <span class="name">Power & Control</span>
+            </div>
+            <div class="score-badge">78% debt bondage</div>
+        </div>
+        <div class="indicators">
+            Debt bondage records/ledgers, document confiscation (IDs, passports), threats to victim or family, rules/quota enforcement, branding/tattoos, GPS surveillance
+        </div>
+        <div class="evidence-box">
+            <div class="label">EVIDENCE EXAMPLE</div>
+            <div class="text">
+                Ledger recovered from Subject A's phone showing 4 victims with running "debt" balances ($15K-$45K each). Charges include "rent" $3K/mo, "protection" $500/wk, "clothes" $2K. Daily quota: $1,000/night minimum. 3 victims' passports found in Subject A's safe deposit box. Typology flags: <em>debt ledger + document control + quota enforcement + surveillance control</em>.
+            </div>
+        </div>
+        <div class="stat-footer">
+            78% of sex trafficking victims report debt bondage. 63% had identity documents confiscated. Average daily quota: $500-$1,000. Avg sentence: 168 months. (DOJ Trafficking in Persons Report, 2024; USSC)
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Optional: If loaded inside investigator.html context, can pull live scores
+(function() {
+    if (typeof window.opener !== 'undefined' && window.opener && typeof window.opener.api === 'function') {
+        // Could overlay live scores from API here
+    }
+})();
+</script>
+
+</body>
+</html>
