@@ -1,0 +1,5 @@
+Job ARN: arn:aws:bedrock:us-east-1:974220725866:model-invocation-job/bxjsijen80d5
+Job Name: entity-extract-7f05e8d5-20260420-2337
+Model: amazon.nova-pro-v1:0
+Case: 7f05e8d5-4492-4f19-8894-25367606db96
+Submitted: 2026-04-20T23:37:23.615987
