@@ -1,0 +1,43 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowCrossAccountRead",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::308190710079:root"
+      },
+      "Action": [
+        "s3:GetObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::research-analyst-data-lake-974220725866",
+        "arn:aws:s3:::research-analyst-data-lake-974220725866/*"
+      ]
+    },
+    {
+      "Sid": "SolutionsTeamListDemoCase",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::562183591294:root"
+      },
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::research-analyst-data-lake-974220725866",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": ["cases/ed0b6c27-3b6b-4255-b9d0-efe8f4383a99/*"]
+        }
+      }
+    },
+    {
+      "Sid": "SolutionsTeamGetDemoCase",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::562183591294:root"
+      },
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::research-analyst-data-lake-974220725866/cases/ed0b6c27-3b6b-4255-b9d0-efe8f4383a99/*"
+    }
+  ]
+}
