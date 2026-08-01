@@ -1,0 +1,63 @@
+{
+  "Comment": "CloudWatch alarms for Typology Subgraph Pipeline monitoring",
+  "Alarms": [
+    {
+      "AlarmName": "TypologyPipeline-ExecutionFailed",
+      "AlarmDescription": "Triggers when the typology pipeline Step Function execution fails",
+      "MetricName": "ExecutionsFailed",
+      "Namespace": "AWS/States",
+      "Statistic": "Sum",
+      "Period": 300,
+      "EvaluationPeriods": 1,
+      "Threshold": 1,
+      "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+      "Dimensions": [
+        {
+          "Name": "StateMachineArn",
+          "Value": "arn:aws:states:us-east-1:974220725866:stateMachine:TypologySubgraphPipeline"
+        }
+      ],
+      "TreatMissingData": "notBreaching"
+    },
+    {
+      "AlarmName": "TypologyPipeline-ExecutionTimeout",
+      "AlarmDescription": "Triggers when pipeline execution exceeds 60 minutes",
+      "MetricName": "ExecutionTime",
+      "Namespace": "AWS/States",
+      "Statistic": "Maximum",
+      "Period": 300,
+      "EvaluationPeriods": 1,
+      "Threshold": 3600000,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "Dimensions": [
+        {
+          "Name": "StateMachineArn",
+          "Value": "arn:aws:states:us-east-1:974220725866:stateMachine:TypologySubgraphPipeline"
+        }
+      ],
+      "TreatMissingData": "notBreaching"
+    },
+    {
+      "AlarmName": "TypologyPipeline-LambdaErrors",
+      "AlarmDescription": "Triggers when any pipeline Lambda function errors",
+      "MetricName": "Errors",
+      "Namespace": "AWS/Lambda",
+      "Statistic": "Sum",
+      "Period": 300,
+      "EvaluationPeriods": 1,
+      "Threshold": 3,
+      "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+      "Dimensions": [
+        {
+          "Name": "FunctionName",
+          "Value": "TypologyPipeline-ExtractSubgraph"
+        }
+      ],
+      "TreatMissingData": "notBreaching"
+    }
+  ],
+  "Notes": {
+    "deployment": "Deploy these alarms via AWS CLI: aws cloudwatch put-metric-alarm --cli-input-json file://alarm.json",
+    "sns_topic": "Attach an SNS topic ARN for email/Slack notifications"
+  }
+}
