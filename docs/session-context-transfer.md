@@ -22,11 +22,24 @@ Say "continue from docs/session-context-transfer.md" to pick up.
 - `i-03aa49215972f0019` (neptune-sync) — Aurora→Neptune entity sync for Epstein Main, ~30 min, self-terminates
 
 **Still TODO:**
+- **🔴 Case Builder / Prosecution Readiness (BUILDING)** — New mode in AI Investigator:
+  - Scores each person on 5 evidence pillars: Proximity, Access, Financial, Temporal, Witness
+  - Prosecution Readiness Score 0-100 with color coding
+  - Auto-generates questions from evidence GAPS (what's missing to prosecute)
+  - Backend: new `case_builder` action in ai_investigator Lambda
+  - Frontend: "🎯 Case Builder" toggle in AI Investigator tab
+- **AI Investigator** — Backend done, frontend working (graph + analysis + questions)
+  - Data-driven question algorithm deployed (Tier 1-4)
+  - "More Questions" button for deeper investigation tiers
+- **Timeline Hotspot Deep Analysis** — Bedrock auto-analysis on expand (partially done)
+- **Entity extraction EC2** — `i-0067f3dc7a0533816` (entity-main-tonight) RUNNING, 40,207/94K done, 53,798 remaining, ~60 hours
+  - Lambda fix deployed: SAVEPOINT for error isolation + ON CONFLICT DO UPDATE for duplicate entity names
+  - Count confirmed decreasing: 40,195 → 40,207 in minutes
+  - Root cause was: ROLLBACK on individual doc failures rolled back entire batch + ON CONFLICT DO NOTHING dropped inserts for duplicate entity names
 - Noise entity cleanup (after extraction completes)
-- Re-sync Neptune after extraction finishes (94K entities)
+- Re-sync Neptune after extraction finishes
 - Case cleanup (remove 20+ test/duplicate cases)
-- Deploy package update for colleague (include Route Intel)
-- Refresh case stats for Epstein Main after sync completes
+- Deploy package update for colleague
 
 ---
 
