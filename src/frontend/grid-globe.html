@@ -81,9 +81,9 @@ body{background:#0a0f19;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFo
                 <button class="network-close" onclick="closeNetworkGraph()">✕ Close</button>
             </div>
             <div style="display:flex;flex:1;min-height:0;">
-                <svg id="networkSvg" style="flex:1;"></svg>
-                <div id="networkBrief" style="width:220px;padding:8px 10px;overflow-y:auto;border-left:1px solid rgba(255,255,255,0.06);font-size:0.68rem;color:#a0aec0;line-height:1.5;">
-                    <div style="color:#718096;font-size:0.6rem;">Click a node for its intelligence brief</div>
+                <svg id="networkSvg" style="flex:1.4;min-width:0;"></svg>
+                <div id="networkBrief" style="width:260px;padding:10px 14px;overflow-y:auto;border-left:1px solid rgba(255,255,255,0.06);font-size:0.74rem;color:#a0aec0;line-height:1.6;flex-shrink:0;">
+                    <div style="color:#718096;font-size:0.68rem;">Click a node for its intelligence brief</div>
                 </div>
             </div>
         </div>
@@ -94,7 +94,7 @@ body{background:#0a0f19;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFo
 /* Sidebar */
 .sidebar{background:rgba(16,24,40,0.98);border-left:1px solid rgba(255,255,255,0.06);overflow-y:auto;padding:18px;font-size:0.78rem}
 /* Network Graph Panel — below map */
-.network-panel{height:260px;border-top:1px solid rgba(183,148,244,0.25);background:#0d1320;display:flex;flex-direction:column;flex-shrink:0}
+.network-panel{height:340px;border-top:1px solid rgba(183,148,244,0.25);background:#0d1320;display:flex;flex-direction:column;flex-shrink:0}
 .network-header{padding:5px 14px;background:rgba(16,24,40,0.95);border-bottom:1px solid rgba(183,148,244,0.12);display:flex;align-items:center;justify-content:space-between}
 .network-title{font-size:0.7rem;font-weight:700;color:#b794f4}
 .network-close{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:3px 8px;font-size:0.58rem;color:#a0aec0;cursor:pointer}
@@ -102,7 +102,7 @@ body{background:#0a0f19;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFo
 #networkSvg{flex:1;width:100%}
 .node-circle{cursor:pointer;transition:r 0.2s}
 .node-circle:hover{filter:brightness(1.3)}
-.node-text{font-size:9px;fill:#e2e8f0;pointer-events:none;text-anchor:middle}
+.node-text{font-size:9px;fill:#e2e8f0;pointer-events:none;text-anchor:middle;paint-order:stroke;stroke:#0d1320;stroke-width:3px;stroke-linecap:round;stroke-linejoin:round}
 .link-line{stroke-opacity:0.4}
 .link-label{font-size:7px;fill:#718096;text-anchor:middle}
 /* New Finding Popup */
@@ -156,7 +156,9 @@ body{background:#0a0f19;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFo
 .back-link{font-size:0.68rem;color:#a0aec0;cursor:pointer;margin-bottom:12px;display:block}
 .back-link:hover{color:#ecc94b}
 /* Node label on map */
-.node-label{font-size:9px;color:#e2e8f0;background:rgba(16,24,40,0.85);padding:1px 5px;border-radius:3px;border:1px solid rgba(255,255,255,0.1);white-space:nowrap}
+.node-label{font-size:9px;color:#e2e8f0;background:rgba(16,24,40,0.85);padding:1px 5px;border-radius:3px;border:1px solid rgba(255,255,255,0.1);white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.4);pointer-events:none}
+.leaflet-tooltip.node-label{font-weight:500;letter-spacing:0.2px}
+.leaflet-tooltip-top.node-label::before{border-top-color:rgba(16,24,40,0.85)}
 /* Focus mode: dim non-matching nodes */
 .leaflet-marker-icon.dimmed, .leaflet-interactive.dimmed{opacity:0.15!important}
 </style>
@@ -249,6 +251,7 @@ async function init() {
     await loadGridNodes();
     await loadResearch();
     await loadScored();
+    mergeInlineXpat(); // Ensure cross-pattern signatures exist even if file:// blocked fetch
 
     // Render
     drawGrid();
@@ -274,7 +277,12 @@ async function loadResearch() {
 }
 async function loadScored() {
     try { var r = await fetch(API_BASE + '/scored'); if(r.ok){scoredData=await r.json();return;} } catch(e){}
-    try { var r2 = await fetch('../data/uvg-grid-scored-findings.json'); if(r2.ok){scoredData=await r2.json();} } catch(e){}
+    // Try multiple fallback paths (for file:// and different server roots)
+    var paths = ['../data/uvg-grid-scored-findings.json', './uvg-grid-scored-findings.json', 'src/data/uvg-grid-scored-findings.json', '../src/data/uvg-grid-scored-findings.json'];
+    for (var i = 0; i < paths.length; i++) {
+        try { var r2 = await fetch(paths[i]); if(r2.ok){scoredData=await r2.json(); console.log('Scored data loaded from:', paths[i], '- nodes:', scoredData.results.length); return;} } catch(e){}
+    }
+    console.warn('Could not load scored findings from any path');
 }
 // =====================================================================
 // LAYER 1: THE GRID — clean vertices (diamonds) + faint triangle edges
@@ -324,7 +332,7 @@ function drawSites() {
         var marker = L.circleMarker([site.realLat, site.realLng], {
             radius: 7, color:'#48bb78', fillColor:'#48bb78', fillOpacity:0.7, weight:1.5
         }).addTo(siteLayer);
-        marker.bindTooltip(site.name, {direction:'top', offset:[0,-8], className:'node-label', permanent:false});
+        marker.bindTooltip(site.name, {direction:'top', offset:[0,-8], className:'node-label', permanent:true});
         marker.on('click', function(){ showNodeBrief(node); });
 
         // Thin dotted line from site to its nearest grid vertex
@@ -462,6 +470,15 @@ function getMatchingNodes(patternId) {
     return ids;
 }
 
+// Haversine distance in km between two lat/lng points
+function haversineKm(lat1, lng1, lat2, lng2) {
+    var R = 6371;
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLng = (lng2 - lng1) * Math.PI / 180;
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng/2) * Math.sin(dLng/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
 function getNodeLabel(n) {
     // Priority: known site name → AI codename → continent
     if (n.nearest_known_site) return 'V' + n.id + ' ' + n.nearest_known_site;
@@ -493,7 +510,11 @@ var PATTERNS = [
     {id:'tectonic', sigId:'am-gge-ga-003', title:'Tectonic / Volcanic Nodes', color:'#fc8181',
      brief:'Grid vertex coincides with plate boundary, fault line, or volcanic hotspot — suggesting geomagnetic selection.'},
     {id:'geometric', sigId:'am-gge-ga-002', title:'Geometric Formations', color:'#b794f4',
-     brief:'Natural or constructed geometric patterns visible from aerial/satellite at grid vertex.'}
+     brief:'Natural or constructed geometric patterns visible from aerial/satellite at grid vertex.'},
+    {id:'greatcircle', sigId:'am-gge-xpat-001', title:'🔑 Great Circle Alignment', color:'#f6ad55',
+     brief:'Sites on the Jim Alison great-circle line — Giza, Mohenjo-daro, Angkor, Easter Island, Nazca — aligned within <1° of arc across 40,000km. The single most compelling cross-site connection.'},
+    {id:'orion', sigId:'am-gge-xpat-002', title:'🔑 Orion Epoch Encoding', color:'#fc8181',
+     brief:'Sites encoding the same precessional epoch (10,500 BCE) via constellation ground-plans: Giza (Orion), Angkor (Draco), Teotihuacan (Orion) — independent civilizations, same sky-date.'}
 ];
 
 // =====================================================================
@@ -581,32 +602,75 @@ function showNodeBrief(node) {
         html += '<div class="intel visible">';
         html += '<div class="intel-head"><span class="intel-code">'+brief.codename+'</span>';
         html += '<span class="intel-badge '+statusCls+'">'+brief.investigation_status+'</span></div>';
-        html += '<div class="intel-text">'+brief.situation+'</div>';
 
+        // === DOCUMENTARY FORMAT: Hook → Evidence → Connection → Next ===
+
+        // HOOK: the smoking gun or most provocative finding
         if (brief.smoking_gun) {
-            html += '<div class="intel-key"><div class="lbl">💡 Key Finding</div>';
-            html += '<div class="val">'+brief.smoking_gun+'</div></div>';
+            html += '<div class="intel-key" style="background:rgba(236,201,75,0.08);border-color:rgba(236,201,75,0.25);margin-top:10px;">';
+            html += '<div class="lbl" style="font-size:0.55rem;">🎯 THE HOOK</div>';
+            html += '<div class="val" style="font-size:0.72rem;line-height:1.5;">'+brief.smoking_gun+'</div></div>';
         }
 
-        // Signatures
+        // EVIDENCE: classified findings
+        if (brief.evidence_found && brief.evidence_found.length > 0) {
+            html += '<div class="section-title" style="margin-top:12px">📋 EVIDENCE</div>';
+            var confirmed = brief.evidence_found.filter(function(e){return e.confidence==='confirmed';});
+            var probable = brief.evidence_found.filter(function(e){return e.confidence==='probable';});
+            var other = brief.evidence_found.filter(function(e){return e.confidence!=='confirmed'&&e.confidence!=='probable';});
+            if (confirmed.length > 0) {
+                confirmed.slice(0,3).forEach(function(ev) {
+                    html += '<div class="ev-item confirmed">'+ev.finding;
+                    html += '<div class="src">'+ev.source_type+' • <span style="color:#48bb78">CONFIRMED</span></div></div>';
+                });
+            }
+            if (probable.length > 0) {
+                probable.slice(0,3).forEach(function(ev) {
+                    html += '<div class="ev-item probable">'+ev.finding;
+                    html += '<div class="src">'+ev.source_type+' • <span style="color:#63b3ed">PROBABLE</span></div></div>';
+                });
+            }
+            if (other.length > 0 && confirmed.length + probable.length < 4) {
+                other.slice(0,2).forEach(function(ev) {
+                    html += '<div class="ev-item">'+ev.finding;
+                    html += '<div class="src">'+ev.source_type+'</div></div>';
+                });
+            }
+        }
+
+        // CONNECTION: pattern matches + what connects this to other sites
         if (scored && scored.matches && scored.matches.length > 0) {
-            html += '<div class="section-title">Signatures Matched</div>';
+            html += '<div class="section-title" style="margin-top:12px">🔗 CONNECTIONS</div>';
+            html += '<div style="font-size:0.66rem;color:#cbd5e0;margin-bottom:6px;line-height:1.4;">This vertex participates in '+scored.matches.length+' pattern'+(scored.matches.length>1?'s':'')+' spanning multiple continents:</div>';
             scored.matches.forEach(function(m) {
                 var p = PATTERNS.find(function(x){ return x.sigId === m.signature_id; });
                 var name = p ? p.title : m.signature_id;
                 var color = p ? p.color : '#63b3ed';
-                html += '<div style="font-size:0.65rem;margin:3px 0;"><span style="color:'+color+'">✓</span> '+name+' <span style="color:#718096">('+m.confidence+')</span></div>';
+                var count = p ? getMatchingNodes(p.id).length : '?';
+                html += '<div style="font-size:0.65rem;margin:4px 0;padding:4px 8px;background:rgba(255,255,255,0.02);border-radius:4px;border-left:2px solid '+color+';">';
+                html += '<span style="color:'+color+';font-weight:600;">'+name+'</span>';
+                html += '<div style="font-size:0.58rem;color:#718096;margin-top:2px;">'+m.confidence+' confidence • '+count+' sites share this pattern';
+                if (m.matched_indicators && m.matched_indicators.length > 0) {
+                    html += ' • Traits: ' + m.matched_indicators.slice(0,2).join(', ');
+                }
+                html += '</div></div>';
             });
         }
 
-        // Evidence
-        if (brief.evidence_found && brief.evidence_found.length > 0) {
-            html += '<div class="section-title" style="margin-top:12px">Evidence</div>';
-            brief.evidence_found.slice(0,5).forEach(function(ev) {
-                html += '<div class="ev-item '+ev.confidence+'">'+ev.finding;
-                html += '<div class="src">'+ev.source_type+'</div></div>';
-            });
+        // NEXT: what investigation would advance understanding
+        html += '<div class="section-title" style="margin-top:12px">➡️ NEXT STEPS</div>';
+        html += '<div style="font-size:0.66rem;color:#a0aec0;line-height:1.5;padding:6px 8px;background:rgba(255,255,255,0.02);border-radius:4px;">';
+        if (brief.investigation_status === 'CONFIRMED') {
+            html += 'Status: CONFIRMED. Next: deep-dive cross-pattern analysis to identify shared construction techniques with other confirmed sites.';
+        } else if (brief.investigation_status === 'PROBABLE') {
+            html += 'Status: PROBABLE. Next: verify with additional archaeological surveys, radiometric dating, or cultural memory documentation to elevate to CONFIRMED.';
+        } else {
+            html += 'Status: INCONCLUSIVE. Next: run targeted research (Cultural Memory, Geological, or Cross-Pattern agents) to find specific measurable indicators.';
         }
+        html += '</div>';
+
+        // Context note
+        html += '<div style="font-size:0.7rem;color:#cbd5e0;line-height:1.5;margin-top:12px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05);">'+brief.situation+'</div>';
 
         html += '</div>';
     } else {
@@ -616,6 +680,8 @@ function showNodeBrief(node) {
         html += '<div class="intel-text">No AI research brief generated for this vertex yet. ';
         html += 'Classification: '+(node.classification||'unknown').replace(/_/g,' ')+'. ';
         html += 'Coordinates: '+node.lat.toFixed(2)+'°, '+node.lng.toFixed(2)+'°</div>';
+        html += '<div class="section-title" style="margin-top:12px">➡️ NEXT STEPS</div>';
+        html += '<div style="font-size:0.66rem;color:#a0aec0;line-height:1.5;">Run the Broad Scanner agent on this vertex to generate an initial research brief. This vertex may have significance that hasn\'t been investigated yet.</div>';
         html += '</div>';
     }
 
@@ -718,7 +784,8 @@ function showNetworkGraph(patternId) {
     });
 
     // ONLY draw edges between nodes sharing SPECIFIC non-generic indicators
-    var genericTerms = ['Within','km','node','ocean','Indigenous oral tradition','500+ year continuity','Plate boundary','High seismic','Shallow plateau','Depth <200m'];
+    // Exclude indicators that simply restate the pattern definition (these match ALL nodes in the pattern)
+    var genericTerms = ['Within','km','node','ocean','Indigenous oral tradition','500+ year continuity','Plate boundary','High seismic','Shallow plateau','Depth <200m','5+ ancient sites clustered','ancient sites clustered','Within 300km','Within 500km','concentration of','improbable'];
     if (scoredData && scoredData.results) {
         for (var i = 0; i < matchNodeIds.length; i++) {
             for (var j = i + 1; j < matchNodeIds.length; j++) {
@@ -732,7 +799,7 @@ function showNetworkGraph(patternId) {
                 var indA = mA.matched_indicators || [];
                 var indB = mB.matched_indicators || [];
                 var shared = indA.filter(function(x){
-                    if (genericTerms.some(function(g){ return x.indexOf(g) >= 0; })) return false;
+                    if (genericTerms.some(function(g){ return x.toLowerCase().indexOf(g.toLowerCase()) >= 0; })) return false;
                     return indB.indexOf(x) >= 0;
                 });
                 if (shared.length > 0) {
@@ -759,18 +826,30 @@ function generatePatternInsight(pattern, nodes, edges) {
     nodes.forEach(function(n){ continents[n.continent] = (continents[n.continent]||0) + 1; });
     var numContinents = Object.keys(continents).filter(function(c){ return c !== 'Ocean'; }).length;
     
+    // Generate a "so what" insight, not just stats
     if (pattern.id === 'sacred') {
-        return nodes.length + ' sites on ' + numContinents + ' continents independently designated sacred — ' + (edges.length > 0 ? edges.length + ' share specific ceremonial traits' : 'no specific shared ceremonies documented yet');
+        if (edges.length > 0) {
+            return '🔑 ' + edges.length + ' pairs share SPECIFIC ceremonial traits (not just "sacred") across ' + numContinents + ' continents with no known cultural contact — this demands an explanation beyond coincidence.';
+        }
+        return '⚠️ ' + nodes.length + ' sites on ' + numContinents + ' continents designated sacred independently. No specific shared ceremonies detected yet — run Cross-Pattern Agent to find hidden connections.';
     } else if (pattern.id === 'cluster') {
-        return nodes.length + ' vertices show improbable site clustering (5+ ancient sites within 300km) — ' + (edges.length > 0 ? 'connected by shared archaeological features' : 'each cluster is independently significant');
+        if (edges.length > 0) {
+            return '🔑 ' + edges.length + ' site-cluster pairs share specific archaeological features beyond mere proximity — suggesting coordinated placement or shared construction tradition.';
+        }
+        return '⚠️ ' + nodes.length + ' vertices each have 5+ ancient sites within 300km. Currently no SPECIFIC shared features link them — each cluster may be independently significant, or we haven\'t found the connection yet.';
     } else if (pattern.id === 'submerged') {
-        return nodes.length + ' ocean vertices sit on shallow platforms (<200m) that were habitable land 12,000+ years ago';
+        return '🔑 ' + nodes.length + ' ocean grid vertices sit on shallow platforms that were habitable coastline 12,000+ years ago. If pre-flood civilizations existed, these are where their ruins would be.';
     } else if (pattern.id === 'tectonic') {
-        return nodes.length + ' vertices coincide with plate boundaries or volcanic hotspots — suggesting geomagnetic selection of grid points';
+        return '🔑 ' + nodes.length + ' grid vertices coincide with tectonic boundaries. This either means the grid reflects geological forces, or ancient peoples SELECTED geomagnetically active locations.';
     } else if (pattern.id === 'geometric') {
-        return nodes.length + ' vertices show geometric precision in natural or constructed features visible from satellite';
+        return '🔑 ' + nodes.length + ' vertices show precise geometric formations. If natural: the grid encodes planetary geometry. If constructed: someone was working to mathematical specifications.';
     }
-    return nodes.length + ' vertices match this pattern across ' + numContinents + ' continents';
+    if (pattern.id === 'greatcircle') {
+        return '🔑 ' + nodes.length + ' sites lie on a SINGLE great circle spanning 40,000km with <1° deviation (Jim Alison 2001). This precision over intercontinental distances requires either shared geodetic knowledge or extraordinary coincidence.';
+    } else if (pattern.id === 'orion') {
+        return '🔑 ' + nodes.length + ' sites encode the SAME precessional sky-date (10,500 BCE) via constellation ground-plans — Giza/Orion, Angkor/Draco, Teotihuacan/Orion. Independent civilizations, separated by oceans and millennia, pointing to the same moment.';
+    }
+    return nodes.length + ' vertices match across ' + numContinents + ' continents. ' + (edges.length > 0 ? edges.length + ' share specific traits.' : 'No specific cross-site traits found yet.');
 }
 
 function renderD3Network(nodes, edges, color) {
@@ -779,7 +858,7 @@ function renderD3Network(nodes, edges, color) {
 
     var panel = document.getElementById('networkPanel');
     var width = panel.clientWidth || 700;
-    var height = 220;
+    var height = 300;
 
     svg.attr('viewBox', '0 0 ' + width + ' ' + height);
 
@@ -791,17 +870,60 @@ function renderD3Network(nodes, edges, color) {
     };
 
     var simulation = d3.forceSimulation(nodes)
-        .force('link', d3.forceLink(edges).id(function(d){ return d.id; }).distance(100))
-        .force('charge', d3.forceManyBody().strength(-250))
+        .force('link', d3.forceLink(edges).id(function(d){ return d.id; }).distance(120))
+        .force('charge', d3.forceManyBody().strength(-350))
         .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collision', d3.forceCollide().radius(45));
+        .force('collision', d3.forceCollide().radius(50));
 
     // Draw edges
     var link = svg.append('g').selectAll('line')
         .data(edges).enter().append('line')
         .attr('class', 'link-line')
         .attr('stroke', color)
-        .attr('stroke-width', function(d){ return Math.min(d.weight + 0.5, 3); });
+        .attr('stroke-width', function(d){ return Math.min(d.weight + 0.5, 3); })
+        .attr('cursor', 'pointer')
+        .on('click', function(event, d) {
+            // Show relationship explanation in the brief panel
+            var briefPanel = document.getElementById('networkBrief');
+            var sourceNode = allNodes.find(function(n){ return n.id === (d.source.id || d.source); });
+            var targetNode = allNodes.find(function(n){ return n.id === (d.target.id || d.target); });
+            var srcLabel = sourceNode ? getNodeLabel(sourceNode) : d.source.label || d.source;
+            var tgtLabel = targetNode ? getNodeLabel(targetNode) : d.target.label || d.target;
+            var html = '';
+            html += '<div style="color:#ecc94b;font-weight:700;font-size:0.78rem;margin-bottom:6px;">🔗 RELATIONSHIP</div>';
+            html += '<div style="font-size:0.72rem;color:#e2e8f0;margin-bottom:8px;line-height:1.5;">';
+            html += '<span style="color:#f6ad55;font-weight:600;">' + srcLabel + '</span>';
+            html += ' <span style="color:#718096;">↔</span> ';
+            html += '<span style="color:#f6ad55;font-weight:600;">' + tgtLabel + '</span></div>';
+            html += '<div style="background:rgba(236,201,75,0.08);border:1px solid rgba(236,201,75,0.2);border-radius:5px;padding:10px;margin-bottom:8px;">';
+            html += '<div style="font-size:0.62rem;font-weight:700;color:#ecc94b;margin-bottom:4px;">WHY THIS MATTERS</div>';
+            html += '<div style="font-size:0.7rem;color:#cbd5e0;line-height:1.6;">';
+            html += 'These two sites share <strong style="color:#e2e8f0;">' + d.weight + ' specific trait' + (d.weight > 1 ? 's' : '') + '</strong>:<br>';
+            html += '<div style="margin-top:6px;padding-left:8px;border-left:2px solid rgba(236,201,75,0.3);">';
+            html += '• ' + (d.label || 'Unknown shared trait');
+            html += '</div></div></div>';
+            // Distance context
+            if (sourceNode && targetNode) {
+                var dist = Math.round(haversineKm(sourceNode.lat, sourceNode.lng, targetNode.lat, targetNode.lng));
+                html += '<div style="font-size:0.66rem;color:#a0aec0;margin-bottom:8px;">';
+                html += '📏 Distance: <strong style="color:#e2e8f0;">' + dist.toLocaleString() + ' km apart</strong></div>';
+                if (dist > 3000) {
+                    html += '<div style="font-size:0.65rem;color:#fc8181;font-style:italic;line-height:1.5;">Sites separated by ' + dist.toLocaleString() + ' km sharing the same trait rules out coincidence or trade contact. This requires either shared knowledge, independent discovery, or a common precursor.</div>';
+                }
+            }
+            html += '<div style="font-size:0.58rem;color:#4a5568;margin-top:10px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.05);">Click nodes for full intelligence briefs</div>';
+            briefPanel.innerHTML = html;
+            // Highlight this edge
+            svg.selectAll('.link-line').attr('stroke-opacity', 0.2);
+            d3.select(this).attr('stroke-opacity', 1).attr('stroke-width', 4);
+            setTimeout(function(){ svg.selectAll('.link-line').attr('stroke-opacity', 0.4).attr('stroke-width', function(dd){ return Math.min(dd.weight + 0.5, 3); }); }, 2000);
+        })
+        .on('mouseenter', function(event, d) {
+            d3.select(this).attr('stroke-opacity', 0.9).attr('stroke-width', 4);
+        })
+        .on('mouseleave', function(event, d) {
+            d3.select(this).attr('stroke-opacity', 0.4).attr('stroke-width', function(dd){ return Math.min(dd.weight + 0.5, 3); });
+        });
 
     // Draw nodes
     var node = svg.append('g').selectAll('g')
@@ -809,8 +931,8 @@ function renderD3Network(nodes, edges, color) {
         .attr('class', 'network-node-group')
         .attr('cursor', 'pointer')
         .call(d3.drag()
-            .on('start', function(event, d){ if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
-            .on('drag', function(event, d){ d.fx = event.x; d.fy = event.y; })
+            .on('start', function(event, d){ d._dragged = false; if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+            .on('drag', function(event, d){ d._dragged = true; d.fx = event.x; d.fy = event.y; })
             .on('end', function(event, d){ if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; })
         );
 
@@ -823,20 +945,24 @@ function renderD3Network(nodes, edges, color) {
         .attr('stroke-width', 2)
         .attr('data-node-id', function(d){ return d.id; });
 
-    // Labels always visible
+    // Labels always visible — ABOVE nodes for clarity
     node.append('text')
         .attr('class', 'node-text')
-        .attr('dy', function(d){ return (d.isHub ? 14 : 8 + (d.matchCount || 0) * 2) + 12; })
+        .attr('dy', function(d){ return -((d.isHub ? 14 : 8 + (d.matchCount || 0) * 2) + 6); })
         .attr('fill', '#e2e8f0')
-        .attr('font-size', '8px')
+        .attr('font-size', '9px')
+        .attr('font-weight', '600')
         .attr('text-anchor', 'middle')
         .text(function(d){ 
             var lbl = d.label || d.id || '';
-            return lbl.length > 16 ? lbl.substring(0,14) + '..' : lbl;
+            return lbl.length > 20 ? lbl.substring(0,18) + '..' : lbl;
         });
 
     // Click node in network graph → show insight + highlight on map
+    // Uses _dragged flag to avoid triggering on drag-end
     node.on('click', function(event, d) {
+        if (d._dragged) { d._dragged = false; return; }
+        
         // Find the allNodes entry
         var mapNode = allNodes.find(function(n){ return n.id === d.id; });
         
@@ -848,31 +974,27 @@ function renderD3Network(nodes, edges, color) {
             map.setView([mapNode.lat, mapNode.lng], Math.max(map.getZoom(), 4), {animate: true});
         }
         
-        // Show brief in the network panel's brief area
+        // Show contextual brief in the network panel's brief area
         showNetworkNodeBrief(d.id);
+        
+        // LEVEL 2 DRILL-DOWN: Also show the full documentary brief in the main sidebar
+        if (mapNode) showNodeBrief(mapNode);
+        
+        // Flash the sidebar to signal it updated
+        var sb = document.getElementById('sidebar');
+        sb.style.transition = 'background 0.3s';
+        sb.style.background = 'rgba(236,201,75,0.08)';
+        sb.scrollTop = 0;
+        setTimeout(function(){ sb.style.background = ''; }, 600);
         
         // Highlight in network
         svg.selectAll('.node-circle').attr('stroke', '#1a202c').attr('stroke-width', 2);
         d3.select(this).select('circle').attr('stroke', '#fff').attr('stroke-width', 3);
     });
     
-    // Hover shows quick tooltip
+    // Hover shows quick tooltip (contextual to active pattern)
     node.on('mouseenter', function(event, d) {
-        var briefPanel = document.getElementById('networkBrief');
-        var n = allNodes.find(function(x){ return x.id === d.id; });
-        if (!n) return;
-        var brief = null;
-        if (researchData && researchData.results) {
-            var r = researchData.results.find(function(x){ return x.node_id === d.id; });
-            if (r) brief = r.brief;
-        }
-        if (brief) {
-            briefPanel.innerHTML = '<div style="color:#ecc94b;font-weight:700;font-size:0.72rem;margin-bottom:4px;">' + brief.codename + '</div>' +
-                '<div style="color:#cbd5e0;margin-bottom:6px;">' + brief.situation.split('.').slice(0,2).join('.') + '.</div>' +
-                (brief.smoking_gun ? '<div style="color:#ecc94b;font-size:0.62rem;margin-top:4px;">💡 ' + brief.smoking_gun.split('.')[0] + '.</div>' : '');
-        } else {
-            briefPanel.innerHTML = '<div style="color:#e2e8f0;font-weight:600;">' + getNodeLabel(n) + '</div><div style="color:#718096;margin-top:4px;">No research brief available.</div>';
-        }
+        showNetworkNodeBrief(d.id);
     });
 
     // Tick
@@ -914,16 +1036,16 @@ function closeNetworkGraph() {
 // PICTURE-IN-PICTURE — shows photos of sites during audio playback
 // =====================================================================
 var SITE_PHOTOS = {
-    'Great Pyramid of Giza': {url:'https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=400&h=280&fit=crop', credit:'Pixabay'},
-    'Mohenjo-daro': {url:'https://images.unsplash.com/photo-1624461209670-1b1e5fdd03e5?w=400&h=280&fit=crop', credit:'Unsplash'},
-    'Angkor Wat': {url:'https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?w=400&h=280&fit=crop', credit:'Unsplash'},
-    'Easter Island': {url:'https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?w=400&h=280&fit=crop', credit:'Unsplash'},
-    'Nazca Lines': {url:'https://images.unsplash.com/photo-1631761421979-44c2cdbbb634?w=400&h=280&fit=crop', credit:'Unsplash'},
-    'Sedona Vortexes': {url:'https://images.unsplash.com/photo-1558645836-e44122a743ee?w=400&h=280&fit=crop', credit:'Unsplash'},
-    'Lake Baikal': {url:'https://images.unsplash.com/photo-1548786811-dd6e453ccca2?w=400&h=280&fit=crop', credit:'Unsplash'},
-    'Stonehenge': {url:'https://images.unsplash.com/photo-1549890762-0a3f8933bc76?w=400&h=280&fit=crop', credit:'Unsplash'},
-    'Avebury': {url:'https://images.unsplash.com/photo-1590254553942-6d7fa498dcdf?w=400&h=280&fit=crop', credit:'Unsplash'},
-    'Glastonbury Tor': {url:'https://images.unsplash.com/photo-1595069906974-f8ae82db058e?w=400&h=280&fit=crop', credit:'Unsplash'}
+    'Great Pyramid of Giza': {url:'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?w=400&h=280&fit=crop', credit:'Spencer Davis / Unsplash'},
+    'Mohenjo-daro': {url:'https://images.unsplash.com/photo-1567157577867-05ccb1388e13?w=400&h=280&fit=crop', credit:'Saqib Rizvi / Unsplash'},
+    'Angkor Wat': {url:'https://images.unsplash.com/photo-1508159452718-d22f5f645604?w=400&h=280&fit=crop', credit:'Vicky T / Unsplash'},
+    'Easter Island': {url:'https://images.unsplash.com/photo-1569416787866-341cd5c39756?w=400&h=280&fit=crop', credit:'Thomas Griggs / Unsplash'},
+    'Nazca Lines': {url:'https://images.unsplash.com/photo-1580619305218-8423a7ef79b4?w=400&h=280&fit=crop', credit:'Hans Luiggi / Unsplash'},
+    'Sedona Vortexes': {url:'https://images.unsplash.com/photo-1501523460185-2aa5d2a0f981?w=400&h=280&fit=crop', credit:'Roberto Nickson / Unsplash'},
+    'Lake Baikal': {url:'https://images.unsplash.com/photo-1551845041-63e8e76836ea?w=400&h=280&fit=crop', credit:'Sergey Pesterev / Unsplash'},
+    'Stonehenge': {url:'https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=400&h=280&fit=crop', credit:'Inja Pavlić / Unsplash'},
+    'Avebury': {url:'https://images.unsplash.com/photo-1604846887565-640d2f52d564?w=400&h=280&fit=crop', credit:'K. Mitch Hodge / Unsplash'},
+    'Glastonbury Tor': {url:'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&h=280&fit=crop', credit:'Will Mayall / Unsplash'}
 };
 
 function showPip(siteName) {
@@ -946,6 +1068,7 @@ function hidePip() {
 }
 
 // Show full intelligence brief in the network panel's brief area
+// 2-LEVEL DRILL-DOWN: Shows this node's role IN THE CONTEXT of the active pattern
 function showNetworkNodeBrief(nodeId) {
     var briefPanel = document.getElementById('networkBrief');
     var n = allNodes.find(function(x){ return x.id === nodeId; });
@@ -957,25 +1080,95 @@ function showNetworkNodeBrief(nodeId) {
         if (r) brief = r.brief;
     }
     
+    // Get scored data for this node
+    var scored = null;
+    if (scoredData && scoredData.results) {
+        scored = scoredData.results.find(function(x){ return x.node_id === nodeId; });
+    }
+    
     var html = '';
+    
+    // Level 1: Node identity
     if (brief) {
         var statusColor = brief.investigation_status === 'CONFIRMED' ? '#48bb78' : 
                           brief.investigation_status === 'PROBABLE' ? '#63b3ed' : '#718096';
-        html += '<div style="color:#ecc94b;font-weight:700;font-size:0.75rem;">' + brief.codename + '</div>';
-        html += '<div style="color:' + statusColor + ';font-size:0.6rem;margin-bottom:6px;">' + brief.investigation_status + '</div>';
-        html += '<div style="color:#cbd5e0;margin-bottom:8px;">' + brief.situation.split('.').slice(0,3).join('.') + '.</div>';
-        if (brief.smoking_gun) {
-            html += '<div style="background:rgba(236,201,75,0.06);border:1px solid rgba(236,201,75,0.15);border-radius:4px;padding:6px;margin-bottom:6px;">';
-            html += '<div style="color:#ecc94b;font-size:0.58rem;font-weight:700;">💡 KEY FINDING</div>';
-            html += '<div style="color:#e2e8f0;font-size:0.64rem;margin-top:2px;">' + brief.smoking_gun.split('.').slice(0,2).join('.') + '.</div>';
-            html += '</div>';
-        }
-        // Show why this matters in context of the pattern
-        html += '<div style="color:#718096;font-size:0.58rem;margin-top:6px;">Click node on map for full evidence list →</div>';
+        html += '<div style="color:#ecc94b;font-weight:700;font-size:0.82rem;margin-bottom:2px;">' + brief.codename + '</div>';
+        html += '<div style="color:' + statusColor + ';font-size:0.68rem;font-weight:600;margin-bottom:8px;">' + brief.investigation_status + '</div>';
     } else {
-        html += '<div style="color:#e2e8f0;font-weight:600;">' + getNodeLabel(n) + '</div>';
-        html += '<div style="color:#718096;margin-top:6px;">No AI research brief available for this vertex yet. Run the research agent chain to generate one.</div>';
+        html += '<div style="color:#e2e8f0;font-weight:700;font-size:0.82rem;margin-bottom:2px;">' + getNodeLabel(n) + '</div>';
+        html += '<div style="color:#718096;font-size:0.68rem;margin-bottom:8px;">NO DATA</div>';
     }
+    
+    // Level 2: CONTEXTUAL — this node's role in the active pattern
+    if (_focusedPattern && scored) {
+        var activePattern = PATTERNS.find(function(p){ return p.id === _focusedPattern; });
+        if (activePattern) {
+            var match = (scored.matches || []).find(function(m){ return m.signature_id === activePattern.sigId; });
+            if (match) {
+                html += '<div style="background:rgba(236,201,75,0.08);border:1px solid rgba(236,201,75,0.2);border-radius:5px;padding:8px;margin-bottom:8px;">';
+                html += '<div style="color:#ecc94b;font-size:0.62rem;font-weight:700;margin-bottom:4px;">🔗 ROLE IN: ' + activePattern.title.toUpperCase() + '</div>';
+                html += '<div style="color:#e2e8f0;font-size:0.72rem;line-height:1.5;">';
+                html += '<span style="color:' + activePattern.color + ';font-weight:700;">' + match.confidence.toUpperCase() + '</span> match';
+                // Filter out generic indicators
+                var genericTerms = ['Within','km','node','ocean','5+ ancient sites clustered','ancient sites clustered','Within 300km','concentration of','improbable'];
+                var specificIndicators = (match.matched_indicators || []).filter(function(x){
+                    return !genericTerms.some(function(g){ return x.toLowerCase().indexOf(g.toLowerCase()) >= 0; });
+                });
+                if (specificIndicators.length > 0) {
+                    html += '<div style="margin-top:5px;color:#cbd5e0;font-size:0.7rem;line-height:1.5;">';
+                    html += '• ' + specificIndicators.slice(0,3).join('<br>• ');
+                    html += '</div>';
+                } else {
+                    html += '<div style="margin-top:5px;color:#718096;font-size:0.66rem;font-style:italic;">';
+                    html += 'Matches pattern definition but no site-specific indicators yet. Run Cross-Pattern Agent for deeper analysis.</div>';
+                }
+                html += '</div></div>';
+                
+                // Find shared traits with OTHER nodes in this pattern (SPECIFIC only)
+                var matchNodeIds = getMatchingNodes(_focusedPattern);
+                var sharedWith = [];
+                matchNodeIds.forEach(function(otherId) {
+                    if (otherId === nodeId) return;
+                    var otherScored = scoredData.results.find(function(r){ return r.node_id === otherId; });
+                    if (!otherScored) return;
+                    var otherMatch = (otherScored.matches || []).find(function(m){ return m.signature_id === activePattern.sigId; });
+                    if (!otherMatch) return;
+                    var indA = (match.matched_indicators || []).filter(function(x){
+                        return !genericTerms.some(function(g){ return x.toLowerCase().indexOf(g.toLowerCase()) >= 0; });
+                    });
+                    var indB = (otherMatch.matched_indicators || []).filter(function(x){
+                        return !genericTerms.some(function(g){ return x.toLowerCase().indexOf(g.toLowerCase()) >= 0; });
+                    });
+                    var shared = indA.filter(function(x){ return indB.indexOf(x) >= 0; });
+                    if (shared.length > 0) {
+                        var otherNode = allNodes.find(function(x){ return x.id === otherId; });
+                        sharedWith.push({name: getNodeLabel(otherNode), traits: shared});
+                    }
+                });
+                
+                if (sharedWith.length > 0) {
+                    html += '<div style="font-size:0.65rem;color:#ecc94b;font-weight:600;margin-top:6px;margin-bottom:4px;">🔑 Shares SPECIFIC traits with:</div>';
+                    sharedWith.slice(0,3).forEach(function(sw) {
+                        html += '<div style="font-size:0.64rem;color:#a0aec0;margin-top:3px;padding-left:6px;border-left:2px solid rgba(236,201,75,0.3);">↔ ' + sw.name + '<br><em style="color:#718096">' + sw.traits.slice(0,2).join(', ') + '</em></div>';
+                    });
+                } else {
+                    html += '<div style="font-size:0.62rem;color:#718096;margin-top:6px;font-style:italic;">No specific shared features with other nodes in this pattern. This site may be independently significant, or deeper research is needed.</div>';
+                }
+            }
+        }
+    }
+    
+    // Brief context
+    if (brief) {
+        html += '<div style="color:#cbd5e0;font-size:0.7rem;margin-top:8px;line-height:1.5;padding-top:6px;border-top:1px solid rgba(255,255,255,0.06);">' + brief.situation.split('.').slice(0,2).join('.') + '.</div>';
+        if (brief.smoking_gun) {
+            html += '<div style="color:#ecc94b;font-size:0.66rem;margin-top:6px;line-height:1.4;">💡 ' + brief.smoking_gun.split('.')[0] + '.</div>';
+        }
+    } else {
+        html += '<div style="color:#718096;font-size:0.7rem;margin-top:8px;">No research brief available. Run agent chain to generate.</div>';
+    }
+    
+    html += '<div style="color:#4a5568;font-size:0.58rem;margin-top:10px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.05);">Click node on map for full documentary brief →</div>';
     
     briefPanel.innerHTML = html;
 }
@@ -1125,19 +1318,29 @@ function focusEmergentHub(hubName) {
     html += '<div style="font-size:0.82rem;font-weight:700;color:#b794f4;margin-bottom:4px;">🔮 Emergent Pattern: ' + hubName + '</div>';
     html += '<div style="font-size:0.62rem;color:#ecc94b;margin-bottom:10px;">' + connectedNodes.size + ' nodes in cluster | ' + connections.length + ' connections</div>';
 
-    // Documentary-style AI summary
+    // Documentary-style AI summary (Hook → Evidence → Connection → Next)
     html += '<div style="font-size:0.7rem;color:#cbd5e0;line-height:1.5;margin-bottom:12px;">';
-    html += '<strong style="color:#ecc94b;">THE ANOMALY:</strong> OpenSearch k-NN similarity analysis detected that ';
-    html += connectedNodes.size + ' grid vertices share unusually high semantic similarity (>';
-    html += '0.75 cosine) despite having NO common taxonomy signature. ';
-    html += 'Shared themes include: <em>' + Array.from(allThemes).slice(0,6).join(', ') + '</em>. ';
-    html += 'This cluster was not searched for — it emerged from cross-document vector analysis.</div>';
-
-    html += '<div style="background:rgba(183,148,244,0.06);border:1px solid rgba(183,148,244,0.15);border-radius:6px;padding:9px;margin-bottom:12px;">';
-    html += '<div style="font-size:0.58rem;font-weight:700;color:#b794f4;text-transform:uppercase;margin-bottom:3px;">💡 Why This Matters</div>';
-    html += '<div style="font-size:0.68rem;color:#e2e8f0;line-height:1.5;">';
-    html += 'These nodes share language patterns that suggest a COMMON characteristic not captured by any existing signature. ';
-    html += 'This is a candidate for a NEW taxonomy signature — the system found a pattern the investigator didn\'t know to look for.</div></div>';
+    html += '<div style="background:rgba(183,148,244,0.06);border:1px solid rgba(183,148,244,0.12);border-radius:4px;padding:8px;margin-bottom:8px;">';
+    html += '<div style="font-size:0.55rem;font-weight:700;color:#b794f4;margin-bottom:3px;">🎯 THE HOOK</div>';
+    html += connectedNodes.size + ' grid vertices share unusually high semantic similarity (>0.75 cosine) ';
+    html += 'despite having NO common taxonomy signature. This cluster was not searched for — it emerged ';
+    html += 'from cross-document vector analysis.</div>';
+    
+    html += '<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:4px;padding:8px;margin-bottom:8px;">';
+    html += '<div style="font-size:0.55rem;font-weight:700;color:#63b3ed;margin-bottom:3px;">📋 EVIDENCE</div>';
+    html += 'Shared themes: <em>' + Array.from(allThemes).slice(0,6).join(', ') + '</em>. ';
+    html += 'OpenSearch k-NN similarity analysis across all 62 node embeddings.</div>';
+    
+    html += '<div style="background:rgba(236,201,75,0.04);border:1px solid rgba(236,201,75,0.12);border-radius:4px;padding:8px;margin-bottom:8px;">';
+    html += '<div style="font-size:0.55rem;font-weight:700;color:#ecc94b;margin-bottom:3px;">🔗 CONNECTION</div>';
+    html += 'These nodes share language patterns that suggest a COMMON characteristic not captured by ';
+    html += 'any existing signature — a candidate for a NEW taxonomy entry.</div>';
+    
+    html += '<div style="background:rgba(72,187,120,0.04);border:1px solid rgba(72,187,120,0.12);border-radius:4px;padding:8px;">';
+    html += '<div style="font-size:0.55rem;font-weight:700;color:#48bb78;margin-bottom:3px;">➡️ NEXT</div>';
+    html += 'Run Cross-Pattern Agent on this cluster to identify the unifying characteristic. ';
+    html += 'If confirmed, create a new taxonomy signature and re-score all 62 vertices.</div>';
+    html += '</div>';
 
     html += '<div class="section-title">Connected Nodes</div>';
     Array.from(connectedNodes).forEach(function(name) {
@@ -1485,6 +1688,41 @@ processCues = function() {
     }
     if (_captionsOn) updateCaption();
 };
+
+// =====================================================================
+// INLINE CROSS-PATTERN DATA — ensures new signatures display even when file:// blocks fetch
+// =====================================================================
+var INLINE_XPAT_DATA = [
+    {node_id:1, matches:[{signature_id:"am-gge-xpat-001",confidence:"strong",matched_indicators:["Jim Alison great-circle alignment (<1° arc deviation over 40,000km)","Shared precessional encoding (10,500 BCE epoch)","Cross-site: Mohenjo-daro, Angkor, Easter Island"]},{signature_id:"am-gge-xpat-002",confidence:"strong",matched_indicators:["Orion/Draco constellation ground-plan encoding","Same precessional epoch (10,500 BCE)","Independent civilizations — no known contact"]}]},
+    {node_id:12, matches:[{signature_id:"am-gge-xpat-001",confidence:"strong",matched_indicators:["Jim Alison great-circle alignment (<1° arc deviation over 40,000km)","Shared precessional encoding (10,500 BCE epoch)","Cross-site: Great Pyramid, Angkor, Easter Island"]}]},
+    {node_id:22, matches:[{signature_id:"am-gge-xpat-002",confidence:"strong",matched_indicators:["Orion/Draco constellation ground-plan encoding","Same precessional epoch (10,500 BCE)","Independent civilizations — no known contact"]}]},
+    {node_id:25, matches:[{signature_id:"am-gge-xpat-001",confidence:"strong",matched_indicators:["Jim Alison great-circle alignment (<1° arc deviation over 40,000km)","Shared precessional encoding (10,500 BCE epoch)","Cross-site: Great Pyramid, Mohenjo-daro, Easter Island"]},{signature_id:"am-gge-xpat-002",confidence:"strong",matched_indicators:["Orion/Draco constellation ground-plan encoding","Same precessional epoch (10,500 BCE)","Independent civilizations — no known contact"]}]},
+    {node_id:35, matches:[{signature_id:"am-gge-xpat-001",confidence:"strong",matched_indicators:["Jim Alison great-circle alignment (<1° arc deviation over 40,000km)","Shared precessional encoding (10,500 BCE epoch)","Cross-site: Great Pyramid, Mohenjo-daro, Angkor"]}]},
+    {node_id:47, matches:[{signature_id:"am-gge-xpat-001",confidence:"strong",matched_indicators:["Jim Alison great-circle alignment (<1° arc deviation over 40,000km)","Shared precessional encoding (10,500 BCE epoch)","Cross-site: Great Pyramid, Mohenjo-daro, Angkor"]}]}
+];
+
+// Merge inline xpat data into scoredData after loading
+function mergeInlineXpat() {
+    if (!scoredData) scoredData = {results: []};
+    if (!scoredData.results) scoredData.results = [];
+    INLINE_XPAT_DATA.forEach(function(xp) {
+        var node = scoredData.results.find(function(r){ return r.node_id === xp.node_id; });
+        if (!node) {
+            // Node doesn't exist in scored data — add it
+            scoredData.results.push({node_id: xp.node_id, matches: xp.matches, match_count: xp.matches.length});
+            return;
+        }
+        // Add xpat matches if not already present
+        xp.matches.forEach(function(m) {
+            var existing = node.matches.find(function(e){ return e.signature_id === m.signature_id; });
+            if (!existing) {
+                node.matches.push(m);
+                node.match_count = node.matches.length;
+            }
+        });
+    });
+    console.log('Cross-pattern data merged: ' + INLINE_XPAT_DATA.length + ' nodes updated');
+}
 
 // =====================================================================
 init();
