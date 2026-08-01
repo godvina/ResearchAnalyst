@@ -333,8 +333,8 @@ GEOLOGICAL_AGENT = AgentDefinition(
     id="geological_agent",
     name="Geological Correlation",
     description="Gets hard measurement data — geomagnetic surveys, seismic data",
-    trigger_type=TriggerType.ON_SIGNATURE,
-    trigger_condition={"signature_id": "am-gge-ga-001", "min_count": 1},
+    trigger_type=TriggerType.ON_COUNT,
+    trigger_condition={"min_matches": 3},
     research_strategy="Find published measurement data, USGS surveys, satellite magnetometer",
     taxonomy_scope=["am-gge-ga-001", "am-gge-ga-002", "am-gge-ga-003"],
     follow_up_agents=["lidar_agent"],
@@ -346,9 +346,9 @@ LIDAR_AGENT = AgentDefinition(
     name="LiDAR Opportunity Finder",
     description="Identifies where LiDAR hasn't been used but should be",
     trigger_type=TriggerType.ON_FINDINGS,
-    trigger_condition={"keywords": ["unexplored", "vegetation", "unexcavated", "dense forest"]},
+    trigger_condition={"keywords": ["unexplored", "vegetation", "unexcavated", "dense forest", "jungle", "canopy"]},
     research_strategy="Has LiDAR been used here? What would it reveal?",
-    taxonomy_scope=["am-gge-san-001", "am-gge-san-002", "am-gge-san-003"],
+    taxonomy_scope=["am-gge-lidar-001"],
     follow_up_agents=["production_agent"],
     priority=5,
 )
@@ -694,10 +694,193 @@ def cross_pattern_agent_handler(context: InvestigationContext) -> dict:
     return result
 
 
+def geological_agent_handler(context: InvestigationContext) -> dict:
+    """Execute geological correlation research.
+
+    Uses Bedrock Claude to analyze tectonic, volcanic, geomagnetic, and
+    bathymetric data at UVG grid nodes. Finds correlations between grid
+    geometry and Earth's geological structure.
+    """
+    topic = context.domain.replace("_", " ")
+
+    # Gather sites from previous findings
+    all_findings_text = ""
+    sites_found = []
+    for findings in context.accumulated_findings:
+        if isinstance(findings, dict):
+            f = findings.get("findings", findings)
+            if isinstance(f, dict):
+                all_findings_text += json.dumps(f)[:1500] + "\n"
+                sites_found.extend(f.get("sites_identified", []))
+
+    sig_summary = json.dumps(dict(list(context.signature_matches.items())[:10]))
+
+    prompt = (
+        f"You are a geophysicist analyzing the geological properties of UVG grid node locations.\n\n"
+        f"Topic: {topic}\n"
+        f"Sites identified so far: {list(set(sites_found))[:20]}\n"
+        f"Previous findings: {all_findings_text[:2000]}\n\n"
+        "For each UVG grid node with known coordinates, research:\n"
+        "1. PLATE BOUNDARY PROXIMITY: Distance to nearest plate boundary (transform, convergent, divergent)\n"
+        "2. VOLCANIC ACTIVITY: Active/dormant volcanoes within 200km, hotspot proximity\n"
+        "3. SEISMIC ACTIVITY: Historical earthquake magnitude/frequency within 300km\n"
+        "4. GEOMAGNETIC ANOMALY: Any documented magnetic declination anomaly, magnetic intensity variation\n"
+        "5. BATHYMETRIC FEATURES: Submarine ridges, seamounts, abyssal fracture zones at oceanic nodes\n"
+        "6. MINERAL/CRYSTAL DEPOSITS: Quartz, magnetite, piezoelectric mineral concentrations\n"
+        "7. FAULT LINE INTERSECTION: Where multiple fault lines cross at or near a node\n\n"
+        "Focus on MEASURABLE data with sources (USGS, BGS, NOAA, peer-reviewed geology papers).\n"
+        "Identify which nodes show UNUSUAL geological properties that could explain why ancient peoples\n"
+        "selected these locations — geomagnetic anomalies that could be 'felt', tectonic features visible\n"
+        "in the landscape, mineral deposits used in construction.\n\n"
+        "Return ONLY valid JSON (no markdown fences):\n"
+        "{\n"
+        '  "findings": {\n'
+        '    "geological_correlations": [\n'
+        '      {"node_id_or_site": "name/id", "feature": "what geological feature", '
+        '"measurement": "specific value with units", "source": "who measured it", '
+        '"significance": "why this matters for the grid theory"}\n'
+        "    ],\n"
+        '    "plate_boundary_stats": "X of 62 nodes within 200km of a plate boundary",\n'
+        '    "volcanic_correlation": "X nodes near active/dormant volcanic systems",\n'
+        '    "strongest_geological_signal": "the single most compelling geological finding",\n'
+        '    "documentary_hook": "one sentence for a documentary producer"\n'
+        "  },\n"
+        '  "signature_matches": [\n'
+        '    {"signature_id": "am-gge-ga-003", "confidence": "strong|moderate|weak", '
+        '"evidence": "specific geological finding with measurement", '
+        '"sites_involved": ["site names"]}\n'
+        "  ],\n"
+        '  "suggested_follow_ups": ["lidar_agent"]\n'
+        "}"
+    )
+
+    raw = _bedrock_synthesize(prompt)
+    result = _parse_llm_json(raw)
+
+    # Ensure expected structure
+    if "findings" not in result:
+        result = {"findings": result, "signature_matches": [], "suggested_follow_ups": ["lidar_agent"]}
+    if "signature_matches" not in result:
+        result["signature_matches"] = []
+    if "suggested_follow_ups" not in result:
+        result["suggested_follow_ups"] = ["lidar_agent"]
+
+    # Phase 2: Web search on strongest geological findings via Tavily
+    correlations = result.get("findings", {}).get("geological_correlations", [])
+    if correlations and os.environ.get("TAVILY_API_KEY"):
+        for corr in correlations[:3]:
+            site = corr.get("node_id_or_site", "")
+            feature = corr.get("feature", "")
+            if site and feature:
+                query = f"{site} geological {feature} USGS measurement"
+                web_results = _tavily_search(query, max_results=2)
+                if web_results:
+                    corr["web_sources"] = [
+                        {"title": r["title"], "url": r["url"], "snippet": r["content"][:150]}
+                        for r in web_results
+                    ]
+
+    return result
+
+
 # Register handlers on agent definitions
 BROAD_SCANNER.handler = broad_scanner_handler
 TAXONOMY_SCANNER.handler = taxonomy_scanner_handler
 CROSS_PATTERN_AGENT.handler = cross_pattern_agent_handler
+GEOLOGICAL_AGENT.handler = geological_agent_handler
+
+
+def lidar_agent_handler(context: InvestigationContext) -> dict:
+    """Execute LiDAR opportunity analysis.
+
+    Identifies UVG grid nodes where:
+    1. Dense vegetation/jungle covers potential structures
+    2. LiDAR has NOT yet been deployed (opportunity)
+    3. LiDAR HAS been deployed and revealed hidden structures (evidence)
+    4. Analogous sites suggest what might be found
+
+    This is the "what's still hidden?" agent — finds the next Angkor.
+    """
+    topic = context.domain.replace("_", " ")
+
+    # Gather sites from previous findings
+    all_findings_text = ""
+    sites_found = []
+    for findings in context.accumulated_findings:
+        if isinstance(findings, dict):
+            f = findings.get("findings", findings)
+            if isinstance(f, dict):
+                all_findings_text += json.dumps(f)[:2000] + "\n"
+                sites_found.extend(f.get("sites_identified", []))
+
+    sig_summary = json.dumps(dict(list(context.signature_matches.items())[:10]))
+
+    prompt = (
+        f"You are a remote sensing archaeologist specializing in LiDAR (Light Detection and Ranging) surveys.\n\n"
+        f"Topic: {topic}\n"
+        f"Sites identified: {list(set(sites_found))[:20]}\n"
+        f"Signatures matched: {sig_summary}\n\n"
+        "Analyze UVG grid nodes for LiDAR opportunity:\n\n"
+        "1. WHERE LIDAR HAS BEEN USED SUCCESSFULLY:\n"
+        "   - Angkor (2015 CALI survey revealed 1000+ previously unknown structures)\n"
+        "   - Guatemala (2018 Pacunam survey: 60,000 Maya structures under canopy)\n"
+        "   - Amazon (2022 Iriarte: pre-Columbian earthworks beneath forest)\n"
+        "   List OTHER UVG-proximate sites where LiDAR has revealed hidden structures.\n\n"
+        "2. WHERE LIDAR SHOULD BE DEPLOYED (highest opportunity):\n"
+        "   Criteria: dense vegetation + archaeological indicators + near UVG node + no LiDAR survey yet\n"
+        "   For each candidate: what specifically might be found, based on analogous nearby sites?\n\n"
+        "3. PREDICTION:\n"
+        "   Based on what LiDAR revealed at surveyed sites, what would we expect to find at\n"
+        "   unsurveyed UVG nodes in similar environments (tropical forest, dense scrub)?\n\n"
+        "Cite: survey name, institution, year, key finding, publication.\n\n"
+        "Return ONLY valid JSON (no markdown fences):\n"
+        "{\n"
+        '  "findings": {\n'
+        '    "lidar_confirmed": [{"site": "name", "year": 2018, "institution": "who", '
+        '"discovery": "what was found", "node_proximity_km": 50}],\n'
+        '    "lidar_opportunities": [{"site": "name", "lat": 0, "lng": 0, '
+        '"vegetation_type": "tropical forest", "why_promising": "reason", '
+        '"predicted_discovery": "what LiDAR might reveal", "priority": "high|medium|low"}],\n'
+        '    "strongest_opportunity": "single best candidate for next LiDAR survey",\n'
+        '    "documentary_hook": "one sentence for a producer"\n'
+        "  },\n"
+        '  "signature_matches": [\n'
+        '    {"signature_id": "am-gge-lidar-001", "confidence": "strong|moderate", '
+        '"evidence": "specific LiDAR finding or opportunity", "sites_involved": ["names"]}\n'
+        "  ],\n"
+        '  "suggested_follow_ups": ["production_agent"]\n'
+        "}"
+    )
+
+    raw = _bedrock_synthesize(prompt)
+    result = _parse_llm_json(raw)
+
+    # Ensure expected structure
+    if "findings" not in result:
+        result = {"findings": result, "signature_matches": [], "suggested_follow_ups": ["production_agent"]}
+    if "signature_matches" not in result:
+        result["signature_matches"] = []
+    if "suggested_follow_ups" not in result:
+        result["suggested_follow_ups"] = ["production_agent"]
+
+    # Phase 2: Web search on top opportunities via Tavily
+    opportunities = result.get("findings", {}).get("lidar_opportunities", [])
+    if opportunities and os.environ.get("TAVILY_API_KEY"):
+        for opp in opportunities[:2]:
+            site = opp.get("site", "")
+            if site:
+                query = f"{site} LiDAR archaeological survey hidden structures"
+                web_results = _tavily_search(query, max_results=2)
+                if web_results:
+                    opp["web_sources"] = [
+                        {"title": r["title"], "url": r["url"], "snippet": r["content"][:150]}
+                        for r in web_results
+                    ]
+
+    return result
+
+
+LIDAR_AGENT.handler = lidar_agent_handler
 
 
 def create_default_orchestrator() -> AgentOrchestrator:
