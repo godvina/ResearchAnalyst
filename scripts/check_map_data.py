@@ -1,37 +1,29 @@
-"""Check what the patterns endpoint returns for map data."""
-import urllib.request
-import json
+import urllib.request, json
 
-cid = "ed0b6c27-3b6b-4255-b9d0-efe8f4383a99"
-url = f"https://edb025my3i.execute-api.us-east-1.amazonaws.com/v1/case-files/{cid}/patterns"
-data = json.dumps({"graph": True}).encode()
-req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
-with urllib.request.urlopen(req, timeout=30) as resp:
-    d = json.loads(resp.read().decode())
+API = 'https://edb025my3i.execute-api.us-east-1.amazonaws.com/v1'
+CASE_ID = '0b24a307-a674-41b6-8d22-581c4a4aa566'
 
-nodes = d.get("nodes", [])
-edges = d.get("edges", [])
+# Call the same endpoint the map uses
+body = json.dumps({'graph': True}).encode()
+req = urllib.request.Request(API + '/case-files/' + CASE_ID + '/patterns', data=body, method='POST')
+req.add_header('Content-Type', 'application/json')
+resp = urllib.request.urlopen(req, timeout=60)
+data = json.loads(resp.read().decode())
 
-persons = [n for n in nodes if n.get("type") == "person"]
-locations = [n for n in nodes if n.get("type") == "location"]
+nodes = data.get('nodes', [])
+locations = [n for n in nodes if n.get('type') == 'location']
+print(f"Total nodes: {len(nodes)}, Locations: {len(locations)}")
+print("\nTop 30 locations by degree:")
+locations.sort(key=lambda x: x.get('degree', 0), reverse=True)
+for loc in locations[:30]:
+    print(f"  {loc['name']:30s} degree={loc.get('degree',0)}")
 
-print(f"Total nodes: {len(nodes)}")
-print(f"Persons: {len(persons)}")
-print(f"Locations: {len(locations)}")
-print(f"Total edges: {len(edges)}")
-
-# Find person→location edges
-person_names = {n["name"] for n in persons}
-location_names = {n["name"] for n in locations}
-
-pl_edges = []
-for e in edges:
-    if (e.get("from") in person_names and e.get("to") in location_names) or \
-       (e.get("to") in person_names and e.get("from") in location_names):
-        pl_edges.append(e)
-
-print(f"Person↔Location edges: {len(pl_edges)}")
-for e in pl_edges[:10]:
-    print(f"  {e.get('from')} → {e.get('to')}")
-
-print(f"\nLocations: {[n['name'] for n in locations[:15]]}")
+# Check if Paris is in the list
+intl = ['Paris', 'Tokyo', 'Moscow', 'Barcelona', 'Marrakech', 'Morocco', 'Dubai', 'Antalya']
+print("\n\nInternational locations in response:")
+for name in intl:
+    found = [n for n in locations if n['name'] == name]
+    if found:
+        print(f"  {name}: YES (degree={found[0].get('degree',0)})")
+    else:
+        print(f"  {name}: NOT IN RESPONSE")
