@@ -150,38 +150,74 @@ Write a professional case brief suitable for a supervising attorney, covering:
     # Evidence Coverage
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _tiered_status(count: int, total_entities: int = 0, category_ratio_threshold: float = 0.02) -> str:
+        """Return a 3-tier evidence status relative to case size.
+
+        Scoring is proportional to the total entity count so that a case
+        with 21K entities needs more than 10 financial records to be
+        "strong" on financial evidence.
+
+        - "strong"  — category represents >= 2% of total entities (or >= 50 absolute)
+        - "partial" — count >= 1 but below the strong threshold
+        - "gap"     — count == 0
+
+        For small cases (< 100 total entities), absolute thresholds apply:
+        strong >= 5, partial >= 1.
+
+        Backward compatibility: callers checking status == "covered" should
+        use the ``covered`` convenience field instead.
+        """
+        if count == 0:
+            return "gap"
+        # Small case: use low absolute thresholds
+        if total_entities < 100:
+            return "strong" if count >= 5 else "partial"
+        # Large case: proportional threshold
+        ratio = count / max(total_entities, 1)
+        if ratio >= category_ratio_threshold and count >= 50:
+            return "strong"
+        return "partial"
+
     def _compute_evidence_coverage(self, case_id: str, metrics: dict) -> dict:
-        """Check which investigative elements have supporting evidence."""
+        """Check which investigative elements have supporting evidence.
+
+        Returns a 3-tier status per category: "strong", "partial", or "gap".
+        Each entry also carries a boolean ``covered`` field (True when
+        status != "gap") so existing consumers that check for "covered"
+        continue to work.
+
+        Thresholds are proportional to total entity count so large cases
+        require proportionally more evidence per category.
+        """
         entity_types = metrics.get("entity_type_counts", {})
+        total_entities = metrics.get("entity_count", 0)
+
+        def _entry(count: int) -> dict:
+            status = self._tiered_status(count, total_entities)
+            return {
+                "count": count,
+                "status": status,
+                # Backward compat: any non-gap is "covered"
+                "covered": status != "gap",
+            }
+
+        people_count = entity_types.get("person", 0)
+        org_count = entity_types.get("organization", 0)
+        fin_count = entity_types.get("financial_amount", 0) + entity_types.get("account_number", 0)
+        comm_count = entity_types.get("phone_number", 0) + entity_types.get("email", 0)
+        phys_count = entity_types.get("vehicle", 0) + entity_types.get("address", 0)
+        timeline_count = entity_types.get("date", 0)
+        geo_count = entity_types.get("location", 0)
+
         return {
-            "people": {
-                "count": entity_types.get("person", 0),
-                "status": "covered" if entity_types.get("person", 0) > 0 else "gap",
-            },
-            "organizations": {
-                "count": entity_types.get("organization", 0),
-                "status": "covered" if entity_types.get("organization", 0) > 0 else "gap",
-            },
-            "financial_connections": {
-                "count": entity_types.get("financial_amount", 0) + entity_types.get("account_number", 0),
-                "status": "covered" if (entity_types.get("financial_amount", 0) + entity_types.get("account_number", 0)) > 0 else "gap",
-            },
-            "communication_patterns": {
-                "count": entity_types.get("phone_number", 0) + entity_types.get("email", 0),
-                "status": "covered" if (entity_types.get("phone_number", 0) + entity_types.get("email", 0)) > 0 else "gap",
-            },
-            "physical_evidence": {
-                "count": entity_types.get("vehicle", 0) + entity_types.get("address", 0),
-                "status": "covered" if (entity_types.get("vehicle", 0) + entity_types.get("address", 0)) > 0 else "gap",
-            },
-            "timeline": {
-                "count": entity_types.get("date", 0),
-                "status": "covered" if entity_types.get("date", 0) > 0 else "gap",
-            },
-            "geographic_scope": {
-                "count": entity_types.get("location", 0),
-                "status": "covered" if entity_types.get("location", 0) > 0 else "gap",
-            },
+            "people": _entry(people_count),
+            "organizations": _entry(org_count),
+            "financial_connections": _entry(fin_count),
+            "communication_patterns": _entry(comm_count),
+            "physical_evidence": _entry(phys_count),
+            "timeline": _entry(timeline_count),
+            "geographic_scope": _entry(geo_count),
         }
 
     # ------------------------------------------------------------------
@@ -369,6 +405,12 @@ Write a professional case brief suitable for a supervising attorney, covering:
                 recommendations.append(
                     f"Evidence gap: {label} — no supporting evidence found. "
                     f"Consider targeted document collection."
+                )
+            elif info["status"] == "partial":
+                label = element.replace("_", " ").title()
+                recommendations.append(
+                    f"Thin coverage: {label} — only {info.get('count', 0)} entities. "
+                    f"Consider additional document collection to strengthen this category."
                 )
 
         if metrics.get("doc_count", 0) > 100 and metrics.get("entity_count", 0) < 50:
