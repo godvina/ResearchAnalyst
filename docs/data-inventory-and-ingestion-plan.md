@@ -1,32 +1,44 @@
 # Data Inventory & Ingestion Plan
 
-## Current Inventory (as of 2026-04-12)
+## Current Inventory (as of 2026-04-21)
 
-### Cases in System
+### What's Actually Loaded in Aurora (Verified by Audit)
 
-| Case | S3 Raw Files | Aurora Docs | Aurora Entities | Neptune Entities | Status |
-|------|-------------|-------------|-----------------|-----------------|--------|
-| Epstein Main (7f05e8d5) | 345,904 | 345,898 | 0 | Unknown (large) | **Needs entity sync** |
-| Epstein Combined (ed0b6c27) | 8,980 | 8,974 | 21,488 | 21,488 | ✅ Working |
-| Ancient Aliens (d72b81fc) | 240 | 40 | 36,358 | 36,358 | ✅ Working |
+**Epstein Main case (7f05e8d5): 75,805 documents with text**
 
-### Source Bucket (doj-cases-974220725866-us-east-1)
+| Source | Filename Pattern | Est. Count | Coverage |
+|--------|-----------------|-----------|----------|
+| DOJ Originals (DS1-5) | `DOJ-OGR-*` | ~36,000 | DS1-5 PDFs processed through pipeline |
+| HuggingFace DS1-8 OCR | `page_*` | ~29,000 | Pages 17007-42178, DS1-8 fully loaded |
+| Teyler/epstein-files-20k | `teyler_row_*` | ~5,000+ | Partial load (~25% of 20K dataset) |
+| Other (misc sources) | Various | ~5,000+ | Mixed sources, names as filenames |
 
-| Prefix | Files | Size | Notes |
-|--------|-------|------|-------|
-| pdfs/ | 4,036 | 2.1 GB | DS1-5 PDFs |
-| bw-documents/ | 4,271 | 2.2 GB | DS1-5 black & white docs |
-| photo-metadata/ | 3,804 | 1.4 MB | Rekognition metadata JSON |
-| rekognition-output/ | 3,965 | 1.2 MB | Rekognition results |
-| textract-output/ | 3,804 | 0.9 MB | Textract OCR results |
-| DataSet8-12/ | 5 files | ~0 | Placeholder robots.txt only |
+**Epstein Combined case (ed0b6c27): ~8,974 documents**
+- Giuffre v. Maxwell civil case documents
 
-### Picture/Visual Value Assessment
+**Aurora Entities: 247,720 distinct (Nova Pro extraction)**
+- 71,163 with occurrence >= 2 (high quality)
+- 61,145 core types with occurrence >= 2
 
-- Face crops: 58 images (467 KB) for Epstein Combined
-- Rekognition artifacts: 6 files (8.5 MB)
-- Visual entities in Neptune: ~200 nodes from Rekognition (celebrities, labels, text detection)
-- **Value**: The face crops power the photo gallery and face matching features. The visual entities (person detections, celebrity matches) feed into the Knowledge Graph. For a scalability demo, text is sufficient. For a complete investigative tool, visuals add face matching, photo evidence, and visual entity linking.
+**Neptune: 991K nodes, 13.17M edges (mixed old + new data)**
+- Edge sync in progress: adding 27K new edges from Aurora relationships
+
+### Data Sources — Complete Registry
+
+| # | Source | Type | Size | Status | Notes |
+|---|--------|------|------|--------|-------|
+| 1 | DOJ DS1-5 (PDFs) | Raw PDFs | 345K files, 4.3 GB | ✅ Loaded | In S3 + Aurora |
+| 2 | DOJ DS6-8 | Raw PDFs | ~30K files, ~60 GB | ❌ Not in S3 | Available from DOJ |
+| 3 | DOJ DS9-12 (Jan 2026) | Raw PDFs | ~3M pages | ❌ Not loaded | Massive release |
+| 4 | HuggingFace ishumilin/DS1-8 OCR | Pre-OCR'd text | 42,182 pages, 172 MB | ✅ Loaded | `page_*` filenames |
+| 5 | HuggingFace teyler/epstein-files-20k | Pre-processed text | 20K docs, 2.1M rows | ⚠️ Partial (~5K) | `teyler_row_*` filenames |
+| 6 | HuggingFace theelderemo/FULL_EPSTEIN_INDEX | Structured index | 8,530 rows | ❌ Not loaded | Metadata only |
+| 7 | HuggingFace vikash06/EpsteinFiles | OCR text | 1,413 rows | ❌ Not loaded | Small, may overlap |
+| 8 | epstein-files.org (Sifter Labs) | Full archive + embeddings | 106K files, 188 GB | ❌ Not loaded | Open-sourced Jan 2025 |
+| 9 | epstein-docs.github.io | JSON with entities | 8,175 docs | ❌ Not loaded | Pre-extracted entities |
+| 10 | House Oversight (Sep 2025) | Court docs, flight records | 33K pages | ❌ Not loaded | Flight logs = gold |
+| 11 | DOJ DS11 | Documents | ~3,466 files | ✅ Loaded to Combined | In Combined case |
+| 12 | Community mirrors | Same as DOJ | ~1.3 TB | N/A | Torrent/IA mirrors |
 
 ## Immediate Action: Entity Sync for Epstein Main
 
