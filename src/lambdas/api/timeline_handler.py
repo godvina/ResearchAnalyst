@@ -161,9 +161,15 @@ def ai_analysis_handler(event, context):
         body = (json.loads(event.get("body")) if isinstance(event.get("body"), str) else (event.get("body") or {}))
         events = body.get("events", [])
         gaps = body.get("gaps", [])
+        request_type = body.get("request_type", "general")
+        hotspot_context = body.get("hotspot_context")
 
         service = _build_timeline_service()
-        result = service.generate_ai_analysis(case_id, events, gaps)
+
+        if request_type == "hotspot_deep_analysis" and hotspot_context:
+            result = service.generate_hotspot_analysis(case_id, events, hotspot_context)
+        else:
+            result = service.generate_ai_analysis(case_id, events, gaps)
         return success_response(result, 200, event)
 
     except Exception as exc:
