@@ -1,0 +1,19 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "iam:PassRole",
+            "Resource": "arn:aws:iam::974220725866:role/BedrockBatchInferenceRole"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "bedrock:CreateModelInvocationJob",
+                "bedrock:GetModelInvocationJob",
+                "bedrock:ListModelInvocationJobs"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
