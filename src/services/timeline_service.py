@@ -1113,6 +1113,71 @@ class TimelineService:
         }
 
     # ------------------------------------------------------------------
+    # Hotspot deep analysis via Bedrock Claude
+    # ------------------------------------------------------------------
+
+    def generate_hotspot_analysis(self, case_id: str, events: list[dict],
+                                   hotspot_context: dict) -> dict:
+        """Generate prosecutorial-style deep analysis for a timeline hotspot."""
+        hotspot_type = hotspot_context.get("type", "unknown")
+        quarter = hotspot_context.get("quarter", "unknown")
+        persons = hotspot_context.get("persons", [])
+        event_count = hotspot_context.get("event_count", 0)
+        event_details = hotspot_context.get("event_details", "")
+
+        # Build event summary from actual data
+        event_lines = []
+        for evt in events[:12]:
+            ents = evt.get("entities", [])
+            ent_str = ", ".join(
+                f"{e['name']} ({e['type']})" if isinstance(e, dict) else str(e)
+                for e in (ents if isinstance(ents, list) else [])
+            )
+            event_lines.append(
+                f"- {evt.get('timestamp', '?')}: [{evt.get('event_type', 'other')}] {ent_str}"
+            )
+
+        prompt = f"""You are a senior federal prosecutor reviewing evidence for a criminal investigation. 
+Analyze this timeline anomaly and tell me what you see — not statistics, but what the EVIDENCE means.
+
+ANOMALY TYPE: {hotspot_type}
+TIME PERIOD: {quarter.replace('-Q', ' Q')}
+PERSONS INVOLVED: {', '.join(persons[:8])}
+EVENT COUNT: {event_count}
+
+SPECIFIC EVENTS IN THIS WINDOW:
+{chr(10).join(event_lines) if event_lines else event_details or 'No event details available'}
+
+Write your analysis as a senior prosecutor briefing a colleague. Be specific about:
+1. What's actually happening here — not "activity spike" but what the events SHOW
+2. Why this matters for the case — what does this prove or suggest?
+3. What's missing — what evidence would you need to close this thread?
+4. Where to look next — specific documents, records, or witnesses to pursue
+
+Write 3-4 sentences in a direct, prosecutorial tone. No hedging. No "may indicate." Tell me what you see.
+Do NOT use JSON. Write plain text only."""
+
+        try:
+            resp = self._bedrock.invoke_model(
+                modelId=BEDROCK_MODEL_ID,
+                contentType="application/json",
+                accept="application/json",
+                body=json.dumps({
+                    "anthropic_version": "bedrock-2023-05-31",
+                    "max_tokens": 500,
+                    "temperature": 0.4,
+                    "messages": [{"role": "user", "content": prompt}],
+                }),
+            )
+            body = json.loads(resp["body"].read())
+            text = body.get("content", [{}])[0].get("text", "")
+            return {"analysis": text.strip()}
+
+        except Exception as exc:
+            logger.error("Hotspot analysis failed: %s", str(exc)[:200])
+            return {"analysis": ""}
+
+    # ------------------------------------------------------------------
     # AI analysis via Bedrock Claude
     # ------------------------------------------------------------------
 
