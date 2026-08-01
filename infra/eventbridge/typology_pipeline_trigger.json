@@ -1,0 +1,33 @@
+{
+  "Comment": "Triggers Typology Subgraph Pipeline when document ingestion completes for a case",
+  "Rule": {
+    "Name": "TypologyPipelineTrigger",
+    "Description": "Auto-triggers typology pre-computation pipeline when ingestion completes",
+    "State": "ENABLED",
+    "EventPattern": {
+      "source": ["investigative-intelligence.ingestion"],
+      "detail-type": ["Ingestion Complete"],
+      "detail": {
+        "status": ["completed"]
+      }
+    },
+    "Targets": [
+      {
+        "Id": "TypologySubgraphPipeline",
+        "Arn": "arn:aws:states:us-east-1:974220725866:stateMachine:TypologySubgraphPipeline",
+        "RoleArn": "arn:aws:iam::974220725866:role/EventBridgeStepFunctionsRole",
+        "InputTransformer": {
+          "InputPathsMap": {
+            "case_id": "$.detail.case_id",
+            "document_count": "$.detail.document_count"
+          },
+          "InputTemplate": "{\"case_id\": <case_id>, \"trigger_source\": \"ingestion\", \"document_count\": <document_count>}"
+        }
+      }
+    ]
+  },
+  "Notes": {
+    "how_to_emit": "After ingestion pipeline completes, emit: events.put_events(Source='investigative-intelligence.ingestion', DetailType='Ingestion Complete', Detail=json.dumps({'case_id': case_id, 'status': 'completed', 'document_count': N}))",
+    "iam_role": "The EventBridgeStepFunctionsRole needs states:StartExecution permission on the TypologySubgraphPipeline state machine"
+  }
+}
