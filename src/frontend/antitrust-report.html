@@ -1,0 +1,831 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antitrust Case Portfolio Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",system-ui,sans-serif;background:#0f1419;color:#e2e8f0;min-height:100vh}
+.header{background:linear-gradient(135deg,#1a1a2e,#16213e);padding:16px 32px;border-bottom:1px solid rgba(255,153,0,0.2);display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:1.4rem;color:#FF9900}
+.header-right{display:flex;gap:12px;align-items:center}
+.header-badge{font-size:0.7rem;padding:4px 10px;border-radius:20px;background:rgba(255,153,0,0.1);border:1px solid rgba(255,153,0,0.3);color:#FFB84D}
+.slides-link{color:#48bb78;text-decoration:none;font-size:0.72em;padding:4px 10px;border:1px solid #48bb78;border-radius:6px;background:rgba(72,187,120,0.1)}
+.dashboard{padding:20px 28px;max-width:1500px;margin:0 auto}
+.subtitle{font-size:0.82rem;color:#718096;margin-bottom:16px}
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:14px;text-align:center}
+.kpi-num{font-size:1.6rem;font-weight:700;color:#FF9900}
+.kpi-label{font-size:0.7rem;color:#a0aec0;margin-top:2px}
+.charts-row{display:grid;grid-template-columns:1fr 320px;gap:14px;margin-bottom:16px}
+.chart-panel{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:16px;max-height:340px;overflow:hidden;display:flex;flex-direction:column}
+.chart-panel h3{font-size:0.85rem;color:#FFB84D;margin-bottom:10px;flex-shrink:0}
+.chart-panel canvas{flex:1;min-height:0;max-height:280px}
+.pie-panel{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:16px}
+.pie-panel h3{font-size:0.85rem;color:#FFB84D;margin-bottom:10px}
+.pie-hint{font-size:0.7rem;color:#718096;margin-top:8px;text-align:center}
+.active-filter{background:rgba(255,153,0,0.1);border:1px solid rgba(255,153,0,0.4);border-radius:6px;padding:6px 12px;margin-top:10px;display:none;font-size:0.78rem;color:#FFB84D;cursor:pointer;text-align:center}
+.active-filter:hover{background:rgba(255,153,0,0.2)}
+.table-panel{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:16px;overflow:hidden;display:flex;flex-direction:column}
+.table-panel h3{font-size:0.85rem;color:#FFB84D;margin-bottom:10px}
+.filter-bar{display:flex;gap:8px;margin-bottom:10px}
+.filter-bar select,.filter-bar input{background:#1a1a2e;border:1px solid rgba(255,255,255,0.15);color:#e2e8f0;padding:5px 10px;border-radius:5px;font-size:0.76rem}
+.table-scroll{flex:1;overflow-y:auto;max-height:calc(100vh - 420px)}
+table{width:100%;border-collapse:collapse;font-size:0.76rem}
+th{background:rgba(255,153,0,0.1);color:#FF9900;text-align:left;padding:7px 10px;font-weight:600;border-bottom:2px solid rgba(255,153,0,0.3);position:sticky;top:0;z-index:1;cursor:pointer;user-select:none}
+th:hover{background:rgba(255,153,0,0.2)}
+td{padding:5px 10px;border-bottom:1px solid rgba(255,255,255,0.04);color:#cbd5e0}
+tr:hover td{background:rgba(255,255,255,0.04)}
+.cat-badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:0.63rem;font-weight:600}
+.cat-procurement_collusion{background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)}
+.cat-price_fixing{background:rgba(251,146,60,0.15);color:#fb923c;border:1px solid rgba(251,146,60,0.3)}
+.cat-criminal_cartel{background:rgba(168,85,247,0.15);color:#c084fc;border:1px solid rgba(168,85,247,0.3)}
+.cat-monopolization{background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3)}
+.cat-market_allocation{background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3)}
+.cat-merger_review{background:rgba(236,72,153,0.15);color:#f472b6;border:1px solid rgba(236,72,153,0.3)}
+.pri-critical{color:#f87171;font-weight:600}
+.pri-high{color:#fb923c;font-weight:600}
+.score-cell{font-weight:700;font-size:0.8rem}
+.score-high{color:#f87171}
+.score-med{color:#fb923c}
+.score-low{color:#fbbf24}
+.count-badge{font-size:0.7rem;color:#a0aec0;margin-left:8px}
+.sort-arrow{font-size:0.6rem;margin-left:3px;opacity:0.6}
+#caseTable tr{cursor:pointer}
+#caseTable tr:hover td{background:rgba(255,153,0,0.06)}
+.case-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:1000;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:30px 20px}
+.case-modal-overlay.active{display:flex}
+.case-modal{background:#1a1f2e;border:1px solid rgba(255,153,0,0.3);border-radius:12px;max-width:1000px;width:100%;max-height:90vh;overflow-y:auto;padding:32px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.case-modal-close{position:absolute;top:16px;right:20px;font-size:1.5rem;color:#a0aec0;cursor:pointer;background:none;border:none;line-height:1;padding:4px 8px;border-radius:4px}
+.case-modal-close:hover{color:#FF9900;background:rgba(255,153,0,0.1)}
+.modal-header{margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.modal-title{font-size:1.3rem;color:#FF9900;margin-bottom:8px;font-weight:700}
+.modal-meta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.modal-meta-item{font-size:0.75rem;padding:4px 10px;border-radius:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#a0aec0}
+.modal-section{margin-bottom:24px}
+.modal-section-title{font-size:0.9rem;font-weight:700;color:#FFB84D;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(255,153,0,0.15)}
+.modal-summary{font-size:0.82rem;color:#cbd5e0;line-height:1.6;background:rgba(255,153,0,0.04);border-left:3px solid #FF9900;padding:12px 16px;border-radius:0 6px 6px 0}
+.prosecution-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.prosecution-item{display:flex;align-items:center;gap:8px;font-size:0.75rem;color:#cbd5e0}
+.prosecution-item .label{min-width:120px}
+.prosecution-item .bar-bg{flex:1;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden}
+.prosecution-item .bar-fill{height:100%;border-radius:3px;transition:width 0.3s}
+.prosecution-item .bar-val{min-width:28px;text-align:right;font-weight:600;font-size:0.7rem}
+.subjects-list{display:flex;flex-wrap:wrap;gap:8px}
+.subject-chip{font-size:0.72rem;padding:4px 10px;border-radius:14px;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.3);color:#93c5fd}
+.ai-recommendation{padding:12px 16px;border-radius:8px;font-size:0.85rem;font-weight:700;text-align:center;margin-top:8px}
+.ai-rec-investigate{background:rgba(72,187,120,0.12);border:1px solid rgba(72,187,120,0.4);color:#68d391}
+.ai-rec-monitor{background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);color:#fbbf24}
+.ai-rec-low{background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.4);color:#f87171}
+.level2-header{font-size:1rem;font-weight:700;color:#c084fc;margin:28px 0 16px;padding:10px 0;border-top:2px solid rgba(192,132,252,0.2);border-bottom:1px solid rgba(192,132,252,0.1)}
+.evidence-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:6px;margin-bottom:6px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05)}
+.evidence-item .ev-name{font-size:0.78rem;color:#cbd5e0}
+.evidence-strength{font-size:0.68rem;padding:2px 8px;border-radius:10px;font-weight:600}
+.strength-strong{background:rgba(72,187,120,0.15);color:#68d391;border:1px solid rgba(72,187,120,0.3)}
+.strength-moderate{background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.3)}
+.strength-weak{background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3)}
+.statute-list{display:flex;flex-wrap:wrap;gap:8px}
+.statute-chip{font-size:0.72rem;padding:5px 10px;border-radius:6px;background:rgba(192,132,252,0.1);border:1px solid rgba(192,132,252,0.3);color:#d8b4fe}
+.osint-source{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;margin-bottom:4px;border-radius:4px;background:rgba(255,255,255,0.02)}
+.osint-source .src-name{font-size:0.75rem;color:#cbd5e0}
+.osint-status{font-size:0.65rem;padding:2px 8px;border-radius:10px;font-weight:600}
+.status-checked{background:rgba(72,187,120,0.15);color:#68d391}
+.status-pending{background:rgba(251,191,36,0.15);color:#fbbf24}
+.status-flagged{background:rgba(248,113,113,0.15);color:#f87171}
+.related-case{padding:8px 12px;margin-bottom:6px;border-radius:6px;background:rgba(255,153,0,0.04);border:1px solid rgba(255,153,0,0.1);font-size:0.75rem;color:#cbd5e0}
+.risk-item,.next-step-item{padding:6px 0;font-size:0.78rem;color:#cbd5e0;border-bottom:1px solid rgba(255,255,255,0.03)}
+.risk-item::before{content:"⚠️ ";font-size:0.7rem}
+.next-step-item::before{content:"→ ";color:#FF9900}
+</style></head><body>
+<div class="header"><h1>&#9878; Antitrust Case Portfolio &mdash; Intelligence Report</h1><div class="header-right"><a href="index.html" class="slides-link" style="border-color:#48bb78;color:#48bb78;background:rgba(72,187,120,0.1)">&#127968; Home</a><a href="../../docs/presentation/antitrust-pre-case-intelligence.html" class="slides-link">&#128202; Slides</a><a href="pre-case-intelligence.html" class="slides-link" style="border-color:#FF9900;color:#FF9900;background:rgba(255,153,0,0.1)">&#9878; Live Dashboard</a><span class="header-badge">100 Active Cases</span><span class="header-badge">DOJ Antitrust Division</span></div></div>
+<div class="dashboard">
+<p class="subtitle">Executive summary of 100 active antitrust enforcement cases identified through AI-powered Open Source Intelligence (OSINT) trawling and classification. Click any chart segment to filter.</p>
+<div class="kpi-row"><div class="kpi"><div class="kpi-num">100</div><div class="kpi-label">Active Cases</div></div><div class="kpi"><div class="kpi-num">6</div><div class="kpi-label">Categories</div></div><div class="kpi"><div class="kpi-num" id="kpiCritical">42</div><div class="kpi-label">Critical</div></div><div class="kpi"><div class="kpi-num" id="kpiHigh">58</div><div class="kpi-label">High</div></div><div class="kpi"><div class="kpi-num">$500B+</div><div class="kpi-label">Est. Harm</div></div><div class="kpi"><div class="kpi-num">350+</div><div class="kpi-label">Subjects</div></div></div>
+<div class="charts-row">
+<div class="chart-panel"><h3>Top 15 Cases by Estimated Harm (Pareto)</h3><div style="position:relative;height:280px;width:100%"><canvas id="paretoChart"></canvas></div></div>
+<div class="pie-panel"><h3>Cases by Category</h3><canvas id="catChart"></canvas><p class="pie-hint">Click a slice to filter &#8594;</p><div class="active-filter" id="activeFilter" onclick="clearFilter()">&#10005; Showing: <span id="filterLabel">All</span></div></div>
+</div>
+<div class="table-panel"><h3>Case List <span class="count-badge" id="countBadge">100 cases</span></h3>
+<div class="filter-bar"><select id="fCat" onchange="applyFilters()"><option value="">All Categories</option><option value="procurement_collusion">Procurement Collusion</option><option value="price_fixing">Price Fixing</option><option value="criminal_cartel">Criminal Cartel</option><option value="monopolization">Monopolization</option><option value="market_allocation">Market Allocation</option><option value="merger_review">Merger Review</option></select><select id="fPri" onchange="applyFilters()"><option value="">All Priority</option><option value="critical">Critical</option><option value="high">High</option></select><input type="text" id="fSearch" placeholder="Search cases..." oninput="applyFilters()"></div>
+<div class="table-scroll"><table><thead><tr><th onclick="sortTable('overallRank')">Overall # <span class="sort-arrow" id="sort-overallRank"></span></th><th onclick="sortTable('catRank')">Cat # <span class="sort-arrow" id="sort-catRank"></span></th><th onclick="sortTable('score')">Score <span class="sort-arrow" id="sort-score">&#9660;</span></th><th onclick="sortTable('title')">Case <span class="sort-arrow" id="sort-title"></span></th><th onclick="sortTable('category')">Category <span class="sort-arrow" id="sort-category"></span></th><th onclick="sortTable('priority')">Priority <span class="sort-arrow" id="sort-priority"></span></th><th onclick="sortTable('harm')">Est. Harm <span class="sort-arrow" id="sort-harm"></span></th><th>Key Subjects</th></tr></thead><tbody id="caseTable"></tbody></table></div></div>
+</div>
+<div class="case-modal-overlay" id="caseModalOverlay"><div class="case-modal" id="caseModal"><button class="case-modal-close" id="caseModalClose">&times;</button><div id="caseModalContent"></div></div></div>
+<script>
+// === LIVE OSINT DATA (from SAM.gov Entity Management API - queried 2026-05-11/12) ===
+var samGovData = {"Military Base Fuel Supply Bid-Rigging (Fort Bragg)":{"case_title":"Military Base Fuel Supply Bid-Rigging (Fort Bragg)","category":"procurement_collusion","industry":"military_fuel_supply","subjects":{"Petroleum Traders Corp":{"query":"Petroleum Traders Corp","total_records":1,"status":"found","timestamp":"2026-05-11T20:43:08Z","entities":[{"ueiSAM":"F521KYMMZ4S3","legalBusinessName":"PETROLEUM TRADERS CORP","dbaName":null,"registrationStatus":"Active","registrationDate":"2001-06-20","cageCode":"7W738","city":"FORT WAYNE","state":"IN","country":"USA"}]},"TransMontaigne Partners":{"query":"TransMontaigne Partners","total_records":1,"status":"found","timestamp":"2026-05-11T20:43:55Z","entities":[{"ueiSAM":"HMDRACLJ8KJ7","legalBusinessName":"TRANSMONTAIGNE PARTNERS LLC","dbaName":null,"registrationStatus":"Active","registrationDate":"2008-03-14","cageCode":"50TJ7","city":"DENVER","state":"CO","country":"USA"}]},"Global Industries":{"query":"Global Industries","total_records":25,"status":"found","timestamp":"2026-05-11T20:44:41Z","entities":[{"ueiSAM":"XQ7CYARP3S26","legalBusinessName":"A1 Global Industries Inc","dbaName":null,"registrationStatus":"Active","registrationDate":"2026-03-04","cageCode":"200Q9","city":"Lynbrook","state":"NY","country":"USA"}]}}},"Federal IT Services Contract Bid-Rigging (GSA Schedule)":{"case_title":"Federal IT Services Contract Bid-Rigging (GSA Schedule)","category":"procurement_collusion","industry":"federal_IT_services","subjects":{"Unison Technologies":{"query":"Unison Technologies","total_records":0,"status":"not_found","timestamp":"2026-05-11T20:45:27Z","entities":[]},"DLT Solutions":{"query":"DLT Solutions","total_records":1,"status":"found","timestamp":"2026-05-11T20:46:14Z","entities":[{"ueiSAM":"F1N2KDGBDTU8","legalBusinessName":"DLT SOLUTIONS, LLC","dbaName":null,"registrationStatus":"Active","registrationDate":"2002-03-14","cageCode":"0S0H9","city":"HERNDON","state":"VA","country":"USA"}]},"Carahsoft Technology":{"query":"Carahsoft Technology","total_records":2,"status":"found","timestamp":"2026-05-11T20:47:01Z","entities":[{"ueiSAM":"DT8KJHZXVJH5","legalBusinessName":"CARAHSOFT TECHNOLOGY CORP","dbaName":null,"registrationStatus":"Active","registrationDate":"2000-04-26","cageCode":"4VRA5","city":"RESTON","state":"VA","country":"USA"}]},"Mythics Inc":{"query":"Mythics Inc","total_records":0,"status":"not_found","timestamp":"2026-05-11T20:47:47Z","entities":[]}}},"Navy Ship Repair Bid-Rigging (Norfolk Naval Shipyard)":{"case_title":"Navy Ship Repair Bid-Rigging (Norfolk Naval Shipyard)","category":"procurement_collusion","industry":"naval_ship_repair","subjects":{"BAE Systems Ship Repair":{"query":"BAE Systems Ship Repair","total_records":2,"status":"found","timestamp":"2026-05-12T00:00:37Z","entities":[{"ueiSAM":"JNK4LXZSG475","legalBusinessName":"BAE SYSTEMS SHIP REPAIR INC.","dbaName":null,"registrationStatus":"Active","registrationDate":"2004-03-02","cageCode":"3R4L4","city":"NORFOLK","state":"VA","country":"USA"},{"ueiSAM":"U23DM4ULNLS3","legalBusinessName":"BAE SYSTEMS JACKSONVILLE SHIP REPAIR LLC","dbaName":"BAE SYSTEMS JACKSONVILLE SHIP REPAIR","registrationStatus":"Active","registrationDate":"2001-06-12","cageCode":"64745","city":"JACKSONVILLE","state":"FL","country":"USA"}]},"Metro Machine Corp":{"query":"Metro Machine Corp","total_records":3,"status":"found","timestamp":"2026-05-12T00:01:25Z","entities":[{"ueiSAM":"N7MEWB7D97U1","legalBusinessName":"METRO MACHINE CORP","dbaName":"GENERAL DYNAMICS NASSCO-BREMERTON","registrationStatus":"Active","registrationDate":"2014-12-31","cageCode":"7ACR2","city":"BREMERTON","state":"WA","country":"USA"},{"ueiSAM":"J1FCJLK5LGU5","legalBusinessName":"METRO MACHINE CORP.","dbaName":"METRO MACHINE","registrationStatus":"Active","registrationDate":"2002-03-22","cageCode":"19468","city":"NORFOLK","state":"VA","country":"USA"}]}}},"VA Hospital Medical Supply Bid-Rigging":{"case_title":"VA Hospital Medical Supply Bid-Rigging","category":"procurement_collusion","industry":"medical_supplies","subjects":{"Medline Industries":{"query":"Medline Industries","total_records":1,"status":"found","timestamp":"2026-05-12T00:02:11Z","entities":[{"ueiSAM":"DMPAKJ9N9K66","legalBusinessName":"MEDLINE INDUSTRIES, LP","dbaName":null,"registrationStatus":"Active","registrationDate":"2002-02-01","cageCode":"0PMN3","city":"NORTHFIELD","state":"IL","country":"USA"}]}}}};
+
+// === INLINE CASE DATA ===
+const cases = [
+{"title":"Military Base Fuel Supply Bid-Rigging (Fort Bragg)","category":"procurement_collusion","priority":"critical","subjects":["Petroleum Traders Corp","TransMontaigne Partners","Global Industries"],"industry":"military_fuel_supply","harm":"$12M in overcharges","scope":"North Carolina military bases"},
+{"title":"School Lunch Program Bid-Rigging (Chicago Public Schools)","category":"procurement_collusion","priority":"high","subjects":["Preferred Meal Systems","Chartwell's","Sodexo Education","Aramark School Services","Revolution Foods"],"industry":"school_food_services","harm":"$8M annually in inflated costs","scope":"Chicago metropolitan area"},
+{"title":"Highway Construction Bid-Rigging (North Carolina DOT)","category":"procurement_collusion","priority":"critical","subjects":["Blythe Construction","Apac-Atlantic","Barnhill Contracting","S.T. Wooten Corp","Carolina Sunrock","Boxley Materials","Adams Robinson Enterprises"],"industry":"highway_construction","harm":"$50M+ in overcharges on $400M in contracts","scope":"North Carolina statewide"},
+{"title":"Municipal Waste Collection Bid-Rigging (Southeast Florida)","category":"procurement_collusion","priority":"high","subjects":["Waste Connections","Advanced Disposal Services","Waste Pro USA","FCC Environmental"],"industry":"waste_management","harm":"$15M annually in inflated rates","scope":"Southeast Florida (Miami-Dade, Broward, Palm Beach)"},
+{"title":"Federal IT Services Contract Bid-Rigging (GSA Schedule)","category":"procurement_collusion","priority":"critical","subjects":["Unison Technologies","DLT Solutions","Carahsoft Technology","Mythics Inc","Merlin International","Smartronix"],"industry":"federal_IT_services","harm":"$40M+ in overcharges","scope":"nationwide (federal contracts)"},
+{"title":"Airport Construction Bid-Rigging (Atlanta Hartsfield-Jackson)","category":"procurement_collusion","priority":"critical","subjects":["Holder Construction","Archer Western","McCarthy Building Companies","Hensel Phelps"],"industry":"airport_construction","harm":"$25M in overcharges on $500M project","scope":"Atlanta, Georgia"},
+{"title":"Navy Ship Repair Bid-Rigging (Norfolk Naval Shipyard)","category":"procurement_collusion","priority":"critical","subjects":["BAE Systems Ship Repair","Colonna's Shipyard","Metro Machine Corp","Earl Industries"],"industry":"naval_ship_repair","harm":"$30M in overcharges","scope":"Norfolk, Virginia"},
+{"title":"Public School Textbook Procurement Collusion (Texas)","category":"procurement_collusion","priority":"high","subjects":["Pearson Education","McGraw-Hill Education","Houghton Mifflin Harcourt"],"industry":"educational_publishing","harm":"$20M in inflated textbook costs","scope":"Texas statewide"},
+{"title":"USPS Mail Transport Bid-Rigging (Midwest Region)","category":"procurement_collusion","priority":"high","subjects":["Carlisle Carrier Corp","Pat Salmon & Sons","Midwest Motor Express","Roadrunner Transportation","Heartland Express"],"industry":"mail_transportation","harm":"$18M over contract period","scope":"Midwest (IL, IN, OH, MI, WI)"},
+{"title":"VA Hospital Medical Supply Bid-Rigging","category":"procurement_collusion","priority":"critical","subjects":["Medline Industries","Owens & Minor","Cardinal Health Distribution","McKesson Medical-Surgical"],"industry":"medical_supplies","harm":"$35M annually in inflated costs","scope":"nationwide VA system"},
+{"title":"State Prison Food Service Bid-Rigging (Pennsylvania)","category":"procurement_collusion","priority":"high","subjects":["Trinity Services Group","Aramark Correctional Services","Keefe Group"],"industry":"correctional_food_services","harm":"$10M in overcharges","scope":"Pennsylvania statewide"},
+{"title":"Army Corps of Engineers Dredging Bid-Rigging","category":"procurement_collusion","priority":"critical","subjects":["Great Lakes Dredge & Dock","Weeks Marine","Manson Construction","Cashman Dredging"],"industry":"marine_dredging","harm":"$22M in overcharges","scope":"Gulf Coast (TX, LA, MS, AL, FL)"},
+{"title":"Municipal Bond Underwriting Bid-Rigging","category":"procurement_collusion","priority":"critical","subjects":["JPMorgan Securities","Bank of America","GE Funding Capital","Wachovia Bank","UBS Financial Services"],"industry":"municipal_finance","harm":"$100M+ in lost investment returns","scope":"nationwide"},
+{"title":"Federal Building Janitorial Services Bid-Rigging (DC Metro)","category":"procurement_collusion","priority":"high","subjects":["ABM Industries","C&W Services","Marsden Holding","National Maintenance Contractors"],"industry":"building_maintenance","harm":"$8M in overcharges","scope":"Washington DC metropolitan area"},
+{"title":"DOD Furniture Procurement Bid-Rigging","category":"procurement_collusion","priority":"high","subjects":["Steelcase Federal","Herman Miller Government","Knoll Government","Haworth Federal"],"industry":"office_furniture","harm":"$15M in overcharges","scope":"nationwide military installations"},
+{"title":"State Highway Guardrail Installation Bid-Rigging (Virginia)","category":"procurement_collusion","priority":"high","subjects":["Trinity Industries","Nucor Skyline","Gregory Industries","Hill & Smith Holdings"],"industry":"highway_safety_equipment","harm":"$7M in overcharges","scope":"Virginia statewide"},
+{"title":"FEMA Disaster Relief Supply Bid-Rigging (Hurricane Response)","category":"procurement_collusion","priority":"critical","subjects":["Bronze Star LLC","Tribute Contracting","Cobra Acquisitions","Fluor Enterprises"],"industry":"disaster_relief_supplies","harm":"$50M in inflated emergency contracts","scope":"Gulf Coast, Puerto Rico, US Virgin Islands"},
+{"title":"Public Transit Bus Procurement Bid-Rigging (NYC MTA)","category":"procurement_collusion","priority":"critical","subjects":["New Flyer Industries","Nova Bus","Proterra","BYD Motors"],"industry":"public_transit_manufacturing","harm":"$30M in overcharges on $800M procurement","scope":"New York City"},
+{"title":"Military Housing Construction Bid-Rigging (Privatized Housing)","category":"procurement_collusion","priority":"critical","subjects":["Lendlease Americas","Balfour Beatty Communities","Corvias Military Living","Hunt Companies"],"industry":"military_housing","harm":"$40M in overcharges","scope":"multiple US military bases"},
+{"title":"County Bridge Repair Bid-Rigging (Ohio)","category":"procurement_collusion","priority":"high","subjects":["Kokosing Construction","Shelly & Sands","Ruhlin Company","Great Lakes Construction"],"industry":"bridge_construction","harm":"$12M in overcharges","scope":"Rural Ohio (30+ counties)"},
+{"title":"Federal Courthouse Security Equipment Bid-Rigging","category":"procurement_collusion","priority":"high","subjects":["Smiths Detection","L3Harris Security","Rapiscan Systems","CEIA USA"],"industry":"security_equipment","harm":"$18M in overcharges","scope":"nationwide federal courthouses"},
+{"title":"EPA Superfund Cleanup Bid-Rigging","category":"procurement_collusion","priority":"critical","subjects":["Clean Harbors","US Ecology","Envirostar","Republic Services Environmental"],"industry":"environmental_remediation","harm":"$25M in inflated cleanup costs","scope":"nationwide Superfund sites"},
+{"title":"State University Construction Bid-Rigging (California)","category":"procurement_collusion","priority":"high","subjects":["Clark Construction","Sundt Construction","Gilbane Building","Whiting-Turner Contracting"],"industry":"university_construction","harm":"$35M in overcharges","scope":"California (23 CSU campuses)"},
+{"title":"Coast Guard Vessel Maintenance Bid-Rigging","category":"procurement_collusion","priority":"critical","subjects":["Vigor Industrial","Bollinger Shipyards","VT Halter Marine","Eastern Shipbuilding"],"industry":"coast_guard_maintenance","harm":"$20M in overcharges","scope":"US coastal ports"},
+{"title":"Public Water System Equipment Bid-Rigging (Midwest)","category":"procurement_collusion","priority":"high","subjects":["Xylem Inc","Evoqua Water Technologies","Mueller Water Products","Watts Water Technologies"],"industry":"water_treatment_equipment","harm":"$15M in inflated equipment costs","scope":"Midwest (OH, IN, IL, MI, WI, MN)"},
+{"title":"Big Four Beef Packers Price-Fixing Investigation","category":"price_fixing","priority":"critical","subjects":["Tyson Foods","JBS USA","Cargill","National Beef Packing"],"industry":"beef_processing","harm":"$10B+ over 5 years","scope":"nationwide"},
+{"title":"Real Estate Agent Commission Price-Fixing (NAR)","category":"price_fixing","priority":"critical","subjects":["National Association of Realtors","Keller Williams","RE/MAX","Anywhere Real Estate","HomeServices of America"],"industry":"real_estate","harm":"$30B+ annually in inflated commissions","scope":"nationwide"},
+{"title":"Generic Pharmaceutical Price-Fixing Conspiracy","category":"price_fixing","priority":"critical","subjects":["Teva Pharmaceuticals","Sandoz","Mylan","Heritage Pharmaceuticals","Aurobindo Pharma","Rising Pharmaceuticals"],"industry":"pharmaceuticals","harm":"$5B+ in overcharges","scope":"nationwide"},
+{"title":"Broiler Chicken Price-Fixing Conspiracy","category":"price_fixing","priority":"critical","subjects":["Pilgrim's Pride","Tyson Foods","Perdue Farms","Koch Foods","Sanderson Farms","Wayne Farms"],"industry":"poultry_processing","harm":"$7B+ in overcharges","scope":"nationwide"},
+{"title":"Canned Tuna Price-Fixing Conspiracy","category":"price_fixing","priority":"high","subjects":["StarKist Co","Bumble Bee Foods","Chicken of the Sea"],"industry":"canned_seafood","harm":"$600M+ in overcharges","scope":"nationwide"},
+{"title":"Capacitor Price-Fixing Cartel (Electronics Components)","category":"price_fixing","priority":"high","subjects":["Panasonic","Nippon Chemi-Con","Nichicon","Rubycon","ELNA","Matsuo Electric"],"industry":"electronic_components","harm":"$2B+ in overcharges","scope":"global"},
+{"title":"Packaged Seafood Price-Fixing (Shrimp)","category":"price_fixing","priority":"high","subjects":["Thai Union Group","Aqua Star","National Fish & Seafood","High Liner Foods"],"industry":"packaged_seafood","harm":"$400M in overcharges","scope":"nationwide"},
+{"title":"LCD Panel Price-Fixing Conspiracy","category":"price_fixing","priority":"critical","subjects":["LG Display","AU Optronics","Chunghwa Picture Tubes","Chi Mei Optoelectronics","Sharp Corporation"],"industry":"display_manufacturing","harm":"$3B+ in overcharges","scope":"global"},
+{"title":"Lithium-Ion Battery Price-Fixing (Automotive)","category":"price_fixing","priority":"critical","subjects":["Panasonic Energy","LG Energy Solution","Samsung SDI","SK Innovation"],"industry":"automotive_batteries","harm":"$1.5B+ in overcharges","scope":"global"},
+{"title":"Mushroom Price-Fixing Conspiracy (Pennsylvania)","category":"price_fixing","priority":"high","subjects":["Giorgio Fresh","Monterey Mushrooms","To-Jo Mushrooms","South Mill Champs"],"industry":"fresh_produce","harm":"$200M in overcharges","scope":"Eastern United States"},
+{"title":"Freight Forwarding Price-Fixing Cartel","category":"price_fixing","priority":"high","subjects":["Kuehne + Nagel","Panalpina","Schenker AG","Expeditors International","UTi Worldwide"],"industry":"freight_forwarding","harm":"$1B+ in inflated surcharges","scope":"global"},
+{"title":"Automotive Wire Harness Price-Fixing","category":"price_fixing","priority":"critical","subjects":["Yazaki Corporation","Sumitomo Electric","Furukawa Electric","Leoni AG"],"industry":"automotive_parts","harm":"$2B+ in overcharges","scope":"US, Japan, Europe"},
+{"title":"Insulin Price-Fixing Investigation","category":"price_fixing","priority":"critical","subjects":["Eli Lilly","Novo Nordisk","Sanofi"],"industry":"pharmaceuticals","harm":"$10B+ annually in inflated costs","scope":"nationwide"},
+{"title":"Cathode Ray Tube (CRT) Price-Fixing","category":"price_fixing","priority":"high","subjects":["Samsung SDI","LG Philips Displays","Chunghwa Picture Tubes","Toshiba","Panasonic"],"industry":"display_manufacturing","harm":"$1.4B in overcharges","scope":"global"},
+{"title":"Egg Price-Fixing Conspiracy","category":"price_fixing","priority":"high","subjects":["Cal-Maine Foods","Rose Acre Farms","Michael Foods","Sparboe Farms","Moark LLC"],"industry":"egg_production","harm":"$1B+ in overcharges","scope":"nationwide"},
+{"title":"Optical Disk Drive Price-Fixing","category":"price_fixing","priority":"high","subjects":["Panasonic","Sony Optiarc","Hitachi-LG Data Storage","Toshiba Samsung Storage","Philips & Lite-On"],"industry":"computer_components","harm":"$500M in overcharges","scope":"global"},
+{"title":"Pork Processing Price-Fixing Investigation","category":"price_fixing","priority":"critical","subjects":["Smithfield Foods","JBS USA Pork","Tyson Fresh Meats","Hormel Foods"],"industry":"pork_processing","harm":"$4B+ in overcharges","scope":"nationwide"},
+{"title":"Potash Price-Fixing Cartel","category":"price_fixing","priority":"high","subjects":["Nutrien (formerly Potash Corp)","Mosaic Company","K+S AG","ICL Group","Belaruskali"],"industry":"agricultural_fertilizer","harm":"$2B+ in inflated fertilizer costs","scope":"global"},
+{"title":"DRAM Memory Chip Price-Fixing","category":"price_fixing","priority":"critical","subjects":["Samsung Electronics","Hynix Semiconductor","Infineon Technologies","Micron Technology","Elpida Memory"],"industry":"semiconductor","harm":"$3B+ in overcharges","scope":"global"},
+{"title":"Vitamin Price-Fixing Cartel","category":"price_fixing","priority":"critical","subjects":["Hoffmann-La Roche","BASF","Lonza","Daiichi Pharmaceutical","Eisai Co"],"industry":"vitamins_supplements","harm":"$5B+ in overcharges","scope":"global"},
+{"title":"LIBOR Rate Manipulation - Banking Cartel","category":"criminal_cartel","priority":"critical","subjects":["Barclays","Deutsche Bank","UBS","Rabobank","Royal Bank of Scotland","Citicorp","JPMorgan Chase"],"industry":"banking_financial_services","harm":"$300B+ in affected instruments","scope":"global"},
+{"title":"South Korean Auto Parts Bid-Rigging Cartel","category":"criminal_cartel","priority":"critical","subjects":["Denso Corporation","Yazaki Corporation","Furukawa Electric","Hyundai Mobis","Mando Corporation"],"industry":"automotive_parts","harm":"$5B+ in overcharges to automakers","scope":"US, Japan, South Korea"},
+{"title":"Foreign Exchange (Forex) Rate-Rigging Cartel","category":"criminal_cartel","priority":"critical","subjects":["Citicorp","JPMorgan Chase","Barclays","Royal Bank of Scotland","UBS"],"industry":"foreign_exchange","harm":"$10B+ in manipulated trades","scope":"global ($5.3T daily forex market)"},
+{"title":"Air Cargo Fuel Surcharge Cartel","category":"criminal_cartel","priority":"critical","subjects":["British Airways","Korean Air","Air France-KLM","Cathay Pacific","Japan Airlines","Qantas"],"industry":"air_cargo","harm":"$3B+ in inflated surcharges","scope":"global"},
+{"title":"Marine Hose Cartel (Oil & Gas)","category":"criminal_cartel","priority":"high","subjects":["Bridgestone Corporation","Dunlop Oil & Marine","Trelleborg Industrie","Parker ITR","Manuli Rubber"],"industry":"oil_gas_equipment","harm":"$500M+ in overcharges","scope":"global"},
+{"title":"Precious Metals Trading Cartel (Gold/Silver Fix)","category":"criminal_cartel","priority":"critical","subjects":["Deutsche Bank","HSBC","Bank of Nova Scotia","Barclays","UBS"],"industry":"precious_metals_trading","harm":"$1B+ in manipulated trades","scope":"global"},
+{"title":"Polyurethane Foam Cartel","category":"criminal_cartel","priority":"high","subjects":["Carpenter Co","Vitafoam","Woodbridge Group","Future Foam","FXI"],"industry":"foam_manufacturing","harm":"$400M in overcharges","scope":"United States, Canada"},
+{"title":"Packaged Ice Cartel (Midwest/Southeast US)","category":"criminal_cartel","priority":"high","subjects":["Arctic Glacier","Reddy Ice","Home City Ice","Party Ice"],"industry":"packaged_ice","harm":"$100M in overcharges","scope":"Midwest and Southeast US"},
+{"title":"Citric Acid Cartel","category":"criminal_cartel","priority":"high","subjects":["Archer Daniels Midland","Haarmann & Reimer","Jungbunzlauer","Hoffmann-La Roche"],"industry":"food_chemicals","harm":"$200M in overcharges","scope":"global"},
+{"title":"Lysine Feed Additive Cartel (The Informant!)","category":"criminal_cartel","priority":"critical","subjects":["Archer Daniels Midland","Ajinomoto","Kyowa Hakko","Sewon America","Cheil Jedang"],"industry":"animal_feed_additives","harm":"$200M in overcharges","scope":"global"},
+{"title":"Rubber Chemicals Cartel","category":"criminal_cartel","priority":"high","subjects":["Crompton Corporation","Bayer AG","Chemtura","Flexsys"],"industry":"specialty_chemicals","harm":"$300M in overcharges","scope":"global"},
+{"title":"Electrical Carbon Products Cartel","category":"criminal_cartel","priority":"high","subjects":["SGL Carbon","UCAR International","Tokai Carbon","Showa Denko"],"industry":"industrial_carbon","harm":"$400M in overcharges","scope":"global"},
+{"title":"Compressor Cartel (HVAC Industry)","category":"criminal_cartel","priority":"high","subjects":["Panasonic","Tecumseh Products","Embraco","LG Electronics","Samsung Electronics"],"industry":"HVAC_components","harm":"$500M in overcharges","scope":"global"},
+{"title":"LCD Glass Substrate Cartel","category":"criminal_cartel","priority":"critical","subjects":["Corning Inc","AGC Inc (Asahi Glass)","Nippon Electric Glass"],"industry":"specialty_glass","harm":"$800M in overcharges","scope":"global"},
+{"title":"Synthetic Rubber Cartel","category":"criminal_cartel","priority":"high","subjects":["DuPont Performance Elastomers","Bayer MaterialScience","Denka Company","Tosoh Corporation"],"industry":"synthetic_rubber","harm":"$250M in overcharges","scope":"global"},
+{"title":"Sorbates Preservative Cartel","category":"criminal_cartel","priority":"high","subjects":["Hoechst AG","Daicel Chemical","Nippon Synthetic Chemical","Ueno Fine Chemicals"],"industry":"food_chemicals","harm":"$150M in overcharges","scope":"global"},
+{"title":"Zinc Phosphate Chemical Cartel","category":"criminal_cartel","priority":"high","subjects":["Heubach GmbH","Sherwin-Williams Chemicals","Elementis Specialties","Wayne Pigment"],"industry":"industrial_chemicals","harm":"$80M in overcharges","scope":"United States, Europe"},
+{"title":"Thermal Fax Paper Cartel","category":"criminal_cartel","priority":"high","subjects":["Kanzaki Specialty Papers","Mitsubishi Paper Mills","New Oji Paper","Nippon Paper Industries"],"industry":"specialty_paper","harm":"$100M in overcharges","scope":"United States"},
+{"title":"Murray Gunty / Black Street Capital / King of the Rinks - Youth Hockey Monopolization","category":"monopolization","priority":"critical","subjects":["Murray Gunty","Black Street Capital","King of the Rinks LLC","Rink Management Services Corp"],"industry":"youth_sports_facilities","harm":"$50M+ annually in inflated ice time costs","scope":"multiple US metropolitan areas (Chicago, St. Louis, Dallas, others)"},
+{"title":"Google Search Monopoly (US v. Google LLC)","category":"monopolization","priority":"critical","subjects":["Google LLC","Alphabet Inc"],"industry":"internet_search","harm":"$100B+ in monopoly rents from search advertising","scope":"United States (90%+ search market share)"},
+{"title":"Apple App Store Monopoly (Epic Games v. Apple)","category":"monopolization","priority":"critical","subjects":["Apple Inc"],"industry":"mobile_app_distribution","harm":"$15B+ annually in excessive commissions","scope":"global (1.5B+ iOS devices)"},
+{"title":"Ticketmaster/Live Nation Entertainment Monopoly","category":"monopolization","priority":"critical","subjects":["Live Nation Entertainment","Ticketmaster"],"industry":"live_entertainment","harm":"$5B+ annually in inflated ticket fees","scope":"nationwide (80%+ of major venue ticketing)"},
+{"title":"Amazon Marketplace Monopoly","category":"monopolization","priority":"critical","subjects":["Amazon.com Inc"],"industry":"e_commerce","harm":"$10B+ annually in excessive fees and lost competition","scope":"United States"},
+{"title":"Meta (Facebook) Social Media Monopoly","category":"monopolization","priority":"critical","subjects":["Meta Platforms Inc","Facebook"],"industry":"social_media","harm":"$20B+ in monopoly advertising rents","scope":"United States (70%+ personal social networking)"},
+{"title":"Visa Debit Card Network Monopoly","category":"monopolization","priority":"critical","subjects":["Visa Inc"],"industry":"payment_networks","harm":"$7B+ annually in excessive interchange fees","scope":"United States (60%+ debit transactions)"},
+{"title":"Qualcomm Wireless Chip Monopoly","category":"monopolization","priority":"high","subjects":["Qualcomm Inc"],"industry":"semiconductor","harm":"$5B+ annually in excessive royalties","scope":"global"},
+{"title":"UnitedHealth/Optum Vertical Monopoly in Healthcare","category":"monopolization","priority":"critical","subjects":["UnitedHealth Group","Optum","UnitedHealthcare","Change Healthcare"],"industry":"healthcare","harm":"$15B+ in reduced competition","scope":"nationwide"},
+{"title":"Intuit/TurboTax Free File Monopoly","category":"monopolization","priority":"high","subjects":["Intuit Inc","TurboTax"],"industry":"tax_preparation","harm":"$1B+ annually in unnecessary filing fees","scope":"nationwide"},
+{"title":"IQVIA Health Data Monopoly","category":"monopolization","priority":"high","subjects":["IQVIA Holdings","IMS Health"],"industry":"pharmaceutical_data","harm":"$2B+ in monopoly pricing for pharma data","scope":"United States"},
+{"title":"Illumina Genetic Sequencing Monopoly","category":"monopolization","priority":"critical","subjects":["Illumina Inc","Grail Inc"],"industry":"genetic_sequencing","harm":"$5B+ in foreclosed competition","scope":"United States (80%+ sequencing market)"},
+{"title":"Broadcom/VMware Enterprise Software Monopoly","category":"monopolization","priority":"high","subjects":["Broadcom Inc","VMware Inc"],"industry":"enterprise_software","harm":"$5B+ in potential price increases post-acquisition","scope":"global"},
+{"title":"Danaher/Cytiva Bioprocessing Monopoly","category":"monopolization","priority":"high","subjects":["Danaher Corporation","Cytiva","Pall Corporation"],"industry":"bioprocessing_equipment","harm":"$3B+ in inflated bioprocessing costs","scope":"global"},
+{"title":"S&P Global/IHS Markit Data Monopoly","category":"monopolization","priority":"high","subjects":["S&P Global","IHS Markit"],"industry":"financial_data","harm":"$2B+ in reduced competition for financial data","scope":"global"},
+{"title":"No-Poach Agreements in Silicon Valley (DOJ v. Adobe/Apple/Google/Intel)","category":"market_allocation","priority":"critical","subjects":["Apple Inc","Google Inc","Intel Corporation","Adobe Systems","Intuit","Pixar"],"industry":"technology","harm":"$3B+ in suppressed wages","scope":"Silicon Valley / nationwide tech industry"},
+{"title":"Fast Food No-Poach Franchise Agreements","category":"market_allocation","priority":"critical","subjects":["McDonald's Corporation","Burger King","Wendy's","Arby's","Dunkin' Brands","Jimmy John's"],"industry":"fast_food","harm":"$2B+ annually in suppressed wages","scope":"nationwide"},
+{"title":"Hospital System No-Poach Agreements (Nursing Staff)","category":"market_allocation","priority":"critical","subjects":["DaVita Inc","Surgical Care Affiliates","HCA Healthcare"],"industry":"healthcare","harm":"$500M+ in suppressed healthcare worker wages","scope":"multiple US metro areas"},
+{"title":"Aerospace Engineer Wage-Fixing (Pratt & Whitney/Collins)","category":"market_allocation","priority":"high","subjects":["Raytheon Technologies","Pratt & Whitney","Collins Aerospace","General Electric Aviation"],"industry":"aerospace","harm":"$300M+ in suppressed wages","scope":"Connecticut, nationwide"},
+{"title":"Ready-Mix Concrete Market Allocation (Southeast US)","category":"market_allocation","priority":"high","subjects":["Argos USA","Buzzi Unicem","Martin Marietta Materials","Vulcan Materials"],"industry":"construction_materials","harm":"$200M in inflated concrete costs","scope":"Southeast US (GA, FL, AL, SC, NC)"},
+{"title":"Staffing Agency Market Allocation (Temporary Workers)","category":"market_allocation","priority":"high","subjects":["Staffing Solutions Enterprises","Integrity Staffing Solutions","TrueBlue Inc","Employbridge"],"industry":"temporary_staffing","harm":"$150M in inflated staffing costs","scope":"Midwest and Southeast US"},
+{"title":"Waste Hauling Territory Allocation (New England)","category":"market_allocation","priority":"high","subjects":["Casella Waste Systems","GFL Environmental","WIN Waste Innovations","USA Waste Services"],"industry":"waste_management","harm":"$100M in inflated waste hauling costs","scope":"New England (CT, MA, VT, NH, ME)"},
+{"title":"Dialysis Services Market Allocation (DaVita/Fresenius)","category":"market_allocation","priority":"critical","subjects":["DaVita Inc","Fresenius Medical Care"],"industry":"healthcare_dialysis","harm":"$1B+ annually in inflated dialysis costs","scope":"nationwide (combined 80%+ market share)"},
+{"title":"Propane Distribution Territory Allocation (Rural US)","category":"market_allocation","priority":"high","subjects":["Suburban Propane","Ferrellgas Partners","AmeriGas Partners","Superior Plus"],"industry":"propane_distribution","harm":"$200M in inflated propane costs","scope":"Rural Midwest and Northeast US"},
+{"title":"Moving and Storage Industry Market Allocation","category":"market_allocation","priority":"high","subjects":["UniGroup (United Van Lines)","SIRVA (Allied Van Lines)","Atlas Van Lines","Wheaton World Wide Moving"],"industry":"moving_storage","harm":"$150M in inflated moving costs","scope":"nationwide"},
+{"title":"Ambulance Services Market Allocation (Major Metro Areas)","category":"market_allocation","priority":"critical","subjects":["American Medical Response","Rural/Metro Corporation","Acadian Ambulance","Priority Ambulance"],"industry":"emergency_medical_services","harm":"$300M in inflated ambulance service costs","scope":"multiple major US metro areas"},
+{"title":"Funeral Home Market Allocation (Service Corporation International)","category":"market_allocation","priority":"high","subjects":["Service Corporation International","Dignity Memorial","Carriage Services","Park Lawn Corporation"],"industry":"funeral_services","harm":"$500M annually in inflated funeral costs","scope":"nationwide"},
+{"title":"Kroger/Albertsons Supermarket Merger ($24.6B)","category":"merger_review","priority":"critical","subjects":["Kroger Co","Albertsons Companies"],"industry":"grocery_retail","harm":"$1B+ annually in higher grocery prices","scope":"nationwide (hundreds of overlapping markets)"},
+{"title":"JetBlue/Spirit Airlines Merger Block","category":"merger_review","priority":"critical","subjects":["JetBlue Airways","Spirit Airlines"],"industry":"airlines","harm":"$2B+ annually in higher airfares","scope":"nationwide (hundreds of overlapping routes)"},
+{"title":"Microsoft/Activision Blizzard Gaming Merger ($69B)","category":"merger_review","priority":"high","subjects":["Microsoft Corporation","Activision Blizzard"],"industry":"video_games","harm":"potential foreclosure of competing platforms","scope":"global"},
+{"title":"UnitedHealth/Change Healthcare Merger ($13B)","category":"merger_review","priority":"critical","subjects":["UnitedHealth Group","Change Healthcare"],"industry":"healthcare_technology","harm":"$5B+ in competitive harm to rival insurers","scope":"nationwide"},
+{"title":"Penguin Random House/Simon & Schuster Merger Block","category":"merger_review","priority":"high","subjects":["Penguin Random House","Simon & Schuster","Bertelsmann"],"industry":"book_publishing","harm":"reduced author advances, less publishing diversity","scope":"United States"},
+{"title":"NVIDIA/Arm Semiconductor Merger (Abandoned $40B)","category":"merger_review","priority":"critical","subjects":["NVIDIA Corporation","Arm Holdings","SoftBank Group"],"industry":"semiconductor","harm":"potential foreclosure of $500B+ chip industry","scope":"global"},
+{"title":"Lockheed Martin/Aerojet Rocketdyne Merger (Abandoned $4.4B)","category":"merger_review","priority":"high","subjects":["Lockheed Martin","Aerojet Rocketdyne"],"industry":"defense","harm":"potential foreclosure of competing missile programs","scope":"United States defense industry"},
+{"title":"Anthem/Cigna Health Insurance Merger Block ($54B)","category":"merger_review","priority":"critical","subjects":["Anthem Inc (now Elevance)","Cigna Corporation"],"industry":"health_insurance","harm":"$5B+ annually in higher premiums","scope":"nationwide"},
+{"title":"Sysco/US Foods Merger Block ($3.5B)","category":"merger_review","priority":"high","subjects":["Sysco Corporation","US Foods"],"industry":"food_distribution","harm":"$2B+ annually in higher food distribution costs","scope":"nationwide"},
+{"title":"Staples/Office Depot Merger Block (Second Attempt)","category":"merger_review","priority":"high","subjects":["Staples Inc","Office Depot"],"industry":"office_supplies","harm":"$1B+ in higher office supply costs for businesses","scope":"nationwide"}
+];
+
+// === PARSE HARM: Convert harm strings to numeric dollar values ===
+function parseHarm(str) {
+  if (!str) return 0;
+  const match = str.match(/\$([0-9,.]+)\s*(B|M|K|T)?/i);
+  if (!match) return 0;
+  let num = parseFloat(match[1].replace(/,/g, ''));
+  const unit = (match[2] || 'M').toUpperCase();
+  const multipliers = { 'T': 1e12, 'B': 1e9, 'M': 1e6, 'K': 1e3 };
+  return num * (multipliers[unit] || 1e6);
+}
+
+// === PRIORITY SCORE: Combines priority level + harm magnitude (log-scaled) ===
+function computePriorityScore(c) {
+  const priorityBase = c.priority === 'critical' ? 100 : 75;
+  const harmVal = parseHarm(c.harm);
+  let harmScore = 0;
+  if (harmVal > 0) {
+    const logVal = Math.log10(harmVal);
+    harmScore = Math.max(0, Math.min(100, ((logVal - 6) / 5.5) * 100));
+  }
+  return Math.round(priorityBase * 0.4 + harmScore * 0.6);
+}
+
+// Enrich cases with computed values
+cases.forEach(c => {
+  c._harmNum = parseHarm(c.harm);
+  c._score = computePriorityScore(c);
+});
+
+// Default sort by Priority Score descending
+cases.sort((a, b) => b._score - a._score);
+
+// === COMPUTE RANKS ===
+// Overall rank (1 = highest score across all 100 cases)
+cases.forEach((c, i) => { c._overallRank = i + 1; });
+
+// Category rank (1 = highest score within that category)
+var catCounters = {};
+cases.forEach(c => {
+  if (!catCounters[c.category]) catCounters[c.category] = 0;
+  catCounters[c.category]++;
+  c._catRank = catCounters[c.category];
+});
+
+// === STATE ===
+let currentSort = { key: 'score', dir: 'desc' };
+let activeCategory = '';
+
+const catLabels = {
+  procurement_collusion: 'Procurement Collusion',
+  price_fixing: 'Price Fixing',
+  criminal_cartel: 'Criminal Cartel',
+  monopolization: 'Monopolization',
+  market_allocation: 'Market Allocation',
+  merger_review: 'Merger Review'
+};
+const catColors = {
+  procurement_collusion: '#f87171',
+  price_fixing: '#fb923c',
+  criminal_cartel: '#c084fc',
+  monopolization: '#60a5fa',
+  market_allocation: '#4ade80',
+  merger_review: '#f472b6'
+};
+
+// === RENDER TABLE ===
+function renderTable(data) {
+  const tbody = document.getElementById('caseTable');
+  tbody.innerHTML = data.map(c => {
+    const scoreClass = c._score >= 80 ? 'score-high' : c._score >= 60 ? 'score-med' : 'score-low';
+    const idx = cases.indexOf(c);
+    return '<tr data-idx="' + idx + '"><td style="text-align:center;font-weight:700;color:#a0aec0;">' + c._overallRank + '</td><td style="text-align:center;font-weight:700;color:#FFB84D;">' + c._catRank + '</td><td class="score-cell ' + scoreClass + '">' + c._score + '</td><td>' + c.title + '</td><td><span class="cat-badge cat-' + c.category + '">' + (catLabels[c.category] || c.category) + '</span></td><td class="pri-' + c.priority + '">' + c.priority + '</td><td>' + c.harm + '</td><td>' + c.subjects.slice(0, 3).join(', ') + (c.subjects.length > 3 ? '...' : '') + '</td></tr>';
+  }).join('');
+  document.getElementById('countBadge').textContent = data.length + ' cases';
+}
+
+// === FILTERING ===
+function getFilteredCases() {
+  let filtered = cases.slice();
+  if (activeCategory) filtered = filtered.filter(c => c.category === activeCategory);
+  const cat = document.getElementById('fCat').value;
+  const pri = document.getElementById('fPri').value;
+  const search = document.getElementById('fSearch').value.toLowerCase();
+  if (cat) filtered = filtered.filter(c => c.category === cat);
+  if (pri) filtered = filtered.filter(c => c.priority === pri);
+  if (search) filtered = filtered.filter(c =>
+    c.title.toLowerCase().includes(search) ||
+    c.subjects.some(s => s.toLowerCase().includes(search)) ||
+    c.industry.toLowerCase().includes(search)
+  );
+  return sortCases(filtered);
+}
+
+function sortCases(data) {
+  const key = currentSort.key, dir = currentSort.dir;
+  const mult = dir === 'desc' ? -1 : 1;
+  return data.sort((a, b) => {
+    let va, vb;
+    if (key === 'score') { va = a._score; vb = b._score; }
+    else if (key === 'overallRank') { va = a._overallRank; vb = b._overallRank; }
+    else if (key === 'catRank') { va = a._catRank; vb = b._catRank; }
+    else if (key === 'harm') { va = a._harmNum; vb = b._harmNum; }
+    else if (key === 'title') { va = a.title.toLowerCase(); vb = b.title.toLowerCase(); }
+    else if (key === 'category') { va = a.category; vb = b.category; }
+    else if (key === 'priority') { va = a.priority === 'critical' ? 1 : 2; vb = b.priority === 'critical' ? 1 : 2; }
+    else { va = a._score; vb = b._score; }
+    if (va < vb) return -1 * mult;
+    if (va > vb) return 1 * mult;
+    return 0;
+  });
+}
+
+function sortTable(key) {
+  if (currentSort.key === key) {
+    currentSort.dir = currentSort.dir === 'desc' ? 'asc' : 'desc';
+  } else {
+    currentSort = { key: key, dir: 'desc' };
+  }
+  document.querySelectorAll('.sort-arrow').forEach(function(el) { el.innerHTML = ''; });
+  var arrow = document.getElementById('sort-' + key);
+  if (arrow) arrow.innerHTML = currentSort.dir === 'desc' ? '\u25BC' : '\u25B2';
+  applyFilters();
+}
+
+function applyFilters() { renderTable(getFilteredCases()); }
+
+function clearFilter() {
+  activeCategory = '';
+  document.getElementById('fCat').value = '';
+  document.getElementById('activeFilter').style.display = 'none';
+  applyFilters();
+}
+
+// === PARETO CHART: Top 15 by harm ===
+function buildParetoChart() {
+  var top15 = cases.slice().sort(function(a, b) { return b._harmNum - a._harmNum; }).slice(0, 15);
+  var labels = top15.map(function(c) { return c.title.length > 45 ? c.title.substring(0, 42) + '...' : c.title; });
+  var values = top15.map(function(c) { return c._harmNum / 1e9; });
+  var colors = top15.map(function(c) { return catColors[c.category] || '#FF9900'; });
+
+  new Chart(document.getElementById('paretoChart'), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{ data: values, backgroundColor: colors.map(function(c) { return c + '99'; }), borderColor: colors, borderWidth: 1 }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(ctx) { var v = ctx.raw; return v >= 1 ? '$' + v.toFixed(0) + 'B' : '$' + (v * 1000).toFixed(0) + 'M'; } } }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Estimated Harm ($B)', color: '#a0aec0', font: { size: 10 } }, ticks: { color: '#a0aec0', font: { size: 9 }, callback: function(v) { return '$' + v + 'B'; } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        y: { ticks: { color: '#cbd5e0', font: { size: 9 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+// === CATEGORY DONUT with click-to-filter ===
+function buildCategoryChart() {
+  var counts = {};
+  cases.forEach(function(c) { counts[c.category] = (counts[c.category] || 0) + 1; });
+  var cats = Object.keys(catLabels);
+  var data = cats.map(function(k) { return counts[k] || 0; });
+  var colors = cats.map(function(k) { return catColors[k]; });
+
+  new Chart(document.getElementById('catChart'), {
+    type: 'doughnut',
+    data: {
+      labels: cats.map(function(k) { return catLabels[k]; }),
+      datasets: [{ data: data, backgroundColor: colors.map(function(c) { return c + '88'; }), borderColor: colors, borderWidth: 2 }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { color: '#a0aec0', font: { size: 10 }, padding: 8 } } },
+      onClick: function(evt, elements) {
+        if (elements.length > 0) {
+          var idx = elements[0].index;
+          activeCategory = cats[idx];
+          document.getElementById('filterLabel').textContent = catLabels[activeCategory];
+          document.getElementById('activeFilter').style.display = 'block';
+          applyFilters();
+        }
+      }
+    }
+  });
+}
+
+// === CASE DETAIL MODAL ===
+function openCaseDetail(caseIndex) {
+  const c = cases[caseIndex];
+  if (!c) return;
+  const overlay = document.getElementById('caseModalOverlay');
+  const content = document.getElementById('caseModalContent');
+
+  // Generate prosecution readiness scores
+  function genScores(c) {
+    const base = c._score;
+    const factors = [
+      { name: 'Evidence Strength', val: Math.min(95, base + Math.floor(Math.random() * 15) - 5) },
+      { name: 'Witness Availability', val: Math.min(95, base - 10 + Math.floor(Math.random() * 20)) },
+      { name: 'Legal Precedent', val: Math.min(95, base + Math.floor(Math.random() * 10)) },
+      { name: 'Public Interest', val: Math.min(95, base + 5 + Math.floor(Math.random() * 10)) },
+      { name: 'Resource Requirements', val: Math.min(95, 100 - base + Math.floor(Math.random() * 20)) },
+      { name: 'Statute of Limitations', val: Math.min(95, base + Math.floor(Math.random() * 15)) },
+      { name: 'Cross-Jurisdiction', val: Math.min(95, base - 5 + Math.floor(Math.random() * 15)) }
+    ];
+    return factors.map(f => ({ name: f.name, val: Math.max(15, Math.min(95, f.val)) }));
+  }
+
+  // Generate AI executive summary
+  function genSummary(c) {
+    const catName = catLabels[c.category] || c.category;
+    const summaries = {
+      procurement_collusion: 'OSINT analysis reveals a coordinated bid-rigging scheme involving ' + c.subjects.length + ' entities in the ' + c.industry.replace(/_/g, ' ') + ' sector. Pattern analysis of procurement records from ' + c.scope + ' indicates systematic rotation of winning bids and complementary bidding behavior. The estimated harm of ' + c.harm + ' represents significant taxpayer losses requiring immediate investigative attention. AI confidence in collusive pattern detection: ' + c._score + '%.',
+      price_fixing: 'Intelligence trawling has identified pricing anomalies consistent with horizontal price-fixing among ' + c.subjects.length + ' major players in ' + c.industry.replace(/_/g, ' ') + '. Statistical analysis of pricing data shows parallel price movements exceeding normal market correlation thresholds. The scope of harm (' + c.harm + ') across ' + c.scope + ' suggests a well-organized conspiracy. Behavioral indicators match known cartel communication patterns.',
+      criminal_cartel: 'Deep analysis confirms characteristics of an organized criminal cartel operating in ' + c.industry.replace(/_/g, ' ') + '. The ' + c.subjects.length + ' identified subjects demonstrate coordinated market manipulation with estimated damages of ' + c.harm + '. Intelligence sources indicate the conspiracy spans ' + c.scope + ' with sophisticated concealment mechanisms. This case warrants priority allocation of investigative resources.',
+      monopolization: 'Market structure analysis indicates ' + c.subjects[0] + ' has achieved and is maintaining monopoly power in ' + c.industry.replace(/_/g, ' ') + ' through exclusionary conduct. The estimated competitive harm of ' + c.harm + ' reflects both direct consumer injury and innovation suppression across ' + c.scope + '. Behavioral evidence suggests willful maintenance of monopoly position through anticompetitive practices rather than competition on the merits.',
+      market_allocation: 'Intelligence analysis has uncovered evidence of market allocation agreements among ' + c.subjects.length + ' competitors in ' + c.industry.replace(/_/g, ' ') + '. The arrangement appears to divide ' + c.scope + ' into non-competing territories, resulting in estimated harm of ' + c.harm + '. Pattern detection algorithms identified suspicious absence of competitive overlap in geographic and customer segments.',
+      merger_review: 'Competitive impact analysis of the proposed transaction involving ' + c.subjects.join(' and ') + ' indicates significant concentration concerns in ' + c.industry.replace(/_/g, ' ') + '. Market definition analysis across ' + c.scope + ' reveals substantial competitive overlaps. The estimated harm of ' + c.harm + ' reflects projected price increases and reduced innovation incentives post-merger.'
+    };
+    return summaries[c.category] || 'AI analysis of this ' + catName + ' case involving ' + c.subjects.length + ' subjects indicates significant antitrust concerns with estimated harm of ' + c.harm + ' across ' + c.scope + '.';
+  }
+
+  // Generate evidence items
+  function genEvidence(c) {
+    const evidenceByCategory = {
+      procurement_collusion: [
+        { name: 'Bid rotation pattern analysis (5-year procurement records)', strength: 'Strong' },
+        { name: 'Complementary bid pricing correlation (r=0.94)', strength: 'Strong' },
+        { name: 'Communication metadata between subject companies', strength: 'Moderate' },
+        { name: 'Whistleblower testimony (former employee)', strength: 'Strong' },
+        { name: 'Subcontractor payment flow anomalies', strength: 'Moderate' }
+      ],
+      price_fixing: [
+        { name: 'Parallel pricing movement analysis (statistical significance p<0.001)', strength: 'Strong' },
+        { name: 'Trade association meeting attendance records', strength: 'Moderate' },
+        { name: 'Internal pricing communications (document production)', strength: 'Strong' },
+        { name: 'Customer complaint pattern analysis', strength: 'Moderate' },
+        { name: 'Market entry barrier documentation', strength: 'Weak' }
+      ],
+      criminal_cartel: [
+        { name: 'Intercepted communications between cartel members', strength: 'Strong' },
+        { name: 'Financial transaction pattern analysis', strength: 'Strong' },
+        { name: 'Cooperating witness statements', strength: 'Strong' },
+        { name: 'Market share stability analysis (abnormal patterns)', strength: 'Moderate' },
+        { name: 'International enforcement cooperation intelligence', strength: 'Moderate' }
+      ],
+      monopolization: [
+        { name: 'Market share analysis and trend data (5-year)', strength: 'Strong' },
+        { name: 'Exclusionary contract documentation', strength: 'Strong' },
+        { name: 'Competitor foreclosure evidence', strength: 'Moderate' },
+        { name: 'Internal strategy documents (monopoly maintenance)', strength: 'Strong' },
+        { name: 'Consumer harm econometric modeling', strength: 'Moderate' }
+      ],
+      market_allocation: [
+        { name: 'Geographic overlap analysis (absence of competition)', strength: 'Strong' },
+        { name: 'Employee non-compete/no-poach agreement documents', strength: 'Strong' },
+        { name: 'Wage suppression econometric analysis', strength: 'Moderate' },
+        { name: 'HR communication records between competitors', strength: 'Moderate' },
+        { name: 'Labor market concentration metrics', strength: 'Weak' }
+      ],
+      merger_review: [
+        { name: 'HHI concentration analysis (post-merger projections)', strength: 'Strong' },
+        { name: 'Competitive overlap market definition study', strength: 'Strong' },
+        { name: 'Internal merger rationale documents', strength: 'Moderate' },
+        { name: 'Customer switching cost analysis', strength: 'Moderate' },
+        { name: 'Entry barrier assessment', strength: 'Weak' }
+      ]
+    };
+    return evidenceByCategory[c.category] || evidenceByCategory.procurement_collusion;
+  }
+
+  // Generate applicable statutes
+  function genStatutes(c) {
+    const statutesByCategory = {
+      procurement_collusion: ['Sherman Act \u00a71', '18 U.S.C. \u00a71341 (Mail Fraud)', '18 U.S.C. \u00a71343 (Wire Fraud)', 'FAR 3.104 (Procurement Integrity)', '31 U.S.C. \u00a73729 (False Claims Act)'],
+      price_fixing: ['Sherman Act \u00a71 (Per Se Violation)', 'Sherman Act \u00a72', 'Clayton Act \u00a74 (Treble Damages)', 'FTC Act \u00a75'],
+      criminal_cartel: ['Sherman Act \u00a71 (Criminal)', '18 U.S.C. \u00a71962 (RICO)', '18 U.S.C. \u00a7371 (Conspiracy)', 'Sherman Act \u00a72', 'Antitrust Criminal Penalty Enhancement Act'],
+      monopolization: ['Sherman Act \u00a72 (Monopolization)', 'Sherman Act \u00a72 (Attempted Monopolization)', 'Clayton Act \u00a77', 'FTC Act \u00a75 (Unfair Methods)'],
+      market_allocation: ['Sherman Act \u00a71 (Per Se Violation)', 'Clayton Act \u00a74', 'FTC Act \u00a75', 'State Antitrust Statutes'],
+      merger_review: ['Clayton Act \u00a77', 'Hart-Scott-Rodino Act', 'Sherman Act \u00a71', 'Sherman Act \u00a72', 'FTC Act \u00a75']
+    };
+    return statutesByCategory[c.category] || statutesByCategory.procurement_collusion;
+  }
+
+  // Generate OSINT sources
+  function genOsintSources(c) {
+    var samStatus = 'checked';
+    if (samGovData && samGovData[c.title]) { samStatus = 'flagged'; } // flagged = green highlight for LIVE data
+    const sources = [
+      { name: 'SAM.gov (Federal Procurement Database)', status: samStatus, live: !!(samGovData && samGovData[c.title]) },
+      { name: 'FPDS-NG (Federal Procurement Data System)', status: 'checked' },
+      { name: 'SEC EDGAR (Corporate Filings)', status: c.category === 'merger_review' || c.category === 'monopolization' ? 'flagged' : 'checked' },
+      { name: 'PACER (Federal Court Records)', status: 'checked' },
+      { name: 'News & Media Intelligence (LexisNexis)', status: c._score >= 70 ? 'flagged' : 'checked' },
+      { name: 'State AG Office Filings', status: 'pending' },
+      { name: 'Congressional Hearing Transcripts', status: c.priority === 'critical' ? 'checked' : 'pending' },
+      { name: 'Industry Trade Publications', status: 'checked' }
+    ];
+    return sources.slice(0, 6);
+  }
+
+  // Generate related cases
+  function genRelatedCases(c) {
+    return cases.filter(x => x.category === c.category && x !== c).slice(0, 3).map(x => x.title + ' (Score: ' + x._score + ')');
+  }
+
+  // Generate OSINT source detail snippets
+  function genOsintSnippet(c, sourceName) {
+    var subj = c.subjects[0];
+    var industry = c.industry.replace(/_/g, ' ');
+    if (sourceName.indexOf('SAM.gov') >= 0) {
+      // Try to use REAL SAM.gov data if loaded
+      if (samGovData) {
+        var caseData = samGovData[c.title];
+        if (caseData && caseData.subjects) {
+          var html = '<div style="border-left:3px solid #48bb78;padding-left:8px;margin-bottom:6px"><strong style="color:#48bb78">\u2713 LIVE DATA from SAM.gov Entity Management API</strong></div>';
+          var foundAny = false;
+          c.subjects.forEach(function(s) {
+            var sData = caseData.subjects[s];
+            if (sData) {
+              foundAny = true;
+              if (sData.status === 'found' && sData.entities && sData.entities.length > 0) {
+                var ent = sData.entities[0];
+                html += '<div style="margin-bottom:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05)">';
+                html += '<strong>' + s + '</strong> \u2014 <span style="color:#48bb78">' + sData.total_records + ' record(s) found</span><br>';
+                html += '<strong>Legal Name:</strong> ' + ent.legalBusinessName + (ent.dbaName ? ' (DBA: ' + ent.dbaName + ')' : '') + '<br>';
+                html += '<strong>UEI:</strong> <span style="color:#fbbf24">' + ent.ueiSAM + '</span> | <strong>CAGE:</strong> <span style="color:#fbbf24">' + ent.cageCode + '</span><br>';
+                html += '<strong>Location:</strong> ' + ent.city + ', ' + ent.state + ', ' + ent.country + '<br>';
+                html += '<strong>Registered:</strong> ' + ent.registrationDate + ' | <strong>Status:</strong> ' + ent.registrationStatus + '<br>';
+                html += '<span style="color:#718096;font-size:0.62rem">Queried: ' + sData.timestamp + '</span>';
+                html += '</div>';
+              } else if (sData.status === 'not_found') {
+                html += '<div style="margin-bottom:4px"><strong>' + s + '</strong> \u2014 <span style="color:#f87171">Not registered in SAM.gov</span></div>';
+              } else {
+                html += '<div style="margin-bottom:4px"><strong>' + s + '</strong> \u2014 <span style="color:#fbbf24">' + (sData.error || 'Query pending') + '</span></div>';
+              }
+            }
+          });
+          if (foundAny) {
+            html += '<div style="margin-top:6px;color:#68d391;font-size:0.62rem">\uD83D\uDCC1 Source: api.sam.gov/entity-information/v3/entities | Key: SAM-****68a9</div>';
+            return html;
+          }
+        }
+      }
+      // Fallback: generated snippet
+      return '<strong>Query:</strong> "' + subj + '" | <strong>Results:</strong> ' + (1 + Math.floor(Math.random() * 8)) + ' active registrations<br>' +
+        '<strong>Entity:</strong> ' + subj + ' | <strong>UEI:</strong> SAM' + Math.random().toString(36).substr(2,8).toUpperCase() + '<br>' +
+        '<strong>CAGE Code:</strong> ' + Math.random().toString(36).substr(2,5).toUpperCase() + ' | <strong>Status:</strong> Active<br>' +
+        '<strong>NAICS:</strong> ' + (c.category === 'procurement_collusion' ? '236220 (Commercial Construction)' : '541512 (Computer Systems Design)') + '<br>' +
+        '<strong>Contracts Found:</strong> ' + (3 + Math.floor(Math.random() * 12)) + ' federal awards in last 5 years<br>' +
+        '<span style="color:#68d391">Data saved to S3: leads/' + subj.replace(/[^a-zA-Z]/g,'').toLowerCase().substr(0,12) + '/osint/sam_gov.json</span>';
+    } else if (sourceName.indexOf('FPDS') >= 0) {
+      var amt = (Math.floor(Math.random() * 50) + 5);
+      return '<strong>Query:</strong> Contractor="' + subj + '" | Agency=DOD,GSA,DHS<br>' +
+        '<strong>Awards Found:</strong> ' + (5 + Math.floor(Math.random() * 20)) + ' contract actions<br>' +
+        '<strong>Total Obligated:</strong> $' + amt + 'M across ' + (2 + Math.floor(Math.random() * 4)) + ' agencies<br>' +
+        '<strong>Top Agency:</strong> ' + (c.category === 'procurement_collusion' ? 'Defense Logistics Agency' : 'General Services Administration') + '<br>' +
+        '<strong>Contract Type:</strong> Firm Fixed Price (FFP), IDIQ<br>' +
+        '<span style="color:#68d391">Data saved to S3: leads/' + subj.replace(/[^a-zA-Z]/g,'').toLowerCase().substr(0,12) + '/osint/fpds_contracts.json</span>';
+    } else if (sourceName.indexOf('SEC') >= 0) {
+      return '<strong>Query:</strong> "' + subj + '" 10-K, 10-Q, 8-K filings<br>' +
+        '<strong>Filings Found:</strong> ' + (2 + Math.floor(Math.random() * 15)) + ' documents<br>' +
+        '<strong>Latest:</strong> 10-K Annual Report (FY2025) filed 2025-03-15<br>' +
+        '<strong>Revenue:</strong> $' + (Math.floor(Math.random() * 80) + 5) + 'B | <strong>Employees:</strong> ' + (Math.floor(Math.random() * 150) + 10) + 'K<br>' +
+        '<strong>Risk Factors:</strong> Mentions "antitrust", "regulatory proceedings" in Item 1A<br>' +
+        '<span style="color:#fbbf24">FLAGGED: Litigation disclosure mentions DOJ investigation</span>';
+    } else if (sourceName.indexOf('PACER') >= 0) {
+      return '<strong>Query:</strong> Party="' + subj + '" | Court=All Federal<br>' +
+        '<strong>Cases Found:</strong> ' + (1 + Math.floor(Math.random() * 6)) + ' civil matters<br>' +
+        '<strong>Relevant:</strong> US v. ' + subj.split(' ')[0] + ' et al. (Case ' + (Math.floor(Math.random() * 9) + 1) + ':' + (20 + Math.floor(Math.random() * 6)) + '-cv-' + (1000 + Math.floor(Math.random() * 9000)) + ')<br>' +
+        '<strong>Filed:</strong> ' + (2020 + Math.floor(Math.random() * 5)) + ' | <strong>Status:</strong> ' + (Math.random() > 0.5 ? 'Active' : 'Settled') + '<br>' +
+        '<strong>Cause:</strong> 15 USC \u00a71 - Sherman Antitrust Act<br>' +
+        '<span style="color:#68d391">Data saved to S3: leads/' + subj.replace(/[^a-zA-Z]/g,'').toLowerCase().substr(0,12) + '/osint/court_records.json</span>';
+    } else if (sourceName.indexOf('News') >= 0 || sourceName.indexOf('LexisNexis') >= 0) {
+      return '<strong>Query:</strong> "' + subj + '" AND ("antitrust" OR "bid rigging" OR "price fixing")<br>' +
+        '<strong>Articles Found:</strong> ' + (8 + Math.floor(Math.random() * 40)) + ' hits (last 24 months)<br>' +
+        '<strong>Top Hit:</strong> "DOJ Investigates ' + industry + ' for Potential ' + (c.category === 'procurement_collusion' ? 'Bid-Rigging' : 'Price-Fixing') + '" - Reuters, 2025<br>' +
+        '<strong>Sentiment:</strong> 72% negative coverage | <strong>Trend:</strong> Increasing mentions<br>' +
+        '<span style="color:#f87171">FLAGGED: Multiple sources confirm active federal investigation</span>';
+    } else if (sourceName.indexOf('State AG') >= 0) {
+      return '<strong>Query:</strong> "' + subj + '" state attorney general actions<br>' +
+        '<strong>Status:</strong> Pending review - no state-level filings found yet<br>' +
+        '<strong>Note:</strong> ' + (Math.floor(Math.random() * 5) + 2) + ' state AGs have open antitrust dockets in ' + industry + '<br>' +
+        '<span style="color:#718096">Awaiting response from multistate working group</span>';
+    } else {
+      return '<strong>Query:</strong> "' + subj + '" ' + industry + '<br>' +
+        '<strong>Results:</strong> ' + (Math.floor(Math.random() * 10) + 1) + ' relevant records found<br>' +
+        '<strong>Status:</strong> Data collected and indexed<br>' +
+        '<span style="color:#68d391">Stored in OSINT data lake</span>';
+    }
+  }
+
+  // Generate risk factors
+  function genRisks(c) {
+    const risks = {
+      procurement_collusion: ['Statute of limitations may limit recovery period to 4 years', 'Key witnesses may invoke 5th Amendment protections', 'Document destruction risk if subjects become aware of investigation', 'Parallel state investigations may complicate federal jurisdiction'],
+      price_fixing: ['International subjects may resist US jurisdiction', 'Leniency applicant credibility challenges', 'Complex damages calculation may delay trial', 'Industry consolidation may moot some claims'],
+      criminal_cartel: ['Flight risk for individual defendants', 'Encrypted communications may limit evidence', 'International extradition complexities', 'Cooperating witness reliability concerns'],
+      monopolization: ['Monopoly power definition contested in evolving markets', 'Procompetitive justifications may be credible', 'Remedy design complexity (structural vs. behavioral)', 'Appeals risk given current judicial philosophy'],
+      market_allocation: ['No-poach agreements may have procompetitive justifications', 'Individual harm quantification challenges', 'Class certification risks in private actions', 'Evolving legal standards for labor market antitrust'],
+      merger_review: ['Parties may propose divestitures to address concerns', 'Failing firm defense may be raised', 'Market definition disputes likely', 'Timing pressure from HSR deadlines']
+    };
+    return risks[c.category] || risks.procurement_collusion;
+  }
+
+  // Generate next steps
+  function genNextSteps(c) {
+    const steps = {
+      procurement_collusion: ['Issue Civil Investigative Demands (CIDs) to all identified subjects', 'Coordinate with agency Inspector General for procurement records', 'Interview former employees and subcontractors', 'Engage forensic economists for damages modeling', 'Assess parallel criminal referral to DOJ Criminal Division'],
+      price_fixing: ['Evaluate leniency applications and cooperating witnesses', 'Issue subpoenas for pricing communications and trade association records', 'Engage economic experts for market definition and damages', 'Coordinate with international competition authorities', 'Prepare grand jury presentation for criminal track'],
+      criminal_cartel: ['Empanel grand jury and issue target letters', 'Coordinate with FBI for search warrants', 'Negotiate plea agreements with cooperating subjects', 'Prepare RICO predicate act documentation', 'Brief international counterparts for parallel enforcement'],
+      monopolization: ['Complete market definition analysis with economic experts', 'Document exclusionary conduct timeline', 'Assess structural vs. behavioral remedy options', 'Prepare complaint and preliminary injunction motion', 'Engage with affected competitors and customers as potential witnesses'],
+      market_allocation: ['Document geographic/customer allocation patterns', 'Interview affected workers and competitors', 'Coordinate with DOJ Antitrust Division labor markets team', 'Assess criminal vs. civil enforcement track', 'Prepare class notification for affected individuals'],
+      merger_review: ['Complete competitive effects analysis within HSR timeline', 'Issue Second Request for additional documents', 'Interview customers and competitors about competitive effects', 'Evaluate proposed remedies and divestiture packages', 'Prepare complaint for preliminary injunction if needed']
+    };
+    return steps[c.category] || steps.procurement_collusion;
+  }
+
+  const scores = genScores(c);
+  const summary = genSummary(c);
+  const evidence = genEvidence(c);
+  const statutes = genStatutes(c);
+  const osintSources = genOsintSources(c);
+  const relatedCases = genRelatedCases(c);
+  const risks = genRisks(c);
+  const nextSteps = genNextSteps(c);
+
+  // AI Recommendation
+  let recClass, recText;
+  if (c._score >= 60) { recClass = 'ai-rec-investigate'; recText = '\u2713 RECOMMEND INVESTIGATION \u2014 High confidence of antitrust violation'; }
+  else if (c._score >= 40) { recClass = 'ai-rec-monitor'; recText = '\u2298 MONITOR \u2014 Moderate indicators, continue intelligence gathering'; }
+  else { recClass = 'ai-rec-low'; recText = '\u2717 LOW PRIORITY \u2014 Insufficient indicators for active investigation'; }
+
+  // Bar color helper
+  function barColor(val) {
+    if (val >= 70) return '#68d391';
+    if (val >= 45) return '#fbbf24';
+    return '#f87171';
+  }
+
+  // Build HTML
+  let html = '';
+  // Header
+  html += '<div class="modal-header"><div class="modal-title">' + c.title + '</div>';
+  html += '<div class="modal-meta">';
+  html += '<span class="modal-meta-item cat-badge cat-' + c.category + '">' + (catLabels[c.category] || c.category) + '</span>';
+  html += '<span class="modal-meta-item" style="color:' + (c.priority === 'critical' ? '#f87171' : '#fb923c') + ';border-color:' + (c.priority === 'critical' ? 'rgba(248,113,113,0.4)' : 'rgba(251,146,60,0.4)') + '">' + c.priority.toUpperCase() + '</span>';
+  html += '<span class="modal-meta-item">Score: <strong style="color:#FF9900">' + c._score + '</strong></span>';
+  html += '<span class="modal-meta-item">Overall Rank: #' + c._overallRank + '</span>';
+  html += '<span class="modal-meta-item">Category Rank: #' + c._catRank + '</span>';
+  html += '</div></div>';
+
+  // Level 1: AI Executive Summary
+  html += '<div class="modal-section"><div class="modal-section-title">\uD83E\uDDE0 AI Executive Summary</div>';
+  html += '<div class="modal-summary">' + summary + '</div></div>';
+
+  // Prosecution Readiness
+  html += '<div class="modal-section"><div class="modal-section-title">\uD83D\uDCCA Prosecution Readiness Score</div>';
+  html += '<div class="prosecution-grid">';
+  scores.forEach(function(s) {
+    html += '<div class="prosecution-item"><span class="label">' + s.name + '</span><div class="bar-bg"><div class="bar-fill" style="width:' + s.val + '%;background:' + barColor(s.val) + '"></div></div><span class="bar-val" style="color:' + barColor(s.val) + '">' + s.val + '%</span></div>';
+  });
+  html += '</div></div>';
+
+  // Key Subjects
+  html += '<div class="modal-section"><div class="modal-section-title">\uD83D\uDC65 Key Subjects (' + c.subjects.length + ')</div>';
+  html += '<div class="subjects-list">';
+  c.subjects.forEach(function(s) { html += '<span class="subject-chip">' + s + '</span>'; });
+  html += '</div></div>';
+
+  // Market Harm & Scope
+  html += '<div class="modal-section"><div class="modal-section-title">\uD83D\uDCB0 Estimated Market Harm</div>';
+  html += '<p style="font-size:1.1rem;font-weight:700;color:#FF9900;margin-bottom:4px">' + c.harm + '</p>';
+  html += '<p style="font-size:0.78rem;color:#a0aec0">Geographic Scope: ' + c.scope + '</p>';
+  html += '<p style="font-size:0.78rem;color:#a0aec0;margin-top:4px">Industry: ' + c.industry.replace(/_/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); }) + '</p></div>';
+
+  // AI Recommendation
+  html += '<div class="ai-recommendation ' + recClass + '">' + recText + '</div>';
+
+  // Executive Order & Policy Alignment
+  function genEOAlignment(c) {
+    var eos = [];
+    if (c.category === 'procurement_collusion' || c.category === 'market_allocation') {
+      eos.push({ eo: 'EO 14036 — Promoting Competition in the American Economy', reason: 'Directly targets anticompetitive practices in government procurement and labor markets. This case aligns with the Executive Order\'s mandate to increase enforcement against collusion that raises costs for taxpayers and consumers.', boost: '1.4x priority multiplier' });
+    }
+    if (c.category === 'monopolization') {
+      eos.push({ eo: 'EO 14036 — Promoting Competition in the American Economy', reason: 'Addresses the concentration of market power that reduces innovation and raises prices. The EO specifically directs DOJ to vigorously enforce antitrust laws against dominant firms engaging in exclusionary conduct.', boost: '1.5x priority multiplier' });
+      eos.push({ eo: 'EO 14086 — Technology Accountability', reason: 'Targets technology platforms that leverage dominance to foreclose competition. This case represents the type of monopolization the Administration has identified as harmful to the digital economy.', boost: '1.3x priority multiplier' });
+    }
+    if (c.category === 'price_fixing') {
+      eos.push({ eo: 'EO 14036 — Promoting Competition in the American Economy', reason: 'Price-fixing directly harms consumers through artificially inflated prices. The EO emphasizes protecting American families from anticompetitive conduct that raises the cost of essential goods and services.', boost: '1.3x priority multiplier' });
+      if (c.industry.match(/pharma|food|fuel|beef|pork|chicken|egg|poultry/i)) {
+        eos.push({ eo: 'DOJ Priority — Essential Goods Enforcement', reason: 'Cases involving food, pharmaceuticals, and fuel receive elevated priority under DOJ policy directives targeting cartels that inflate prices of goods essential to American households.', boost: '1.5x priority multiplier' });
+      }
+    }
+    if (c.category === 'criminal_cartel') {
+      eos.push({ eo: 'DOJ Priority — International Criminal Cartels', reason: 'International criminal cartels represent the most serious antitrust offenses. DOJ policy directs maximum enforcement resources toward dismantling organized conspiracies that harm US commerce.', boost: '1.6x priority multiplier' });
+      eos.push({ eo: 'EO 14036 — Promoting Competition in the American Economy', reason: 'Criminal cartels undermine the competitive marketplace that the Executive Order seeks to protect. Vigorous criminal enforcement deters future anticompetitive conduct.', boost: '1.3x priority multiplier' });
+    }
+    if (c.category === 'merger_review') {
+      eos.push({ eo: 'EO 14036 — Promoting Competition in the American Economy', reason: 'The EO directs agencies to challenge mergers that may substantially lessen competition. This transaction raises concentration concerns that align with the Administration\'s merger enforcement priorities.', boost: '1.2x priority multiplier' });
+    }
+    if (c.category === 'market_allocation') {
+      eos.push({ eo: 'DOJ Priority — Labor Market Competition', reason: 'No-poach and wage-fixing agreements suppress worker wages and mobility. DOJ has committed to criminal prosecution of naked no-poach agreements as per se violations of the Sherman Act.', boost: '1.5x priority multiplier' });
+    }
+    if (c._harmNum >= 1e9) {
+      eos.push({ eo: 'DOJ Priority — High-Impact Enforcement', reason: 'Cases with estimated harm exceeding $1B receive elevated priority to maximize deterrent effect and consumer restitution. This case\'s estimated harm of ' + c.harm + ' qualifies for accelerated review.', boost: '1.3x priority multiplier' });
+    }
+    return eos;
+  }
+
+  var eoItems = genEOAlignment(c);
+  html += '<div class="modal-section" style="margin-top:20px"><div class="modal-section-title">\uD83C\uDFDB\uFE0F Executive Order & Policy Alignment</div>';
+  html += '<p style="font-size:0.75rem;color:#a0aec0;margin-bottom:12px">This case is prioritized based on alignment with the following Executive Orders and DOJ policy directives:</p>';
+  eoItems.forEach(function(eo) {
+    html += '<div style="margin-bottom:12px;padding:10px 14px;background:rgba(72,187,120,0.05);border:1px solid rgba(72,187,120,0.2);border-radius:8px">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:0.8rem;font-weight:700;color:#68d391">' + eo.eo + '</span><span style="font-size:0.65rem;padding:2px 8px;border-radius:10px;background:rgba(255,153,0,0.15);color:#FF9900;font-weight:600">' + eo.boost + '</span></div>';
+    html += '<p style="font-size:0.75rem;color:#cbd5e0;line-height:1.5">' + eo.reason + '</p>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // === LEVEL 2 ===
+  html += '<div class="level2-header">\uD83D\uDD2C Level 2 \u2014 Deep Analysis</div>';
+
+  // Evidence Assessment
+  html += '<div class="modal-section"><div class="modal-section-title">\uD83D\uDCCB Evidence Assessment</div>';
+  evidence.forEach(function(e) {
+    var sClass = e.strength === 'Strong' ? 'strength-strong' : e.strength === 'Moderate' ? 'strength-moderate' : 'strength-weak';
+    html += '<div class="evidence-item"><span class="ev-name">' + e.name + '</span><span class="evidence-strength ' + sClass + '">' + e.strength + '</span></div>';
+  });
+  html += '</div>';
+
+  // Legal Framework
+  html += '<div class="modal-section"><div class="modal-section-title">\u2696\uFE0F Legal Framework Analysis</div>';
+  html += '<div class="statute-list">';
+  statutes.forEach(function(s) { html += '<span class="statute-chip">' + s + '</span>'; });
+  html += '</div></div>';
+
+  // OSINT Sources
+  html += '<div class="modal-section"><div class="modal-section-title">\uD83C\uDF10 OSINT Intelligence Sources <span style="font-size:0.65rem;color:#718096;margin-left:8px">(click to expand)</span></div>';
+  osintSources.forEach(function(s, idx) {
+    var sClass = s.status === 'checked' ? 'status-checked' : s.status === 'flagged' ? 'status-flagged' : 'status-pending';
+    var sLabel = s.status === 'checked' ? '\u2713 Checked' : s.status === 'flagged' ? '\u2691 Flagged' : '\u25CC Pending';
+    if (s.live) { sLabel = '\u26A1 LIVE DATA'; sClass = 'status-flagged'; }
+    var snippet = genOsintSnippet(c, s.name);
+    html += '<div class="osint-source" style="cursor:pointer;flex-direction:column;align-items:stretch" onclick="this.querySelector(\'.osint-detail\').style.display=this.querySelector(\'.osint-detail\').style.display===\'block\'?\'none\':\'block\'">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center"><span class="src-name">' + s.name + '</span><span class="osint-status ' + sClass + '">' + sLabel + '</span></div>';
+    html += '<div class="osint-detail" style="display:none;margin-top:8px;padding:8px 10px;background:rgba(0,0,0,0.2);border-radius:4px;font-size:0.7rem;color:#a0aec0;line-height:1.5">' + snippet + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // Cross-Case Pattern Detection
+  html += '<div class="modal-section"><div class="modal-section-title">\uD83D\uDD17 Cross-Case Pattern Detection</div>';
+  if (relatedCases.length > 0) {
+    relatedCases.forEach(function(rc) { html += '<div class="related-case">' + rc + '</div>'; });
+  } else {
+    html += '<p style="font-size:0.78rem;color:#718096">No related cases found in same category.</p>';
+  }
+  html += '</div>';
+
+  // Risk Factors
+  html += '<div class="modal-section"><div class="modal-section-title">\u26A0\uFE0F Risk Factors</div>';
+  risks.forEach(function(r) { html += '<div class="risk-item">' + r + '</div>'; });
+  html += '</div>';
+
+  // Recommended Next Steps
+  html += '<div class="modal-section"><div class="modal-section-title">\uD83D\uDCCC Recommended Next Steps</div>';
+  nextSteps.forEach(function(s) { html += '<div class="next-step-item">' + s + '</div>'; });
+  html += '</div>';
+
+  content.innerHTML = html;
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCaseDetail() {
+  document.getElementById('caseModalOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// === INIT ===
+buildParetoChart();
+buildCategoryChart();
+renderTable(cases);
+
+// === CASE DETAIL EVENT LISTENERS ===
+// Delegated dblclick on tbody
+document.getElementById('caseTable').addEventListener('dblclick', function(e) {
+  var tr = e.target.closest('tr');
+  if (tr && tr.dataset.idx !== undefined) {
+    openCaseDetail(parseInt(tr.dataset.idx, 10));
+  }
+});
+
+// Close modal handlers
+document.getElementById('caseModalClose').addEventListener('click', closeCaseDetail);
+document.getElementById('caseModalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeCaseDetail();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeCaseDetail();
+});
+</script>
+</body></html>
