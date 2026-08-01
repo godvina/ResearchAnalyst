@@ -52,7 +52,23 @@ def _unwrap(val):
 
 
 def handler(event, context):
-    """Sync Neptune entities to Aurora for a given case."""
+    """Sync Neptune entities to Aurora, or run arbitrary Gremlin."""
+    action = event.get("action", "sync_neptune_to_aurora")
+
+    # Run arbitrary Gremlin query (for admin operations like adding edges)
+    if action == "run_gremlin":
+        gremlin_query = event.get("gremlin", "")
+        if not gremlin_query:
+            return {"error": "gremlin query required"}
+        if not NEPTUNE_ENDPOINT:
+            return {"error": "NEPTUNE_ENDPOINT not configured"}
+        try:
+            raw = _gremlin(gremlin_query, timeout=30)
+            results = [_unwrap(r) for r in raw] if raw else []
+            return {"status": "ok", "results": results[:50], "count": len(results)}
+        except Exception as exc:
+            return {"error": f"Gremlin failed: {str(exc)[:300]}"}
+
     case_id = event.get("case_id")
     if not case_id:
         return {"error": "case_id required"}
