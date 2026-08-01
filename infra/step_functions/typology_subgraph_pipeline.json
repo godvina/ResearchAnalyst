@@ -1,0 +1,159 @@
+{
+  "Comment": "Typology Subgraph Pipeline - orchestrates extraction, scoring, and summary graph building for case typologies",
+  "StartAt": "ThresholdCheck",
+  "States": {
+    "ThresholdCheck": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:974220725866:function:TypologyPipeline-ThresholdCheck",
+      "Parameters": {
+        "case_id.$": "$.case_id",
+        "trigger_source.$": "$.trigger_source"
+      },
+      "ResultPath": "$.threshold_result",
+      "Next": "IsLargeCase"
+    },
+    "IsLargeCase": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.threshold_result.mode",
+          "StringEquals": "skip",
+          "Next": "SkipSmallCase"
+        }
+      ],
+      "Default": "AcquireLock"
+    },
+    "SkipSmallCase": {
+      "Type": "Succeed",
+      "Comment": "Case does not require pre-computation; skipping pipeline"
+    },
+    "AcquireLock": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:974220725866:function:TypologyPipeline-AcquireLock",
+      "Parameters": {
+        "case_id.$": "$.case_id",
+        "trigger_source.$": "$.trigger_source"
+      },
+      "ResultPath": "$.lock",
+      "Next": "ExtractSubgraphs",
+      "Catch": [
+        {
+          "ErrorEquals": ["LockConflict"],
+          "ResultPath": "$.error_info",
+          "Next": "PipelineAlreadyRunning"
+        }
+      ]
+    },
+    "PipelineAlreadyRunning": {
+      "Type": "Fail",
+      "Cause": "Another execution of this pipeline is already running for this case",
+      "Error": "LockConflict"
+    },
+    "ExtractSubgraphs": {
+      "Type": "Map",
+      "ItemsPath": "$.threshold_result.typology_modules",
+      "MaxConcurrency": 3,
+      "Parameters": {
+        "typology_module_id.$": "$$.Map.Item.Value",
+        "case_id.$": "$.case_id",
+        "execution_id.$": "$.lock.execution_id"
+      },
+      "Iterator": {
+        "StartAt": "ExtractSubgraph",
+        "States": {
+          "ExtractSubgraph": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:us-east-1:974220725866:function:TypologyPipeline-ExtractSubgraph",
+            "End": true
+          }
+        }
+      },
+      "ResultPath": "$.extracted_subgraphs",
+      "Next": "ScoreTypologies",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error_info",
+          "Next": "ReleaseLockFailed"
+        }
+      ]
+    },
+    "ScoreTypologies": {
+      "Type": "Map",
+      "ItemsPath": "$.extracted_subgraphs",
+      "MaxConcurrency": 3,
+      "Parameters": {
+        "case_id.$": "$$.Map.Item.Value.case_id",
+        "typology_module_id.$": "$$.Map.Item.Value.typology_module_id",
+        "execution_id.$": "$.lock.execution_id"
+      },
+      "Iterator": {
+        "StartAt": "ScoreTypology",
+        "States": {
+          "ScoreTypology": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:us-east-1:974220725866:function:TypologyPipeline-ScoreTypology",
+            "End": true
+          }
+        }
+      },
+      "ResultPath": "$.scored_typologies",
+      "Next": "BuildSummaryGraph",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error_info",
+          "Next": "ReleaseLockFailed"
+        }
+      ]
+    },
+    "BuildSummaryGraph": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:974220725866:function:TypologyPipeline-BuildSummaryGraph",
+      "Parameters": {
+        "case_id.$": "$.case_id",
+        "execution_id.$": "$.lock.execution_id"
+      },
+      "ResultPath": "$.summary_graph",
+      "Next": "ReleaseLock",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error_info",
+          "Next": "ReleaseLockFailed"
+        }
+      ]
+    },
+    "ReleaseLock": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:974220725866:function:TypologyPipeline-ReleaseLock",
+      "Parameters": {
+        "case_id.$": "$.case_id",
+        "execution_id.$": "$.lock.execution_id",
+        "status": "completed"
+      },
+      "ResultPath": "$.lock_release",
+      "Next": "PipelineComplete"
+    },
+    "PipelineComplete": {
+      "Type": "Succeed",
+      "Comment": "Pipeline completed successfully"
+    },
+    "ReleaseLockFailed": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:974220725866:function:TypologyPipeline-ReleaseLock",
+      "Parameters": {
+        "case_id.$": "$.case_id",
+        "execution_id.$": "$.lock.execution_id",
+        "status": "failed"
+      },
+      "ResultPath": "$.lock_release",
+      "Next": "PipelineFailed"
+    },
+    "PipelineFailed": {
+      "Type": "Fail",
+      "Cause": "Pipeline failed during execution",
+      "Error": "PipelineExecutionError"
+    }
+  }
+}
