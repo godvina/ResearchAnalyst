@@ -66,8 +66,7 @@ check-docs.json
 scripts/set_brave_key.py
 .env
 
-# Deploy package
-deploy-package/
+# Deploy package (local zip only, not the folder)
 deploy-package-colleague.zip
 
 # Streamlit
