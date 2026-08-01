@@ -5802,6 +5802,514 @@ paths:
         httpMethod: POST
         uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AccessControlAdminLambdaArn}/invocations"
 
+  # --- Pre-Case Intelligence Routes ---
+
+  /pre-case/leads:
+    post:
+      summary: Submit a new pre-case lead
+      operationId: submitPreCaseLead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, source_type, source_content]
+              properties:
+                title:
+                  type: string
+                summary:
+                  type: string
+                source_type:
+                  type: string
+                  enum: [tip, whistleblower, news, anomaly, referral]
+                source_content:
+                  type: object
+                priority:
+                  type: string
+                  enum: [critical, high, medium, low]
+                assigned_analyst:
+                  type: string
+      responses:
+        "201":
+          description: Pre-case lead created
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PreCaseIntelligenceLambdaArn}/invocations"
+    get:
+      summary: List pre-case leads with filters and pagination
+      operationId: listPreCaseLeads
+      parameters:
+        - name: case_type
+          in: query
+          schema:
+            type: string
+            enum: [procurement_collusion, price_fixing, market_allocation, merger_review, monopolization, criminal_cartel]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [intake, classifying, gathering, assessing, monitoring, promoted, closed]
+        - name: priority
+          in: query
+          schema:
+            type: string
+            enum: [critical, high, medium, low]
+        - name: assigned_analyst
+          in: query
+          schema:
+            type: string
+        - name: score_min
+          in: query
+          schema:
+            type: integer
+        - name: score_max
+          in: query
+          schema:
+            type: integer
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: List of pre-case leads
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PreCaseIntelligenceLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /pre-case/leads
+      operationId: optionsPreCaseLeads
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PreCaseIntelligenceLambdaArn}/invocations"
+
+  /pre-case/leads/{lead_id}:
+    get:
+      summary: Get complete pre-case lead detail
+      operationId: getPreCaseLead
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Pre-case lead detail
+        "404":
+          description: Lead not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PreCaseIntelligenceLambdaArn}/invocations"
+    patch:
+      summary: Update pre-case lead properties
+      operationId: updatePreCaseLead
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                priority:
+                  type: string
+                  enum: [critical, high, medium, low]
+                assigned_analyst:
+                  type: string
+                monitoring_frequency:
+                  type: string
+                  enum: [daily, weekly, monthly]
+                status:
+                  type: string
+                  enum: [intake, classifying, gathering, assessing, monitoring, promoted, closed]
+                closure_reason:
+                  type: string
+      responses:
+        "200":
+          description: Lead updated
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Lead not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PreCaseIntelligenceLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /pre-case/leads/{lead_id}
+      operationId: optionsPreCaseLeadById
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PreCaseIntelligenceLambdaArn}/invocations"
+
+  /pre-case/leads/{lead_id}/classify:
+    post:
+      summary: Trigger classification or reclassification of a lead
+      operationId: classifyPreCaseLead
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                additional_context:
+                  type: string
+      responses:
+        "200":
+          description: Classification result
+        "404":
+          description: Lead not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PreCaseIntelligenceLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /pre-case/leads/{lead_id}/classify
+      operationId: optionsPreCaseLeadClassify
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PreCaseIntelligenceLambdaArn}/invocations"
+
+  /pre-case/leads/{lead_id}/gather:
+    post:
+      summary: Trigger OSINT data gathering for a lead
+      operationId: gatherPreCaseLeadOsint
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sources:
+                  type: array
+                  items:
+                    type: string
+                subjects:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: OSINT gathering initiated
+        "404":
+          description: Lead not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PreCaseIntelligenceLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /pre-case/leads/{lead_id}/gather
+      operationId: optionsPreCaseLeadGather
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PreCaseIntelligenceLambdaArn}/invocations"
+
+  /pre-case/leads/{lead_id}/assessment:
+    get:
+      summary: Get current prosecution readiness assessment for a lead
+      operationId: getPreCaseLeadAssessment
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Assessment result
+        "404":
+          description: Lead or assessment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PreCaseIntelligenceLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /pre-case/leads/{lead_id}/assessment
+      operationId: optionsPreCaseLeadAssessment
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PreCaseIntelligenceLambdaArn}/invocations"
+
+  /pre-case/leads/{lead_id}/assess:
+    post:
+      summary: Trigger fresh prosecution readiness assessment
+      operationId: triggerPreCaseLeadAssessment
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Assessment triggered
+        "404":
+          description: Lead not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PreCaseIntelligenceLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /pre-case/leads/{lead_id}/assess
+      operationId: optionsPreCaseLeadAssess
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PreCaseIntelligenceLambdaArn}/invocations"
+
+  /pre-case/leads/{lead_id}/open-case:
+    post:
+      summary: Promote pre-case lead to formal investigation
+      operationId: openCaseFromPreCaseLead
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prosecutor_id]
+              properties:
+                prosecutor_id:
+                  type: string
+                confirmation:
+                  type: string
+                  enum: [confirmed, overridden]
+                reasoning:
+                  type: string
+      responses:
+        "200":
+          description: Case opened from lead
+        "400":
+          description: Validation error or workflow violation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Lead not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PreCaseIntelligenceLambdaArn}/invocations"
+    options:
+      summary: CORS preflight for /pre-case/leads/{lead_id}/open-case
+      operationId: optionsPreCaseLeadOpenCase
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CORS preflight response
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PreCaseIntelligenceLambdaArn}/invocations"
+
 components:
   schemas:
     # --- Request Schemas ---
