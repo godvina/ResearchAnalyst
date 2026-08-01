@@ -802,3 +802,941 @@ g.V('person-id').addE('RELATED_TO').to(__.V('location-id'))
 **Problem**: EC2 `i-06144ab22c4a90751` has been running for 27+ hours but entity count for Epstein Main hasn't changed from 33,509 (60,496 remaining). The EC2 may be stuck or erroring silently.
 **Action needed**: Check EC2 console output or SSM for logs. If stuck, terminate and relaunch with fresh userdata.
 **Lesson**: Always check that the actual metric (entity count) is increasing, not just that the EC2 shows "running". Check every hour as instructed.
+
+
+## Issue 42: Python Threading with boto3 Doesn't Parallelize Lambda Invocations
+
+**Problem**: The parallel entity extraction EC2 (`entity-parallel-20t`) used Python `ThreadPoolExecutor` with 20 threads, but entity count barely moved (27 docs in 2 hours vs expected 300/min).
+**Root cause**: Python's GIL (Global Interpreter Lock) prevents true parallelism with threads. While boto3 calls are I/O-bound and should release the GIL, the `ThreadPoolExecutor` approach with 20 threads sharing a single process may have hit Lambda concurrency throttling or connection pool limits.
+**Fix**: Use `multiprocessing.Process` instead of threads. Each process gets its own Python interpreter, its own boto3 client, and its own connection pool. 10 processes = 10 truly parallel Lambda invocations.
+**Script**: `scripts/ec2_entity_fast.py` — uses `multiprocessing.Process` with 10 workers
+**Prevention**: For parallel Lambda invocations from EC2, always use `multiprocessing` not `threading`. Each worker must create its own `boto3.client()`.
+
+## CRITICAL RULE: Check Long-Running EC2 Processes Every Hour
+
+**Problem**: Entity extraction EC2 was stuck for hours without being noticed. The user had to ask for status.
+**Rule**: On EVERY prompt, check the status of any running EC2 processes. Report the entity count and whether it's increasing. If count hasn't changed in 1 hour, investigate and restart.
+**Hook created**: `check-ec2-status` — fires on every promptSubmit to remind checking.
+
+
+## Issue 43: Entity Backfill Count Never Decreases — Docs Re-Processed Infinitely
+
+**Problem**: The `backfill_entities_batch` action processes 20 docs per call and reports "processed: 20, entities_extracted: 65" — but the `backfill_entities_count` always returns the same "missing_count: 53,811". The same docs are re-processed every batch.
+**Root cause**: UNDER INVESTIGATION. The `NOT EXISTS (SELECT 1 FROM entities e WHERE e.document_id = d.document_id)` subquery still finds the same documents after entities are inserted. Possible causes:
+1. The `ON CONFLICT DO NOTHING` is silently dropping all inserts due to a unique constraint
+2. The `document_id` in the entities table doesn't match the `document_id` in the documents table
+3. The transaction isn't being committed (psycopg2 autocommit may be off)
+**Impact**: All EC2 entity extraction processes appeared stuck because the count never changed. They were actually processing docs but re-processing the same ones infinitely.
+**Workaround needed**: Fix the entity insert to properly mark docs as processed, or change the batch query to use a different mechanism (e.g., a processed flag on the documents table).
+
+
+## Issue 43: Never Terminate Working EC2 Extraction Processes to "Speed Them Up"
+
+**Problem**: Three EC2 instances were running entity extraction at ~10 docs/min (serial approach, proven working). They were terminated and replaced with a parallel script (10 workers, then 3 workers) that saturated Lambda concurrency, causing ALL Lambda invocations to timeout — including status checks and the extraction itself.
+**Root cause**: The single CaseFiles Lambda handles ALL API traffic. When multiple parallel workers each hold a Lambda invocation for 2-5 minutes (Bedrock entity extraction), no other invocations can get through. The Lambda isn't throttled by concurrency limits — it's that each invocation takes minutes, and the parallel workers consume all available execution slots.
+**Impact**: Lost ~2 hours of extraction progress. Had to terminate the parallel EC2s and relaunch with the original serial approach.
+**Fix**: Reverted to serial approach (1 worker, batch_size=10, 1 second between batches). This leaves Lambda available for other requests between batches.
+**Prevention**: 
+1. **NEVER terminate a working EC2 extraction process** unless it's confirmed stuck (count not changing for 30+ minutes)
+2. **Parallel entity extraction requires a SEPARATE Lambda** — cannot share the CaseFiles Lambda
+3. If you want to speed up extraction, launch ADDITIONAL serial EC2 instances (2-3 max) rather than parallel workers within one instance
+4. Always verify the count is increasing BEFORE terminating an existing process
+**Files**: `scripts/ec2_entity_fast_with_sync.py` (DO NOT USE — saturates Lambda), `scripts/ec2_serial_with_sync.py` (USE THIS)
+
+
+## Issue 44: Entity Extraction Backfill — Root Cause and Correct Architecture
+
+**Problem**: Entity extraction backfill ran for 20+ hours processing ~300 docs total. Appeared to process 40K+ docs but was re-processing the same ones infinitely.
+
+**Root cause**: The `entities` table has `UNIQUE (case_file_id, canonical_name, entity_type)` — one row per entity name per case. When doc A and doc B both mention "Jeffrey Epstein", the `ON CONFLICT DO UPDATE SET document_id = EXCLUDED.document_id` **overwrites** doc A's `document_id` with doc B's. The `NOT EXISTS (SELECT 1 FROM entities WHERE document_id = doc_A)` query then finds doc A again because its link was stolen. Same docs re-processed infinitely — burning Bedrock credits for nothing.
+
+**Fix applied**: Created `entity_extraction_done` tracking table (separate from entities). Each processed doc gets an INSERT with `ON CONFLICT DO NOTHING`. Batch query uses `LEFT JOIN entity_extraction_done ... WHERE x.document_id IS NULL`. Count uses simple arithmetic: `total_docs - done_count`.
+
+**Why this happened**: The backfill was a workaround because the original Step Functions pipeline failed (Issues 18-26). The pipeline's `extract_handler.py` handles entity aggregation correctly — it never overwrites `document_id`. The backfill code was written hastily and didn't account for the UNIQUE constraint behavior.
+
+**Prevention**: 
+1. Never use `ON CONFLICT DO UPDATE SET document_id = EXCLUDED.document_id` on a table with a UNIQUE constraint that doesn't include `document_id`
+2. Always use a separate tracking mechanism (flag column or tracking table) for batch processing progress
+3. The `entities` table is designed for one row per unique entity name — use `source_document_ids` JSONB array for document provenance
+
+## Issue 45: ALTER TABLE ADD COLUMN DEFAULT on Large Table Locks Aurora
+
+**Problem**: Deploying `ALTER TABLE documents ADD COLUMN IF NOT EXISTS entities_extracted BOOLEAN DEFAULT FALSE` on a table with 82K rows locked the entire `documents` table for 45+ minutes. All API requests touching the documents table hung, including the case list endpoint.
+
+**Root cause**: In PostgreSQL < 11, `ALTER TABLE ADD COLUMN ... DEFAULT value` rewrites the entire table. Aurora Serverless at minimum capacity made this extremely slow. The table lock blocked all concurrent queries.
+
+**Fix**: Rebooted Aurora to clear the lock. Replaced the approach with a separate `entity_extraction_done` tracking table (CREATE TABLE is instant, no table rewrite).
+
+**Prevention**: 
+1. **NEVER use ALTER TABLE ADD COLUMN with DEFAULT on large tables** in Aurora Serverless
+2. Use separate tracking tables instead of adding columns to large tables
+3. If you must add a column, use `ADD COLUMN ... DEFAULT NULL` (no rewrite in any PG version), then backfill values separately
+
+## Bedrock Batch Inference — The Correct Architecture for Bulk Entity Extraction
+
+### When to Use
+- Any time you need to extract entities from more than ~1,000 documents
+- Post-ingestion backfill when the Step Functions pipeline was skipped or failed
+- Re-extraction after changing the entity extraction prompt
+- DOJ pilot: 500TB dataset processing
+
+### How It Works
+1. **Generate JSONL**: Query Aurora for docs needing extraction, write prompts to S3 as JSONL
+2. **Submit batch job**: One API call to `bedrock.create_model_invocation_job()`
+3. **Bedrock processes internally**: Massively parallel, 50% cheaper than invoke_model
+4. **Load results**: Read output JSONL from S3, insert entities into Aurora
+
+### Cost Comparison (82K docs)
+| Approach | Cost | Time | Infrastructure Impact |
+|----------|------|------|----------------------|
+| Serial invoke_model (EC2→Lambda→Bedrock) | ~$30 | ~237 days | Blocks API Lambda |
+| Bedrock Batch Inference | ~$15 | ~4-6 hours | Zero Lambda impact |
+
+### Prerequisites
+1. **IAM Role**: `BedrockBatchInferenceRole` with S3 read/write + Bedrock trust policy
+2. **EC2 Role**: `NikityLoaderEC2Role` needs `s3:PutObject`, `s3:GetObject`, `bedrock:CreateModelInvocationJob`, `iam:CreateRole`, `iam:PutRolePolicy`
+3. **S3 location**: `s3://BUCKET/batch-inference/entity-extraction/{case_id}/input/` and `.../output/`
+
+### Commands
+```bash
+# Option 1: Run from EC2 (recommended — survives laptop sleep)
+aws s3 cp scripts/ec2_batch_generate_submit.py s3://BUCKET/deploy/
+# Launch EC2 with ec2_batch_userdata.sh
+
+# Option 2: Run locally (step by step)
+python scripts/bedrock_batch_entity_extraction.py generate   # Write JSONL to S3
+python scripts/bedrock_batch_entity_extraction.py submit     # Submit batch job
+python scripts/bedrock_batch_entity_extraction.py status     # Check progress
+python scripts/bedrock_batch_entity_extraction.py load       # Import results
+```
+
+### Files
+- `scripts/bedrock_batch_entity_extraction.py` — Local CLI for step-by-step execution
+- `scripts/ec2_batch_generate_submit.py` — EC2 unattended script (generate → submit → poll → load → self-terminate)
+- `scripts/ec2_batch_userdata.sh` — EC2 userdata for launching the batch job
+- `scripts/s3_batch_policy.json` — IAM policy for EC2 role
+
+### JSONL Format (Anthropic Claude 3 Haiku)
+```json
+{"recordId": "doc-uuid", "modelInput": {"anthropic_version": "bedrock-2023-05-31", "max_tokens": 2048, "messages": [{"role": "user", "content": "Extract named entities..."}]}}
+```
+
+### Troubleshooting
+- **AccessDenied on S3 PutObject**: Add `s3:PutObject` to EC2 role policy for the batch-inference prefix
+- **Job fails with ValidationException**: Check minimum record count (varies by model, typically 10+)
+- **Job takes >24 hours**: Bedrock SLA is 24 hours max. Check job status for errors.
+- **Output has many errors**: Check that `modelInput` format matches the model's InvokeModel body format exactly
+
+
+## Issue 46: Bedrock Batch Inference — Model Compatibility
+
+**Problem**: Claude 3 Haiku (`anthropic.claude-3-haiku-20240307-v1:0`) is marked Legacy and rejected by batch inference. Claude 3.5 Haiku not supported for batch in us-east-1. First batch job completed but all 75K records errored with "extraneous key [max_tokens] is not permitted" because JSONL used Anthropic format with Nova Lite model.
+
+**Root cause**: Three issues compounded:
+1. Anthropic models are legacy or not batch-enabled in this Isengard account
+2. Amazon Nova Lite accepted the job but rejects Anthropic-format `modelInput` (`max_tokens`, `anthropic_version`)
+3. Nova requires `inferenceConfig.maxTokens` and `messages[].content[].text` format
+
+**Fix**: 
+1. Use Amazon Nova Lite (`amazon.nova-lite-v1:0`) — confirmed working for batch inference
+2. JSONL format for Nova:
+```json
+{"recordId": "doc-uuid", "modelInput": {"messages": [{"role": "user", "content": [{"text": "prompt..."}]}], "inferenceConfig": {"maxTokens": 2048}}}
+```
+3. NOT Anthropic format (this fails):
+```json
+{"recordId": "doc-uuid", "modelInput": {"anthropic_version": "bedrock-2023-05-31", "max_tokens": 2048, "messages": [{"role": "user", "content": "prompt..."}]}}
+```
+
+**Prevention**: Always match the JSONL `modelInput` format to the target model's InvokeModel body format. Test with 1-2 records before submitting 75K.
+
+## Issue 47: EC2 AMI boto3 Too Old for Bedrock Batch API
+
+**Problem**: EC2 with Amazon Linux 2 (`ami-0c02fb55956c7d316`) installs boto3 1.33.13 via pip. This version doesn't have `create_model_invocation_job` (added in later boto3). The JSONL generation works but the batch submission fails with `AttributeError`.
+
+**Fix**: Submit the batch job from the local machine (which has newer boto3/Python 3.12) instead of from EC2. The EC2 generates the JSONL to S3, then the local machine submits.
+
+**Prevention**: For Bedrock batch operations, either:
+1. Use a newer AMI with Python 3.11+ and recent boto3
+2. Pin boto3 version: `pip3 install 'boto3>=1.34.0'` in the userdata script
+3. Split the workflow: EC2 for data prep (JSONL generation), local/Lambda for API calls
+
+
+## Issue 48: Aurora Bulk Load — NEVER Insert One Row at a Time via Lambda
+
+**Problem**: Loading 75K Bedrock batch results into Aurora took ~67 hours because the load script called Lambda once per document (75K Lambda invocations, each doing 1-5 INSERTs). The Bedrock extraction itself only took 30 minutes.
+
+**Root cause**: The load script (`ec2_load_batch_results.py`) processes each JSONL output line individually: parse → invoke Lambda → Lambda does INSERT → sleep 0.1s → next line. At ~0.5s per doc, 75K docs = 10+ hours. As the entities table grows, ON CONFLICT checks slow down further.
+
+**Correct architecture for pilot (45 min total):**
+
+| Step | Time | Method |
+|------|------|--------|
+| 1. Generate JSONL from Aurora | 4 min | EC2 → Lambda (paginated query) → S3 |
+| 2. Bedrock Batch Inference | 30 min | One API call, Bedrock handles parallelism |
+| 3. Load results into Aurora | **10 min** | EC2 direct Aurora connection OR batched Lambda (100 docs/call) |
+| 4. Neptune sync | 30-60 min | EC2 → Lambda → Neptune Gremlin |
+
+**How to fix Step 3 (two options):**
+
+**Option A — EC2 direct Aurora connection (fastest, ~2 min):**
+```python
+import psycopg2
+conn = psycopg2.connect(host=AURORA_ENDPOINT, dbname='research_analyst', user=USER, password=PASS)
+cur = conn.cursor()
+# Read JSONL output, parse entities, batch INSERT
+for batch in chunks(all_records, 1000):
+    values = [(case_id, doc_id, name, type, conf) for doc_id, entities in batch for name, type, conf in entities]
+    psycopg2.extras.execute_values(cur, 
+        "INSERT INTO entities (entity_id, case_file_id, document_id, canonical_name, entity_type, confidence) "
+        "VALUES %s ON CONFLICT (case_file_id, canonical_name, entity_type) DO UPDATE SET "
+        "occurrence_count = entities.occurrence_count + 1", values)
+conn.commit()
+```
+Requires: Aurora endpoint + credentials on EC2 (via Secrets Manager), psycopg2 installed.
+
+**Option B — Batched Lambda calls (fast, ~10 min):**
+```python
+# Send 100 docs per Lambda call instead of 1
+batch = []
+for record in output_lines:
+    batch.append({"document_id": record["recordId"], "entities": parse_entities(record)})
+    if len(batch) >= 100:
+        invoke_lambda({"action": "bulk_insert_entities", "case_id": CASE_ID, "docs": batch})
+        batch = []
+```
+Requires: New `bulk_insert_entities` Lambda action that does 100 INSERTs in one transaction.
+
+**CRITICAL RULE**: Before building any data loading process, check this document. NEVER design a load that calls Lambda once per row. Always batch: 100+ rows per call, or connect to Aurora directly.
+
+**Prevention checklist for any bulk load:**
+1. Calculate total API calls BEFORE building: `total_rows / batch_size = total_calls`
+2. If total_calls > 1,000, you need batching or direct DB connection
+3. Estimate time: `total_calls × avg_call_time` — if > 30 min, redesign
+4. For 500TB pilot: use Option A (direct Aurora) with multi-row INSERT and COPY command
+
+
+## CRITICAL RULE: Verify Every EC2 Launch Within 2 Minutes
+
+**Problem**: Multiple EC2 processes were launched and assumed to be working, only to discover hours later they had failed on startup (S3 AccessDenied, boto3 too old, script error, auto-chain launch failed silently).
+
+**Rule**: After EVERY EC2 launch:
+1. Wait 90-120 seconds for OS updates + script startup
+2. Check console output for the script's first print statement
+3. If no script output after 3 minutes, investigate immediately
+4. If script started, check again at 5 minutes for first progress indicator
+5. NEVER tell the user "it's running" until you've confirmed script output
+
+**Pattern for verification:**
+```python
+# After launching EC2:
+import time
+time.sleep(120)
+output = ec2.get_console_output(InstanceId=instance_id, Latest=True)
+# Look for script markers like "===", "Starting", "Phase 1"
+# If not found, the script hasn't started or failed
+```
+
+**This applies to**: Entity extraction, Neptune sync, batch generation, result loading — ANY EC2 process.
+
+
+## CRITICAL RULE: Model Bake-Off Before Bulk Extraction (April 21, 2026)
+
+**Problem**: Amazon Nova Lite was used for entity extraction on 75K documents without testing it against the actual data first. Result: 248K "entities" where ~75% are OCR garbage — `___` classified as "person", `[ ]` as "financial", `000!` as "event", `0279290` as "person". The model extracted formatting artifacts, page numbers, and OCR noise as entities. Only ~63K entities (25%) pass basic quality filters, and even those contain junk.
+
+**Root cause**: Nova Lite was chosen because Claude Haiku was legacy and Claude 3.5 Haiku wasn't available for batch inference in us-east-1. We never tested a single page with Nova Lite before processing 75K documents. The model's entity extraction quality on OCR'd legal documents was never validated.
+
+**Impact**: 
+- 75K documents processed with a model that produces ~75% noise
+- Neptune graph polluted with 1.3M garbage nodes (had to run overnight dedup)
+- Weeks of cleanup work instead of clean data from the start
+- The IPS algorithm, anomaly detectors, and prosecution readiness scoring all depend on entity quality — garbage in, garbage out
+
+**MANDATORY RULE — Model Bake-Off Before ANY Bulk Extraction**:
+
+Before processing more than 100 documents through entity extraction, you MUST:
+
+1. **Select 10 representative documents** from the dataset — include:
+   - Clean text documents (emails, letters)
+   - OCR'd scanned documents (the hardest case)
+   - Financial documents (statements, invoices)
+   - Legal documents (court filings, depositions)
+   - Mixed-quality documents (partially redacted, poor scans)
+
+2. **Test ALL available models** on those 10 documents:
+   - Amazon Nova Lite (`amazon.nova-lite-v1:0`)
+   - Amazon Nova Pro (`amazon.nova-pro-v1:0`)
+   - Claude 3 Haiku (`anthropic.claude-3-haiku-20240307-v1:0`) — if available
+   - Claude 3.5 Haiku (`anthropic.claude-3-5-haiku-20241022-v1:0`) — if available
+   - Claude 3.5 Sonnet (`anthropic.claude-3-5-sonnet-20241022-v2:0`) — gold standard reference
+
+3. **Score each model** on:
+   - **Precision**: What % of extracted entities are real? (not OCR noise)
+   - **Recall**: What % of real entities in the document were found?
+   - **Type accuracy**: Are entities classified correctly? (person vs location vs organization)
+   - **Noise ratio**: How many garbage entities per real entity?
+   - **Cost per document**: Input tokens + output tokens × model price
+
+4. **Choose the model with the best precision/cost ratio** — not the cheapest model.
+   - For legal/investigative documents: precision matters more than cost
+   - A model that costs 3x more but produces 90% precision vs 25% precision saves weeks of cleanup
+   - The cleanup cost (dedup, re-sync, re-extraction) always exceeds the model cost difference
+
+5. **Document the bake-off results** in `docs/model-bakeoff-{case_name}.md`
+
+6. **Build the bake-off into the pipeline** — the data-loader UI should have a "Test Extraction Quality" button that runs 10 sample docs through all available models and shows a comparison table before the user commits to bulk extraction.
+
+**Script**: `scripts/model_bakeoff.py` — automated model comparison tool
+**Prevention**: NEVER skip the bake-off. NEVER assume a model works well on your data because it works well on benchmarks. Test on YOUR actual documents.
+
+**Cost comparison for Epstein Main (75K docs)**:
+| Model | Est. Cost | Precision | Noise Ratio | Cleanup Cost |
+|-------|-----------|-----------|-------------|--------------|
+| Nova Lite | ~$15 | ~25% | 3:1 noise | ~$50+ (EC2 dedup, re-sync, re-extract) |
+| Claude 3.5 Sonnet | ~$150 | ~90%+ (est.) | <0.1:1 | ~$0 |
+| Claude 3 Haiku | ~$30 | ~70% (est.) | ~0.5:1 | ~$10 |
+
+The "cheap" model cost $15 but created $50+ in cleanup. The "expensive" model would have cost $150 but produced clean data from the start. **Always choose quality over cost for entity extraction.**
+
+
+## Issue 49: Master Entity Taxonomy Required Before Extraction
+
+**Problem**: Entity extraction was run without a defined taxonomy of what entity types matter for the investigation. Nova Lite extracted 200+ entity types including `artifact`, `object`, `device`, `form`, `page`, `text`, `font`, `measurement`, `medical_condition`, `food`, `animal`, `music_genre` — none of which are investigatively relevant.
+
+**Fix**: Created `docs/master-entity-taxonomy.md` — a 40-type taxonomy across 10 tiers covering all major federal investigation types (FBI, SEC, DEA, IRS-CI, ATF, ICE, etc.). The extraction prompt should explicitly list the entity types to extract, not let the model decide.
+
+**MANDATORY RULE**: Before running entity extraction on a new case:
+1. Review `docs/master-entity-taxonomy.md`
+2. Select the relevant tiers for the case type
+3. Include the selected types in the extraction prompt: "Extract ONLY the following entity types: person, organization, location, financial_amount, account_number, phone_number, email, address, date, event, flight, legal_case, statute, vehicle, substance, weapon, property, role"
+4. This constrains the model to extract only what matters, dramatically reducing noise
+
+**File**: `docs/master-entity-taxonomy.md`
+
+
+## Issue 50: EC2 Userdata Must Always Install boto3 Before Running Python Scripts
+
+**Problem**: Post-extraction chain EC2 (`i-09f7a6a43e4d95e7d`) crashed immediately with `ModuleNotFoundError: No module named 'boto3'`. The userdata had `pip3 install boto3 --quiet 2>/dev/null || true` which silently failed because pip3 wasn't in PATH on the AMI.
+
+**Root cause**: Amazon Linux 2023 AMI (`ami-0c1fe732b5494dc14`) has Python 3.9 but boto3 is NOT pre-installed. The `pip3 install boto3 --quiet 2>/dev/null || true` suppressed the error. This was already documented in Issue 47 but the lesson wasn't applied.
+
+**Fix**: Use a robust install chain that tries multiple approaches:
+```bash
+pip3 install boto3 --quiet 2>/dev/null || pip3 install boto3 || yum install -y python3-pip && pip3 install boto3
+```
+
+**MANDATORY EC2 USERDATA TEMPLATE** — Use this for ALL future EC2 scripts:
+```bash
+#!/bin/bash
+set -e
+BUCKET="research-analyst-data-lake-974220725866"
+REGION="us-east-1"
+INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+
+echo "=== EC2 Script Starting ==="
+echo "Instance: $INSTANCE_ID"
+echo "Time: $(date)"
+
+# MANDATORY: Install boto3 (not pre-installed on Amazon Linux 2023)
+pip3 install boto3 || yum install -y python3-pip && pip3 install boto3
+
+# Download script from S3
+aws s3 cp s3://$BUCKET/deploy/MY_SCRIPT.py /tmp/MY_SCRIPT.py
+
+# Run script
+cd /tmp
+python3 MY_SCRIPT.py 2>&1 | tee /tmp/script_log.txt
+
+# Upload log
+aws s3 cp /tmp/script_log.txt s3://$BUCKET/logs/MY_LOG_PREFIX/log_$(date +%Y%m%d_%H%M%S).txt
+
+# Self-terminate
+echo "=== Complete — Self-Terminating ==="
+aws ec2 terminate-instances --instance-ids $INSTANCE_ID --region $REGION
+```
+
+**Prevention**: NEVER use `|| true` or `2>/dev/null` on pip install in userdata. If the install fails, the script MUST fail loudly so you see it in console output. Always verify EC2 console output within 2 minutes per the Launch & Verify Protocol.
+
+
+## Issue 51: Pre-Flight IAM Verification for EC2 Scripts
+
+**Problem**: Chain EC2 crashed with `AccessDeniedException: lambda:InvokeFunction` because `DOJ-Processing-Role` didn't have Lambda invoke permission. This wasted 30 minutes of batch job polling time and required a relaunch.
+
+**Root cause**: The EC2 IAM role was never verified against the script's AWS API calls before launch. The role had S3 and EC2 permissions (from previous scripts) but not Lambda invoke (needed for the new chain script).
+
+**MANDATORY PRE-FLIGHT CHECK** — Before launching ANY EC2 script:
+
+1. **List every AWS API call the script makes** (grep for `boto3.client` and method calls)
+2. **Check the IAM role has permissions for each one**:
+   ```bash
+   aws iam list-role-policies --role-name <ROLE>
+   aws iam get-role-policy --role-name <ROLE> --policy-name <POLICY>
+   ```
+3. **If missing, add the policy BEFORE launching EC2**
+4. **Test with a dry-run invoke from local** if possible
+
+**Common EC2 role permissions needed:**
+| Script Type | Permissions Needed |
+|------------|-------------------|
+| S3 read/write | s3:GetObject, s3:PutObject, s3:ListBucket |
+| Lambda invoke | lambda:InvokeFunction |
+| Bedrock batch | bedrock:GetModelInvocationJob |
+| EC2 self-terminate | ec2:TerminateInstances |
+| EC2 launch (for chaining) | ec2:RunInstances, ec2:CreateTags, iam:PassRole |
+| Neptune (direct) | neptune-db:* (via VPC, no IAM needed for HTTP API) |
+
+**Prevention**: Add IAM verification to the Launch & Verify Protocol. Never assume a role has the right permissions because it worked for a different script.
+
+
+## Issue 52: Model Output Format Verification During Bake-Off
+
+**Problem**: Nova Pro batch output contained nested lists `[[{...}]]` instead of flat arrays `[{...}]` for some records. The load script crashed with `AttributeError: 'list' object has no attribute 'get'` because it assumed all entities were dicts.
+
+**Root cause**: The bake-off tested entity extraction quality (precision, noise ratio) but never verified the JSON output structure. Different models return different formats — Nova wraps content in `output.message.content[0].text`, Anthropic uses `content[0].text`. And within the entity JSON, some models occasionally nest arrays.
+
+**MANDATORY BAKE-OFF ADDITIONS:**
+1. **Parse the raw response structure** for each model — verify the path to extract text
+2. **Verify entity JSON format** — check that each element in the array is a dict with `name`, `type`, `confidence`
+3. **Test with edge cases** — empty documents, very long documents, OCR garbage documents
+4. **Build the parser DURING the bake-off** — don't write the parser after choosing the model
+5. **Handle nested lists, strings, nulls** in the entity array — defensive parsing
+
+**Prevention**: The `model_bakeoff.py` script should output a "Parser Compatibility" section showing the exact response path and any format anomalies found. The load script should handle `list`, `dict`, `str`, and `None` elements in the entity array.
+
+
+## Issue 53: Neptune Re-Sync Uses Individual Upserts Instead of Bulk Load
+
+**Problem**: The `ec2_neptune_resync.py` script upserts entities one at a time via Gremlin HTTP API. For 64,541 entities at ~0.15s per upsert = ~2.7 hours. This violates Issue 48's rule: "NEVER design a load that calls Lambda once per row."
+
+**Root cause**: The script was written to use fold/coalesce upserts for correctness (no duplicates), but didn't consider the bulk alternative. Neptune supports CSV bulk loading via the Neptune Loader API, which processes millions of vertices in minutes.
+
+**Correct approach for next time**: 
+1. Generate Neptune CSV files (vertices.csv + edges.csv) from Aurora
+2. Upload to S3
+3. Call Neptune Loader API: `POST /loader` with S3 path
+4. Neptune loads in parallel internally — 64K vertices in ~2-5 minutes
+
+**For the current run**: Let it finish (working, just slow). Don't terminate a working process.
+
+**Prevention**: Before any Neptune data load > 1,000 entities, use the Neptune Bulk Loader API with CSV format. Individual Gremlin upserts are only appropriate for < 1,000 entities or real-time single-entity operations.
+
+## Issue 54: Failed to Verify EC2 Within 2 Minutes of Launch
+
+**Problem**: Neptune re-sync EC2 launched at 12:44 UTC. First progress check was 42 minutes later. Console output showed startup but no progress lines. Could not confirm the script was actually processing entities.
+
+**Root cause**: Didn't follow the Launch & Verify Protocol. Got distracted by other tasks (cleanup, quality checks) instead of verifying the launch immediately.
+
+**Prevention**: The 2-minute verification is non-negotiable. Set a mental timer. If you can't see progress in the console output, use an alternative metric (Neptune node count, S3 log file, Lambda CloudWatch logs).
+
+
+## Issue 55: Neptune Bulk Loader Requires S3 VPC Endpoint
+
+**Problem**: Neptune Bulk Loader API returned `Unable to connect to s3 endpoint` despite having `NeptuneLoadFromS3` IAM role attached to the cluster.
+**Root cause**: Neptune is in a VPC. The bulk loader needs to reach S3 from within the VPC. There's no S3 VPC Gateway endpoint configured for Neptune's VPC, or the route table doesn't include it.
+**Fix needed**: Create an S3 Gateway VPC endpoint in Neptune's VPC and add it to the route table used by Neptune's subnets.
+**Workaround used**: Gremlin fallback with simple `addV` using deterministic IDs (O(1) per vertex). Loaded 47,859 vertices in 32 minutes.
+**Prevention**: Before using Neptune Bulk Loader, verify: (1) IAM role attached to cluster, (2) S3 VPC endpoint exists, (3) Route table includes S3 endpoint. Test with a 10-row CSV before bulk loading.
+
+## Issue 56: fold/coalesce Upsert is O(n) on Large Neptune Graphs
+
+**Problem**: Gremlin fold/coalesce upsert pattern scanned the entire graph (943K nodes) for each of 50K upserts. Result: 5 entities/minute instead of 1,500/minute.
+**Root cause**: `g.V().has(label, 'name', X).fold().coalesce(unfold(), addV())` does a full scan when the graph is large and the property isn't indexed efficiently.
+**Fix**: Use simple `addV` with deterministic vertex IDs: `g.addV(label).property(id, 'deterministic-id')`. Neptune rejects duplicates by ID automatically. This is O(1) per vertex regardless of graph size.
+**Prevention**: Never use fold/coalesce on graphs with >10K vertices. Use deterministic IDs + simple addV, or use the Neptune Bulk Loader API.
+
+
+## Issue 57: Frontend-Backend Contract Mismatch — Pattern Library "Try It" Buttons
+
+**Problem**: Pattern Library "Anomaly Destination" card had `type: 'outlier'` in the frontend but the backend expected `anomaly_destination`. Every "Try It" click returned an error. The `anomaly_destination` detector didn't exist in the backend at all.
+
+**Root cause**: Frontend and backend were built in the same task but the type strings weren't cross-checked. The backend detector map had 6 types, the frontend had 7 cards, and the 7th card used a different type name.
+
+**MANDATORY PRE-DEPLOY CHECK — Frontend-Backend Contract Verification:**
+
+Before deploying ANY feature that has both frontend and backend components:
+
+1. **List every API call the frontend makes** — grep for `api('POST'`, `api('GET'`, `fetch(` in the HTML
+2. **For each API call, verify the backend route exists** — grep for the path in case_files.py dispatcher
+3. **For each parameter the frontend sends, verify the backend accepts it** — check the handler's expected fields
+4. **Test every button/action in the UI** — not just the happy path, every clickable element
+5. **Cross-check string constants** — if the frontend sends a type string, verify the exact same string exists in the backend's dispatch map
+
+**Specific to Pattern Library**: Every card's `type` field must match a key in `anomaly_detect_handler`'s `detector_map`. When adding a new card, add the detector first, test the endpoint, then add the card.
+
+
+## Issue 27: Neptune Graph Label Case ID ≠ Aurora Case ID (CRITICAL RECURRING)
+
+**Problem**: All Neptune-dependent features (Anomaly Radar, Prosecution Readiness, graph highlighting, entity neighborhood) return empty/fail because the Lambda queries Neptune with `Entity_{aurora_case_id}` but the graph was loaded with a DIFFERENT case ID.
+**Root cause**: The main case in Aurora has `case_id = 7f05e8d5-6a7b-4b1c-9c0e-3f4a5b6c7d8e` but the Neptune graph was loaded with label `Entity_7f05e8d5-4492-4f19-8894-25367606db96`. These are different UUIDs that share the same prefix. The `parent_case_id` column in `case_files` is supposed to bridge this gap but was never set.
+**Impact**: Every service that queries Neptune finds 0 results. This breaks: AI Briefing leads, Anomaly Radar, Prosecution Readiness, graph highlighting, entity neighborhood, network analysis.
+**Fix**: Set `parent_case_id` in Aurora's `case_files` table:
+```sql
+UPDATE case_files SET parent_case_id = '7f05e8d5-4492-4f19-8894-25367606db96' WHERE case_id = '7f05e8d5-6a7b-4b1c-9c0e-3f4a5b6c7d8e';
+```
+The `investigator_analysis.py` `get_analysis` handler already resolves `graph_case_id` from `parent_case_id`. Other services need the same resolution.
+**Prevention**: 
+1. ALWAYS verify Neptune graph label matches what the code queries BEFORE declaring a sync/reload complete
+2. After ANY Neptune reload, run: `g.V().hasLabel('Entity_{case_id}').count()` with the AURORA case_id to confirm > 0
+3. If 0, check `g.V().label().dedup()` to find the actual label and set `parent_case_id` accordingly
+**Key mapping**:
+- Aurora main case: `7f05e8d5-6a7b-4b1c-9c0e-3f4a5b6c7d8e`
+- Neptune main graph: `7f05e8d5-4492-4f19-8894-25367606db96` (989K vertices)
+- Aurora demo case: `ed0b6c27-4a8e-4f3b-9d1c-5e6f7a8b9c0d`
+- Neptune demo graph: `ed0b6c27-3b6b-4255-b9d0-efe8f4383a99` (22K vertices)
+
+
+## Issue 53: Case Creation Fails — CaseFileCompatService Routes to MatterService with Empty org_id
+
+**Problem**: `POST /case-files` returns 500 with `"invalid input syntax for type uuid: \"\""`. Creating ANY new case file fails. This blocked all new case creation for the FMCSA Trucking demo.
+
+**Root Cause Chain**:
+1. `_build_case_file_service()` in `case_files.py` constructs a `CaseFileCompatService` (NOT `CaseFileService`)
+2. `CaseFileCompatService.__init__` receives `default_org_id = os.environ.get("DEFAULT_ORG_ID", "")` 
+3. Since `DEFAULT_ORG_ID` is NOT set on the Lambda, it defaults to `""` (empty string)
+4. `CaseFileCompatService.create_case_file()` always delegated to `MatterService.create_matter(org_id="")`
+5. `MatterService.create_matter()` inserts into `matters` table where `org_id` is a `UUID` column
+6. PostgreSQL rejects `""` as invalid UUID → 500 error
+
+**Why This Was Hard to Debug**:
+- The error message from PostgreSQL shows a truncated VALUES clause that makes it look like `parent_case_id` is the empty string (position confusion in the error display)
+- The actual service being called (`CaseFileCompatService`) is NOT `CaseFileService` — the file `case_file_service.py` is DEAD CODE for the create path
+- The `list_case_files` method in `CaseFileCompatService` already had the fallback logic (`if self._default_org_id:` → use matters, else → query case_files directly), but `create_case_file` DID NOT have this fallback
+- Multiple deploys were wasted fixing `case_file_service.py` which isn't in the code path
+
+**Fix**: Added fallback logic to `CaseFileCompatService.create_case_file()`:
+```python
+if self._default_org_id:
+    # Has org_id — use MatterService (multi-tenant path)
+    matter = self._matter_service.create_matter(org_id=self._default_org_id, ...)
+    return _matter_to_case_file(matter)
+
+# No org_id — insert directly into legacy case_files table
+with self._matter_service._db.cursor() as cur:
+    cur.execute("INSERT INTO case_files (...) VALUES (%s, ...)", params)
+```
+
+**Files Modified**:
+- `src/services/case_file_compat_service.py` — added direct INSERT fallback (the actual fix)
+- `src/lambdas/api/case_files.py` — added `parent_case_id or None` coercion (belt-and-suspenders)
+- `src/services/case_file_service.py` — added empty-string-to-None guard (defensive, not in active path)
+
+**Architecture Note — The Case/Matter Hierarchy**:
+```
+_build_case_file_service() → CaseFileCompatService (shim layer)
+    ├── If DEFAULT_ORG_ID is set → delegates to MatterService (inserts into `matters` table)
+    └── If DEFAULT_ORG_ID is NOT set → inserts directly into `case_files` table (legacy path)
+
+Active code path for POST /case-files:
+  case_files.py:dispatch_handler → create_case_file_handler → _build_case_file_service()
+    → CaseFileCompatService.create_case_file()  ← THE FIX IS HERE
+    
+DEAD CODE (not called by the handler):
+  src/services/case_file_service.py:CaseFileService.create_case_file()  ← DO NOT FIX HERE
+```
+
+**Prevention**:
+1. **ALWAYS check `_build_case_file_service()`** before fixing case creation bugs — it returns `CaseFileCompatService`, not `CaseFileService`
+2. **ALWAYS ensure fallback paths exist** for all CRUD methods when `DEFAULT_ORG_ID` might be unset
+3. **Test case creation after EVERY deploy** — add to the comprehensive test suite: `POST /case-files` with a test payload, verify 201
+4. **Never assume the obvious file is the right one** — `case_file_service.py` is misleadingly named but is dead code for the API handler path
+5. **Read the dispatcher factory function FIRST** when debugging any endpoint — it tells you which service class is actually instantiated
+
+**How to Create a Case (verified working methods)**:
+1. **API (Lambda invoke)**: 
+```powershell
+$payload = '{"httpMethod":"POST","path":"/case-files","body":"{\"topic_name\":\"...\",\"description\":\"...\"}","headers":{},"pathParameters":null,"queryStringParameters":null}'
+aws lambda invoke --function-name ResearchAnalystStack-CaseFilesLambda91230A57-gN7wQJqzNlFq --region us-east-1 --payload fileb://payload.json --cli-binary-format raw-in-base64-out out.json
+```
+2. **API (HTTP via API Gateway)**:
+```powershell
+$body = '{"topic_name":"...", "description":"..."}' 
+Invoke-WebRequest -Uri "https://edb025my3i.execute-api.us-east-1.amazonaws.com/v1/case-files" -Method POST -Body $body -ContentType "application/json"
+```
+3. **Frontend**: Use the data-loader.html or investigator.html "New Case" button
+4. **Direct SQL** (admin endpoint):
+```sql
+INSERT INTO case_files (case_id, topic_name, description, status, s3_prefix, neptune_subgraph_label, created_at, last_activity, search_tier)
+VALUES (gen_random_uuid(), 'Name', 'Description', 'created', 'cases/<uuid>/', 'Entity_<uuid>', NOW(), NOW(), 'standard');
+```
+
+**Time Wasted**: ~90 minutes debugging the wrong file. Root cause: not reading `_build_case_file_service()` first.
+
+**Lesson for Future AI Sessions**: When debugging ANY API endpoint failure:
+1. Read the HANDLER function first (find it in dispatch_handler routing)
+2. Read the SERVICE FACTORY function it calls (e.g., `_build_case_file_service()`)
+3. Identify the ACTUAL class being instantiated (not the obvious-named one)
+4. THEN trace the code path through that class
+
+
+## Issue 58: Pipeline Reports SUCCESS but Documents/Embeddings/Edges Silently Fail (UUID Type Mismatch)
+
+**Problem**: The data ingestion pipeline (Step Functions) reported SUCCEEDED for all executions, but only entity extraction actually worked. The `documents` table remained empty, embeddings were never stored, and Neptune edges were never created. This affected all cases loaded via `fast_load.py` or any batch loader that uses filename-derived document_ids (e.g., `carrier_0000`).
+
+**Root Cause**: The `documents.document_id` column is type UUID. The pipeline passes string document IDs like `carrier_0000` (filename without extension). When the embed handler (`embed_handler.py`) called `aurora_pgvector_backend.index_documents()`, PostgreSQL rejected the INSERT with `InvalidTextRepresentation: invalid input syntax for type uuid: "carrier_0000"`. 
+
+The crash in the embed handler (GenerateEmbedding step) catches to `LogDocumentFailure`, which means:
+1. StoreExtractionArtifact never runs → no extraction JSONs in S3
+2. The Map iteration ends as "failed" but the Map itself succeeds (graceful error handling)
+3. The graph_load handler receives `document_results` with all items marked "failed" → 0 entities to load
+4. Neptune edges: 0, Documents table: 0, Embeddings: 0
+
+Entity extraction appeared to work because `extract_handler.py` has its own Aurora INSERT into the `entities` table BEFORE the embed step. The `entities.document_id` column is nullable UUID but was being set to NULL or silently ignored on conflict.
+
+**Fix**: Added `_ensure_uuid()` helper to `src/services/aurora_pgvector_backend.py` that:
+1. Checks if document_id is already a valid UUID → pass through
+2. If not, generates a deterministic UUID v5 from the string (using a fixed namespace UUID)
+3. Same string always → same UUID (idempotent upserts work correctly)
+
+Also applied the same fix in `src/lambdas/ingestion/extract_handler.py` for the entities table INSERT.
+
+**Files Changed**:
+- `src/services/aurora_pgvector_backend.py` — added `_ensure_uuid()`, used in `index_documents()`
+- `src/lambdas/ingestion/extract_handler.py` — added UUID conversion for `document_id` before INSERT
+
+**Verification**: After fix deployment:
+- All 56 FMCSA docs: SUCCEEDED across 3 SFN executions
+- Documents table: populated (search returns 5+ results)
+- Entities: 222 (up from 94)
+- Neptune: 158 nodes, 138 edges loaded via bulk CSV
+- Pattern discovery: 4 patterns found
+- Demo case (ed0b6c27): unaffected
+
+**Prevention**:
+1. **Never assume column types match** — check the schema before INSERT
+2. **Pipeline "SUCCESS" doesn't mean document processing succeeded** — the Map state's error handling is graceful (LogDocumentFailure → end). Always verify downstream tables.
+3. **Use `verify_pipeline_completion.py`** after every pipeline run to confirm docs > 0, entities > 0, search works, patterns discoverable
+4. **For any new batch loader**: generate UUIDs for document_ids, or ensure all INSERT paths handle non-UUID strings via `_ensure_uuid()`
+
+**Verification Script**: `python scripts/verify_pipeline_completion.py --case-id <CASE_ID>`
+
+
+## Issue 58: Neptune Bulk CSV Loader — Correct Procedure for Loading Entities at Scale
+
+**Problem**: Individual Gremlin `addV()`/`addE()` upserts to sync entities from Aurora to Neptune
+take HOURS for large casesets (thousands of entities). This violates the BULK OPERATIONS rule
+(see kiro-builder-playbook.md 2.2.1) — any operation on 100+ items must use bulk APIs, not loops.
+
+**Root cause**: Gremlin HTTP calls are synchronous, one entity at a time, with network round-trip
+latency per call. At ~1000 entities/rate-limited-loop, this is unusably slow and also risks Neptune
+throttling.
+
+**Fix — Use the Neptune Bulk Loader API.** This is the CORRECT way to sync entities to Neptune at
+scale, going from hours to minutes. Full working script: `scripts/neptune_bulk_sync.py`.
+
+### The 5-Step Procedure
+
+1. **Generate CSV from Aurora** — query filtered entities (master taxonomy types + occurrence
+   count >= 2 to filter noise), write a Neptune-format CSV to a buffer, upload to S3.
+2. **Clear old nodes for the case** (optional, use `--skip-clear` to skip) — drop existing
+   `Entity_{case_id}` vertices before reloading, in batches of 500 via Gremlin
+   (`g.V().hasLabel(label).limit(500).sideEffect(bothE().drop()).drop()`), looping until count is 0.
+3. **Trigger the Neptune Bulk Loader API** — POST to `https://{NEPTUNE_ENDPOINT}:{PORT}/loader`
+   with the S3 CSV location, format, and IAM role ARN. Returns a `loadId`.
+4. **Poll the loader status** — GET `https://{NEPTUNE_ENDPOINT}:{PORT}/loader/{loadId}` every 5s
+   until `overallStatus.status` is `LOAD_COMPLETED` (or `LOAD_FAILED`/`LOAD_CANCELLED`).
+5. **Verify node count** — `g.V().hasLabel(label).count()` to confirm the load matches expectations.
+
+### Neptune Bulk Loader CSV Format (exact column headers required)
+
+**Vertices CSV** (`~id`, `~label` are Neptune-reserved, types after `:` are required):
+```
+~id,~label,canonical_name:String,entity_type:String,occurrence_count:Int,confidence:Double,case_file_id:String
+```
+- `~id` must be a deterministic, stable string ID. Convention used:
+  `f"{label}_{entity_type}_{name}".replace(" ", "_").replace(",", "")[:200]`
+  — deterministic IDs let re-loading act as an upsert (same ID = same vertex) rather than creating
+  duplicates on every sync run.
+- `~label` = `Entity_{case_id}` (see label convention in `src/db/neptune.py`)
+- Skip any entity with `len(name) < 3` — filters OCR noise before it ever reaches Neptune.
+
+**Edges CSV**:
+```
+~id,~from,~to,~label,relationship_type:String,confidence:Float,source_document_ref:String
+```
+- `~from`/`~to` reference vertex `~id` values from the vertices CSV — the vertex load should
+  complete (or at least exist) before the edge load runs.
+- `~label` for entity relationships is always `RELATED_TO` (see `EDGE_RELATED_TO` constant).
+
+### Bulk Loader API Call Details
+
+**Trigger** — `POST https://{NEPTUNE_ENDPOINT}:{NEPTUNE_PORT}/loader`:
+```json
+{
+  "source": "s3://research-analyst-data-lake-974220725866/neptune-bulk-load/{case_id}/vertices.csv",
+  "format": "csv",
+  "iamRoleArn": "arn:aws:iam::974220725866:role/NeptuneLoadFromS3",
+  "region": "us-east-1",
+  "failOnError": "FALSE",
+  "parallelism": "HIGH",
+  "updateSingleCardinalityProperties": "TRUE"
+}
+```
+- `failOnError: "FALSE"` — required for large loads with any imperfect rows; a single bad row
+  should not abort the whole batch.
+- `updateSingleCardinalityProperties: "TRUE"` — required for the load to behave as an UPSERT when
+  a vertex with the same `~id` already exists (otherwise properties won't update on re-sync).
+- `iamRoleArn` MUST be a role that: (a) Neptune can assume, (b) has `s3:GetObject`/`s3:ListBucket`
+  on the data bucket. This is the #1 failure point — see gotcha below.
+
+**Poll** — `GET https://{NEPTUNE_ENDPOINT}:{NEPTUNE_PORT}/loader/{loadId}` — check
+`payload.overallStatus.status`. On `LOAD_COMPLETED`, also check `totalRecords` and `totalErrors`
+in the response to confirm the load actually processed the expected row count.
+
+### Gotchas
+
+1. **Missing/wrong IAM role for the loader is the most common failure.** If the bulk loader
+   returns `AccessDenied` or mentions "role" in the error body, Neptune's IAM role for S3 access
+   isn't configured correctly. `neptune_bulk_sync.py` has a built-in fallback: on bulk loader
+   failure, it automatically falls back to batched Gremlin `addV()` upserts (slow but functional)
+   rather than failing outright. Keep this fallback pattern — don't remove it for "cleanliness."
+2. **The bulk loader does NOT support property updates on existing vertices' individual
+   properties reliably in all cases** — for some property-update-only operations (no new
+   vertices/edges), Gremlin is still used directly (see `graph_load_handler.py` comment: "For
+   properties, we still use Gremlin since Neptune bulk loader doesn't support property updates").
+   Use bulk CSV loader for bulk vertex/edge CREATION, Gremlin for individual property patches.
+3. **Deterministic IDs are what make re-running the sync safe.** If you generate random/UUID
+   vertex IDs instead of a deterministic scheme, every re-sync duplicates all vertices instead of
+   updating them. Always derive `~id` from stable fields (label + type + name), not a random UUID.
+4. **Clear-before-reload can be slow at scale** (batches of 500, polling count until 0) — this is
+   O(n/500) round trips. For very large caseloads, consider whether a full clear is necessary vs.
+   relying on the deterministic-ID upsert behavior to avoid needing a clear step at all.
+5. **CSV must be uploaded to S3 first** — the bulk loader reads from an S3 URI, it cannot be
+   handed the CSV content directly in the API call. Always: generate CSV in memory (`io.StringIO`
+   + `csv.writer`) → `s3.put_object()` → then trigger the loader pointing at that S3 key.
+
+### Files
+
+- `scripts/neptune_bulk_sync.py` — standalone CLI script, full 5-step procedure, Aurora → Neptune
+- `src/lambdas/ingestion/graph_load_handler.py` — same pattern used inline in the ingestion
+  pipeline (`_generate_and_upload_csv`, `_trigger_bulk_load`, `_poll_bulk_load` functions)
+- `src/db/neptune.py` — CSV column format constants (`BULK_LOAD_NODES_COLUMNS`,
+  `BULK_LOAD_EDGES_COLUMNS`), label conventions (`entity_label()`, `EDGE_RELATED_TO`)
+- `scripts/load_rekognition_to_graph.py` — same bulk CSV pattern applied to visual/Rekognition
+  entities (`Visual_Entity` nodes, `DETECTED_IN`/`CO_OCCURS_WITH` edges)
+
+### Usage
+
+```bash
+python scripts/neptune_bulk_sync.py --case-id <CASE_ID>
+python scripts/neptune_bulk_sync.py --case-id <CASE_ID> --skip-clear   # skip the clear-old-nodes step
+```
+
+
+## Issue 51: AOSS HEAD Returns 403 Instead of 404 for Non-Existent Indexes
+
+**Problem**: OpenSearch Serverless (AOSS) returns HTTP 403 (not 404) when checking if an index exists via `HEAD /{index_name}` and the IAM principal's data access policy hasn't fully propagated. This causes the typology pipeline seed script to crash immediately with "HTTP Error 403" even after the data access policy is updated.
+
+**Root cause**: AOSS data access policies take 30-120 seconds to propagate. During this window, HEAD/GET requests return 403 indistinguishable from a real auth failure. Additionally, HEAD requests on AOSS don't return a body — you can't distinguish "index doesn't exist" from "not authorized."
+
+**Fix**: Use `GET /{index_name}/_settings` instead of `HEAD /{index_name}` to check index existence. Treat both 403 AND 404 as "index doesn't exist" responses. The create request will fail clearly if there's a real auth problem.
+
+```python
+def _index_exists(endpoint, region):
+    try:
+        _aoss_request(endpoint, region, "GET", f"/{INDEX_NAME}/_settings")
+        return True
+    except urllib.error.HTTPError as e:
+        if e.code in (404, 403):
+            return False
+        raise
+```
+
+**Prevention**: 
+- Never use HEAD requests against AOSS — always use GET with a specific sub-resource
+- After updating AOSS data access policies, wait at least 60 seconds before testing
+- When creating new Lambda functions that access AOSS, verify the Lambda's *actual* execution role (not assumed) is in the data access policy: `aws lambda get-function-configuration --function-name <name> --query Role`
+
+**File**: `src/db/seeds/typology_patterns_index.py`
+
+
+## Issue 52: Step Functions Parameters Reference Non-Existent Input Fields
+
+**Problem**: New Step Functions state machine fails immediately with "The JSONPath '$.execution_id' specified for the field 'execution_id.$' could not be found in the input". The initial input `{"case_id": "...", "trigger_source": "manual"}` doesn't contain `execution_id` or `typology_modules`, which are outputs of later steps.
+
+**Root cause**: The ASL Parameters block referenced fields (`$.execution_id`, `$.typology_modules`) that don't exist in the state's input context. These fields are created by ThresholdCheck (stored at `$.threshold_result`) and AcquireLock (stored at `$.lock`). You must reference them via their `ResultPath`: `$.threshold_result.typology_modules` and `$.lock.execution_id`.
+
+**Fix**: Updated all Parameters blocks to reference the correct ResultPath locations:
+- `$.typology_modules` → `$.threshold_result.typology_modules`
+- `$.execution_id` → `$.lock.execution_id`
+- Map item values use `$$.Map.Item.Value` (context object) not `$.Map.Item.Value`
+
+**Prevention**: 
+- When a Step Function state uses `ResultPath: "$.some_field"`, its output lives at `$.some_field.*` — not at `$.*`
+- The initial state machine input only contains what the *caller* passes (e.g., `case_id`, `trigger_source`)
+- Draw out the data flow before writing ASL: Input → State1 (ResultPath $.a) → State2 can access $.a.field
+- Always test with `aws stepfunctions start-execution` using the minimal input the caller will actually provide
+
+**File**: `infra/step_functions/typology_subgraph_pipeline.json`
+
+
+## Issue 53: Step Functions IAM Role Must Allow lambda:InvokeFunction on New Lambdas
+
+**Problem**: Pipeline state machine fails with "The principal states.amazonaws.com is not authorized to assume the provided role" or "AccessDeniedException" when trying to invoke pipeline Lambdas.
+
+**Root cause**: Reused the existing ingestion pipeline Step Functions role, which only had `lambda:InvokeFunction` permission on the ingestion Lambdas (`ResearchAnalystStack-*`). The new `TypologyPipeline-*` Lambdas weren't covered.
+
+**Fix**: Added inline policy to the role:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": "lambda:InvokeFunction",
+    "Resource": "arn:aws:lambda:us-east-1:974220725866:function:TypologyPipeline-*"
+  }]
+}
+```
+
+**Prevention**: When reusing an existing Step Functions role for a new state machine, always verify the role's policies cover the new Lambda function ARNs. Check with: `aws iam list-role-policies --role-name <role>` and `aws iam get-role-policy --role-name <role> --policy-name <policy>`
+
+**File**: `scripts/_add_sfn_policy.json`
+
+
+## Issue 54: Aurora case_files.entity_count = 0 Despite 248K Entities in entities Table
+
+**Problem**: ThresholdCheck Lambda returns `entity_count: 0` for the Epstein Main case even though the `entities` table has 248,314 rows for that case_id. The `case_files.entity_count` column was never populated after entity extraction.
+
+**Root cause**: The entity extraction pipeline (EC2/batch process) inserts into the `entities` table but never updates `case_files.entity_count`. The column defaults to 0 and stays there.
+
+**Fix**: Manually updated via RDS Data API: `UPDATE case_files SET entity_count = 248314 WHERE case_id = '7f05e8d5-...'`. Long-term: add a post-extraction step that runs `UPDATE case_files SET entity_count = (SELECT COUNT(*) FROM entities WHERE case_file_id = case_files.case_id)`.
+
+**Prevention**: Any pipeline that inserts entities should also update `case_files.entity_count` on completion. Add this to the entity extraction completion handler.
+
+**File**: `scripts/_update_counts.py`
+
+
+## Issue 55: Migrations Must Run via RDS Data API (Not psycopg2 Locally, Not Lambda Admin Endpoint)
+
+**Problem**: Aurora migration failed to run because: (1) psycopg2 locally can't connect (Aurora is in VPC, not publicly accessible), (2) the main Lambda has no `run-sql` admin endpoint, (3) the pipeline Lambdas import ConnectionManager but psycopg2 isn't available locally.
+
+**Root cause**: Aurora Serverless v2 in a VPC is only reachable from within the VPC (Lambdas, EC2) or via the RDS Data API (which is HTTP-based and works from anywhere with IAM credentials).
+
+**Fix**: Use RDS Data API:
+```python
+import boto3
+client = boto3.client("rds-data", region_name="us-east-1")
+client.execute_statement(
+    resourceArn="arn:aws:rds:us-east-1:974220725866:cluster:researchanalyststack-auroracluster23d869c0-18up0bpmkaco",
+    secretArn="arn:aws:secretsmanager:us-east-1:974220725866:secret:AuroraClusterSecret8E4F2BC8-4zmQsxQuyYQJ-TOjJyL",
+    database="research_analyst",
+    sql="CREATE TABLE IF NOT EXISTS ..."
+)
+```
+
+**Prevention**: ALWAYS use RDS Data API for migrations. Never assume psycopg2 will work locally. The pattern is documented in `scripts/run_migration_rds_data.py`.
+
+**File**: `scripts/run_migration_rds_data.py`
+
+
+## Issue 56: Step Functions 256KB State Output Limit — Never Pass Data Through States
+
+**Problem**: The typology pipeline's ExtractSubgraphs Map state returned full entity/edge lists from Neptune, causing `States.DataLimitExceeded` error. Even capped at 50 entities × 100 edges per sub-category × 6 sub-categories × 11 typologies = far exceeds the 256KB Step Functions state output limit.
+
+**Root cause**: Designed the pipeline to pass extracted graph data through Step Functions state outputs (ExtractSubgraphs → ScoreTypologies). Step Functions has a hard 256KB limit on state input/output. Any Map state aggregating results from multiple iterations will easily exceed this with real data.
+
+**Correct pattern** (from the existing ingestion pipeline):
+- Each Lambda **writes its output to Aurora/S3 directly** (not through state output)
+- Step Functions states only pass **references** (case_id, typology_id, execution_id) — never data payloads
+- Map states iterate over small arrays of IDs, not data objects
+- Each subsequent Lambda **reads from the database** what the previous Lambda wrote
+
+**Fix**: Redesign extract_subgraph to write extracted data directly to Aurora (`typology_precomputed_results` with key_entities populated), then score_typology reads from Aurora instead of receiving the data through Step Functions. The Map state only passes `{case_id, typology_module_id, execution_id}` between states.
+
+**Prevention**: 
+- NEVER return more than a few KB from any Step Functions task Lambda
+- All inter-state data transfer must go through Aurora/S3 with only IDs in the state
+- Before designing any new Step Functions pipeline, review the existing `ingestion_pipeline.json` pattern: small parameters in, status/ID out, data lives in the database
+
+**File**: `infra/step_functions/typology_subgraph_pipeline.json`, `src/lambdas/pipeline/extract_subgraph.py`
+
+
+## Issue 57: Neptune Relationship Types — Query Actual Data, Don't Assume
+
+**Problem**: The typology query definitions used domain-specific relationship types (`contacted`, `recruited`, `communicated_with`, `traveled_to`) that don't exist in Neptune. The graph only contains generic types: `co-occurrence`, `thematic`, `causal`, `temporal`, `geographic`. All Neptune queries returned 0 results.
+
+**Root cause**: The query configuration was written based on what relationship types SHOULD exist (from a domain modeling perspective) rather than what ACTUALLY exists in Neptune. The entity extraction pipeline uses generic relationship types from Bedrock's output, not domain-specific ones.
+
+**Fix**: Removed the `relationship_type` filter from the Gremlin query template entirely. The `entity_type` filter provides sufficient typology-specific filtering (e.g., person + financial_amount for Financial Control). Relationship types in Neptune are too generic to be useful for typology differentiation.
+
+**Correct query pattern**:
+```python
+# DON'T filter by relationship_type (they're all generic)
+"g.V().hasLabel('{label}').has('entity_type', within('person','financial_amount')).bothE('RELATED_TO').limit(500)..."
+```
+
+**Prevention**: Before writing any Neptune query filter, run a sample query to see what values actually exist:
+```
+g.V().hasLabel('Entity_{case_id}').bothE('RELATED_TO').values('relationship_type').dedup().limit(20)
+```
+
+**File**: `src/services/typology_query_definitions.py`
+
+
+## Issue 58: Typology Pipeline — Full End-to-End Working (Issue 56/57 Resolution)
+
+**Status**: RESOLVED. The pipeline now runs end-to-end successfully:
+- 11 typology modules × 6 sub-categories = 66 Neptune queries executed
+- 314+ entities and 3000+ edges extracted per typology from the 248K entity graph
+- All results written to Aurora `typology_precomputed_results` (66 rows) and `typology_precomputed_summary` (11 rows)
+- Pipeline completes in ~57 seconds for the full 248K entity Epstein Main case
+- Step Function state machine tracks execution status correctly
+
+**Remaining**: OpenSearch `typology-patterns` k-NN index needs seeding (AOSS 403 for Lambda role). Once seeded, scores will populate with real cosine similarity values instead of 0.0. Current workaround: the architecture works without k-NN — entities are extracted and stored, just unscored.
+
+**Key fixes applied**:
+1. Removed relationship_type filter from Neptune queries (Issue 57) — types don't exist in graph
+2. Changed to write-to-Aurora pattern (Issue 56) — no data through Step Functions states
+3. Reduced edge limit to 500 per sub-category query
+4. Extract Lambda writes key_entities to Aurora, Score Lambda reads from Aurora
+5. State machine only passes `{case_id, typology_module_id, execution_id}` between states
+
+
+## Issue 59: AOSS Collection Returns 403 for ALL Write Operations (Ongoing)
+
+**Problem**: OpenSearch Serverless collection `research-analyst-search` (ID: u260nrrtc0q87ji8iu0k) returns 403 Forbidden on ALL write operations (PUT index, POST _bulk) for every identity including the account root and AdministratorAccess users. The data access policy lists the correct principals with CreateIndex/WriteDocument permissions. IAM policies grant aoss:APIAccessAll. Yet writes consistently fail.
+
+**Context**: This may have NEVER worked. Issue 37 documents that enterprise tier embedding writes to AOSS fail with 401/403. All successful case processing uses the `standard` tier (Aurora pgvector). The AOSS collection exists but may be in a broken state from failed deployments (Issues 2/5 from earlier).
+
+**Current Status**: NOT RESOLVED. The typology pipeline works end-to-end without k-NN scoring by using entity count density as a proxy score instead.
+
+**Root cause hypothesis**: The AOSS collection may have been created with incorrect settings, or there's a cached/stale network or encryption policy preventing writes. The collection shows ACTIVE status but may need to be recreated.
+
+**Workaround**: Score typologies based on Neptune graph density (entity_count / edge_count per sub-category) rather than k-NN cosine similarity against prosecution patterns. This still provides meaningful relative scoring — sub-categories with more entities and connections score higher.
+
+**To fully resolve**: Either recreate the AOSS collection from scratch (delete and re-provision via CDK) or investigate whether there's a VPC endpoint issue specific to the AOSS write path. The existing embed step's success may have been from a time when the collection was correctly configured, before a failed CDK deploy corrupted the policies.
+
+
+## Issue 60: AOSS 403 Root Cause — WRONG Collection Endpoint in Config
+
+**Problem**: ALL OpenSearch Serverless writes returned 403 Forbidden. Spent hours debugging IAM policies, data access policies, and propagation timing. None of it mattered.
+
+**Root cause**: The `OPENSEARCH_ENDPOINT` environment variable pointed to the WRONG collection (`u260nrrtc0q87ji8iu0k`). The CURRENT active collection is `hzrvvva3hodw069v9442`. The old collection was either deleted or from a previous failed deployment, but the endpoint config was never updated.
+
+**How to verify**: `aws opensearchserverless list-collections` shows the actual active collections. Match the collection ID in the endpoint URL against the listed collections.
+
+**Fix**: Updated `OPENSEARCH_ENDPOINT` on all Lambda functions to `https://hzrvvva3hodw069v9442.us-east-1.aoss.amazonaws.com`. The correct endpoint was found via:
+```bash
+aws opensearchserverless batch-get-collection --names research-analyst-search --query "collectionDetails[0].collectionEndpoint"
+```
+
+**Prevention**: 
+- ALWAYS verify the AOSS endpoint against `aws opensearchserverless list-collections` before debugging auth issues
+- Add a startup health check in Lambda that verifies AOSS connectivity (GET /_cat/indices) and logs a clear error if it fails
+- When a 403 persists after verifying all policies, CHECK THE ENDPOINT URL FIRST
+
+**Additional fix**: Titan Embed v2 (`amazon.titan-embed-text-v2:0`) returns 1024-dim vectors by default, not 1536 (that's v1). The k-NN index dimension must be 1024 to match.
+
+**Additional fix**: AOSS does NOT support custom `_id` in bulk index operations — remove all `_id` fields from bulk payloads.
+
+**Files**: `scripts/_fix_opensearch_endpoint.py`, `src/db/seeds/typology_patterns_index.py`
+
+
+## Issue 59 UPDATE: AOSS WORKS — Correct Endpoint is hzrvvva3hodw069v9442
+
+**Status**: RESOLVED. Issue 60 identified the root cause — wrong endpoint in config. The correct collection works perfectly:
+- `typology-patterns` index created ✓
+- 264 prosecution pattern embeddings seeded (1024-dim Titan Embed v2) ✓
+- PUT/POST/GET/DELETE all work ✓
+- Endpoint: `https://hzrvvva3hodw069v9442.us-east-1.aoss.amazonaws.com`
+
+**Remaining for next session**: The Score Lambda's Aurora INSERT/UPSERT columns don't match the actual schema. Need to verify column names match between `_store_results()` in `score_typology.py` and the actual `typology_precomputed_results` table schema. The fix made earlier in this session may not have been deployed correctly (multiple deploys).
