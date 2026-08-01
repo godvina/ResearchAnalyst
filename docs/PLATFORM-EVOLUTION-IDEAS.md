@@ -163,6 +163,14 @@ _Add timestamped notes here as ideas emerge during sessions:_
 - 5 investigation types identified. Each needs its own methodology, agents, views, and evidence standards.
 - Agent orchestrator is architecturally ready but needs handler functions wired up.
 - Consider whether a full rebuild is needed vs. evolving what we have. Decision: evolve for now, rebuild when 2 types are proven.
+- INTERACTIVE DOCUMENTARY: Audio narration synced to map animation + PiP photos + captions + network graph. Working end-to-end.
+- Cultural Memory Deep-Dive: 15 sites researched with specific traits (Spirit Dwelling, Water Sacred, Forbidden Zone). Creates meaningful network edges.
+- NEXT SESSION PRIORITIES:
+  1. Documentary-style AI summaries using the best-practices template (Hook → Anomaly → Pattern → Implication)
+  2. 2-level drill-down on network graph nodes (click → contextual brief about THIS node's role in THIS pattern)
+  3. Labels on geo map above focused nodes (permanent labels, not just on hover)
+  4. More chapters for the audio documentary (site-specific, pattern-specific)
+  5. Expand research: run Cultural Memory on remaining sites, run Cross-Pattern Agent for connections
 
 **2026-08-01 (Session: Agent Wiring + TALOS Vision)**
 - The 5-layer taxonomy (Domain → Typology → Method → Signature → Precedent Case) from the crime work is the SAME structure we're using for ancient mysteries. This validates: one universal taxonomy structure, domain-agnostic.
