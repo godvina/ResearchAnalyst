@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Research Agent Chain — From Raw Question to Documentary-Quality Intelligence</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#0a1628 0%,#0d1f3c 50%,#0a1628 100%);color:#e2e8f0}
+.slide{width:1280px;min-height:720px;margin:0 auto;padding:40px 60px;position:relative;page-break-after:always;border-bottom:2px solid rgba(99,179,237,0.2);margin-bottom:40px}
+.slide-num{position:absolute;top:16px;right:60px;font-size:11px;color:#4a5568}
+.slide-title{font-size:28px;font-weight:800;color:#fff;margin-bottom:6px;letter-spacing:-0.5px}
+.slide-subtitle{font-size:14px;color:#63b3ed;margin-bottom:28px;font-weight:600;text-transform:uppercase;letter-spacing:1px}
+.section-head{font-size:18px;font-weight:700;color:#ecc94b;margin:20px 0 12px;padding-bottom:6px;border-bottom:1px solid rgba(236,201,75,0.2)}
+.pipeline{display:flex;gap:14px;align-items:stretch;margin:16px 0}
+</style>
+</head>
+<body>
+<!-- SLIDE 1: Title + Overview -->
+<div class="slide">
+    <div class="slide-num">1 / 5</div>
+    <div class="slide-title">AI Research Agent Chain</div>
+    <div class="slide-subtitle">From a raw research question to documentary-quality intelligence in 163 seconds</div>
+    <div style="display:flex;gap:30px;margin-top:20px;">
+        <div style="flex:1;">
+            <div style="font-size:15px;color:#cbd5e0;line-height:1.8;">
+                <p style="margin-bottom:14px;">A <strong style="color:#ecc94b;">multi-agent orchestration system</strong> that autonomously investigates research topics using a chain of specialized AI agents, each building on the previous agent's findings.</p>
+                <p style="margin-bottom:14px;">The system takes a <em>single research question</em> and produces:</p>
+                <ul style="padding-left:20px;margin-bottom:16px;">
+                    <li>Structured findings with academic citations</li>
+                    <li>Signature-matched patterns across a global taxonomy</li>
+                    <li>Cross-site connections (the "documentary gold")</li>
+                    <li>Counter-arguments and gaps analysis</li>
+                    <li>Suggested follow-up investigations</li>
+                </ul>
+                <p><strong style="color:#48bb78;">Result:</strong> 38 new cross-site indicators, 7 signature matches, 2 new focusable patterns — all from one command.</p>
+            </div>
+        </div>
+        <div style="flex:0.8;background:rgba(26,54,93,0.3);border:1px solid rgba(99,179,237,0.2);border-radius:12px;padding:20px;">
+            <div style="font-size:13px;font-weight:700;color:#63b3ed;margin-bottom:12px;">EXECUTION SUMMARY</div>
+            <div style="font-size:12px;color:#a0aec0;line-height:2;">
+                <div>⏱️ <strong style="color:#e2e8f0;">Total time:</strong> 163.4 seconds</div>
+                <div>🤖 <strong style="color:#e2e8f0;">Agents run:</strong> 4 (2 completed, 2 no-handler)</div>
+                <div>🧠 <strong style="color:#e2e8f0;">Model:</strong> Claude Sonnet 4 (Bedrock)</div>
+                <div>🌐 <strong style="color:#e2e8f0;">Web searches:</strong> 9 (Tavily API)</div>
+                <div>📊 <strong style="color:#e2e8f0;">Signatures found:</strong> 7</div>
+                <div>🔗 <strong style="color:#e2e8f0;">Cross-site connections:</strong> 25+ sites linked</div>
+                <div>💰 <strong style="color:#e2e8f0;">Est. cost:</strong> ~$0.35 (Bedrock tokens)</div>
+            </div>
+            <div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);">
+                <div style="font-size:10px;color:#718096;">AWS Services Used:</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+                    <span style="background:rgba(246,173,85,0.15);border:1px solid rgba(246,173,85,0.3);color:#fbd38d;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;">Bedrock</span>
+                    <span style="background:rgba(72,187,120,0.15);border:1px solid rgba(72,187,120,0.3);color:#9ae6b4;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;">S3</span>
+                    <span style="background:rgba(99,179,237,0.15);border:1px solid rgba(99,179,237,0.3);color:#90cdf4;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;">Lambda</span>
+                    <span style="background:rgba(183,148,244,0.15);border:1px solid rgba(183,148,244,0.3);color:#d6bcfa;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;">OpenSearch</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 2: The Agent Chain Architecture -->
+<div class="slide">
+    <div class="slide-num">2 / 5</div>
+    <div class="slide-title">The Agent Chain Architecture</div>
+    <div class="slide-subtitle">Sequential agents — each one sees and builds on the findings of all previous agents</div>
+    <div style="display:flex;gap:12px;margin-top:20px;align-items:stretch;">
+        <!-- Agent 1 -->
+        <div style="flex:1;background:rgba(26,54,93,0.4);border:1px solid rgba(99,179,237,0.25);border-radius:12px;padding:16px;border-top:3px solid #63b3ed;">
+            <div style="font-size:11px;color:#63b3ed;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Agent 1</div>
+            <div style="font-size:15px;font-weight:700;color:#e2e8f0;margin:6px 0;">Broad Scanner</div>
+            <div style="font-size:11px;color:#a0aec0;line-height:1.6;">
+                <strong style="color:#cbd5e0;">Job:</strong> Survey all available literature on the research topic. Find key facts, anomalies, counter-arguments.<br><br>
+                <strong style="color:#cbd5e0;">Input:</strong> Research question string<br>
+                <strong style="color:#cbd5e0;">Output:</strong> Summary, 15 key facts, 7 anomalies, 8 counter-arguments, 25 sites identified<br>
+                <strong style="color:#cbd5e0;">Time:</strong> 83 seconds
+            </div>
+            <div style="margin-top:10px;background:rgba(0,0,0,0.3);border-radius:6px;padding:8px;font-size:10px;color:#90cdf4;">
+                Example finding: "Jim Alison (2001) great-circle passing through Giza, Easter Island, Nazca within <1° arc over 40,000km"
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;color:#4a9eff;font-size:20px;">→</div>
+        <!-- Agent 2 -->
+        <div style="flex:1;background:rgba(26,54,93,0.4);border:1px solid rgba(72,187,120,0.25);border-radius:12px;padding:16px;border-top:3px solid #48bb78;">
+            <div style="font-size:11px;color:#48bb78;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Agent 2</div>
+            <div style="font-size:15px;font-weight:700;color:#e2e8f0;margin:6px 0;">Taxonomy Scanner</div>
+            <div style="font-size:11px;color:#a0aec0;line-height:1.6;">
+                <strong style="color:#cbd5e0;">Job:</strong> Score findings against the signature taxonomy. Find SPECIFIC cross-site patterns with citations.<br><br>
+                <strong style="color:#cbd5e0;">Input:</strong> Broad Scanner findings + taxonomy<br>
+                <strong style="color:#cbd5e0;">Output:</strong> 6 signature matches with researcher citations + web sources<br>
+                <strong style="color:#cbd5e0;">Time:</strong> 80 seconds
+            </div>
+            <div style="margin-top:10px;background:rgba(0,0,0,0.3);border-radius:6px;padding:8px;font-size:10px;color:#9ae6b4;">
+                Example: "Orion correlation — Giza, Angkor, Teotihuacan encode same precessional epoch (10,500 BCE)"
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;color:#4a9eff;font-size:20px;">→</div>
+        <!-- Agent 3 -->
+        <div style="flex:1;background:rgba(26,54,93,0.4);border:1px solid rgba(236,201,75,0.25);border-radius:12px;padding:16px;border-top:3px solid #ecc94b;">
+            <div style="font-size:11px;color:#ecc94b;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Agent 3</div>
+            <div style="font-size:15px;font-weight:700;color:#e2e8f0;margin:6px 0;">Cross-Pattern Agent</div>
+            <div style="font-size:11px;color:#a0aec0;line-height:1.6;">
+                <strong style="color:#cbd5e0;">Job:</strong> Find the "documentary gold" — same technique at sites 5000km+ apart. Uses Tavily web search for sourcing.<br><br>
+                <strong style="color:#cbd5e0;">Input:</strong> All previous findings + sites list<br>
+                <strong style="color:#cbd5e0;">Output:</strong> Cross-site connections with distances + researchers<br>
+                <strong style="color:#cbd5e0;">Time:</strong> ~80 seconds (when triggered)
+            </div>
+            <div style="margin-top:10px;background:rgba(0,0,0,0.3);border-radius:6px;padding:8px;font-size:10px;color:#fbd38d;">
+                Example: "Polygonal masonry at Sacsayhuaman AND Mycenae — 12,000km apart, same fitting technique"
+            </div>
+        </div>
+    </div>
+    <div style="margin-top:20px;background:rgba(236,201,75,0.06);border:1px solid rgba(236,201,75,0.15);border-radius:8px;padding:14px;font-size:12px;color:#cbd5e0;line-height:1.6;">
+        <strong style="color:#ecc94b;">Key Design Decision:</strong> Each agent sees ALL accumulated findings from previous agents. This enables compounding intelligence — Agent 3 can find connections that Agent 1 surfaced but didn't recognize as significant. The orchestrator manages context passing, error recovery, and auto-triggers follow-up agents based on each agent's <code style="background:rgba(0,0,0,0.3);padding:1px 5px;border-radius:3px;">suggested_follow_ups</code> field.
+    </div>
+</div>
+
+<!-- SLIDE 3: What Was Found — The Cross-Pattern Results -->
+<div class="slide">
+    <div class="slide-num">3 / 5</div>
+    <div class="slide-title">Cross-Pattern Findings — "Documentary Gold"</div>
+    <div class="slide-subtitle">Specific connections between distant sites that demand explanation</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;">
+        <!-- Finding 1 -->
+        <div style="background:rgba(246,173,85,0.06);border:1px solid rgba(246,173,85,0.2);border-radius:10px;padding:14px;">
+            <div style="font-size:12px;font-weight:700;color:#f6ad55;margin-bottom:6px;">🔑 GREAT CIRCLE ALIGNMENT</div>
+            <div style="font-size:11px;color:#e2e8f0;line-height:1.6;margin-bottom:8px;">
+                Giza → Persepolis → Mohenjo-daro → Angkor Wat → Easter Island lie on a SINGLE great circle with <strong>&lt;1° deviation across 40,000km</strong>.
+            </div>
+            <div style="font-size:10px;color:#718096;">Researcher: Jim Alison (2001) | Confidence: STRONG</div>
+            <div style="font-size:10px;color:#a0aec0;margin-top:4px;font-style:italic;">"If intentional, requires shared geodetic framework — no archaeological confirmation exists."</div>
+        </div>
+        <!-- Finding 2 -->
+        <div style="background:rgba(252,129,129,0.06);border:1px solid rgba(252,129,129,0.2);border-radius:10px;padding:14px;">
+            <div style="font-size:12px;font-weight:700;color:#fc8181;margin-bottom:6px;">🔑 ORION EPOCH ENCODING</div>
+            <div style="font-size:11px;color:#e2e8f0;line-height:1.6;margin-bottom:8px;">
+                Giza (Orion), Angkor (Draco), Teotihuacan (Orion) encode the <strong>same precessional sky-date: 10,500 BCE</strong>. Independent civilizations, no known contact.
+            </div>
+            <div style="font-size:10px;color:#718096;">Researchers: Bauval (1994), Hancock (1998), Harleston (1974) | Confidence: STRONG</div>
+            <div style="font-size:10px;color:#a0aec0;margin-top:4px;font-style:italic;">"Convergence across geographically isolated cultures in the same precessional reference point."</div>
+        </div>
+        <!-- Finding 3 -->
+        <div style="background:rgba(72,187,120,0.06);border:1px solid rgba(72,187,120,0.2);border-radius:10px;padding:14px;">
+            <div style="font-size:12px;font-weight:700;color:#48bb78;margin-bottom:6px;">🏗️ MEGALITHIC CONSTRUCTION</div>
+            <div style="font-size:11px;color:#e2e8f0;line-height:1.6;margin-bottom:8px;">
+                25-80 ton blocks with <strong>sub-millimeter precision fitting</strong> at Giza, Stonehenge, Puma Punku, Nan Madol — sites separated by 5,000-12,000km.
+            </div>
+            <div style="font-size:10px;color:#718096;">Researchers: Petrie (1883), Protzen & Nair (2000), Saxe (1980) | Confidence: STRONG</div>
+            <div style="font-size:10px;color:#a0aec0;margin-top:4px;font-style:italic;">"0.02mm tolerances documented — precision that challenges tool capability assumptions for the era."</div>
+        </div>
+        <!-- Finding 4 -->
+        <div style="background:rgba(183,148,244,0.06);border:1px solid rgba(183,148,244,0.2);border-radius:10px;padding:14px;">
+            <div style="font-size:12px;font-weight:700;color:#b794f4;margin-bottom:6px;">📐 MATHEMATICAL ENCODING</div>
+            <div style="font-size:11px;color:#e2e8f0;line-height:1.6;margin-bottom:8px;">
+                Pi (3.1416) at Giza, harmonic 12th-root-of-2 at Teotihuacan, lunar/solar cycles at Angkor — <strong>mathematical constants encoded in architecture</strong>.
+            </div>
+            <div style="font-size:10px;color:#718096;">Researchers: Taylor (1859), Harleston (1974), Mannikka (1996) | Confidence: MODERATE</div>
+            <div style="font-size:10px;color:#a0aec0;margin-top:4px;font-style:italic;">"Unit-of-measure circularity weakens some claims — peer review needed."</div>
+        </div>
+        <!-- Finding 5 -->
+        <div style="background:rgba(99,179,237,0.06);border:1px solid rgba(99,179,237,0.2);border-radius:10px;padding:14px;">
+            <div style="font-size:12px;font-weight:700;color:#63b3ed;margin-bottom:6px;">🗿 POLYGONAL MASONRY</div>
+            <div style="font-size:11px;color:#e2e8f0;line-height:1.6;margin-bottom:8px;">
+                Irregular multi-ton polygon blocks fitted without mortar to <strong>&lt;5mm tolerances</strong> at Sacsayhuaman (Peru), Mycenae (Greece), Malta — 12,000km apart.
+            </div>
+            <div style="font-size:10px;color:#718096;">Researchers: Protzen (1986), Shaw (2004) | Confidence: MODERATE</div>
+            <div style="font-size:10px;color:#a0aec0;margin-top:4px;font-style:italic;">"Similar outcome vs. identical method cannot be distinguished from published data alone."</div>
+        </div>
+        <!-- Finding 6 -->
+        <div style="background:rgba(236,201,75,0.06);border:1px solid rgba(236,201,75,0.2);border-radius:10px;padding:14px;">
+            <div style="font-size:12px;font-weight:700;color:#ecc94b;margin-bottom:6px;">🙏 SACRED CONTINUITY (Axis Mundi)</div>
+            <div style="font-size:11px;color:#e2e8f0;line-height:1.6;margin-bottom:8px;">
+                Delphi, Jerusalem, Cusco, Angkor, Mecca — all designated "navel of world" by their cultures, all <strong>within 200km of UVG grid nodes</strong>, all 500+ years continuous.
+            </div>
+            <div style="font-size:10px;color:#718096;">Researchers: Eliade (1959), Fontenrose (1978), Peters (1994) | Confidence: STRONG</div>
+            <div style="font-size:10px;color:#a0aec0;margin-top:4px;font-style:italic;">"Five cultures independently identified grid-proximate points as 'center of world.'"</div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 4: From Findings to Visualization -->
+<div class="slide">
+    <div class="slide-num">4 / 5</div>
+    <div class="slide-title">From Findings to Interactive Visualization</div>
+    <div class="slide-subtitle">How agent output becomes explorable intelligence in the dashboard</div>
+    <div style="display:flex;gap:20px;margin-top:16px;">
+        <!-- Left: Pipeline steps -->
+        <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;color:#63b3ed;margin-bottom:12px;">DATA PIPELINE</div>
+            <!-- Step 1 -->
+            <div style="display:flex;gap:10px;margin-bottom:12px;">
+                <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#2b6cb0,#3182ce);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;">1</div>
+                <div>
+                    <div style="font-size:12px;font-weight:600;color:#e2e8f0;">Agent Chain Produces JSON</div>
+                    <div style="font-size:10.5px;color:#a0aec0;line-height:1.5;">Each agent returns structured findings + signature_matches. Saved to <code style="background:rgba(0,0,0,0.3);padding:1px 4px;border-radius:3px;font-size:10px;">agent-chain-results.json</code></div>
+                </div>
+            </div>
+            <!-- Step 2 -->
+            <div style="display:flex;gap:10px;margin-bottom:12px;">
+                <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#276749,#38a169);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;">2</div>
+                <div>
+                    <div style="font-size:12px;font-weight:600;color:#e2e8f0;">Merge into Scored Findings</div>
+                    <div style="font-size:10.5px;color:#a0aec0;line-height:1.5;">Merge script maps sites → node IDs, extracts specific indicators, upgrades confidence levels. Saved to <code style="background:rgba(0,0,0,0.3);padding:1px 4px;border-radius:3px;font-size:10px;">uvg-grid-scored-findings.json</code></div>
+                </div>
+            </div>
+            <!-- Step 3 -->
+            <div style="display:flex;gap:10px;margin-bottom:12px;">
+                <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#744210,#d69e2e);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;">3</div>
+                <div>
+                    <div style="font-size:12px;font-weight:600;color:#e2e8f0;">Frontend Renders Network Graph</div>
+                    <div style="font-size:10.5px;color:#a0aec0;line-height:1.5;">D3 force-directed graph draws edges ONLY between nodes sharing SPECIFIC (non-generic) indicators. Generic matches filtered out.</div>
+                </div>
+            </div>
+            <!-- Step 4 -->
+            <div style="display:flex;gap:10px;margin-bottom:12px;">
+                <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#553c9a,#805ad5);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;">4</div>
+                <div>
+                    <div style="font-size:12px;font-weight:600;color:#e2e8f0;">Documentary-Style AI Brief</div>
+                    <div style="font-size:10.5px;color:#a0aec0;line-height:1.5;">Click any node → Hook → Evidence → Connection → Next template. Shows WHY this matters, not just WHAT was found.</div>
+                </div>
+            </div>
+            <!-- Step 5 -->
+            <div style="display:flex;gap:10px;">
+                <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#9b2c2c,#e53e3e);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;">5</div>
+                <div>
+                    <div style="font-size:12px;font-weight:600;color:#e2e8f0;">2-Level Drill-Down</div>
+                    <div style="font-size:10.5px;color:#a0aec0;line-height:1.5;">Level 1: Pattern focus (which nodes match). Level 2: Click node in graph → full intelligence brief in sidebar with flash animation.</div>
+                </div>
+            </div>
+        </div>
+        <!-- Right: Key design decisions -->
+        <div style="flex:0.9;background:rgba(26,54,93,0.3);border:1px solid rgba(99,179,237,0.15);border-radius:12px;padding:18px;">
+            <div style="font-size:13px;font-weight:700;color:#ecc94b;margin-bottom:14px;">KEY DESIGN DECISIONS</div>
+            <div style="font-size:11px;color:#cbd5e0;line-height:1.7;">
+                <p style="margin-bottom:10px;"><strong style="color:#f6ad55;">Generic indicator filtering:</strong> "5+ sites within 300km" is the pattern DEFINITION, not a meaningful connection. We filter these out — only SPECIFIC traits create edges.</p>
+                <p style="margin-bottom:10px;"><strong style="color:#48bb78;">Honest "no edges" state:</strong> When no specific connections exist, the graph says so explicitly and tells the researcher what scan to run next.</p>
+                <p style="margin-bottom:10px;"><strong style="color:#63b3ed;">Cross-pattern signatures:</strong> New signature IDs (am-gge-xpat-001, -002) represent connections BETWEEN sites, not attributes OF a single site.</p>
+                <p style="margin-bottom:10px;"><strong style="color:#b794f4;">Counter-arguments preserved:</strong> Every finding includes the strongest skeptical argument. This builds credibility — not advocacy.</p>
+                <p><strong style="color:#fc8181;">Confidence taxonomy:</strong> STRONG = peer-reviewed/measurable. MODERATE = cited but not independently replicated. WEAK = anecdotal or single-source.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 5: Technical Architecture + What's Next -->
+<div class="slide">
+    <div class="slide-num">5 / 5</div>
+    <div class="slide-title">Technical Architecture & Next Steps</div>
+    <div class="slide-subtitle">How it all fits together — and what's remaining</div>
+    <div style="display:flex;gap:20px;margin-top:16px;">
+        <!-- Left: Architecture -->
+        <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;color:#63b3ed;margin-bottom:10px;">SYSTEM ARCHITECTURE</div>
+            <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:14px;font-family:'Consolas','Courier New',monospace;font-size:10px;color:#a0aec0;line-height:1.8;">
+<span style="color:#ecc94b;">┌─ INVOCATION ─────────────────────────────────┐</span>
+│ python scripts/_run_agent_chain.py "topic"   │
+<span style="color:#ecc94b;">└──────────────────────────────────────────────┘</span>
+        │
+        ▼
+<span style="color:#63b3ed;">┌─ ORCHESTRATOR (agent_orchestrator.py) ───────┐</span>
+│ • Registers 8 agents with priority levels    │
+│ • Manages context passing between agents     │
+│ • Auto-triggers follow-ups based on output   │
+│ • Handles errors (max 5 recursion depth)     │
+<span style="color:#63b3ed;">└──────────────────────────────────────────────┘</span>
+        │
+        ▼
+<span style="color:#48bb78;">┌─ BEDROCK (Claude Sonnet 4) ──────────────────┐</span>
+│ • 4096 max tokens per call                   │
+│ • 120s timeout, 2 retries                    │
+│ • Structured JSON output (forced)            │
+│ • Robust JSON parser (fence-strip + repair)  │
+<span style="color:#48bb78;">└──────────────────────────────────────────────┘</span>
+        │
+        ▼
+<span style="color:#f6ad55;">┌─ TAVILY WEB SEARCH (Phase 2) ────────────────┐</span>
+│ • Top 3 strongest connections get sourced    │
+│ • Max 20 calls per chain run (cost cap)      │
+│ • Returns title + URL + snippet              │
+<span style="color:#f6ad55;">└──────────────────────────────────────────────┘</span>
+        │
+        ▼
+<span style="color:#b794f4;">┌─ OUTPUT ─────────────────────────────────────┐</span>
+│ • agent-chain-results.json (full results)    │
+│ • Merge script → scored-findings.json        │
+│ • Frontend reads scored data → renders graph │
+<span style="color:#b794f4;">└──────────────────────────────────────────────┘</span>
+            </div>
+        </div>
+        <!-- Right: What's next -->
+        <div style="flex:0.9;">
+            <div style="font-size:13px;font-weight:700;color:#ecc94b;margin-bottom:10px;">REMAINING RESEARCH SCANS</div>
+            <div style="font-size:11px;color:#a0aec0;line-height:1.6;">
+                <div style="background:rgba(252,129,129,0.06);border:1px solid rgba(252,129,129,0.15);border-radius:6px;padding:10px;margin-bottom:8px;">
+                    <div style="color:#fc8181;font-weight:600;font-size:11px;">❌ Cultural Memory — Sedona</div>
+                    <div style="color:#a0aec0;font-size:10px;margin-top:4px;">Failed last session (JSON truncation). Yavapai-Apache vortex traditions.</div>
+                </div>
+                <div style="background:rgba(236,201,75,0.06);border:1px solid rgba(236,201,75,0.15);border-radius:6px;padding:10px;margin-bottom:8px;">
+                    <div style="color:#ecc94b;font-weight:600;font-size:11px;">⚠️ 13 Zero-Match Nodes</div>
+                    <div style="color:#a0aec0;font-size:10px;margin-top:4px;">Fill gaps at unexplored vertices for completeness.</div>
+                </div>
+                <div style="background:rgba(72,187,120,0.06);border:1px solid rgba(72,187,120,0.15);border-radius:6px;padding:10px;margin-bottom:8px;">
+                    <div style="color:#48bb78;font-weight:600;font-size:11px;">⚠️ Emergent Pattern Re-run</div>
+                    <div style="color:#a0aec0;font-size:10px;margin-top:4px;">OpenSearch k-NN with updated scored data — may find new clusters.</div>
+                </div>
+                <div style="background:rgba(99,179,237,0.06);border:1px solid rgba(99,179,237,0.15);border-radius:6px;padding:10px;margin-bottom:8px;">
+                    <div style="color:#63b3ed;font-weight:600;font-size:11px;">💡 SUGGESTED BY AI (new)</div>
+                    <div style="color:#a0aec0;font-size:10px;margin-top:4px;">
+                        • Monte Carlo simulation — null-hypothesis grid test<br>
+                        • GPS verification of Alison great-circle alignment<br>
+                        • Isotopic stone-sourcing across UVG node sites<br>
+                        • Precessional encoding test (10,500 BCE) at 3 sites<br>
+                        • Underwater survey compilation for marine nodes
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top:14px;background:rgba(26,54,93,0.3);border-radius:8px;padding:12px;">
+                <div style="font-size:11px;font-weight:700;color:#e2e8f0;margin-bottom:6px;">OVERALL PROGRESS</div>
+                <div style="background:rgba(0,0,0,0.3);border-radius:4px;height:12px;overflow:hidden;">
+                    <div style="width:72%;height:100%;background:linear-gradient(90deg,#48bb78,#38a169);border-radius:4px;"></div>
+                </div>
+                <div style="font-size:10px;color:#718096;margin-top:4px;">72% complete — data pipeline ✓, visualization ✓, agent chain ✓, cross-patterns ✓. Remaining: cultural memory fills, emergent re-run, expanded audio.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
