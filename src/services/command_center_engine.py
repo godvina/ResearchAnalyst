@@ -141,6 +141,9 @@ class CommandCenterEngine:
 
     def _gremlin(self, query: str, timeout: int = 12) -> list:
         """Execute a Gremlin query via Neptune HTTPS endpoint."""
+        # Allow per-instance override for large cases
+        if hasattr(self, '_neptune_timeout_override'):
+            timeout = min(timeout, self._neptune_timeout_override)
         if not self._neptune_ep:
             logger.warning("_gremlin: Neptune endpoint not configured, returning empty")
             return []
@@ -673,19 +676,44 @@ class CommandCenterEngine:
     # Indicator 5: Prosecution Readiness (existing services)
     # ------------------------------------------------------------------
 
-    def compute_prosecution_readiness(self, case_id: str) -> IndicatorResult:
+    def compute_prosecution_readiness(self, case_id: str, peer_scores: Optional[List[int]] = None) -> IndicatorResult:
         """Leverage CaseAssessmentService + CaseWeaknessService.
 
-        Score = clamp(int((covered / 7) * 80 + (20 if zero_critical else 0)), 0, 100).
+        Uses 3-tier weighted coverage plus a peer-indicator cap so that
+        prosecution readiness cannot exceed the average of the other four
+        indicators by more than 20 points.  This prevents a case from
+        showing 100% prosecution-ready when corroboration is 48% and
+        temporal coherence is 50%.
+
+        Score = min(coverage_score, peer_cap) where:
+          coverage_score = clamp(int((weighted_coverage / 7) * 80 + (20 if zero_critical else 0)))
+          peer_cap = avg(peer_scores) + 20   (only applied when peer_scores provided)
         """
         try:
             assessment = self._case_assessment_svc.get_assessment(case_id)
             coverage = assessment.get("evidence_coverage", {})
 
-            covered = sum(
-                1 for v in coverage.values()
-                if isinstance(v, dict) and v.get("status") == "covered"
-            )
+            # Weighted coverage using 3-tier system
+            strong_count = 0
+            partial_count = 0
+            gap_count = 0
+            weighted_coverage = 0.0
+
+            for v in coverage.values():
+                if not isinstance(v, dict):
+                    continue
+                status = v.get("status", "gap")
+                if status == "strong":
+                    strong_count += 1
+                    weighted_coverage += 1.0
+                elif status == "partial":
+                    partial_count += 1
+                    weighted_coverage += 0.5
+                elif status == "covered":
+                    strong_count += 1
+                    weighted_coverage += 1.0
+                else:
+                    gap_count += 1
 
             weaknesses = self._case_weakness_svc.analyze_weaknesses(case_id)
             critical_count = sum(
@@ -694,20 +722,45 @@ class CommandCenterEngine:
             )
 
             zero_critical = critical_count == 0
-            score = _clamp(int((covered / 7) * 80 + (20 if zero_critical else 0)))
+            coverage_score = _clamp(int((weighted_coverage / 7) * 80 + (20 if zero_critical else 0)))
 
-            # Find highest-priority missing category
+            # Apply peer-indicator cap: prosecution readiness should not
+            # exceed the average of the other 4 indicators by more than 20 pts
+            peer_cap = 100
+            if peer_scores and len(peer_scores) > 0:
+                peer_avg = sum(peer_scores) / len(peer_scores)
+                peer_cap = _clamp(int(peer_avg + 20))
+
+            score = min(coverage_score, peer_cap)
+
             missing_categories = [
                 k.replace("_", " ").title()
                 for k, v in coverage.items()
                 if isinstance(v, dict) and v.get("status") == "gap"
             ]
 
-            insight = f"{covered}/7 evidence categories covered, {critical_count} critical weakness(es)"
+            capped = score < coverage_score
+            if partial_count > 0 or gap_count > 0:
+                insight = (
+                    f"{strong_count} strong, {partial_count} partial, "
+                    f"{gap_count} gaps across 7 evidence categories, "
+                    f"{critical_count} critical weakness(es)"
+                )
+            elif capped:
+                insight = (
+                    f"{strong_count}/7 evidence categories covered, "
+                    f"capped by corroboration and temporal gaps"
+                )
+            else:
+                insight = (
+                    f"All 7 evidence categories strong, "
+                    f"{critical_count} critical weakness(es)"
+                )
+
             gap_note = (
                 f"Missing: {', '.join(missing_categories[:3])}"
                 if missing_categories
-                else "All evidence categories covered"
+                else ("Strengthen corroboration and temporal evidence" if capped else "All evidence categories covered")
             )
 
             return IndicatorResult(
@@ -718,10 +771,16 @@ class CommandCenterEngine:
                 gap_note=gap_note,
                 emoji="⚖️",
                 raw_data={
-                    "covered_categories": covered,
+                    "strong_categories": strong_count,
+                    "partial_categories": partial_count,
+                    "gap_categories": gap_count,
+                    "weighted_coverage": weighted_coverage,
                     "total_categories": 7,
                     "critical_weakness_count": critical_count,
                     "missing_categories": missing_categories,
+                    "coverage_score": coverage_score,
+                    "peer_cap": peer_cap,
+                    "capped": capped,
                     "category_details": {
                         k: {"count": v.get("count", 0), "status": v.get("status", "gap")}
                         for k, v in coverage.items()
@@ -1027,6 +1086,11 @@ class CommandCenterEngine:
             graph_case_id: Optional separate case ID for Neptune graph queries.
                            Falls back to case_id if not provided.
         """
+        import time as _time
+        _compute_start = _time.time()
+        # Total time budget: 20s (leaves 9s headroom for API GW 29s limit)
+        TOTAL_BUDGET_SECONDS = 20
+
         g_case_id = graph_case_id or case_id  # Neptune may use a different case ID
         logger.info("CommandCenter.compute: case_id=%s, graph_case_id=%s, g_case_id=%s", case_id, graph_case_id, g_case_id)
         # --- Cache check ---
@@ -1043,11 +1107,24 @@ class CommandCenterEngine:
             ("compute_corroboration_depth", g_case_id),   # Neptune (entity source_document_refs)
             ("compute_network_density", g_case_id),       # Neptune
             ("compute_temporal_coherence", g_case_id),    # Neptune (date entities)
-            ("compute_prosecution_readiness", case_id),   # Existing services
         ]
 
         indicators: List[IndicatorResult] = []
         for method_name, cid in indicator_calls:
+            # Check time budget before each indicator
+            if (_time.time() - _compute_start) > TOTAL_BUDGET_SECONDS:
+                logger.warning("CommandCenter time budget exceeded (%.1fs) — skipping %s",
+                               _time.time() - _compute_start, method_name)
+                name = method_name.replace("compute_", "").replace("_", " ").title()
+                key = method_name.replace("compute_", "")
+                indicators.append(IndicatorResult(
+                    name=name, key=key, score=0,
+                    insight="Skipped — time budget exceeded for large case",
+                    gap_note="Retry or use cached results",
+                    emoji="⏱️", raw_data={"skipped": True, "reason": "time_budget"},
+                ))
+                continue
+
             method = getattr(self, method_name)
             try:
                 result = method(cid)
@@ -1063,27 +1140,53 @@ class CommandCenterEngine:
                     emoji="❓", raw_data={"error": str(exc)[:200]},
                 ))
 
+        # Prosecution readiness is computed last so it can use peer scores as a cap
+        peer_scores = [ind.score for ind in indicators]
+        try:
+            pr_result = self.compute_prosecution_readiness(case_id, peer_scores=peer_scores)
+            indicators.append(pr_result)
+        except Exception as exc:
+            logger.error("Indicator compute_prosecution_readiness failed: %s", str(exc)[:200])
+            indicators.append(IndicatorResult(
+                name="Prosecution Readiness", key="prosecution_readiness", score=0,
+                insight=f"Computation failed: {str(exc)[:100]}",
+                gap_note="Data source unavailable",
+                emoji="❓", raw_data={"error": str(exc)[:200]},
+            ))
+
         # --- Viability score and verdict ---
         viability_score = self.compute_viability_score(indicators)
         verdict = self.classify_verdict(viability_score)
 
         # --- Get leads ---
         leads = []
-        try:
-            leads = self._investigator_engine.get_investigative_leads(case_id)
-        except Exception as exc:
-            logger.error("Failed to get leads for %s: %s", case_id, str(exc)[:200])
+        if (_time.time() - _compute_start) < TOTAL_BUDGET_SECONDS:
+            try:
+                leads = self._investigator_engine.get_investigative_leads(case_id)
+            except Exception as exc:
+                logger.error("Failed to get leads for %s: %s", case_id, str(exc)[:200])
+        else:
+            logger.warning("Skipping leads fetch — time budget exceeded (%.1fs)", _time.time() - _compute_start)
 
         # --- Generate verdict reasoning ---
         verdict_reasoning = self._generate_verdict_reasoning(indicators, viability_score, verdict)
 
         # --- Strategic assessment ---
-        strategic_assessment = self.generate_strategic_assessment(
-            case_id, indicators, viability_score, leads
-        )
+        strategic_assessment = ""
+        if (_time.time() - _compute_start) < TOTAL_BUDGET_SECONDS:
+            strategic_assessment = self.generate_strategic_assessment(
+                case_id, indicators, viability_score, leads
+            )
+        else:
+            logger.warning("Skipping strategic assessment — time budget exceeded (%.1fs)", _time.time() - _compute_start)
+            strategic_assessment = "Analysis deferred — case too large for real-time computation. Cached results will be available on next load."
 
         # --- Threat threads ---
-        threat_threads = self.generate_threat_threads(case_id, leads, indicators)
+        threat_threads = []
+        if (_time.time() - _compute_start) < TOTAL_BUDGET_SECONDS:
+            threat_threads = self.generate_threat_threads(case_id, leads, indicators)
+        else:
+            logger.warning("Skipping threat threads — time budget exceeded (%.1fs)", _time.time() - _compute_start)
 
         # --- Build payload ---
         now = datetime.now(timezone.utc).isoformat()
@@ -1099,6 +1202,7 @@ class CommandCenterEngine:
                     "insight": ind.insight,
                     "gap_note": ind.gap_note,
                     "emoji": ind.emoji,
+                    "raw_data": ind.raw_data,
                 }
                 for ind in indicators
             ],
