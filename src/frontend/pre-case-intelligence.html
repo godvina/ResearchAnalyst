@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pre-Case Intelligence - Antitrust Division</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#0f1923;color:#e2e8f0;min-height:100vh}
+.header{background:linear-gradient(135deg,#1a365d 0%,#2a4a7f 50%,#1e3a5f 100%);padding:10px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #f6ad55}
+.header h1{font-size:1.35em;color:#fff}
+.header h1 span{color:#f6ad55}
+.header-right{display:flex;align-items:center;gap:10px}
+.header-badge{background:rgba(246,173,85,0.15);border:1px solid #f6ad55;color:#f6ad55;padding:4px 12px;border-radius:20px;font-size:0.72em;font-weight:600}
+.tabs{display:flex;background:#1a2332;border-bottom:1px solid #2d3748}
+.tab{padding:8px 18px;cursor:pointer;font-size:0.78em;font-weight:600;color:#718096;border-bottom:3px solid transparent;transition:all 0.2s}
+.tab:hover{color:#e2e8f0}
+.tab.active{color:#f6ad55;border-bottom-color:#f6ad55}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.main-layout{display:flex;height:calc(100vh - 90px)}
+.sidebar{width:320px;background:#1a2332;border-right:1px solid #2d3748;display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-header{padding:14px 16px;border-bottom:1px solid #2d3748;display:flex;justify-content:space-between;align-items:center}
+.sidebar-header h3{font-size:0.8em;color:#f6ad55;text-transform:uppercase;letter-spacing:1px}
+.lead-count{background:rgba(246,173,85,0.2);color:#f6ad55;padding:2px 8px;border-radius:10px;font-size:0.75em}
+.btn-new-lead{background:#f6ad55;color:#1a202c;border:none;padding:4px 12px;border-radius:4px;font-size:0.78em;font-weight:700;cursor:pointer}
+.btn-new-lead:hover{background:#ed8936}
+.filters{padding:10px 16px;border-bottom:1px solid #2d3748}
+.filter-row{display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+.filter-select,.filter-input{background:#0d1520;border:1px solid #2d3748;color:#e2e8f0;padding:4px 8px;border-radius:4px;font-size:0.7em;outline:none}
+.filter-select:focus,.filter-input:focus{border-color:#f6ad55}
+.filter-input{width:70px}
+.lead-list{flex:1;overflow-y:auto}
+.lead-list::-webkit-scrollbar{width:6px}
+.lead-list::-webkit-scrollbar-thumb{background:#4a5568;border-radius:3px}
+.lead-card{padding:12px 16px;cursor:pointer;border-left:4px solid transparent;transition:all 0.2s;border-bottom:1px solid rgba(255,255,255,0.03)}
+.lead-card:hover{background:rgba(246,173,85,0.06)}
+.lead-card.active{background:rgba(246,173,85,0.1);border-left-color:#f6ad55}
+.lead-card-title{font-size:0.85em;font-weight:700;color:#e2e8f0;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lead-card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.case-type-badge{padding:2px 8px;border-radius:10px;font-size:0.62em;font-weight:600;text-transform:uppercase}
+.badge-procurement_collusion{background:rgba(252,129,129,0.2);color:#fc8181}
+.badge-price_fixing{background:rgba(246,173,85,0.2);color:#f6ad55}
+.badge-market_allocation{background:rgba(144,205,244,0.2);color:#90cdf4}
+.badge-merger_review{background:rgba(214,188,250,0.2);color:#d6bcfa}
+.badge-monopolization{background:rgba(104,211,145,0.2);color:#68d391}
+.badge-criminal_cartel{background:rgba(255,107,107,0.2);color:#ff6b6b}
+.score-gauge{display:inline-flex;align-items:center;gap:3px;font-size:0.68em;font-weight:600}
+.score-bar{width:40px;height:5px;background:#2d3748;border-radius:3px;overflow:hidden}
+.score-fill{height:100%;border-radius:3px}
+.score-high{background:#48bb78}
+.score-mid{background:#f6ad55}
+.score-low{background:#fc8181}
+.priority-dot{width:8px;height:8px;border-radius:50%}
+.priority-critical{background:#ff6b6b;box-shadow:0 0 4px #ff6b6b}
+.priority-high{background:#f6ad55}
+.priority-medium{background:#90cdf4}
+.priority-low{background:#718096}
+.lead-card-bottom{display:flex;justify-content:space-between;margin-top:4px;font-size:0.65em;color:#718096}
+.main-content{flex:1;overflow-y:auto;padding:16px 24px}
+.main-content::-webkit-scrollbar{width:8px}
+.main-content::-webkit-scrollbar-thumb{background:#4a5568;border-radius:4px}
+.detail-header{background:linear-gradient(135deg,#1a2332,#243447);border:1px solid #2d3748;border-radius:12px;padding:20px;margin-bottom:16px}
+.detail-header-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.detail-header-top h2{font-size:1.2em;color:#fff}
+.detail-status{padding:4px 12px;border-radius:20px;font-size:0.72em;font-weight:600}
+.status-intake{background:rgba(113,128,150,0.2);color:#a0aec0;border:1px solid #4a5568}
+.status-classifying{background:rgba(144,205,244,0.2);color:#90cdf4;border:1px solid #90cdf4}
+.status-gathering{background:rgba(246,173,85,0.2);color:#f6ad55;border:1px solid #f6ad55}
+.status-assessing{background:rgba(214,188,250,0.2);color:#d6bcfa;border:1px solid #d6bcfa}
+.status-monitoring{background:rgba(72,187,120,0.15);color:#48bb78;border:1px solid #48bb78}
+.status-promoted{background:rgba(72,187,120,0.3);color:#48bb78;border:1px solid #48bb78}
+.status-closed{background:rgba(113,128,150,0.3);color:#718096;border:1px solid #4a5568}
+.detail-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.meta-item{background:rgba(255,255,255,0.03);padding:10px;border-radius:8px}
+.meta-label{font-size:0.65em;color:#718096;text-transform:uppercase}
+.meta-value{font-size:0.85em;color:#e2e8f0;margin-top:2px;font-weight:600}
+.section{background:#1a2332;border:1px solid #2d3748;border-radius:12px;padding:16px;margin-bottom:14px}
+.section h3{font-size:0.82em;color:#f6ad55;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px}
+.section-content{font-size:0.82em;color:#a0aec0;line-height:1.7}
+.classification-box{background:rgba(255,255,255,0.03);border:1px solid #2d3748;border-radius:8px;padding:14px}
+.osint-source{background:rgba(255,255,255,0.03);border:1px solid #2d3748;border-radius:8px;padding:12px;margin-bottom:8px}
+.osint-source-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.osint-source-name{font-size:0.8em;font-weight:600;color:#e2e8f0}
+.reliability-badge{padding:2px 8px;border-radius:10px;font-size:0.62em;font-weight:600}
+.reliability-official_government{background:rgba(72,187,120,0.2);color:#48bb78}
+.reliability-court_record{background:rgba(144,205,244,0.2);color:#90cdf4}
+.reliability-corporate_filing{background:rgba(214,188,250,0.2);color:#d6bcfa}
+.reliability-news_media{background:rgba(246,173,85,0.2);color:#f6ad55}
+.evidence-table{width:100%;border-collapse:collapse;font-size:0.75em}
+.evidence-table th{background:rgba(255,255,255,0.05);padding:8px 10px;text-align:left;color:#a0aec0;border-bottom:1px solid #2d3748}
+.evidence-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.03);color:#e2e8f0}
+.evidence-supported{color:#48bb78}
+.evidence-gap{color:#fc8181}
+.score-breakdown{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.score-component{background:rgba(255,255,255,0.03);border-radius:8px;padding:10px}
+.score-component-label{font-size:0.68em;color:#718096;text-transform:uppercase;margin-bottom:4px}
+.score-component-bar{height:6px;background:#2d3748;border-radius:3px;overflow:hidden}
+.score-component-fill{height:100%;border-radius:3px}
+.score-component-value{font-size:0.8em;font-weight:600;color:#e2e8f0;margin-top:4px}
+.alert-item{background:rgba(255,255,255,0.03);border-left:3px solid #4a5568;border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:6px}
+.alert-item.alert-high{border-left-color:#fc8181}
+.alert-item.alert-medium{border-left-color:#f6ad55}
+.alert-item.alert-low{border-left-color:#90cdf4}
+.alert-time{font-size:0.65em;color:#718096}
+.alert-text{font-size:0.78em;color:#e2e8f0;margin-top:2px}
+.audit-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+.audit-dot{width:8px;height:8px;border-radius:50%;background:#4a5568;margin-top:4px;flex-shrink:0}
+.audit-action{font-size:0.78em;color:#e2e8f0}
+.audit-meta{font-size:0.65em;color:#718096;margin-top:2px}
+.analytics-controls{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.analytics-btn{background:rgba(255,255,255,0.05);border:1px solid #2d3748;color:#a0aec0;padding:6px 14px;border-radius:6px;font-size:0.75em;cursor:pointer;transition:all 0.2s}
+.analytics-btn:hover{border-color:#f6ad55;color:#f6ad55}
+.analytics-btn.active{background:rgba(246,173,85,0.12);border-color:#f6ad55;color:#f6ad55}
+.chart-container{background:rgba(255,255,255,0.02);border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:14px;height:300px;position:relative}
+.results-table{width:100%;border-collapse:collapse;font-size:0.75em;margin-top:12px}
+.results-table th{background:rgba(246,173,85,0.08);padding:8px 10px;text-align:left;color:#f6ad55;border-bottom:1px solid #2d3748}
+.results-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.03);color:#e2e8f0}
+.form-group{margin-bottom:14px}
+.form-label{font-size:0.75em;color:#a0aec0;margin-bottom:4px;display:block}
+.form-input,.form-select{width:100%;background:#0d1520;border:1px solid #2d3748;color:#e2e8f0;padding:10px 12px;border-radius:6px;font-size:0.82em;outline:none}
+.form-input:focus,.form-select:focus{border-color:#f6ad55}
+.form-textarea{width:100%;background:#0d1520;border:1px solid #2d3748;color:#e2e8f0;padding:10px 12px;border-radius:6px;font-size:0.82em;outline:none;min-height:100px;resize:vertical;font-family:inherit}
+.form-textarea:focus{border-color:#f6ad55}
+.btn-submit{background:linear-gradient(135deg,#f6ad55,#ed8936);color:#1a202c;border:none;padding:10px 24px;border-radius:6px;font-weight:700;font-size:0.82em;cursor:pointer;transition:all 0.2s}
+.btn-submit:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(246,173,85,0.3)}
+.recommendation-panel{background:linear-gradient(135deg,rgba(72,187,120,0.08),rgba(72,187,120,0.03));border:1px solid rgba(72,187,120,0.3);border-radius:12px;padding:16px;margin-bottom:14px}
+.recommendation-panel h3{color:#48bb78;font-size:0.82em;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.recommendation-text{font-size:0.82em;color:#e2e8f0;line-height:1.6;margin:10px 0}
+.recommendation-actions{display:flex;gap:10px;margin-top:12px}
+.btn-confirm{background:#48bb78;color:#0d1520;border:none;padding:8px 18px;border-radius:6px;font-weight:700;font-size:0.78em;cursor:pointer}
+.btn-confirm:hover{background:#38a169}
+.btn-override{background:transparent;border:1px solid #fc8181;color:#fc8181;padding:8px 18px;border-radius:6px;font-weight:600;font-size:0.78em;cursor:pointer}
+.btn-override:hover{background:rgba(252,129,129,0.1)}
+.empty-state{text-align:center;padding:60px 20px;color:#718096}
+.empty-state-icon{font-size:3em;margin-bottom:12px}
+.empty-state-text{font-size:0.9em}
+.loading{text-align:center;padding:20px;color:#718096;font-size:0.82em}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid #2d3748;border-top-color:#f6ad55;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:8px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;right:20px;background:#1a2332;border:1px solid #2d3748;border-radius:8px;padding:12px 20px;font-size:0.82em;color:#e2e8f0;display:none;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,0.3)}
+.toast.show{display:block}
+.toast.success{border-color:#48bb78}
+.toast.error{border-color:#fc8181}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header"><h1>&#9878; Pre-Case <span>Intelligence</span></h1><div class="header-right"><a href="index.html" style="color:#48bb78;text-decoration:none;font-size:0.75em;padding:4px 10px;border:1px solid #48bb78;border-radius:6px;background:rgba(72,187,120,0.1);">&#127968; Home</a><a href="../../docs/presentation/antitrust-pre-case-intelligence.html" id="slidesLink" style="color:#48bb78;text-decoration:none;font-size:0.75em;padding:4px 10px;border:1px solid #48bb78;border-radius:6px;background:rgba(72,187,120,0.1);" title="View presentation slides">&#128202; Slides</a><span class="header-badge">DOJ Antitrust Division</span><span class="header-badge">AI-Powered Lead Assessment</span></div></div>
+
+<!-- TABS -->
+<div class="tabs"><div class="tab active" onclick="switchTab('portfolio')">Lead Portfolio</div><div class="tab" onclick="switchTab('analytics')">Redshift Analytics</div><div class="tab" onclick="switchTab('submit')">Submit Lead</div></div>
+
+<!-- TAB: PORTFOLIO -->
+<div class="tab-content active" id="tab-portfolio">
+<div class="main-layout">
+<div class="sidebar">
+<div class="sidebar-header"><h3>Active Leads <span class="lead-count" id="leadCount">0</span></h3><button class="btn-new-lead" onclick="switchTab('submit')">+ New Lead</button></div>
+<div class="filters">
+<div class="filter-row">
+<select class="filter-select" id="filterCaseType" onchange="applyFilters()"><option value="">All Types</option><option value="procurement_collusion">Procurement Collusion</option><option value="price_fixing">Price Fixing</option><option value="market_allocation">Market Allocation</option><option value="merger_review">Merger Review</option><option value="monopolization">Monopolization</option><option value="criminal_cartel">Criminal Cartel</option></select>
+<select class="filter-select" id="filterPriority" onchange="applyFilters()"><option value="">All Priority</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
+</div>
+<div class="filter-row">
+<select class="filter-select" id="filterStatus" onchange="applyFilters()"><option value="">All Status</option><option value="intake">Intake</option><option value="classifying">Classifying</option><option value="gathering">Gathering</option><option value="assessing">Assessing</option><option value="monitoring">Monitoring</option><option value="promoted">Promoted</option><option value="closed">Closed</option></select>
+<input class="filter-input" type="number" id="filterScoreMin" placeholder="Min" min="0" max="100" onchange="applyFilters()">
+<input class="filter-input" type="number" id="filterScoreMax" placeholder="Max" min="0" max="100" onchange="applyFilters()">
+</div>
+<div class="filter-row"><input class="filter-input" type="text" id="filterAnalyst" placeholder="Analyst" style="width:100%" onchange="applyFilters()"></div>
+</div>
+<div class="lead-list" id="leadList"><div class="loading"><span class="spinner"></span>Loading leads...</div></div>
+</div>
+<div class="main-content" id="leadDetail"><div class="empty-state"><div class="empty-state-icon">&#9878;</div><div class="empty-state-text">Select a lead to view details</div></div></div>
+</div>
+</div>
+
+<!-- TAB: ANALYTICS -->
+<div class="tab-content" id="tab-analytics">
+<div style="padding:20px 24px;max-width:1200px;">
+<div class="section"><h3>Cross-Case Pattern Analytics (Redshift)</h3>
+<div class="analytics-controls">
+<button class="analytics-btn active" onclick="runAnalytics('win-rate',this)">Vendor Win-Rate</button>
+<button class="analytics-btn" onclick="runAnalytics('bid-spread',this)">Bid-Spread Consistency</button>
+<button class="analytics-btn" onclick="runAnalytics('co-occurrence',this)">Co-Occurrence Frequency</button>
+</div>
+<div class="chart-container"><canvas id="analyticsChart"></canvas></div>
+<div id="analyticsResults"></div>
+</div>
+</div>
+</div>
+
+<!-- TAB: SUBMIT -->
+<div class="tab-content" id="tab-submit">
+<div style="padding:20px 24px;max-width:800px;">
+<div class="section"><h3>Submit New Lead</h3>
+<form id="leadForm" onsubmit="submitLead(event)">
+<div class="form-group"><label class="form-label">Lead Title *</label><input class="form-input" type="text" id="formTitle" required placeholder="Brief description of the lead"></div>
+<div class="form-group"><label class="form-label">Source Type *</label><select class="form-select" id="formSourceType" required><option value="">Select source type...</option><option value="tip">Tip</option><option value="whistleblower">Whistleblower Report</option><option value="news">News Article / URL</option><option value="anomaly">Data Anomaly Report</option><option value="referral">Referral</option></select></div>
+<div class="form-group"><label class="form-label">Lead Content *</label><textarea class="form-textarea" id="formContent" required placeholder="Enter the full lead content: tip narrative, whistleblower report, news URL, or anomaly details..."></textarea></div>
+<div class="form-group"><label class="form-label">Summary (optional)</label><textarea class="form-textarea" id="formSummary" placeholder="Brief summary..." style="min-height:60px"></textarea></div>
+<div class="filter-row">
+<div class="form-group" style="flex:1"><label class="form-label">Priority</label><select class="form-select" id="formPriority"><option value="medium">Medium</option><option value="critical">Critical</option><option value="high">High</option><option value="low">Low</option></select></div>
+<div class="form-group" style="flex:1"><label class="form-label">Assign Analyst</label><input class="form-input" type="text" id="formAnalyst" placeholder="Analyst name"></div>
+</div>
+<button class="btn-submit" type="submit">Submit Lead for Classification</button>
+</form>
+</div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="config.js"></script>
+<script>
+const API_URL = window.APP_CONFIG ? window.APP_CONFIG.API_URL : '';
+let leads = [];
+let selectedLeadId = null;
+let analyticsChart = null;
+
+async function api(method, path, body) {
+    const opts = { method, headers: {'Content-Type':'application/json'} };
+    if (body) opts.body = JSON.stringify(body);
+    const resp = await fetch(API_URL + path, opts);
+    let data;
+    try { data = await resp.json(); } catch(e) {
+        if (!resp.ok) throw new Error('API error: ' + resp.status);
+        return {};
+    }
+    if (data && typeof data.body === 'string' && data.statusCode !== undefined) {
+        try { data = JSON.parse(data.body); } catch(e) {}
+    }
+    return data;
+}
+
+function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + (type || 'success');
+    setTimeout(function(){ t.className = 'toast'; }, 3000);
+}
+
+function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+    document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('active'); });
+    var idx = {portfolio:0, analytics:1, submit:2}[tab];
+    document.querySelectorAll('.tab')[idx].classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+}
+
+function escHtml(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''; }
+
+async function loadLeads() {
+    try {
+        var params = new URLSearchParams();
+        var ct = document.getElementById('filterCaseType').value;
+        var pr = document.getElementById('filterPriority').value;
+        var st = document.getElementById('filterStatus').value;
+        var smin = document.getElementById('filterScoreMin').value;
+        var smax = document.getElementById('filterScoreMax').value;
+        var an = document.getElementById('filterAnalyst').value;
+        if (ct) params.set('case_type', ct);
+        if (pr) params.set('priority', pr);
+        if (st) params.set('status', st);
+        if (smin) params.set('score_min', smin);
+        if (smax) params.set('score_max', smax);
+        if (an) params.set('assigned_analyst', an);
+        var qs = params.toString() ? '?' + params.toString() : '';
+        var data = await api('GET', '/pre-case/leads' + qs);
+        leads = data.leads || [];
+        document.getElementById('leadCount').textContent = leads.length;
+        renderLeadList();
+    } catch(e) {
+        document.getElementById('leadList').innerHTML = '<div class="empty-state"><div class="empty-state-text">Failed to load leads</div></div>';
+    }
+}
+
+function renderLeadList() {
+    var c = document.getElementById('leadList');
+    if (!leads.length) { c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">&#128203;</div><div class="empty-state-text">No leads match filters</div></div>'; return; }
+    c.innerHTML = leads.map(function(lead) {
+        var score = lead.pre_assessment_score || 0;
+        var sc = score > 70 ? 'score-high' : score >= 40 ? 'score-mid' : 'score-low';
+        var days = lead.created_at ? Math.floor((Date.now() - new Date(lead.created_at).getTime()) / 86400000) : '?';
+        return '<div class="lead-card ' + (lead.lead_id === selectedLeadId ? 'active' : '') + '" onclick="selectLead(\'' + lead.lead_id + '\')">' +
+            '<div class="lead-card-title">' + escHtml(lead.title || 'Untitled') + '</div>' +
+            '<div class="lead-card-meta">' +
+            (lead.case_type ? '<span class="case-type-badge badge-' + lead.case_type + '">' + lead.case_type.replace(/_/g,' ') + '</span>' : '') +
+            '<span class="score-gauge"><span class="score-bar"><span class="score-fill ' + sc + '" style="width:' + score + '%"></span></span> ' + score + '</span>' +
+            '<span class="priority-dot priority-' + (lead.priority||'medium') + '"></span>' +
+            '</div><div class="lead-card-bottom"><span>' + days + 'd ago</span><span>' + (lead.assigned_analyst||'Unassigned') + '</span></div></div>';
+    }).join('');
+}
+
+function applyFilters() { loadLeads(); }
+
+async function selectLead(id) {
+    selectedLeadId = id;
+    renderLeadList();
+    var c = document.getElementById('leadDetail');
+    c.innerHTML = '<div class="loading"><span class="spinner"></span>Loading...</div>';
+    try {
+        var resp = await api('GET', '/pre-case/leads/' + id);
+        var lead = resp.lead || resp;
+        if (resp.classifications && resp.classifications.length) lead.classification = resp.classifications[0];
+        if (resp.osint_data) lead.osint_data = resp.osint_data;
+        if (resp.assessments && resp.assessments.length) lead.assessment = resp.assessments[0];
+        if (resp.alerts) lead.alerts = resp.alerts;
+        if (resp.audit_trail) lead.audit_trail = resp.audit_trail;
+        if (resp.brief) lead.brief = resp.brief;
+        renderLeadDetail(lead);
+        if (!lead.brief && (lead.status === 'monitoring' || lead.status === 'assessing')) {
+            generateBrief(lead.lead_id || id);
+        }
+    } catch(e) { c.innerHTML = '<div class="empty-state"><div class="empty-state-text">Failed to load</div></div>'; }
+}
+
+function getCaseFrameworkHeadings(caseType) {
+    var frameworks = {
+        'price_fixing': ['Agreement Evidence', 'Market Impact Analysis', 'Affected Commerce', 'Parallel Conduct Indicators'],
+        'criminal_cartel': ['Conspiracy Evidence', 'Participant Identification', 'Communication Patterns', 'Duration & Scope'],
+        'procurement_collusion': ['Bid Pattern Analysis', 'Vendor Relationships', 'Contract Award Anomalies', 'Complementary Bidding'],
+        'market_allocation': ['Territory Division Evidence', 'Customer Allocation', 'Non-Compete Indicators', 'Market Share Analysis'],
+        'merger_review': ['Market Definition', 'Competitive Effects', 'Entry Barriers', 'Efficiencies Defense'],
+        'monopolization': ['Market Power Evidence', 'Exclusionary Conduct', 'Anticompetitive Effects', 'Procompetitive Justifications']
+    };
+    return frameworks[caseType] || ['Case Analysis', 'Evidence Review', 'Market Assessment', 'Investigative Priorities'];
+}
+
+function toggleSourceData() {
+    var panel = document.getElementById('sourceDataPanel');
+    var icon = document.getElementById('sourceToggleIcon');
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        icon.textContent = '(click to collapse)';
+    } else {
+        panel.style.display = 'none';
+        icon.textContent = '(click to expand)';
+    }
+}
+
+function renderLeadDetail(lead) {
+    var c = document.getElementById('leadDetail');
+    var score = lead.pre_assessment_score || 0;
+    var days = lead.created_at ? Math.floor((Date.now() - new Date(lead.created_at).getTime()) / 86400000) : '?';
+
+    // 1. HEADER
+    var h = '<div class="detail-header"><div class="detail-header-top"><h2>' + escHtml(lead.title||'Untitled') + '</h2><span class="detail-status status-' + (lead.status||'intake') + '">' + (lead.status||'intake').toUpperCase() + '</span></div>' +
+        '<div class="detail-meta"><div class="meta-item"><div class="meta-label">Case Type</div><div class="meta-value">' + (lead.case_type ? lead.case_type.replace(/_/g,' ') : 'Pending') + '</div></div>' +
+        '<div class="meta-item"><div class="meta-label">Score</div><div class="meta-value">' + score + '/100</div></div>' +
+        '<div class="meta-item"><div class="meta-label">Priority</div><div class="meta-value">' + (lead.priority||'medium').toUpperCase() + '</div></div>' +
+        '<div class="meta-item"><div class="meta-label">Days Active</div><div class="meta-value">' + days + '</div></div></div></div>';
+
+    // PROCESS FLOW BAR — shows where this lead is in the workflow
+    var steps = ['intake','classifying','gathering','assessing','monitoring','promoted'];
+    var stepLabels = ['Submit','Classify','Gather OSINT','Assess','Monitor','Prosecute'];
+    var stepIcons = ['📥','🏷️','🔍','⚖️','📡','🎯'];
+    var currentIdx = steps.indexOf(lead.status || 'intake');
+    if (currentIdx < 0) currentIdx = 0;
+    h += '<div style="background:#1a2332;border:1px solid #2d3748;border-radius:10px;padding:14px 20px;margin-bottom:16px">';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;gap:4px">';
+    steps.forEach(function(step, idx) {
+        var isActive = idx === currentIdx;
+        var isDone = idx < currentIdx;
+        var color = isDone ? '#48bb78' : isActive ? '#f6ad55' : '#4a5568';
+        var bg = isActive ? 'rgba(246,173,85,0.15)' : isDone ? 'rgba(72,187,120,0.08)' : 'transparent';
+        var border = isActive ? '2px solid #f6ad55' : isDone ? '1px solid #48bb78' : '1px solid #2d3748';
+        h += '<div style="flex:1;text-align:center;padding:8px 4px;border-radius:8px;background:' + bg + ';border:' + border + '">';
+        h += '<div style="font-size:1.1em">' + (isDone ? '✅' : stepIcons[idx]) + '</div>';
+        h += '<div style="font-size:0.65em;color:' + color + ';font-weight:' + (isActive ? '700' : '500') + ';margin-top:2px">' + stepLabels[idx] + '</div>';
+        h += '</div>';
+        if (idx < steps.length - 1) h += '<div style="color:#4a5568;font-size:0.7em">→</div>';
+    });
+    h += '</div>';
+    // Next step button
+    if (currentIdx < steps.length - 1 && lead.status !== 'promoted' && lead.status !== 'closed') {
+        var nextStep = steps[currentIdx + 1];
+        var nextLabel = stepLabels[currentIdx + 1];
+        var nextAction = '';
+        if (nextStep === 'classifying') nextAction = "api('POST','/pre-case/leads/" + (lead.lead_id||'') + "/classify').then(function(){selectLead('" + (lead.lead_id||'') + "')})";
+        else if (nextStep === 'gathering') nextAction = "api('POST','/pre-case/leads/" + (lead.lead_id||'') + "/gather').then(function(){selectLead('" + (lead.lead_id||'') + "')})";
+        else if (nextStep === 'assessing') nextAction = "api('POST','/pre-case/leads/" + (lead.lead_id||'') + "/assess').then(function(){selectLead('" + (lead.lead_id||'') + "')})";
+        else if (nextStep === 'monitoring') nextAction = "api('PATCH','/pre-case/leads/" + (lead.lead_id||'') + "',{status:'monitoring'}).then(function(){selectLead('" + (lead.lead_id||'') + "')})";
+        else if (nextStep === 'promoted') nextAction = "confirmOpenCase('" + (lead.lead_id||'') + "')";
+        if (nextAction) {
+            h += '<div style="text-align:right;margin-top:10px"><button onclick="showToast(\'Advancing to ' + nextLabel + '...\');' + nextAction + '" style="background:linear-gradient(135deg,#f6ad55,#ed8936);color:#1a202c;border:none;padding:8px 18px;border-radius:6px;font-weight:700;font-size:0.78em;cursor:pointer">Advance → ' + nextLabel + '</button></div>';
+        }
+    }
+    h += '</div>';
+
+    if (score > 70 && lead.status !== 'promoted' && lead.status !== 'closed') {
+        h += '<div class="recommendation-panel"><h3>AI Case Opening Recommendation</h3>' +
+            '<div class="recommendation-text">Based on a Pre-Assessment Score of <strong>' + score + '</strong>/100, the system recommends <strong>opening a formal investigation</strong>.' +
+            (lead.assessment && lead.assessment.legal_reasoning ? '<br><br>' + escHtml(lead.assessment.legal_reasoning) : '') + '</div>' +
+            '<div class="recommendation-actions"><button class="btn-confirm" onclick="confirmOpenCase(\'' + lead.lead_id + '\')">Confirm &amp; Open Case</button>' +
+            '<button class="btn-override" onclick="overrideRecommendation(\'' + lead.lead_id + '\')">Override</button></div></div>';
+    }
+
+    // 2. CASE CLASSIFICATION & FRAMEWORK
+    if (lead.classification) {
+        var caseType = lead.classification.case_type || lead.case_type || '';
+        var confidence = lead.classification.confidence || 0;
+        var reasoning = lead.classification.reasoning || '';
+        var confColor = confidence >= 80 ? '#48bb78' : confidence >= 60 ? '#f6ad55' : '#fc8181';
+        var headings = getCaseFrameworkHeadings(caseType);
+        h += '<div class="section"><h3>🎯 Case Classification & Investigative Framework</h3><div class="section-content">';
+        h += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><span style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:6px 16px;border-radius:20px;font-size:0.9em;font-weight:700;text-transform:uppercase;letter-spacing:0.5px">' + escHtml(caseType.replace(/_/g,' ')) + '</span>';
+        h += '<span style="font-size:0.78em;color:' + confColor + ';font-weight:600">' + confidence + '% confidence</span></div>';
+        if (reasoning) h += '<div style="font-size:0.8em;color:#a0aec0;line-height:1.6;margin-bottom:16px;padding:10px;background:rgba(255,255,255,0.02);border-radius:6px;border-left:3px solid #667eea">' + escHtml(reasoning) + '</div>';
+        h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+        headings.forEach(function(heading) {
+            h += '<div style="background:rgba(102,126,234,0.06);border:1px solid rgba(102,126,234,0.2);border-radius:8px;padding:12px"><div style="font-size:0.75em;font-weight:700;color:#90cdf4;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.3px">' + escHtml(heading) + '</div><div><span style="color:#718096;font-style:italic;font-size:0.75em">Pending analysis</span></div></div>';
+        });
+        h += '</div></div></div>';
+    }
+
+    // 3. AI INVESTIGATIVE INTELLIGENCE BRIEF
+    h += '<div class="section" id="briefSection"><h3>🧠 AI Investigative Intelligence Brief</h3><div id="briefContent">';
+    if (lead.brief && !lead.brief.brief_unavailable) {
+        h += renderBriefInline(lead.brief);
+    } else if (lead.brief && lead.brief.brief_unavailable) {
+        h += '<div style="padding:12px;color:#f6ad55;font-size:0.82em">' + escHtml(lead.brief.error_message || 'Brief temporarily unavailable') + '</div>';
+        h += '<div style="text-align:center;padding:12px"><button onclick="generateBrief(\'' + (lead.lead_id||'') + '\')" class="btn-new-lead" style="padding:10px 24px;font-size:0.85em;border-radius:8px;background:linear-gradient(135deg,#f6ad55,#ed8936);cursor:pointer">🔄 Retry Brief Generation</button></div>';
+    } else {
+        h += '<div style="padding:12px;text-align:center"><button onclick="generateBrief(\'' + (lead.lead_id||'') + '\')" class="btn-new-lead" style="padding:10px 24px;font-size:0.85em;border-radius:8px;background:linear-gradient(135deg,#f6ad55,#ed8936);cursor:pointer">🧠 Generate Intelligence Brief</button><div style="font-size:0.7em;color:#718096;margin-top:8px">Uses Amazon Bedrock to synthesize OSINT findings into an actionable intelligence brief</div></div>';
+    }
+    h += '</div></div>';
+
+    // 4. SIGNAL MINING — Investigator Search & Findings
+    h += '<div class="section"><h3>🔍 Signal Mining — Investigator Search</h3>';
+    h += '<div style="display:flex;gap:8px;margin-bottom:12px"><input id="investigateInput" type="text" placeholder="Type a search directive... e.g. Search news for antitrust complaints" style="flex:1;background:#0d1520;border:1px solid #2d3748;color:#e2e8f0;padding:10px 14px;border-radius:6px;font-size:0.82em;outline:none" onkeydown="if(event.key===\'Enter\')submitInvestigateDirective(\'' + (lead.lead_id||'') + '\')"><button id="investigateBtn" onclick="submitInvestigateDirective(\'' + (lead.lead_id||'') + '\')" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;padding:10px 18px;border-radius:6px;font-weight:700;font-size:0.78em;cursor:pointer;white-space:nowrap">🔎 Investigate</button></div>';
+
+    // Suggested queries based on case subjects and type
+    var suggestedQueries = generateSuggestedQueries(lead);
+    if (suggestedQueries.length) {
+        h += '<div style="margin-bottom:14px"><div style="font-size:0.7em;color:#718096;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">Suggested Queries</div><div style="display:flex;flex-wrap:wrap;gap:6px">';
+        suggestedQueries.forEach(function(q) {
+            h += '<button onclick="document.getElementById(\'investigateInput\').value=\'' + q.replace(/'/g, "\\'") + '\';submitInvestigateDirective(\'' + (lead.lead_id||'') + '\')" style="background:rgba(102,126,234,0.1);border:1px solid rgba(102,126,234,0.3);color:#90cdf4;padding:5px 12px;border-radius:16px;font-size:0.72em;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background=\'rgba(102,126,234,0.2)\'" onmouseout="this.style.background=\'rgba(102,126,234,0.1)\'">' + escHtml(q) + '</button>';
+        });
+        h += '</div></div>';
+    }
+
+    h += '<div id="signalMiningFindings"><div style="color:#718096;font-size:0.82em">Loading findings...</div></div>';
+    h += '</div>';
+
+    // Load findings async after render
+    setTimeout(function() { loadFindings(lead.lead_id || ''); }, 100);
+
+    // 5. LEAD INTELLIGENCE SUMMARY (was section 4)
+    h += '<div class="section"><h3>📄 Lead Intelligence Summary</h3><div class="section-content">';
+    var sc = lead.source_content;
+    if (typeof sc === 'string') { try { sc = JSON.parse(sc); } catch(e) { sc = {}; } }
+    if (sc && typeof sc === 'object' && !Array.isArray(sc)) {
+        if (sc.subjects && sc.subjects.length) {
+            h += '<div style="margin-bottom:10px"><strong style="color:#f6ad55">Subjects Under Investigation:</strong><div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px">';
+            sc.subjects.forEach(function(s) { h += '<span style="background:rgba(252,129,129,0.15);color:#fc8181;border:1px solid rgba(252,129,129,0.3);padding:3px 10px;border-radius:12px;font-size:0.78em;font-weight:600">' + escHtml(s) + '</span>'; });
+            h += '</div></div>';
+        }
+        if (sc.industry) h += '<div style="margin-bottom:6px;font-size:0.82em"><strong>Industry:</strong> ' + escHtml(sc.industry.replace(/_/g,' ')) + '</div>';
+        if (sc.alleged_conduct) h += '<div style="margin-bottom:6px;font-size:0.82em"><strong>Alleged Conduct:</strong> ' + escHtml(sc.alleged_conduct) + '</div>';
+        if (sc.geographic_scope) h += '<div style="margin-bottom:6px;font-size:0.82em"><strong>Geographic Scope:</strong> ' + escHtml(sc.geographic_scope) + '</div>';
+        if (sc.estimated_harm) h += '<div style="margin-bottom:6px;font-size:0.82em"><strong>Estimated Harm:</strong> <span style="color:#fc8181;font-weight:700">' + escHtml(sc.estimated_harm) + '</span></div>';
+        if (sc.affected_parties) h += '<div style="margin-bottom:6px;font-size:0.82em"><strong>Affected Parties:</strong> ' + escHtml(sc.affected_parties) + '</div>';
+        if (sc.mechanism) h += '<div style="margin-bottom:6px;font-size:0.82em"><strong>Mechanism:</strong> ' + escHtml(sc.mechanism) + '</div>';
+        if (sc.market_share) h += '<div style="margin-bottom:6px;font-size:0.82em"><strong>Market Share:</strong> ' + escHtml(sc.market_share) + '</div>';
+        if (sc.referral_agency) h += '<div style="margin-bottom:6px;font-size:0.82em"><strong>Referral Agency:</strong> ' + escHtml(sc.referral_agency) + '</div>';
+        if (sc.fines_paid) h += '<div style="margin-bottom:6px;font-size:0.82em"><strong>Fines Paid:</strong> ' + escHtml(sc.fines_paid) + '</div>';
+        if (sc.convictions) h += '<div style="margin-bottom:6px;font-size:0.82em"><strong>Convictions:</strong> ' + escHtml(sc.convictions) + '</div>';
+        if (sc.individuals_charged) h += '<div style="margin-bottom:6px;font-size:0.82em"><strong>Individuals Charged:</strong> ' + sc.individuals_charged + '</div>';
+    } else {
+        h += '<strong>Source:</strong> ' + (lead.source_type||'Unknown') + '<br><br>' + escHtml(typeof lead.source_content === 'string' ? lead.source_content : JSON.stringify(lead.source_content||{}));
+    }
+    h += '</div></div>';
+
+    // 5. PROSECUTION READINESS
+    if (lead.assessment) {
+        h += '<div class="section"><h3>⚖️ Prosecution Readiness Assessment</h3>';
+        if (lead.assessment.scoring_components) {
+            var comps = lead.assessment.scoring_components;
+            h += '<div class="score-breakdown">';
+            var labels = {elements_satisfied:'Elements Satisfied (40%)',evidence_quality:'Evidence Quality (25%)',corroboration:'Corroboration (20%)',pattern_strength:'Pattern Strength (15%)'};
+            Object.keys(labels).forEach(function(k) {
+                var v = comps[k]||0; var col = v > 70 ? '#48bb78' : v >= 40 ? '#f6ad55' : '#fc8181';
+                h += '<div class="score-component"><div class="score-component-label">' + labels[k] + '</div><div class="score-component-bar"><div class="score-component-fill" style="width:' + v + '%;background:' + col + '"></div></div><div class="score-component-value">' + v + '/100</div></div>';
+            });
+            h += '</div>';
+        }
+        if (lead.assessment.evidence_matrix) {
+            h += '<table class="evidence-table" style="margin-top:14px"><thead><tr><th>Element</th><th>Evidence</th><th>Status</th></tr></thead><tbody>';
+            Object.keys(lead.assessment.evidence_matrix).forEach(function(el) {
+                var ev = lead.assessment.evidence_matrix[el];
+                var ok = ev && (Array.isArray(ev) ? ev.length > 0 : true);
+                h += '<tr><td>' + escHtml(el) + '</td><td>' + escHtml(Array.isArray(ev)?ev.join(', '):String(ev||'')) + '</td><td class="' + (ok?'evidence-supported':'evidence-gap') + '">' + (ok?'Supported':'Gap') + '</td></tr>';
+            });
+            h += '</tbody></table>';
+        }
+        if (lead.assessment.evidence_gaps && lead.assessment.evidence_gaps.length) {
+            lead.assessment.evidence_gaps.forEach(function(gap) {
+                h += '<div style="background:rgba(252,129,129,0.05);border:1px solid rgba(252,129,129,0.2);border-radius:6px;padding:8px;margin-top:6px;font-size:0.78em"><div style="color:#fc8181;font-weight:600">' + escHtml(gap.element||gap.description||'') + '</div><div style="color:#a0aec0;margin-top:3px">' + escHtml(gap.recommended_action||gap.action||'') + '</div></div>';
+            });
+        }
+        h += '</div>';
+    }
+
+    // 6. SOURCE DATA (COLLAPSED by default)
+    if (lead.osint_data && lead.osint_data.length) {
+        h += '<div class="section"><h3 onclick="toggleSourceData()" style="cursor:pointer;user-select:none">📂 Source Data & Provenance <span id="sourceToggleIcon" style="font-size:0.7em;color:#718096">(click to expand)</span></h3>';
+        h += '<div id="sourceDataPanel" style="display:none">';
+        lead.osint_data.forEach(function(src) {
+            var entities = src.extracted_entities;
+            if (typeof entities === 'string') { try { entities = JSON.parse(entities); } catch(e) { entities = []; } }
+            var entityList = Array.isArray(entities) ? entities : [];
+            var sourceIcon = {'sam_gov':'🏛️','sec_edgar':'📊','usaspending_gov':'💰','fpds_gov':'📋','state_corporate_registry':'🏢','pacer':'⚖️','news_press':'📰','irs_form_990':'📑','state_dot_bids':'🚧'}[src.source_name] || '📄';
+            h += '<div class="osint-source"><div class="osint-source-header"><span class="osint-source-name">' + sourceIcon + ' ' + escHtml((src.source_name||'').replace(/_/g,' ').toUpperCase()) + '</span>' +
+                '<span class="reliability-badge reliability-' + (src.reliability_rating||'') + '">' + (src.reliability_rating||'').replace(/_/g,' ') + '</span></div>';
+            if (entityList.length > 0) {
+                h += '<div style="font-size:0.78em;color:#a0aec0;margin-top:6px"><strong style="color:#e2e8f0">Subjects queried:</strong> ';
+                var names = entityList.map(function(e) { return e.name || e.entity_name || ''; }).filter(Boolean);
+                h += names.join(', ') + '</div>';
+                var queryTypes = [...new Set(entityList.map(function(e) { return e.query_type || ''; }).filter(Boolean))];
+                if (queryTypes.length) h += '<div style="font-size:0.72em;color:#718096;margin-top:4px">Query types: ' + queryTypes.join(', ').replace(/_/g,' ') + '</div>';
+            }
+            h += '<div style="font-size:0.68em;color:#4a5568;margin-top:4px">Retrieved: ' + (src.retrieval_timestamp ? new Date(src.retrieval_timestamp).toLocaleString() : '—') + '</div></div>';
+        });
+        h += '<div style="margin-top:12px;padding:12px;background:rgba(246,173,85,0.08);border:1px solid rgba(246,173,85,0.2);border-radius:8px"><div style="font-size:0.78em;color:#f6ad55;font-weight:700;margin-bottom:6px">📋 Investigator Notes</div><div style="font-size:0.75em;color:#a0aec0;line-height:1.6">• <strong>' + lead.osint_data.length + ' OSINT sources</strong> queried across government databases, corporate filings, and news<br>• Data provenance tracked with SHA-256 hashes for integrity verification<br>• Each source rated by reliability: official government > court records > corporate filings > news media</div></div>';
+        h += '</div></div>';
+    }
+
+    if (lead.alerts && lead.alerts.length) {
+        h += '<div class="section"><h3>🔔 Trawler Alert History</h3>';
+        lead.alerts.forEach(function(a) {
+            h += '<div class="alert-item alert-' + (a.severity||'low') + '"><div class="alert-time">' + (a.created_at||'') + '</div><div class="alert-text">' + escHtml(a.message||a.detail||'') + '</div></div>';
+        });
+        h += '</div>';
+    }
+
+    if (lead.audit_trail && lead.audit_trail.length) {
+        h += '<div class="section"><h3>📝 Workflow Audit Trail</h3>';
+        lead.audit_trail.forEach(function(e) {
+            h += '<div class="audit-item"><div class="audit-dot"></div><div><div class="audit-action">' + escHtml(e.action_type||'') + ' by ' + escHtml(e.actor||'system') + '</div><div class="audit-meta">' + (e.created_at||'') + '</div></div></div>';
+        });
+        h += '</div>';
+    }
+
+    c.innerHTML = h;
+}
+
+async function confirmOpenCase(id) {
+    var pid = prompt('Enter Prosecutor ID:');
+    if (!pid) return;
+    try {
+        await api('POST', '/pre-case/leads/' + id + '/open-case', {prosecutor_id: pid, confirmation: 'confirmed'});
+        showToast('Case opened successfully');
+        selectLead(id); loadLeads();
+    } catch(e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+async function overrideRecommendation(id) {
+    var reason = prompt('Enter override reasoning:');
+    if (!reason) return;
+    try {
+        await api('POST', '/pre-case/leads/' + id + '/open-case', {prosecutor_id: 'override', confirmation: 'overridden', reasoning: reason});
+        showToast('Recommendation overridden');
+        selectLead(id);
+    } catch(e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+function renderBriefInline(brief) {
+    var h = '';
+    if (brief.executive_summary) {
+        h += '<div style="font-size:0.85em;color:#e2e8f0;line-height:1.7;margin-bottom:16px;text-align:left">' + escHtml(brief.executive_summary) + '</div>';
+    }
+    if (brief.key_findings && brief.key_findings.length) {
+        h += '<div style="margin-bottom:14px"><div style="font-size:0.78em;font-weight:700;color:#48bb78;margin-bottom:8px;text-align:left">KEY FINDINGS</div><ol style="margin:0;padding-left:20px;text-align:left">';
+        brief.key_findings.forEach(function(f) {
+            var text = typeof f === 'string' ? f : (f.finding || f.text || JSON.stringify(f));
+            h += '<li style="font-size:0.8em;color:#a0aec0;margin-bottom:6px;line-height:1.5">' + escHtml(text) + '</li>';
+        });
+        h += '</ol></div>';
+    }
+    if (brief.red_flags && brief.red_flags.length) {
+        h += '<div style="margin-bottom:14px"><div style="font-size:0.78em;font-weight:700;color:#fc8181;margin-bottom:8px;text-align:left">RED FLAGS</div>';
+        brief.red_flags.forEach(function(rf) {
+            var indicator = typeof rf === 'string' ? rf : (rf.indicator || rf.text || '');
+            var severity = (typeof rf === 'object' && rf.severity) ? rf.severity : 'medium';
+            var sevColor = severity === 'high' ? '#fc8181' : severity === 'medium' ? '#f6ad55' : '#90cdf4';
+            h += '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;text-align:left"><span style="background:' + sevColor + ';color:#1a202c;padding:1px 6px;border-radius:3px;font-size:0.65em;font-weight:700;flex-shrink:0;margin-top:2px">' + severity.toUpperCase() + '</span><span style="font-size:0.8em;color:#a0aec0;line-height:1.5">' + escHtml(indicator) + '</span></div>';
+        });
+        h += '</div>';
+    }
+    if (brief.evidence_gaps && brief.evidence_gaps.length) {
+        h += '<div style="margin-bottom:14px"><div style="font-size:0.78em;font-weight:700;color:#f6ad55;margin-bottom:8px;text-align:left">EVIDENCE GAPS</div>';
+        brief.evidence_gaps.forEach(function(eg) {
+            var gap = typeof eg === 'string' ? eg : (eg.gap || eg.description || '');
+            var action = (typeof eg === 'object') ? (eg.recommended_action || eg.action || '') : '';
+            h += '<div style="margin-bottom:8px;padding:8px;background:rgba(246,173,85,0.05);border-left:3px solid #f6ad55;border-radius:0 4px 4px 0;text-align:left"><div style="font-size:0.8em;color:#e2e8f0">' + escHtml(gap) + '</div>';
+            if (action) h += '<div style="font-size:0.72em;color:#718096;margin-top:3px">→ ' + escHtml(action) + '</div>';
+            h += '</div>';
+        });
+        h += '</div>';
+    }
+    if (brief.recommended_next_steps && brief.recommended_next_steps.length) {
+        h += '<div><div style="font-size:0.78em;font-weight:700;color:#90cdf4;margin-bottom:8px;text-align:left">RECOMMENDED NEXT STEPS</div>';
+        brief.recommended_next_steps.forEach(function(ns, idx) {
+            var action = typeof ns === 'string' ? ns : (ns.action || ns.text || '');
+            var target = (typeof ns === 'object') ? (ns.target || '') : '';
+            var priority = (typeof ns === 'object') ? (ns.priority || 'short_term') : 'short_term';
+            var priColor = priority === 'immediate' ? '#fc8181' : priority === 'short_term' ? '#f6ad55' : '#90cdf4';
+            h += '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;text-align:left"><span style="color:' + priColor + ';font-weight:700;font-size:0.8em;flex-shrink:0">' + (idx+1) + '.</span><div><div style="font-size:0.8em;color:#e2e8f0;line-height:1.5">' + escHtml(action) + '</div>';
+            if (target) h += '<div style="font-size:0.7em;color:#718096">Target: ' + escHtml(target) + '</div>';
+            h += '</div></div>';
+        });
+        h += '</div>';
+    }
+    return h || '<div style="color:#718096;font-size:0.82em;text-align:left">No brief content available.</div>';
+}
+
+async function generateBrief(leadId) {
+    var bc = document.getElementById('briefContent');
+    if (!bc) return;
+    bc.innerHTML = '<div class="loading"><span class="spinner"></span>AI is analyzing case data...</div>';
+    try {
+        var resp = await api('POST', '/pre-case/leads/' + leadId + '/generate-brief');
+        var brief = resp.brief || resp;
+        if (brief.brief_unavailable) {
+            bc.innerHTML = '<div style="color:#f6ad55;padding:12px;font-size:0.82em">' + escHtml(brief.executive_summary || brief.error_message || 'Brief unavailable') + '</div>';
+        } else {
+            bc.innerHTML = renderBriefInline(brief);
+        }
+    } catch(e) {
+        bc.innerHTML = '<div style="color:#fc8181;padding:12px;font-size:0.82em">Failed to generate brief: ' + escHtml(e.message) + '</div>';
+    }
+}
+
+async function runAnalytics(qtype, btn) {
+    document.querySelectorAll('.analytics-btn').forEach(function(b){ b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    var rd = document.getElementById('analyticsResults');
+    rd.innerHTML = '<div class="loading"><span class="spinner"></span>Running query...</div>';
+    if (analyticsChart) { analyticsChart.destroy(); analyticsChart = null; }
+    try {
+        var atype = qtype === 'win-rate' ? 'vendor_win_rates' : qtype === 'bid-spread' ? 'bid_spread_consistency' : 'co_occurrence_frequency';
+        var data = await api('POST', '/cross-case/analyze', {analysis_type: atype});
+        renderAnalytics(qtype, data);
+    } catch(e) { rd.innerHTML = '<div class="empty-state"><div class="empty-state-text">Query failed: ' + e.message + '</div></div>'; }
+}
+
+function renderAnalytics(qtype, data) {
+    var ctx = document.getElementById('analyticsChart').getContext('2d');
+    var rd = document.getElementById('analyticsResults');
+    var results = data.results || data.patterns || [];
+    if (!results.length) { rd.innerHTML = '<div class="empty-state"><div class="empty-state-text">No results</div></div>'; return; }
+    var labels, vals;
+    if (qtype === 'win-rate') {
+        labels = results.slice(0,15).map(function(r){return r.vendor_id||r.vendor_name||'?';});
+        vals = results.slice(0,15).map(function(r){return r.win_rate_pct||r.win_rate||0;});
+        analyticsChart = new Chart(ctx, {type:'bar', data:{labels:labels, datasets:[{label:'Win Rate %',data:vals,backgroundColor:'rgba(246,173,85,0.6)',borderColor:'#f6ad55',borderWidth:1}]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#a0aec0'}}},scales:{x:{ticks:{color:'#718096',maxRotation:45}},y:{ticks:{color:'#718096'},grid:{color:'rgba(255,255,255,0.05)'}}}}});
+    } else if (qtype === 'bid-spread') {
+        labels = results.slice(0,20).map(function(r){return r.contract_id||r.period||'?';});
+        vals = results.slice(0,20).map(function(r){return r.spread_pct||r.bid_spread||0;});
+        analyticsChart = new Chart(ctx, {type:'line', data:{labels:labels, datasets:[{label:'Bid Spread %',data:vals,borderColor:'#90cdf4',backgroundColor:'rgba(144,205,244,0.1)',fill:true,tension:0.3}]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#a0aec0'}}},scales:{x:{ticks:{color:'#718096',maxRotation:45}},y:{ticks:{color:'#718096'},grid:{color:'rgba(255,255,255,0.05)'}}}}});
+    } else {
+        labels = results.slice(0,15).map(function(r){return (r.vendor_a||'')+'/'+(r.vendor_b||'');});
+        vals = results.slice(0,15).map(function(r){return r.co_bid_count||r.frequency||0;});
+        analyticsChart = new Chart(ctx, {type:'bar', data:{labels:labels, datasets:[{label:'Co-Occurrence',data:vals,backgroundColor:'rgba(214,188,250,0.6)',borderColor:'#d6bcfa',borderWidth:1}]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#a0aec0'}}},scales:{x:{ticks:{color:'#718096',maxRotation:45}},y:{ticks:{color:'#718096'},grid:{color:'rgba(255,255,255,0.05)'}}}}});
+    }
+    var cols = Object.keys(results[0]);
+    var th = '<table class="results-table"><thead><tr>' + cols.map(function(c){return '<th>'+escHtml(c)+'</th>';}).join('') + '</tr></thead><tbody>';
+    results.slice(0,25).forEach(function(row) { th += '<tr>' + cols.map(function(c){return '<td>'+escHtml(String(row[c]!=null?row[c]:''))+'</td>';}).join('') + '</tr>'; });
+    th += '</tbody></table>';
+    rd.innerHTML = th;
+}
+
+async function submitLead(e) {
+    e.preventDefault();
+    var title = document.getElementById('formTitle').value.trim();
+    var st = document.getElementById('formSourceType').value;
+    var content = document.getElementById('formContent').value.trim();
+    var summary = document.getElementById('formSummary').value.trim();
+    var priority = document.getElementById('formPriority').value;
+    var analyst = document.getElementById('formAnalyst').value.trim();
+    if (!title || !st || !content) { showToast('Fill required fields', 'error'); return; }
+    try {
+        var payload = {title: title, source_type: st, source_content: {text: content}, priority: priority};
+        if (summary) payload.summary = summary;
+        if (analyst) payload.assigned_analyst = analyst;
+        var result = await api('POST', '/pre-case/leads', payload);
+        showToast('Lead submitted: ' + (result.lead_id || 'success'));
+        document.getElementById('leadForm').reset();
+
+        // Auto-pipeline: trigger and show progress
+        if (result.lead_id) {
+            showPipelineProgress(result.lead_id);
+        } else {
+            switchTab('portfolio');
+            loadLeads();
+        }
+    } catch(e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
+function showPipelineProgress(leadId) {
+    var formArea = document.getElementById('leadForm').parentElement;
+    var progressHtml = '<div id="pipelineProgress" style="margin-top:16px;background:#1a2332;border:1px solid #2d3748;border-radius:12px;padding:20px">';
+    progressHtml += '<h4 style="color:#f6ad55;margin-bottom:12px">🚀 Auto-Pipeline Running</h4>';
+    progressHtml += '<div class="pipeline-steps" style="display:flex;gap:16px;flex-wrap:wrap">';
+    progressHtml += '<div class="pipeline-step" id="step-classify" style="padding:8px 14px;border-radius:8px;font-size:0.8em;font-weight:600;background:rgba(255,255,255,0.03);border:1px solid #2d3748;color:#a0aec0">⏳ Classify</div>';
+    progressHtml += '<div class="pipeline-step" id="step-gather" style="padding:8px 14px;border-radius:8px;font-size:0.8em;font-weight:600;background:rgba(255,255,255,0.03);border:1px solid #2d3748;color:#a0aec0">⏳ Gather OSINT</div>';
+    progressHtml += '<div class="pipeline-step" id="step-assess" style="padding:8px 14px;border-radius:8px;font-size:0.8em;font-weight:600;background:rgba(255,255,255,0.03);border:1px solid #2d3748;color:#a0aec0">⏳ Assess</div>';
+    progressHtml += '</div>';
+    progressHtml += '<div id="pipelineResult" style="margin-top:12px"></div>';
+    progressHtml += '</div>';
+    formArea.insertAdjacentHTML('beforeend', progressHtml);
+    triggerPipeline(leadId);
+}
+
+async function triggerPipeline(leadId) {
+    try { await api('POST', '/pre-case/leads/' + leadId + '/run-pipeline', {}); } catch(e) {}
+    pollPipelineStatus(leadId, 0);
+}
+
+function pollPipelineStatus(leadId, attempts) {
+    if (attempts > 40) {
+        document.getElementById('pipelineResult').innerHTML = '<span style="color:#fc8181">Pipeline timed out. Check lead detail.</span>';
+        return;
+    }
+    setTimeout(async function() {
+        try {
+            var status = await api('GET', '/pre-case/leads/' + leadId + '/pipeline-status');
+            updatePipelineUI(status, leadId);
+            if (status.status === 'running') pollPipelineStatus(leadId, attempts + 1);
+        } catch(e) { pollPipelineStatus(leadId, attempts + 1); }
+    }, 3000);
+}
+
+function updatePipelineUI(status, leadId) {
+    var steps = status.steps_completed || [];
+    var ce = document.getElementById('step-classify');
+    var ge = document.getElementById('step-gather');
+    var ae = document.getElementById('step-assess');
+    if (ce) {
+        if (steps.includes('classify')) { ce.style.borderColor='#48bb78'; ce.style.color='#48bb78'; ce.innerHTML='✅ Classify'; }
+        else if (status.current_step==='classify'&&status.status==='running') { ce.style.borderColor='#f6ad55'; ce.style.color='#f6ad55'; ce.innerHTML='🔄 Classifying...'; }
+        else if (status.current_step==='classify'&&status.status==='failed') { ce.style.borderColor='#fc8181'; ce.style.color='#fc8181'; ce.innerHTML='❌ Classify Failed'; }
+    }
+    if (ge) {
+        if (steps.includes('gather')) { ge.style.borderColor='#48bb78'; ge.style.color='#48bb78'; ge.innerHTML='✅ Gather OSINT'; }
+        else if (status.current_step==='gather'&&status.status==='running') { ge.style.borderColor='#f6ad55'; ge.style.color='#f6ad55'; ge.innerHTML='🔄 Gathering...'; }
+        else if (status.current_step==='gather'&&status.status==='failed') { ge.style.borderColor='#fc8181'; ge.style.color='#fc8181'; ge.innerHTML='❌ Gather Failed'; }
+    }
+    if (ae) {
+        if (steps.includes('assess')) { ae.style.borderColor='#48bb78'; ae.style.color='#48bb78'; ae.innerHTML='✅ Assess'; }
+        else if (status.current_step==='assess'&&status.status==='running') { ae.style.borderColor='#f6ad55'; ae.style.color='#f6ad55'; ae.innerHTML='🔄 Assessing...'; }
+        else if (status.current_step==='assess'&&status.status==='failed') { ae.style.borderColor='#fc8181'; ae.style.color='#fc8181'; ae.innerHTML='❌ Assess Failed'; }
+    }
+    if (status.status==='completed') {
+        document.getElementById('pipelineResult').innerHTML='<div style="background:rgba(72,187,120,0.1);border:1px solid #48bb78;border-radius:8px;padding:12px;margin-top:8px"><span style="color:#48bb78;font-weight:700">✅ Pipeline Complete!</span><br><span style="color:#a0aec0;font-size:0.8em">Loading results...</span></div>';
+        setTimeout(function(){switchTab('portfolio');loadLeads();setTimeout(function(){selectLead(leadId);},1000);},1500);
+    } else if (status.status==='failed') {
+        document.getElementById('pipelineResult').innerHTML='<div style="background:rgba(252,129,129,0.1);border:1px solid #fc8181;border-radius:8px;padding:12px;margin-top:8px"><span style="color:#fc8181;font-weight:700">❌ Pipeline Failed</span><br><span style="color:#a0aec0;font-size:0.8em">'+(status.error||'Unknown error')+'</span><br><button onclick="triggerPipeline(\''+leadId+'\')" style="margin-top:8px;background:#f6ad55;color:#1a202c;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-weight:600">Retry</button></div>';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadLeads();
+    // Auto-select lead from URL parameter (e.g., ?lead_id=xxx)
+    var params = new URLSearchParams(window.location.search);
+    var leadId = params.get('lead_id');
+    if (leadId) {
+        setTimeout(function() { selectLead(leadId); }, 500);
+    }
+});
+
+// ============================================================
+// SIGNAL MINING — Investigator-Directed Search & Findings
+// ============================================================
+
+function generateSuggestedQueries(lead) {
+    var queries = [];
+    var sc = lead.source_content;
+    if (typeof sc === 'string') { try { sc = JSON.parse(sc); } catch(e) { sc = {}; } }
+    sc = sc || {};
+    var subjects = sc.subjects || [];
+    var caseType = lead.case_type || '';
+    var industry = (sc.industry || '').replace(/_/g, ' ');
+    var firstSubject = subjects[0] || lead.title || '';
+
+    if (caseType === 'monopolization') {
+        queries.push('Search news for ' + firstSubject + ' antitrust lawsuits or market dominance');
+        queries.push('Check SEC EDGAR for ' + firstSubject + ' acquisitions and market share disclosures');
+        if (subjects.length > 1) queries.push('Search for exclusive dealing contracts between ' + subjects[0] + ' and distributors');
+        queries.push('Look for competitor complaints about ' + firstSubject + ' in ' + (industry || 'this market'));
+    } else if (caseType === 'price_fixing' || caseType === 'criminal_cartel') {
+        queries.push('Search news for ' + firstSubject + ' price fixing investigation or settlement');
+        queries.push('Check FPDS for contract awards to ' + subjects.slice(0,3).join(' and '));
+        queries.push('Search for parallel pricing announcements by ' + subjects.slice(0,2).join(' and '));
+        if (sc.fines_paid) queries.push('Find DOJ press releases about ' + (industry || 'industry') + ' cartel enforcement');
+    } else if (caseType === 'procurement_collusion') {
+        queries.push('Search SAM.gov registrations for ' + firstSubject);
+        queries.push('Check USASpending for contract awards to ' + subjects.slice(0,3).join(', '));
+        queries.push('Look for bid patterns and subcontracting between ' + subjects.slice(0,2).join(' and '));
+        queries.push('Search news for ' + (industry || 'government contract') + ' fraud investigations');
+    } else if (caseType === 'market_allocation') {
+        queries.push('Search for non-compete agreements between ' + subjects.slice(0,2).join(' and '));
+        queries.push('Check state corporate registries for ' + firstSubject + ' subsidiaries');
+        queries.push('Look for geographic market withdrawal by ' + subjects.slice(0,2).join(' or '));
+    } else if (caseType === 'merger_review') {
+        queries.push('Search SEC EDGAR for ' + firstSubject + ' merger filings and Hart-Scott-Rodino');
+        queries.push('Check news for FTC or DOJ challenges to ' + firstSubject + ' acquisitions');
+        queries.push('Look for market concentration data in ' + (industry || 'this sector'));
+    } else {
+        queries.push('Search news for ' + firstSubject + ' antitrust or competition concerns');
+        queries.push('Check SEC EDGAR for ' + firstSubject + ' corporate filings');
+        queries.push('Search government contracts database for ' + firstSubject);
+        queries.push('Look for regulatory actions against ' + firstSubject);
+    }
+    return queries.slice(0, 4);
+}
+
+async function loadFindings(leadId) {
+    var container = document.getElementById('signalMiningFindings');
+    if (!container) return;
+    container.innerHTML = '<div class="loading"><span class="spinner"></span>Loading findings...</div>';
+    try {
+        var data = await api('GET', '/pre-case/leads/' + leadId + '/findings');
+        renderFindings(data, leadId);
+    } catch(e) {
+        container.innerHTML = '<div style="color:#718096;font-size:0.82em;padding:12px">No findings yet. Use the search input above to investigate.</div>';
+    }
+}
+
+function renderFindings(data, leadId) {
+    var container = document.getElementById('signalMiningFindings');
+    if (!container) return;
+    var findings = data.findings || [];
+    if (!findings.length) {
+        container.innerHTML = '<div style="color:#718096;font-size:0.82em;padding:12px">No findings yet. Use the search input to direct the AI to investigate specific angles.</div>';
+        return;
+    }
+    var h = '';
+    findings.forEach(function(f) { h += renderFindingCard(f, 0); });
+    if (data.total_pages > 1) {
+        h += '<div style="text-align:left;margin-top:12px;font-size:0.75em;color:#718096">Page ' + data.page + ' of ' + data.total_pages + ' (' + data.total_count + ' findings)</div>';
+    }
+    container.innerHTML = h;
+}
+
+function renderFindingCard(finding, indent) {
+    var tierColor = finding.tier === 'HIGH' ? '#fc8181' : finding.tier === 'MEDIUM' ? '#f6ad55' : '#68d391';
+    var tierBg = finding.tier === 'HIGH' ? 'rgba(252,129,129,0.08)' : finding.tier === 'MEDIUM' ? 'rgba(246,173,85,0.08)' : 'rgba(104,211,145,0.08)';
+    var ml = indent * 20;
+    var h = '<div class="finding-card" style="margin-left:' + ml + 'px;margin-bottom:8px;padding:10px 14px;background:' + tierBg + ';border:1px solid rgba(255,255,255,0.06);border-left:3px solid ' + tierColor + ';border-radius:6px">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">';
+    h += '<div style="flex:1;min-width:0">';
+    h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">';
+    h += '<span style="background:' + tierColor + ';color:#1a202c;padding:1px 6px;border-radius:3px;font-size:0.62em;font-weight:700">' + finding.signal_strength + '</span>';
+    h += '<span style="font-size:0.65em;color:' + tierColor + ';font-weight:600">' + finding.tier + '</span>';
+    if (finding.is_alert && !finding.alert_dismissed) h += '<span style="background:#f6ad55;color:#1a202c;padding:1px 5px;border-radius:3px;font-size:0.58em;font-weight:700">NEW</span>';
+    h += '</div>';
+    h += '<div style="font-size:0.78em;color:#e2e8f0;line-height:1.5">' + escHtml(finding.summary || '') + '</div>';
+    if (finding.source_url) h += '<a href="' + escHtml(finding.source_url) + '" target="_blank" style="font-size:0.68em;color:#90cdf4;text-decoration:none">Source →</a>';
+    h += '</div>';
+    if (finding.drill_down_depth < 3) {
+        h += '<button onclick="drillDown(\'' + finding.finding_id + '\',\'' + (finding.lead_id||selectedLeadId) + '\')" class="btn-drill" style="flex-shrink:0;background:rgba(144,205,244,0.15);border:1px solid #90cdf4;color:#90cdf4;padding:4px 10px;border-radius:4px;font-size:0.68em;font-weight:600;cursor:pointer;white-space:nowrap">Investigate Further</button>';
+    }
+    h += '</div>';
+    if (finding.sub_findings && finding.sub_findings.length) {
+        finding.sub_findings.forEach(function(sf) { h += renderFindingCard(sf, indent + 1); });
+    }
+    h += '</div>';
+    return h;
+}
+
+async function drillDown(findingId, leadId) {
+    showToast('Drilling down...', 'success');
+    try {
+        var result = await api('POST', '/pre-case/leads/' + leadId + '/findings/' + findingId + '/drill-down');
+        showToast('Found ' + (result.sub_findings||[]).length + ' sub-findings', 'success');
+        loadFindings(leadId);
+    } catch(e) { showToast('Drill-down failed: ' + e.message, 'error'); }
+}
+
+async function submitInvestigateDirective(leadId) {
+    var input = document.getElementById('investigateInput');
+    if (!input) return;
+    var directive = input.value.trim();
+    if (!directive) { showToast('Enter a search directive', 'error'); return; }
+    input.disabled = true;
+    var btn = document.getElementById('investigateBtn');
+    if (btn) btn.disabled = true;
+    showToast('Investigating: ' + directive.substring(0, 50) + '...', 'success');
+    try {
+        var result = await api('POST', '/pre-case/leads/' + leadId + '/investigate', {directive: directive});
+        var count = (result.findings||[]).length;
+        showToast('Found ' + count + ' result(s)', 'success');
+        input.value = '';
+        loadFindings(leadId);
+    } catch(e) { showToast('Investigation failed: ' + e.message, 'error'); }
+    input.disabled = false;
+    if (btn) btn.disabled = false;
+}
+</script>
+</body>
+</html>
