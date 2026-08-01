@@ -124,6 +124,8 @@ class GeocodingService:
         "nyc": (40.7128, -74.0060), "isp": (40.7952, -73.1002),
         # --- Common abbreviations ---
         "islip": (40.7298, -73.2137), "marrakech": (31.6295, -7.9811), "marrakesh": (31.6295, -7.9811),
+        "morocco": (31.7917, -7.0926), "barcelona": (41.3874, 2.1686), "antalya": (36.8969, 30.7133),
+        "dubai": (25.2048, 55.2708), "casablanca": (33.5731, -7.5898), "tangier": (35.7595, -5.8340),
         # --- US State Capitals (not already listed) ---
         "albany": (42.6526, -73.7562), "annapolis": (38.9784, -76.4922),
         "baton rouge": (30.4515, -91.1871), "bismarck": (46.8083, -100.7837),
