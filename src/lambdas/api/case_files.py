@@ -95,6 +95,20 @@ def _normalize_resource(event, path):
     if len(parts) >= 2 and parts[0] == "leads" and parts[1] != "ingest":
         extracted_params["lead_id"] = parts[1]
 
+    # Handle pre-case lead paths: /pre-case/leads/{lead_id}/...
+    if len(parts) >= 3 and parts[0] == "pre-case" and parts[1] == "leads":
+        if re.match(rf"^{_UUID}$", parts[2]):
+            extracted_params["lead_id"] = parts[2]
+            # Rebuild resource template for pre-case routes
+            if len(parts) == 3:
+                event["resource"] = "/pre-case/leads/{lead_id}"
+            elif len(parts) == 4:
+                event["resource"] = f"/pre-case/leads/{{lead_id}}/{parts[3]}"
+            else:
+                event["resource"] = f"/pre-case/leads/{{lead_id}}/{'/'.join(parts[3:])}"
+        elif len(parts) == 2:
+            event["resource"] = "/pre-case/leads"
+
     # Handle section_index for theory case-file section updates:
     # /case-files/{id}/theories/{tid}/case-file/sections/{idx}
     if (len(parts) == 7 and parts[0] == "case-files" and parts[2] == "theories"
@@ -136,6 +150,11 @@ def dispatch_handler(event, context):
         from lambdas.api.neptune_aurora_sync import handler as sync_handler
         return sync_handler(event, context)
 
+    # Handle arbitrary Gremlin execution (admin)
+    if event.get("action") == "run_gremlin":
+        from lambdas.api.neptune_aurora_sync import handler as sync_handler
+        return sync_handler(event, context)
+
     # Handle refresh_case_stats (direct invoke or POST body action)
     if event.get("action") == "refresh_case_stats":
         return _refresh_case_stats_handler(event, context)
@@ -161,14 +180,78 @@ def dispatch_handler(event, context):
         return _cleanup_noise_entities(event, context)
     if event.get("action") == "insert_entities":
         return _insert_entities_handler(event, context)
+    if event.get("action") == "get_docs_for_batch_extraction":
+        return _get_docs_for_batch_extraction(event, context)
+    if event.get("action") == "insert_entities_from_batch":
+        return _insert_entities_from_batch(event, context)
+    if event.get("action") == "clear_entities_for_case":
+        return _clear_entities_for_case(event, context)
     if event.get("action") == "gremlin_query":
         return _gremlin_query_handler(event, context)
     if event.get("action") == "query_aurora_entities":
         return _query_aurora_entities(event, context)
+    if event.get("action") == "get_documents_for_extraction":
+        return _get_documents_for_extraction(event, context)
+    if event.get("action") == "insert_documents_batch":
+        return _insert_documents_batch_handler(event, context)
+    if event.get("action") == "query_relationships":
+        return _query_relationships(event, context)
+    if event.get("action") == "ai_investigator":
+        return _ai_investigator(event, context)
+
+    # Handle typology pipeline seed (direct invoke)
+    if event.get("action") == "seed_typology_patterns_index":
+        import os as _os
+        from services.opensearch_serverless_backend import OpenSearchServerlessBackend
+        endpoint = _os.environ.get("OPENSEARCH_ENDPOINT", "")
+        backend = OpenSearchServerlessBackend(collection_endpoint=endpoint)
+        # Use the existing backend's _request method which is proven to work
+        import json as _json
+        from db.seeds.typology_patterns_index import INDEX_MAPPING, INDEX_NAME, _build_pattern_documents, _embed_text
+        import time as _time
+        import boto3 as _boto3
+        from botocore.config import Config as _Config
+
+        # Use index name that matches existing working pattern (case-*)
+        _INDEX = "case-typology-patterns"
+        try:
+            backend._request("GET", f"/{_INDEX}/_settings")
+            backend._request("DELETE", f"/{_INDEX}")
+            _time.sleep(2)
+        except Exception:
+            pass
+
+        backend._request("PUT", f"/{_INDEX}", body=_json.dumps(INDEX_MAPPING))
+        _time.sleep(3)
+
+        # Build and embed patterns
+        documents = _build_pattern_documents()
+        bedrock_client = _boto3.client("bedrock-runtime", config=_Config(retries={"max_attempts": 3}))
+        for i, doc in enumerate(documents):
+            doc["embedding"] = _embed_text(bedrock_client, doc["pattern_text"])
+            _time.sleep(0.1)
+
+        # Bulk index in batches
+        for start in range(0, len(documents), 50):
+            batch = documents[start:start+50]
+            lines = []
+            for doc in batch:
+                doc_id = doc.pop("_id", None)
+                lines.append(_json.dumps({"index": {"_index": _INDEX}}))
+                lines.append(_json.dumps(doc))
+            bulk_body = "\n".join(lines) + "\n"
+            backend._request("POST", "/_bulk", body=bulk_body, content_type="application/x-ndjson")
+
+        return {"status": "seeded", "count": len(documents)}
 
     # Normalize: when using {proxy+}, sub-dispatchers expect event["resource"]
     # to contain the specific resource template. We reconstruct it from the path.
     _normalize_resource(event, path)
+
+    # --- Pre-Case Intelligence routes ---
+    if path.startswith("/pre-case/"):
+        from lambdas.api.pre_case_handler import dispatch_handler as pc_intel_dispatch
+        return pc_intel_dispatch(event, context)
 
     # --- Pipeline Config routes ---
     if "/pipeline-config" in path or "/sample-runs" in path or "/pipeline-runs" in path:
@@ -253,6 +336,10 @@ def dispatch_handler(event, context):
     if path == "/admin/run-migration" and method == "POST":
         return _run_admin_migration(event, context)
 
+    # --- Admin: Rename entities (bulk) ---
+    if path == "/admin/rename-entities" and method == "POST":
+        return _admin_rename_entities(event, context)
+
     # --- Access Control Admin routes ---
     if path.startswith("/admin/"):
         from lambdas.api.access_control_admin import dispatch_handler as ac_dispatch
@@ -281,6 +368,93 @@ def dispatch_handler(event, context):
         from lambdas.api.leads import handle_matter_lead
         return handle_matter_lead(event, context)
 
+    # --- Pattern Library Research routes ---
+    if path.startswith("/pattern-library/research/"):
+        from lambdas.api.level_research import get_recommendations_handler, execute_search_handler
+        if path == "/pattern-library/research/execute" and method == "POST":
+            return execute_search_handler(event, context)
+        if method == "GET":
+            parts = path.strip("/").split("/", 3)
+            if len(parts) >= 4:
+                params = event.get("pathParameters") or {}
+                params["level"] = parts[2]
+                params["context_key"] = parts[3]
+                event["pathParameters"] = params
+                return get_recommendations_handler(event, context)
+        return error_response(404, "NOT_FOUND", f"No handler for {method} {path}", event)
+
+    # --- Pattern Library Grid Investigation routes ---
+    if path.startswith("/pattern-library/grid/"):
+        from lambdas.api.grid_investigation import get_grid_nodes_handler, get_grid_intersections_handler, get_grid_targets_handler, get_grid_research_handler, get_grid_scored_handler, get_grid_emergent_handler, get_grid_audio_handler
+        if path == "/pattern-library/grid/nodes" and method == "GET":
+            return get_grid_nodes_handler(event, context)
+        if path == "/pattern-library/grid/intersections" and method == "GET":
+            return get_grid_intersections_handler(event, context)
+        if path == "/pattern-library/grid/targets" and method == "GET":
+            return get_grid_targets_handler(event, context)
+        if path == "/pattern-library/grid/research" and method == "GET":
+            return get_grid_research_handler(event, context)
+        if path == "/pattern-library/grid/scored" and method == "GET":
+            return get_grid_scored_handler(event, context)
+        if path == "/pattern-library/grid/emergent" and method == "GET":
+            return get_grid_emergent_handler(event, context)
+        if path == "/pattern-library/grid/audio" and method == "GET":
+            return get_grid_audio_handler(event, context)
+        return error_response(404, "NOT_FOUND", f"No handler for {method} {path}", event)
+
+    # --- Pattern Library Concept Research routes (Phase 1 deep research) ---
+    if path.startswith("/pattern-library/concept-research/"):
+        from lambdas.api.concept_research import get_concept_research_handler, refresh_concept_research_handler, get_evidence_map_handler
+        if path == "/pattern-library/concept-research/refresh" and method == "POST":
+            return refresh_concept_research_handler(event, context)
+        if path.startswith("/pattern-library/concept-research/evidence-map/") and method == "GET":
+            prefix_part = path.replace("/pattern-library/concept-research/evidence-map/", "")
+            params = event.get("pathParameters") or {}
+            params["domain_prefix"] = prefix_part
+            event["pathParameters"] = params
+            return get_evidence_map_handler(event, context)
+        if method == "GET":
+            parts = path.strip("/").split("/", 3)
+            if len(parts) >= 4:
+                params = event.get("pathParameters") or {}
+                params["level"] = parts[2]
+                params["context_key"] = parts[3]
+                event["pathParameters"] = params
+                return get_concept_research_handler(event, context)
+        return error_response(404, "NOT_FOUND", f"No handler for {method} {path}", event)
+
+    # --- Pattern Library Coordinates routes ---
+    if path.startswith("/pattern-library/coordinates/"):
+        from lambdas.api.level_coordinates import get_coordinates_handler, invalidate_coordinates_handler
+        if path == "/pattern-library/coordinates/invalidate" and method == "POST":
+            return invalidate_coordinates_handler(event, context)
+        if method == "GET":
+            parts = path.strip("/").split("/", 3)
+            if len(parts) >= 4:
+                params = event.get("pathParameters") or {}
+                params["level"] = parts[2]
+                params["context_key"] = parts[3]
+                event["pathParameters"] = params
+                return get_coordinates_handler(event, context)
+        return error_response(404, "NOT_FOUND", f"No handler for {method} {path}", event)
+
+    # --- Pattern Library AI Summary routes ---
+    if path.startswith("/pattern-library/summary/"):
+        from lambdas.api.level_summary import get_summary_handler, invalidate_handler
+        if path == "/pattern-library/summary/invalidate" and method == "POST":
+            return invalidate_handler(event, context)
+        if method == "GET":
+            # Extract level and context_key from path:
+            # /pattern-library/summary/{level}/{context_key}
+            parts = path.strip("/").split("/", 3)  # ['pattern-library', 'summary', '{level}', '{context_key}']
+            if len(parts) >= 4:
+                params = event.get("pathParameters") or {}
+                params["level"] = parts[2]
+                params["context_key"] = parts[3]
+                event["pathParameters"] = params
+                return get_summary_handler(event, context)
+        return error_response(404, "NOT_FOUND", f"No handler for {method} {path}", event)
+
     # --- Cross-case routes ---
     if path.startswith("/cross-case/"):
         from lambdas.api.cross_case import analyze_handler
@@ -294,6 +468,41 @@ def dispatch_handler(event, context):
     # --- Case file sub-resource routes (under /case-files/{id}/...) ---
     # These use event["resource"] when available, falling back to path matching
     resource = event.get("resource", "")
+
+    # Intelligence Command Brief (large cases — prosecution-oriented synthesis)
+    if "/intelligence-brief" in path and "/case-files/" in path and method == "GET":
+        from lambdas.api.intelligence_command_brief import handler as _brief_handler
+        return _brief_handler(event, context)
+
+    # Pre-computed typology results (large cases — must be before generic /typology route)
+    if "/typology-precomputed" in path and "/case-files/" in path and method == "GET":
+        from lambdas.api.typology_precomputed import handler as _precomputed_handler
+        return _precomputed_handler(event, context)
+
+    # Sex Trafficking Typology Analysis
+    if "/typology" in path and "/case-files/" in path and method == "GET":
+        # Check if it's a findings drill-down: /case-files/{id}/typology/{category_id}/findings
+        import re as _re
+        findings_match = _re.match(rf"^/case-files/{_UUID}/typology/(\w+)/findings$", path)
+        if findings_match:
+            event["_typology_category"] = findings_match.group(1)
+            return _get_typology_findings(event, context)
+        return _get_typology_analysis(event, context)
+
+    # IPS Trigger and Results (must be before /patterns catch-all)
+    if path.endswith("/ips/trigger") and "/case-files/" in path and method == "POST":
+        return _trigger_ips_computation(event, context)
+    if path.endswith("/ips-results") and "/case-files/" in path and method == "GET":
+        return _get_ips_results(event, context)
+
+    # Anomaly detection endpoint (Pattern Library "Try It")
+    if "/anomaly/" in path and "/case-files/" in path and method == "POST":
+        from lambdas.api.patterns import anomaly_detect_handler
+        return anomaly_detect_handler(event, context)
+
+    # Neptune dedup endpoint
+    if path.endswith("/dedup") and "/case-files/" in path and method == "POST":
+        return _trigger_neptune_dedup(event, context)
 
     # Top Patterns (must be before /patterns catch-all)
     if "/top-patterns" in path and "/case-files/" in path:
@@ -364,6 +573,20 @@ def dispatch_handler(event, context):
     if any(seg in path for seg in ("/network-analysis", "/persons-of-interest", "/sub-cases", "/network-patterns")):
         from lambdas.api.network_discovery import dispatch_handler as net_dispatch
         return net_dispatch(event, context)
+
+    # AI Investigator route
+    if "/ai-investigator" in path:
+        from lambdas.api.response_helper import success_response, CORS_HEADERS
+        if method == "OPTIONS":
+            return {"statusCode": 200, "headers": CORS_HEADERS, "body": ""}
+        case_id = (event.get("pathParameters") or {}).get("id", "")
+        raw_body = event.get("body")
+        body = json.loads(raw_body) if isinstance(raw_body, str) else (raw_body or {})
+        body["case_id"] = case_id
+        if not body.get("investigator_action"):
+            body["investigator_action"] = "get_suspects"
+        result = _ai_investigator(body, context)
+        return success_response(result, 200, event)
 
     # Document Images (must be before Document Assembly catch-all)
     if "/documents/" in path and path.endswith("/images") and "/case-files/" in path:
@@ -703,6 +926,87 @@ def _batch_insert_documents_handler(event, context):
     }
 
 
+def _insert_documents_batch_handler(event, context):
+    """Batch INSERT documents into Aurora — optimized for EC2 pipeline ingestion.
+
+    Accepts an array of {source_filename, raw_text, source_metadata} and does
+    batch INSERT (up to 500 per call). Skips embeddings and entity extraction
+    since those are handled by separate pipeline steps.
+
+    Callable via direct invoke:
+        {
+            "action": "insert_documents_batch",
+            "case_id": "...",
+            "documents": [
+                {"source_filename": "...", "raw_text": "...", "source_metadata": {...}},
+                ...
+            ]
+        }
+
+    Returns: {"documents_inserted": N, "documents_skipped": M, "case_id": "..."}
+    """
+    import json as _json
+    import uuid as _uuid
+    from db.connection import ConnectionManager
+
+    case_id = event.get("case_id")
+    documents = event.get("documents", [])
+
+    if not case_id or not documents:
+        return {"error": "case_id and documents[] are required"}
+
+    logger.info("insert_documents_batch: %d docs for case %s", len(documents), case_id)
+
+    cm = ConnectionManager()
+    inserted = 0
+    skipped = 0
+
+    try:
+        with cm.cursor() as cur:
+            # Build batch values for multi-row INSERT
+            values = []
+            params = []
+            for doc in documents:
+                raw_text = doc.get("raw_text", "")
+                if not raw_text or not raw_text.strip():
+                    skipped += 1
+                    continue
+
+                doc_id = doc.get("document_id", str(_uuid.uuid4()))
+                source_filename = doc.get("source_filename", "")
+                source_metadata = doc.get("source_metadata", {})
+
+                values.append("(%s, %s, %s, %s, %s, now())")
+                params.extend([
+                    doc_id, case_id, source_filename, raw_text,
+                    _json.dumps(source_metadata),
+                ])
+
+            if not values:
+                return {"documents_inserted": 0, "documents_skipped": skipped, "case_id": case_id}
+
+            # Multi-row INSERT with ON CONFLICT skip (dedup by document_id)
+            sql = (
+                "INSERT INTO documents (document_id, case_file_id, source_filename, raw_text, source_metadata, indexed_at) "
+                "VALUES " + ", ".join(values) +
+                " ON CONFLICT (document_id) DO NOTHING"
+            )
+            cur.execute(sql, params)
+            inserted = cur.rowcount
+
+        logger.info("insert_documents_batch: inserted %d, skipped %d", inserted, skipped)
+
+    except Exception as exc:
+        logger.error("insert_documents_batch failed: %s", str(exc)[:500])
+        return {"error": str(exc)[:500], "documents_inserted": inserted}
+
+    return {
+        "documents_inserted": inserted,
+        "documents_skipped": skipped,
+        "case_id": case_id,
+    }
+
+
 def _generate_embeddings_for_batch(cm, case_id, documents):
     """Generate and store Titan embeddings for inserted documents."""
     import boto3
@@ -950,6 +1254,171 @@ def _insert_entities_handler(event, context):
         return {"error": str(e)[:500], "inserted": inserted}
 
 
+def _get_docs_for_batch_extraction(event, context):
+    """Return doc IDs and text for Bedrock batch inference JSONL generation.
+    
+    Returns docs that haven't been processed yet (not in entity_extraction_done).
+    Uses OFFSET/LIMIT pagination to avoid loading all 82K docs at once.
+    """
+    from db.connection import ConnectionManager
+    case_id = event.get("case_id")
+    limit = int(event.get("limit", 1000))
+    offset = int(event.get("offset", 0))
+    cm = ConnectionManager()
+    try:
+        with cm.cursor() as cur:
+            # Ensure tracking table exists
+            try:
+                cur.execute("SAVEPOINT tbl_check")
+                cur.execute("""CREATE TABLE IF NOT EXISTS entity_extraction_done (
+                    document_id UUID PRIMARY KEY, case_file_id UUID NOT NULL,
+                    extracted_at TIMESTAMPTZ DEFAULT now())""")
+                cur.execute("RELEASE SAVEPOINT tbl_check")
+            except Exception:
+                try:
+                    cur.execute("ROLLBACK TO SAVEPOINT tbl_check")
+                except Exception:
+                    pass
+
+            cur.execute(
+                """SELECT d.document_id, LEFT(d.raw_text, 8000) as raw_text
+                   FROM documents d
+                   LEFT JOIN entity_extraction_done x ON x.document_id = d.document_id
+                   WHERE d.case_file_id = %s
+                   AND x.document_id IS NULL
+                   AND d.raw_text IS NOT NULL AND LENGTH(d.raw_text) > 50
+                   ORDER BY d.document_id
+                   LIMIT %s OFFSET %s""",
+                (case_id, limit, offset),
+            )
+            rows = cur.fetchall()
+            docs = [{"document_id": str(r[0]), "raw_text": r[1]} for r in rows]
+        return {"docs": docs, "count": len(docs), "offset": offset}
+    except Exception as e:
+        return {"error": str(e)[:500]}
+
+
+def _insert_entities_from_batch(event, context):
+    """Insert entities from Bedrock batch inference output into Aurora.
+    
+    Supports two formats:
+    1. Single doc: {case_id, document_id, entity_json} — legacy format
+    2. Batch: {entities: [{case_id, document_id, name, type, confidence}, ...]}
+    
+    Also marks each doc as processed in entity_extraction_done.
+    """
+    from db.connection import ConnectionManager
+    import json as _json
+    
+    # Check for batch format
+    batch_entities = event.get("entities")
+    if isinstance(batch_entities, list) and batch_entities:
+        cm = ConnectionManager()
+        inserted = 0
+        try:
+            with cm.cursor() as cur:
+                for ent in batch_entities:
+                    case_id = ent.get("case_id", "")
+                    doc_id = ent.get("document_id", "")
+                    ent_name = ent.get("name", "")[:255]
+                    ent_type = ent.get("type", "unknown")
+                    ent_conf = float(ent.get("confidence", 0.5))
+                    if not ent_name or len(ent_name) < 2 or not case_id:
+                        continue
+                    try:
+                        cur.execute(
+                            """INSERT INTO entities (entity_id, case_file_id, document_id, canonical_name, entity_type, confidence, source_document_ids)
+                               VALUES (gen_random_uuid(), %s, %s, %s, %s, %s, to_jsonb(%s::text))
+                               ON CONFLICT (case_file_id, canonical_name, entity_type)
+                               DO UPDATE SET occurrence_count = entities.occurrence_count + 1,
+                                             confidence = GREATEST(entities.confidence, EXCLUDED.confidence),
+                                             source_document_ids = COALESCE(entities.source_document_ids, '[]'::jsonb) || to_jsonb(%s::text),
+                                             updated_at = now()""",
+                            (case_id, doc_id or None, ent_name, ent_type, ent_conf, str(doc_id), str(doc_id)),
+                        )
+                        inserted += 1
+                    except Exception:
+                        pass
+                # Mark docs as processed
+                doc_ids = set((e.get("document_id"), e.get("case_id")) for e in batch_entities if e.get("document_id"))
+                for did, cid in doc_ids:
+                    try:
+                        cur.execute(
+                            "INSERT INTO entity_extraction_done (document_id, case_file_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                            (did, cid),
+                        )
+                    except Exception:
+                        pass
+            return {"entities_inserted": inserted, "batch_size": len(batch_entities)}
+        except Exception as e:
+            return {"error": str(e)[:500], "entities_inserted": inserted}
+    
+    # Legacy single-doc format
+    case_id = event.get("case_id")
+    doc_id = event.get("document_id")
+    entity_json = event.get("entity_json", "[]")
+    cm = ConnectionManager()
+    inserted = 0
+    try:
+        entities = _parse_entity_json(entity_json)
+        with cm.cursor() as cur:
+            for ent in entities:
+                ent_name = ent.get("name", "")[:255]
+                ent_type = ent.get("type", "unknown")
+                ent_conf = float(ent.get("confidence", 0.5))
+                if not ent_name or len(ent_name) < 2:
+                    continue
+                try:
+                    cur.execute(
+                        """INSERT INTO entities (entity_id, case_file_id, document_id, canonical_name, entity_type, confidence, source_document_ids)
+                           VALUES (gen_random_uuid(), %s, %s, %s, %s, %s, to_jsonb(%s::text))
+                           ON CONFLICT (case_file_id, canonical_name, entity_type)
+                           DO UPDATE SET occurrence_count = entities.occurrence_count + 1,
+                                         confidence = GREATEST(entities.confidence, EXCLUDED.confidence),
+                                         source_document_ids = COALESCE(entities.source_document_ids, '[]'::jsonb) || to_jsonb(%s::text),
+                                         updated_at = now()""",
+                        (case_id, doc_id, ent_name, ent_type, ent_conf, str(doc_id), str(doc_id)),
+                    )
+                    inserted += 1
+                except Exception:
+                    pass
+
+            # Mark doc as processed
+            cur.execute(
+                "INSERT INTO entity_extraction_done (document_id, case_file_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                (doc_id, case_id),
+            )
+        return {"entities_inserted": inserted, "document_id": doc_id}
+    except Exception as e:
+        return {"error": str(e)[:500], "entities_inserted": inserted}
+
+
+def _clear_entities_for_case(event, context):
+    """Delete all entities for a case from Aurora. Used before re-extraction.
+    
+    CAUTION: This permanently deletes all entities for the case.
+    The entity_extraction_done tracking table is also cleared so
+    the re-extraction can process all documents fresh.
+    """
+    from db.connection import ConnectionManager
+    case_id = event.get("case_id")
+    if not case_id:
+        return {"error": "Missing case_id"}
+    cm = ConnectionManager()
+    try:
+        with cm.cursor() as cur:
+            # Count before
+            cur.execute("SELECT COUNT(*) FROM entities WHERE case_file_id = %s", (case_id,))
+            before = cur.fetchone()[0]
+            # Delete entities
+            cur.execute("DELETE FROM entities WHERE case_file_id = %s", (case_id,))
+            # Clear extraction tracking
+            cur.execute("DELETE FROM entity_extraction_done WHERE case_file_id = %s", (case_id,))
+        return {"cleared": before, "case_id": case_id, "status": "ok"}
+    except Exception as e:
+        return {"error": str(e)[:500]}
+
+
 def _gremlin_query_handler(event, context):
     """Execute a Gremlin query against Neptune."""
     import urllib.request
@@ -983,37 +1452,605 @@ def _gremlin_query_handler(event, context):
 
 
 def _query_aurora_entities(event, context):
-    """Return distinct entities from Aurora for Neptune sync."""
+    """Return distinct entities from Aurora for Neptune sync.
+    
+    Supports optional type_filter (comma-separated list of entity types to include)
+    and min_occurrence (minimum occurrence_count threshold).
+    """
     from db.connection import ConnectionManager
     case_id = event.get("case_id")
     limit = int(event.get("limit", 5000))
     offset = int(event.get("offset", 0))
+    min_occ = int(event.get("min_occurrence", 1))
+    type_filter = event.get("type_filter")  # comma-separated types or None
     if not case_id:
         return {"error": "Missing case_id"}
     cm = ConnectionManager()
     try:
         with cm.cursor() as cur:
+            # Build WHERE clause
+            where = "case_file_id = %s AND LENGTH(canonical_name) > 2"
+            params = [case_id]
+            
+            if min_occ > 1:
+                where += " AND occurrence_count >= %s"
+                params.append(min_occ)
+            
+            if type_filter:
+                types = [t.strip() for t in type_filter.split(",") if t.strip()]
+                if types:
+                    placeholders = ",".join(["%s"] * len(types))
+                    where += f" AND LOWER(entity_type) IN ({placeholders})"
+                    params.extend([t.lower() for t in types])
+            
             cur.execute(
-                """SELECT DISTINCT canonical_name, entity_type, COUNT(*) as cnt
-                   FROM entities WHERE case_file_id = %s
-                   AND LENGTH(canonical_name) > 1
-                   GROUP BY canonical_name, entity_type
-                   ORDER BY cnt DESC
+                f"""SELECT canonical_name, entity_type, occurrence_count, confidence
+                   FROM entities WHERE {where}
+                   ORDER BY occurrence_count DESC
                    LIMIT %s OFFSET %s""",
-                (case_id, limit, offset),
+                (*params, limit, offset),
             )
             rows = cur.fetchall()
-            entities = [{"name": r[0], "type": r[1], "count": r[2]} for r in rows]
-            # Get total count
+            entities = [{"name": r[0], "type": r[1], "count": r[2], "confidence": float(r[3])} for r in rows]
+            # Get total count with same filters
             cur.execute(
-                """SELECT COUNT(DISTINCT (canonical_name, entity_type))
-                   FROM entities WHERE case_file_id = %s AND LENGTH(canonical_name) > 1""",
-                (case_id,),
+                f"SELECT COUNT(*) FROM entities WHERE {where}",
+                params,
             )
             total = cur.fetchone()[0]
         return {"entities": entities, "total": total, "offset": offset, "limit": limit}
     except Exception as e:
         return {"error": str(e)[:500]}
+
+
+def _get_documents_for_extraction(event, context):
+    """Return paginated documents with raw_text for entity extraction pipeline.
+    
+    Used by scripts/entity_extraction_pipeline.py to generate JSONL for
+    Bedrock Batch Inference. Returns document_id and raw_text for each document.
+    
+    Parameters:
+        case_id: UUID of the case
+        limit: max documents per page (default 5000)
+        offset: pagination offset (default 0)
+        min_text_length: skip documents shorter than this (default 50)
+        max_text_length: truncate raw_text to this length (default 8000)
+        dataset_filter: optional — when provided, only return documents whose
+                        source_metadata->>'dataset' matches this value (e.g. 'DS12').
+                        This prevents re-extracting all 76K docs when only a
+                        small dataset was newly ingested.
+    """
+    from db.connection import ConnectionManager
+    case_id = event.get("case_id")
+    limit = int(event.get("limit", 5000))
+    offset = int(event.get("offset", 0))
+    min_len = int(event.get("min_text_length", 50))
+    max_text = int(event.get("max_text_length", 8000))
+    dataset_filter = event.get("dataset_filter")  # e.g. "DS12"
+    if not case_id:
+        return {"error": "Missing case_id"}
+    cm = ConnectionManager()
+    try:
+        with cm.cursor() as cur:
+            # Build WHERE clause — optionally filter by dataset tag
+            where = """case_file_id = %s
+                   AND raw_text IS NOT NULL
+                   AND LENGTH(raw_text) >= %s"""
+            params_select = [max_text, case_id, min_len]
+            params_count = [case_id, min_len]
+
+            if dataset_filter:
+                where += "\n                   AND source_metadata->>'dataset' = %s"
+                params_select.append(dataset_filter)
+                params_count.append(dataset_filter)
+
+            cur.execute(
+                f"""SELECT document_id, LEFT(raw_text, %s), source_filename
+                   FROM documents
+                   WHERE {where}
+                   ORDER BY document_id
+                   LIMIT %s OFFSET %s""",
+                (*params_select, limit, offset),
+            )
+            rows = cur.fetchall()
+            docs = [{"document_id": str(r[0]), "raw_text": r[1], "filename": r[2] or ""} for r in rows]
+            # Total count
+            cur.execute(
+                f"""SELECT COUNT(*) FROM documents
+                   WHERE {where}""",
+                params_count,
+            )
+            total = cur.fetchone()[0]
+        return {"docs": docs, "total": total, "offset": offset, "limit": limit,
+                "dataset_filter": dataset_filter}
+    except Exception as e:
+        return {"error": str(e)[:500]}
+
+
+def _query_relationships(event, context):
+    """Return paginated relationships from Aurora for Neptune edge sync."""
+    from db.connection import ConnectionManager
+    case_id = event.get("case_id")
+    limit = int(event.get("limit", 5000))
+    offset = int(event.get("offset", 0))
+    min_occ = int(event.get("min_occurrence", 1))
+    if not case_id:
+        return {"error": "Missing case_id"}
+    cm = ConnectionManager()
+    try:
+        with cm.cursor() as cur:
+            where = "case_file_id = %s"
+            params = [case_id]
+            if min_occ > 1:
+                where += " AND occurrence_count >= %s"
+                params.append(min_occ)
+            cur.execute(
+                f"""SELECT source_entity, target_entity, relationship_type,
+                           confidence, occurrence_count
+                    FROM relationships WHERE {where}
+                    ORDER BY occurrence_count DESC
+                    LIMIT %s OFFSET %s""",
+                (*params, limit, offset),
+            )
+            rows = cur.fetchall()
+            rels = [{"source": r[0], "target": r[1], "type": r[2],
+                     "confidence": float(r[3]), "count": r[4]} for r in rows]
+            cur.execute(f"SELECT COUNT(*) FROM relationships WHERE {where}", params)
+            total = cur.fetchone()[0]
+        return {"relationships": rels, "total": total, "offset": offset, "limit": limit}
+    except Exception as e:
+        return {"error": str(e)[:500]}
+
+
+def _ai_investigator(event, context):
+    """AI Investigator — auto-generate questions, prioritize suspects, analyze network."""
+    import boto3
+    import json as _json
+    import ssl
+    import urllib.request
+
+    case_id = event.get("case_id")
+    action_type = event.get("investigator_action", "get_suspects")
+    if not case_id:
+        return {"error": "Missing case_id"}
+
+    endpoint = os.environ.get("NEPTUNE_ENDPOINT", "")
+    port = os.environ.get("NEPTUNE_PORT", "8182")
+    label = f"Entity_{case_id}"
+
+    def neptune_query(query):
+        url = f"https://{endpoint}:{port}/gremlin"
+        data = _json.dumps({"gremlin": query}).encode("utf-8")
+        ctx = ssl.create_default_context()
+        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, context=ctx, timeout=30) as resp:
+                result = _json.loads(resp.read().decode("utf-8"))
+            return result.get("result", {}).get("data", "")
+        except Exception:
+            return ""
+
+    if action_type == "get_suspects":
+        # Get all persons with their edge counts using simpler query
+        raw = neptune_query(
+            f"g.V().hasLabel('{label}')"
+            f".has('entity_type','person')"
+            f".group().by('canonical_name').by(bothE().count())"
+        )
+        # Parse the groupCount result
+        suspects = []
+        if isinstance(raw, dict) and "@value" in raw:
+            items = raw["@value"]
+            if isinstance(items, list):
+                for item in items:
+                    if isinstance(item, dict) and "@value" in item:
+                        pairs = item["@value"]
+                        if isinstance(pairs, list):
+                            i = 0
+                            while i < len(pairs) - 1:
+                                name = pairs[i]
+                                count = pairs[i+1]
+                                if isinstance(count, dict):
+                                    count = count.get("@value", 0)
+                                if isinstance(name, str) and len(name) > 2:
+                                    suspects.append({"name": name, "connections": int(count)})
+                                i += 2
+        elif isinstance(raw, str):
+            # Try parsing as string representation
+            import ast
+            try:
+                parsed = ast.literal_eval(raw)
+                if isinstance(parsed, dict):
+                    for name, count in parsed.items():
+                        if isinstance(name, str) and len(name) > 2:
+                            suspects.append({"name": name, "connections": int(count)})
+            except Exception:
+                pass
+
+        # Sort by connections and filter noise
+        suspects.sort(key=lambda x: x["connections"], reverse=True)
+        suspects = [s for s in suspects if s["connections"] > 5
+                    and s["name"].lower() not in ("unknown", "n/a", "none", "null", "john doe")
+                    and not any(c in s["name"] for c in "•§†‡¶")]
+
+        # Get top locations and orgs for context
+        raw_locs = neptune_query(
+            f"g.V().hasLabel('{label}').has('entity_type','location')"
+            f".project('n','d').by('canonical_name').by(bothE().count())"
+            f".order().by(select('d'),desc).limit(10)"
+        )
+        raw_orgs = neptune_query(
+            f"g.V().hasLabel('{label}').has('entity_type','organization')"
+            f".project('n','d').by('canonical_name').by(bothE().count())"
+            f".order().by(select('d'),desc).limit(10)"
+        )
+
+        # --- Data-Driven Question Generation Algorithm ---
+        # Analyze graph structure to generate prioritized investigative questions
+        # No Bedrock needed — questions are computed from evidence patterns
+
+        question_tier = int(event.get("question_tier", 1))
+        all_questions = []
+
+        # Get entity type counts from Neptune
+        type_counts = {}
+        raw_types = neptune_query(
+            f"g.V().hasLabel('{label}').groupCount().by('entity_type')"
+        )
+        if isinstance(raw_types, dict) and "@value" in raw_types:
+            for item in raw_types.get("@value", []):
+                if isinstance(item, dict) and "@value" in item:
+                    pairs = item["@value"]
+                    if isinstance(pairs, list):
+                        i = 0
+                        while i < len(pairs) - 1:
+                            etype = pairs[i]
+                            count = pairs[i+1]
+                            if isinstance(count, dict):
+                                count = count.get("@value", 0)
+                            if isinstance(etype, str):
+                                type_counts[etype] = int(count)
+                            i += 2
+
+        person_count = type_counts.get("person", 0)
+        org_count = type_counts.get("organization", 0)
+        location_count = type_counts.get("location", 0)
+        financial_count = type_counts.get("financial_amount", 0) + type_counts.get("financial", 0)
+        date_count = type_counts.get("date", 0) + type_counts.get("event", 0)
+
+        # Top person name for question specificity
+        top_person = suspects[0]["name"] if suspects else "the primary subject"
+        top_3 = [s["name"] for s in suspects[:3]]
+
+        # --- TIER 1: Always ask (core investigative questions) ---
+        tier1 = []
+        if person_count > 5:
+            tier1.append({"question": f"Who are {top_person}'s most likely clients and associates?", "category": "clients", "icon": "💰", "priority": person_count, "tier": 1})
+        if financial_count > 0:
+            tier1.append({"question": "Where did the money flow? What financial transactions link the key subjects?", "category": "financial", "icon": "🏦", "priority": financial_count * 10, "tier": 1})
+        if person_count > 10:
+            tier1.append({"question": "Who are the potential victims in this case?", "category": "victims", "icon": "🚨", "priority": person_count // 2, "tier": 1})
+        if location_count > 3:
+            tier1.append({"question": f"What locations are most significant to {top_person}'s activities?", "category": "travel", "icon": "📍", "priority": location_count * 5, "tier": 1})
+        if org_count > 2:
+            tier1.append({"question": "What institutions and organizations facilitated the operation?", "category": "network", "icon": "🏢", "priority": org_count * 8, "tier": 1})
+
+        # --- TIER 2: Pattern-based questions ---
+        tier2 = []
+        if person_count > 20:
+            tier2.append({"question": f"Who traveled with {top_person} most frequently?", "category": "travel", "icon": "✈️", "priority": person_count, "tier": 2})
+        if len(suspects) > 5:
+            tier2.append({"question": f"Who introduced {top_3[1] if len(top_3) > 1 else 'associates'} to {top_person}?", "category": "network", "icon": "🔗", "priority": 50, "tier": 2})
+        if location_count > 5:
+            tier2.append({"question": "Who had access to the private properties and islands?", "category": "travel", "icon": "🏝️", "priority": location_count * 3, "tier": 2})
+        if financial_count > 5:
+            tier2.append({"question": "What shell companies or financial vehicles were used?", "category": "financial", "icon": "💼", "priority": financial_count * 5, "tier": 2})
+        if person_count > 30:
+            tier2.append({"question": "Who are the gatekeepers — people who controlled access to the subject?", "category": "network", "icon": "🚪", "priority": 40, "tier": 2})
+
+        # --- TIER 3: Anomaly-based questions ---
+        tier3 = []
+        if date_count > 10:
+            tier3.append({"question": "What triggered the spike in activity during the peak period?", "category": "timeline", "icon": "📅", "priority": date_count, "tier": 3})
+        tier3.append({"question": "Who appeared in the evidence AFTER the investigation began?", "category": "timeline", "icon": "⏳", "priority": 30, "tier": 3})
+        tier3.append({"question": "Which subjects went silent during key periods and why?", "category": "timeline", "icon": "🔇", "priority": 25, "tier": 3})
+        if person_count > 50:
+            tier3.append({"question": "Who are the peripheral figures that appear only once or twice?", "category": "network", "icon": "👤", "priority": 20, "tier": 3})
+
+        # --- TIER 4: Deep investigation ---
+        tier4 = []
+        if len(top_3) >= 2:
+            tier4.append({"question": f"What connects {top_3[0]} to {top_3[1]} beyond direct contact?", "category": "network", "icon": "🕸️", "priority": 15, "tier": 4})
+        tier4.append({"question": "What evidence is missing that would be needed for prosecution?", "category": "legal", "icon": "⚖️", "priority": 10, "tier": 4})
+        tier4.append({"question": "Who might be cooperating with law enforcement?", "category": "legal", "icon": "🤝", "priority": 8, "tier": 4})
+        tier4.append({"question": "What patterns suggest witness tampering or evidence destruction?", "category": "legal", "icon": "🔥", "priority": 5, "tier": 4})
+
+        # Combine by requested tier
+        if question_tier <= 1:
+            all_questions = tier1
+        elif question_tier == 2:
+            all_questions = tier1 + tier2
+        elif question_tier == 3:
+            all_questions = tier1 + tier2 + tier3
+        else:
+            all_questions = tier1 + tier2 + tier3 + tier4
+
+        # Sort by priority within each tier
+        all_questions.sort(key=lambda q: (-q["tier"] * -1000 + q["priority"]), reverse=True)
+
+        # Return the requested tier's questions
+        questions = all_questions[:6] if question_tier <= 1 else all_questions
+
+        return {
+            "suspects": suspects[:30],
+            "questions": questions,
+            "total_persons": len(suspects),
+            "entity_type_counts": type_counts,
+            "current_tier": question_tier,
+            "has_more_questions": question_tier < 4,
+        }
+
+    elif action_type == "analyze_suspect":
+        suspect_name = event.get("suspect_name", "")
+        connections_hint = event.get("connections", 0)
+        if not suspect_name:
+            return {"error": "Missing suspect_name"}
+
+        escaped = suspect_name.replace("'", "\\'")
+
+        # Fast query — just get connected entity names and types (no degree count)
+        raw = neptune_query(
+            f"g.V().hasLabel('{label}').has('canonical_name','{escaped}')"
+            f".both('RELATED_TO')"
+            f".project('n','t').by('canonical_name').by('entity_type')"
+            f".limit(20)"
+        )
+
+        # Parse connections from GraphSON
+        connections = []
+        if isinstance(raw, dict) and "@value" in raw:
+            for item in raw.get("@value", []):
+                if isinstance(item, dict) and "@value" in item:
+                    vals = item["@value"]
+                    if isinstance(vals, list) and len(vals) >= 4:
+                        connections.append({
+                            "name": vals[1] if isinstance(vals[1], str) else str(vals[1]),
+                            "type": vals[3] if isinstance(vals[3], str) else str(vals[3]),
+                            "degree": 0,
+                        })
+
+        # AI analysis — fast, no Neptune dependency
+        bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
+        model_id = os.environ.get("BEDROCK_LLM_MODEL_ID", "anthropic.claude-3-haiku-20240307-v1:0")
+
+        conn_summary = ", ".join([f"{c['name']} ({c['type']})" for c in connections[:15]])
+        if not conn_summary:
+            conn_summary = f"{connections_hint} total connections in the evidence graph"
+
+        try:
+            prompt = f"""You are a senior federal prosecutor. Analyze this person of interest:
+
+SUBJECT: {suspect_name}
+CONNECTIONS: {conn_summary}
+
+Write a 3-4 sentence prosecutorial assessment:
+1. What is this person's likely role (client, associate, employee, facilitator, victim)?
+2. What does the evidence suggest about their relationship to the case?
+3. What specific evidence would you need to build a case involving this person?
+4. What should investigators look for next?
+
+Then suggest exactly 3 follow-up investigative questions as a JSON array at the end, formatted as:
+FOLLOW_UP: ["question1", "question2", "question3"]
+
+Write in direct prosecutorial tone. No hedging."""
+
+            resp = bedrock.invoke_model(
+                modelId=model_id,
+                body=_json.dumps({
+                    "anthropic_version": "bedrock-2023-05-31",
+                    "max_tokens": 600,
+                    "temperature": 0.4,
+                    "messages": [{"role": "user", "content": prompt}],
+                }),
+            )
+            ai_text = _json.loads(resp["body"].read().decode()).get("content", [{}])[0].get("text", "")
+
+            import re
+            analysis = ai_text
+            follow_ups = []
+            fu_match = re.search(r'FOLLOW_UP:\s*\[(.+?)\]', ai_text, re.DOTALL)
+            if fu_match:
+                analysis = ai_text[:fu_match.start()].strip()
+                try:
+                    follow_ups = _json.loads("[" + fu_match.group(1) + "]")
+                except Exception:
+                    pass
+        except Exception as e:
+            analysis = f"Analysis unavailable: {str(e)[:100]}"
+            follow_ups = []
+
+        return {
+            "suspect_name": suspect_name,
+            "connections": connections[:20],
+            "analysis": analysis,
+            "follow_up_questions": follow_ups[:3],
+        }
+
+    elif action_type == "case_builder":
+        # Prosecution Readiness Analysis — score each person on 5 evidence pillars
+        # For each person, check: Proximity, Access, Financial, Temporal, Witness
+
+        # Initialize suspects list and query Neptune for persons
+        suspects = []
+        if True:
+            raw = neptune_query(
+                f"g.V().hasLabel('{label}').has('entity_type','person')"
+                f".group().by('canonical_name').by(bothE().count())"
+            )
+            if isinstance(raw, dict) and "@value" in raw:
+                for item in raw.get("@value", []):
+                    if isinstance(item, dict) and "@value" in item:
+                        pairs = item["@value"]
+                        if isinstance(pairs, list):
+                            i = 0
+                            while i < len(pairs) - 1:
+                                name = pairs[i]
+                                count = pairs[i+1]
+                                if isinstance(count, dict):
+                                    count = count.get("@value", 0)
+                                if isinstance(name, str) and len(name) > 2:
+                                    suspects.append({"name": name, "connections": int(count)})
+                                i += 2
+            suspects.sort(key=lambda x: x["connections"], reverse=True)
+            suspects = [s for s in suspects if s["connections"] > 5]
+
+        # Get key locations for Access scoring
+        key_locations = set()
+        raw_locs = neptune_query(
+            f"g.V().hasLabel('{label}').has('entity_type','location')"
+            f".has('canonical_name',within('Little Saint James Island','Palm Beach','Virgin Islands','New York','Paris','Teterboro','Islip','Manhattan','London','Marrakech'))"
+            f".values('canonical_name')"
+        )
+        if isinstance(raw_locs, dict) and "@value" in raw_locs:
+            for v in raw_locs.get("@value", []):
+                if isinstance(v, str):
+                    key_locations.add(v)
+
+        # Get entity type counts for context
+        type_counts = {}
+        raw_types = neptune_query(
+            f"g.V().hasLabel('{label}').groupCount().by('entity_type')"
+        )
+        if isinstance(raw_types, dict) and "@value" in raw_types:
+            for item in raw_types.get("@value", []):
+                if isinstance(item, dict) and "@value" in item:
+                    pairs = item["@value"]
+                    if isinstance(pairs, list):
+                        i = 0
+                        while i < len(pairs) - 1:
+                            etype = pairs[i]
+                            count = pairs[i+1]
+                            if isinstance(count, dict):
+                                count = count.get("@value", 0)
+                            if isinstance(etype, str):
+                                type_counts[etype] = int(count)
+                            i += 2
+
+        has_financial = type_counts.get("financial_amount", 0) + type_counts.get("financial", 0) > 0
+        has_locations = type_counts.get("location", 0) > 0
+        has_dates = type_counts.get("date", 0) + type_counts.get("event", 0) > 0
+        max_connections = suspects[0]["connections"] if suspects else 1
+
+        # Score each person
+        scored_persons = []
+        for s in suspects[:30]:
+            name = s["name"]
+            conn = s["connections"]
+
+            # Pillar 1: Proximity (0-20) — based on connection count relative to max
+            proximity = min(int(conn / max(max_connections, 1) * 20), 20)
+
+            # Pillar 2: Access (0-20) — check if person co-occurs with key locations
+            # Simplified: higher connection count = more likely to have location access
+            access = min(int(conn / max(max_connections, 1) * 15), 20) if has_locations else 0
+
+            # Pillar 3: Financial (0-20) — check if financial entities exist in the case
+            financial = min(int(conn / max(max_connections, 1) * 10), 20) if has_financial else 0
+
+            # Pillar 4: Temporal (0-20) — check if date entities exist
+            temporal = min(int(conn / max(max_connections, 1) * 12), 20) if has_dates else 0
+
+            # Pillar 5: Witness/Victim (0-20) — check for victim-related indicators
+            witness = 0
+            name_lower = name.lower()
+            if "victim" in name_lower or "minor" in name_lower:
+                witness = 15
+            elif "agent" in name_lower or "detective" in name_lower:
+                witness = 10  # Law enforcement = potential witness
+            elif conn > max_connections * 0.3:
+                witness = 5  # High-connection persons likely appear in victim docs
+
+            total_score = proximity + access + financial + temporal + witness
+
+            # Determine what evidence is MISSING
+            gaps = []
+            if financial < 5:
+                gaps.append({"pillar": "Financial", "question": f"What financial transactions link {name} to the operation?", "icon": "🏦"})
+            if access < 5:
+                gaps.append({"pillar": "Access", "question": f"Did {name} visit any of the subject's properties?", "icon": "📍"})
+            if temporal < 5:
+                gaps.append({"pillar": "Temporal", "question": f"When was {name} active in the evidence timeline?", "icon": "📅"})
+            if witness < 5:
+                gaps.append({"pillar": "Witness", "question": f"Are there victim statements mentioning {name}?", "icon": "🚨"})
+
+            # Classification
+            if total_score >= 60:
+                classification = "strong_case"
+            elif total_score >= 40:
+                classification = "suspicious"
+            elif total_score >= 20:
+                classification = "peripheral"
+            else:
+                classification = "insufficient"
+
+            scored_persons.append({
+                "name": name,
+                "connections": conn,
+                "score": total_score,
+                "classification": classification,
+                "pillars": {
+                    "proximity": proximity,
+                    "access": access,
+                    "financial": financial,
+                    "temporal": temporal,
+                    "witness": witness,
+                },
+                "gaps": gaps[:3],
+            })
+
+        scored_persons.sort(key=lambda x: x["score"], reverse=True)
+
+        # Generate prosecution-ready questions from the data
+        prosecution_questions = []
+        strong_cases = [p for p in scored_persons if p["classification"] == "strong_case"]
+        suspicious = [p for p in scored_persons if p["classification"] == "suspicious"]
+
+        if strong_cases:
+            prosecution_questions.append({
+                "question": f"Who are the most prosecutable subjects? ({len(strong_cases)} persons have strong evidence)",
+                "icon": "⚖️", "category": "prosecution", "priority": 100,
+            })
+        if suspicious:
+            prosecution_questions.append({
+                "question": f"What evidence is missing for the {len(suspicious)} suspicious persons?",
+                "icon": "🔍", "category": "gaps", "priority": 90,
+            })
+
+        # Find the most common evidence gap across all persons
+        gap_counts = {}
+        for p in scored_persons:
+            for g in p.get("gaps", []):
+                gap_counts[g["pillar"]] = gap_counts.get(g["pillar"], 0) + 1
+        top_gap = max(gap_counts.items(), key=lambda x: x[1]) if gap_counts else ("Unknown", 0)
+        prosecution_questions.append({
+            "question": f"{top_gap[0]} evidence is the biggest gap — {top_gap[1]} persons lack it",
+            "icon": "⚠️", "category": "gaps", "priority": 80,
+        })
+
+        return {
+            "persons": scored_persons,
+            "questions": prosecution_questions,
+            "summary": {
+                "total_scored": len(scored_persons),
+                "strong_case": len(strong_cases),
+                "suspicious": len(suspicious),
+                "peripheral": len([p for p in scored_persons if p["classification"] == "peripheral"]),
+                "insufficient": len([p for p in scored_persons if p["classification"] == "insufficient"]),
+            },
+            "entity_type_counts": type_counts,
+        }
+
+    return {"error": f"Unknown investigator_action: {action_type}"}
 
 
 def _cleanup_noise_entities(event, context):
@@ -1066,26 +2103,43 @@ def _backfill_entities_count(event, context):
     cm = ConnectionManager()
     try:
         with cm.cursor() as cur:
+            # Fast count: total docs for this case (index-only scan on case_file_id)
             cur.execute(
-                """SELECT COUNT(*) FROM documents d
-                   WHERE d.case_file_id = %s
-                   AND NOT EXISTS (SELECT 1 FROM entities e WHERE e.document_id = d.document_id)
-                   AND d.raw_text IS NOT NULL AND LENGTH(d.raw_text) > 50""",
+                "SELECT COUNT(*) FROM documents WHERE case_file_id = %s",
                 (case_id,),
             )
-            missing = cur.fetchone()[0]
-            cur.execute(
-                """SELECT COUNT(DISTINCT document_id) FROM entities WHERE case_file_id = %s""",
-                (case_id,),
-            )
-            has = cur.fetchone()[0]
-        return {"missing_count": missing, "has_entities_count": has, "case_id": case_id}
+            total = cur.fetchone()[0]
+
+            # Count done docs from tracking table (may not exist yet — handle gracefully)
+            has = 0
+            try:
+                cur.execute("SAVEPOINT ct")
+                cur.execute(
+                    "SELECT COUNT(*) FROM entity_extraction_done WHERE case_file_id = %s",
+                    (case_id,),
+                )
+                has = cur.fetchone()[0]
+                cur.execute("RELEASE SAVEPOINT ct")
+            except Exception:
+                try:
+                    cur.execute("ROLLBACK TO SAVEPOINT ct")
+                except Exception:
+                    pass
+
+            missing = max(total - has, 0)
+        return {"missing_count": missing, "has_entities_count": has, "total_eligible": total, "case_id": case_id}
     except Exception as e:
         return {"error": str(e)[:500]}
 
 
 def _backfill_entities_batch(event, context):
-    """Extract entities for a batch of docs missing them."""
+    """Extract entities for a batch of docs missing them.
+    
+    Uses entity_extraction_done tracking table to avoid re-processing.
+    The entities table UNIQUE(case_file_id, canonical_name, entity_type) means
+    ON CONFLICT overwrites document_id — so we CANNOT use NOT EXISTS on entities
+    to find unprocessed docs. The tracking table is the source of truth.
+    """
     import boto3 as _boto3
     import json as _json
     from botocore.config import Config
@@ -1110,10 +2164,28 @@ def _backfill_entities_batch(event, context):
             except Exception:
                 cur.execute("ROLLBACK")
 
+            # Ensure tracking table exists
+            try:
+                cur.execute("SAVEPOINT tbl_check")
+                cur.execute("""CREATE TABLE IF NOT EXISTS entity_extraction_done (
+                    document_id UUID PRIMARY KEY,
+                    case_file_id UUID NOT NULL,
+                    extracted_at TIMESTAMPTZ DEFAULT now()
+                )""")
+                cur.execute("CREATE INDEX IF NOT EXISTS idx_eed_case ON entity_extraction_done(case_file_id)")
+                cur.execute("RELEASE SAVEPOINT tbl_check")
+            except Exception:
+                try:
+                    cur.execute("ROLLBACK TO SAVEPOINT tbl_check")
+                except Exception:
+                    pass
+
+            # Use LEFT JOIN instead of NOT EXISTS — much faster on large tables
             cur.execute(
                 """SELECT d.document_id, d.raw_text FROM documents d
+                   LEFT JOIN entity_extraction_done x ON x.document_id = d.document_id
                    WHERE d.case_file_id = %s
-                   AND NOT EXISTS (SELECT 1 FROM entities e WHERE e.document_id = d.document_id)
+                   AND x.document_id IS NULL
                    AND d.raw_text IS NOT NULL AND LENGTH(d.raw_text) > 50
                    LIMIT %s""",
                 (case_id, batch_size),
@@ -1130,6 +2202,8 @@ Document text:
 Return ONLY a JSON array, no other text."""
 
                 try:
+                    cur.execute("SAVEPOINT doc_sp")
+
                     body = _json.dumps({
                         "anthropic_version": "bedrock-2023-05-31",
                         "max_tokens": 2048,
@@ -1144,39 +2218,53 @@ Return ONLY a JSON array, no other text."""
                     entities = _parse_entity_json(content)
 
                     for ent in entities:
+                        ent_name = ent.get("name", "")[:255]
+                        ent_type = ent.get("type", "unknown")
+                        ent_conf = float(ent.get("confidence", 0.5))
+                        if not ent_name or len(ent_name) < 2:
+                            continue
                         try:
+                            # Use the same ON CONFLICT as extract_handler.py — aggregate, don't overwrite
                             cur.execute(
-                                """INSERT INTO entities (entity_id, case_file_id, document_id, canonical_name, entity_type, confidence)
-                                   VALUES (gen_random_uuid(), %s, %s, %s, %s, %s)
-                                   ON CONFLICT DO NOTHING""",
-                                (case_id, doc_id, ent.get("name", "")[:255], ent.get("type", "unknown"),
-                                 float(ent.get("confidence", 0.5))),
+                                """INSERT INTO entities (entity_id, case_file_id, document_id, canonical_name, entity_type, confidence, source_document_ids)
+                                   VALUES (gen_random_uuid(), %s, %s, %s, %s, %s, to_jsonb(%s::text))
+                                   ON CONFLICT (case_file_id, canonical_name, entity_type)
+                                   DO UPDATE SET occurrence_count = entities.occurrence_count + 1,
+                                                 confidence = GREATEST(entities.confidence, EXCLUDED.confidence),
+                                                 source_document_ids = COALESCE(entities.source_document_ids, '[]'::jsonb) || to_jsonb(%s::text),
+                                                 updated_at = now()""",
+                                (case_id, doc_id, ent_name, ent_type, ent_conf, str(doc_id), str(doc_id)),
                             )
                             entities_extracted += 1
                         except Exception:
-                            pass
+                            try:
+                                cur.execute("ROLLBACK TO SAVEPOINT doc_sp")
+                                cur.execute("SAVEPOINT doc_sp")
+                            except Exception:
+                                pass
 
+                    # Mark doc as processed — this is the source of truth, not the entities table
+                    cur.execute(
+                        "INSERT INTO entity_extraction_done (document_id, case_file_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                        (doc_id, case_id),
+                    )
+
+                    cur.execute("RELEASE SAVEPOINT doc_sp")
                     processed += 1
                 except Exception as e:
                     errors += 1
                     logger.warning("Entity extraction failed for %s: %s", doc_id, str(e)[:200])
                     try:
-                        cur.execute("ROLLBACK")
+                        cur.execute("ROLLBACK TO SAVEPOINT doc_sp")
                     except Exception:
                         pass
 
-            # Count remaining
-            cur.execute(
-                """SELECT COUNT(*) FROM documents d
-                   WHERE d.case_file_id = %s
-                   AND NOT EXISTS (SELECT 1 FROM entities e WHERE e.document_id = d.document_id)
-                   AND d.raw_text IS NOT NULL AND LENGTH(d.raw_text) > 50""",
-                (case_id,),
-            )
-            remaining = cur.fetchone()[0]
+            # Fast remaining count — just subtract tracking table from total
+            cur.execute("SELECT COUNT(*) FROM entity_extraction_done WHERE case_file_id = %s", (case_id,))
+            done_count = cur.fetchone()[0]
 
         return {"processed": processed, "entities_extracted": entities_extracted,
-                "errors": errors, "remaining": remaining, "case_id": case_id}
+                "errors": errors, "done_so_far": done_count, "case_id": case_id}
     except Exception as e:
         return {"error": str(e)[:500], "processed": processed}
 
@@ -2210,11 +3298,22 @@ def _run_admin_migration(event, context):
     from lambdas.api.response_helper import error_response, success_response
     import json as _json
     try:
-        body = _(json.loads(event.get("body")) if isinstance(event.get("body"), str) else (event.get("body") or {}))
+        body = json.loads(event.get("body")) if isinstance(event.get("body"), str) else (event.get("body") or {})
         migration_name = body.get("migration", "")
+        raw_sql = body.get("sql", "")
 
         from db.connection import ConnectionManager
         cm = ConnectionManager()
+
+        # Support raw SQL for migrations
+        if raw_sql:
+            with cm.cursor() as cur:
+                cur.execute(raw_sql)
+                try:
+                    rows = cur.fetchall()
+                    return success_response({"rows": [list(r) for r in rows[:50]], "rowcount": cur.rowcount}, 200, event)
+                except Exception:
+                    return success_response({"rowcount": cur.rowcount}, 200, event)
 
         if migration_name == "update_ai_insights":
             with cm.cursor() as cur:
@@ -2229,4 +3328,433 @@ def _run_admin_migration(event, context):
             return error_response(400, "VALIDATION_ERROR", f"Unknown migration: {migration_name}", event)
     except Exception as exc:
         logger.exception("Admin migration failed")
+        return error_response(500, "INTERNAL_ERROR", str(exc)[:500], event)
+
+
+# ------------------------------------------------------------------
+# IPS Trigger: POST /case-files/{id}/ips/trigger
+# ------------------------------------------------------------------
+
+def _trigger_ips_computation(event, context):
+    """Start IPS computation via Step Functions or return cached results."""
+    from lambdas.api.response_helper import error_response, success_response
+    from db.connection import ConnectionManager
+
+    case_id = (event.get("pathParameters") or {}).get("id", "")
+    if not case_id:
+        return error_response(400, "MISSING_PARAM", "Missing case file ID", event)
+
+    cm = ConnectionManager()
+
+    # Check for fresh cached results (< 15 min old)
+    try:
+        with cm.cursor() as cur:
+            cur.execute("""
+                SELECT COUNT(*), MAX(computed_at)
+                FROM case_ips_results
+                WHERE case_file_id = %s
+                  AND computed_at > now() - interval '15 minutes'
+            """, (case_id,))
+            row = cur.fetchone()
+            if row and row[0] and row[0] > 0:
+                return success_response({
+                    "status": "cached",
+                    "patterns_count": row[0],
+                    "computed_at": str(row[1]),
+                    "message": "Fresh IPS results available — use GET /ips-results to read them",
+                }, 200, event)
+    except Exception as exc:
+        logger.warning("IPS cache check failed: %s", str(exc)[:200])
+
+    # Start Step Functions execution
+    try:
+        import boto3
+        import uuid
+
+        run_id = str(uuid.uuid4())
+
+        # Create run tracking record
+        try:
+            with cm.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO ips_computation_runs (run_id, case_file_id, status)
+                    VALUES (%s, %s, 'running')
+                """, (run_id, case_id))
+        except Exception as exc:
+            logger.warning("Failed to create run record: %s", str(exc)[:200])
+
+        # Start Step Functions execution
+        sfn = boto3.client("stepfunctions")
+        state_machine_arn = os.environ.get("IPS_STATE_MACHINE_ARN", "")
+
+        if state_machine_arn:
+            execution = sfn.start_execution(
+                stateMachineArn=state_machine_arn,
+                input=json.dumps({"case_id": case_id, "run_id": run_id}),
+            )
+            execution_arn = execution.get("executionArn", "")
+
+            # Update run with execution ARN
+            try:
+                with cm.cursor() as cur:
+                    cur.execute(
+                        "UPDATE ips_computation_runs SET execution_arn = %s WHERE run_id = %s",
+                        (execution_arn, run_id),
+                    )
+            except Exception:
+                pass
+
+            return success_response({
+                "status": "started",
+                "execution_id": execution_arn,
+                "run_id": run_id,
+            }, 202, event)
+        else:
+            # No Step Functions configured — run synchronously via IPS Worker
+            logger.info("No IPS_STATE_MACHINE_ARN — running IPS inline for case %s", case_id)
+            from lambdas.api.ips_worker import handler as ips_handler
+
+            # Run phases sequentially
+            l1 = ips_handler({"phase": "layer1_graph_topology", "case_id": case_id, "run_id": run_id}, context)
+            l2 = ips_handler({"phase": "layer2_prosecutorial", "case_id": case_id, "run_id": run_id, "layer1": l1}, context)
+            anomalies = ips_handler({"phase": "anomaly_detection", "case_id": case_id, "run_id": run_id, "layer1": l1, "layer2": l2}, context)
+            l3 = ips_handler({"phase": "layer3_ai_insight", "case_id": case_id, "run_id": run_id, "layer1": l1, "layer2": l2, "anomalies": anomalies}, context)
+            store = ips_handler({"phase": "store_results", "case_id": case_id, "run_id": run_id, "layer1": l1, "layer2": l2, "anomalies": anomalies, "layer3": l3}, context)
+
+            # Run typology classification (piggybacks on IPS)
+            typology = ips_handler({"phase": "typology_classification", "case_id": case_id, "run_id": run_id}, context)
+            logger.info("Typology classification result: %s", typology.get("status"))
+
+            return success_response({
+                "status": "completed",
+                "run_id": run_id,
+                "patterns_stored": store.get("patterns_stored", 0),
+                "typology_scores": typology.get("scores_stored", 0),
+                "typology_dominant": typology.get("dominant_typology", ""),
+            }, 200, event)
+
+    except Exception as exc:
+        logger.exception("IPS trigger failed")
+        return error_response(500, "IPS_TRIGGER_FAILED", str(exc)[:300], event)
+
+
+# ------------------------------------------------------------------
+# Sex Trafficking Typology Findings: GET /case-files/{id}/typology/{category}/findings
+# ------------------------------------------------------------------
+
+def _get_typology_findings(event, context):
+    """Get detected situations for a specific typology category."""
+    from lambdas.api.response_helper import error_response, success_response
+    from db.connection import ConnectionManager
+    from services.sex_trafficking_typology import TypologyFindingsEngine
+
+    case_id = (event.get("pathParameters") or {}).get("id", "")
+    category_id = event.get("_typology_category", "")
+
+    if not case_id or not category_id:
+        return error_response(400, "MISSING_PARAM", "Missing case ID or category", event)
+
+    cm = ConnectionManager()
+    try:
+        # Try to get Bedrock for AI briefs
+        bedrock = None
+        try:
+            import boto3
+            from botocore.config import Config
+            bedrock = boto3.client("bedrock-runtime", config=Config(read_timeout=30, retries={"max_attempts": 1}))
+        except Exception:
+            pass
+
+        engine = TypologyFindingsEngine(aurora_conn=cm, bedrock_client=bedrock)
+        result = engine.get_findings(case_id, category_id)
+        return success_response(result, 200, event)
+    except Exception as e:
+        logger.exception("Typology findings failed for case %s category %s", case_id, category_id)
+        return error_response(500, "FINDINGS_ERROR", str(e)[:500], event)
+
+
+# ------------------------------------------------------------------
+# Sex Trafficking Typology: GET /case-files/{id}/typology
+# ------------------------------------------------------------------
+
+def _get_typology_analysis(event, context):
+    """Run sex trafficking typology analysis for a case.
+
+    Returns cached scores from case_typology_scores if available (< 1 hour old),
+    otherwise computes fresh scores via the typology engine.
+    """
+    from lambdas.api.response_helper import error_response, success_response
+    from db.connection import ConnectionManager
+    from services.sex_trafficking_typology import SexTraffickingTypologyEngine
+
+    case_id = (event.get("pathParameters") or {}).get("id", "")
+    if not case_id:
+        return error_response(400, "MISSING_PARAM", "Missing case file ID", event)
+
+    cm = ConnectionManager()
+    try:
+        # Check for cached scores first
+        with cm.cursor() as cur:
+            cur.execute("""
+                SELECT category_id, category_name, score, confidence,
+                       matched_flags, flag_details, evidence_summary, computed_at
+                FROM case_typology_scores
+                WHERE case_file_id = %s AND typology_module = 'sex_trafficking'
+                  AND computed_at > now() - interval '1 hour'
+                ORDER BY score DESC
+            """, (case_id,))
+            cached = cur.fetchall()
+
+        if cached and len(cached) == 6:
+            # Use cached scores
+            categories = []
+            for row in cached:
+                categories.append({
+                    "id": row[0],
+                    "name": row[1],
+                    "icon": "",  # Frontend has icons
+                    "color": "",
+                    "score": float(row[2]),
+                    "confidence": row[3],
+                    "matched_flags": row[4] if isinstance(row[4], list) else [],
+                    "flag_details": row[5] if isinstance(row[5], list) else [],
+                    "evidence_summary": row[6] or "",
+                    "statistical_context": "",
+                })
+            overall = sum(c["score"] for c in categories) / len(categories)
+            flags_triggered = sum(len(c["matched_flags"]) for c in categories)
+            dominant = max(categories, key=lambda c: c["score"])
+
+            # Get case name
+            with cm.cursor() as cur:
+                cur.execute("SELECT topic_name FROM case_files WHERE case_id = %s", (case_id,))
+                row = cur.fetchone()
+                case_name = row[0] if row else ""
+
+            return success_response({
+                "case_id": case_id,
+                "case_name": case_name,
+                "overall_score": round(overall, 1),
+                "dominant_typology": dominant["id"],
+                "flags_triggered": flags_triggered,
+                "total_flags": 30,
+                "categories": categories,
+                "recommendations": [],
+                "cached": True,
+            }, 200, event)
+
+        # No cache — compute fresh
+        engine = SexTraffickingTypologyEngine(aurora_conn=cm)
+        report = engine.analyze_case(case_id)
+
+        with cm.cursor() as cur:
+            cur.execute("SELECT topic_name FROM case_files WHERE case_id = %s", (case_id,))
+            row = cur.fetchone()
+            if row:
+                report.case_name = row[0]
+
+        payload = engine.to_frontend_payload(report)
+
+        # Also trigger background storage via typology phase
+        try:
+            from lambdas.api.ips_worker import _phase_typology
+            _phase_typology(case_id, "", {})
+        except Exception:
+            pass  # Non-critical — scores returned even if storage fails
+
+        return success_response(payload, 200, event)
+    except Exception as e:
+        logger.exception("Typology analysis failed for case %s", case_id)
+        return error_response(500, "TYPOLOGY_ERROR", str(e)[:500], event)
+
+
+# ------------------------------------------------------------------
+# IPS Results: GET /case-files/{id}/ips-results
+# ------------------------------------------------------------------
+
+def _get_ips_results(event, context):
+    """Read cached IPS results from Aurora."""
+    from lambdas.api.response_helper import error_response, success_response
+    from db.connection import ConnectionManager
+
+    case_id = (event.get("pathParameters") or {}).get("id", "")
+    if not case_id:
+        return error_response(400, "MISSING_PARAM", "Missing case file ID", event)
+
+    cm = ConnectionManager()
+    try:
+        with cm.cursor() as cur:
+            cur.execute("""
+                SELECT result_id, pattern_index, pattern_type,
+                       ips_total, ips_partial,
+                       l1_betweenness, l1_temporal_clustering, l1_cross_type_bridge, l1_isolation_anomaly, l1_total,
+                       l2_the_act, l2_the_means, l2_the_network, l2_the_pattern, l2_the_gap, l2_total,
+                       l3_ai_insight,
+                       title, narrative, icon, priority,
+                       persons, locations, pattern_metadata, evidence_gaps,
+                       is_facilitator, computed_at
+                FROM case_ips_results
+                WHERE case_file_id = %s
+                ORDER BY ips_total DESC
+            """, (case_id,))
+            rows = cur.fetchall()
+
+        if not rows:
+            return error_response(404, "NO_IPS_RESULTS",
+                "No IPS results cached for this case. Trigger computation via POST /case-files/{id}/ips/trigger",
+                event)
+
+        patterns = []
+        for row in rows:
+            patterns.append({
+                "result_id": str(row[0]),
+                "pattern_index": row[1],
+                "pattern_type": row[2],
+                "ips_total": float(row[3]),
+                "ips_partial": bool(row[4]),
+                "layer1": {
+                    "betweenness": float(row[5]),
+                    "temporal_clustering": float(row[6]),
+                    "cross_type_bridge": float(row[7]),
+                    "isolation_anomaly": float(row[8]),
+                    "total": float(row[9]),
+                },
+                "layer2": {
+                    "the_act": float(row[10]),
+                    "the_means": float(row[11]),
+                    "the_network": float(row[12]),
+                    "the_pattern": float(row[13]),
+                    "the_gap": float(row[14]),
+                    "total": float(row[15]),
+                },
+                "layer3": {
+                    "ai_insight": float(row[16]),
+                },
+                "title": row[17],
+                "narrative": row[18],
+                "icon": row[19],
+                "priority": row[20],
+                "persons": row[21] if isinstance(row[21], list) else json.loads(row[21]) if isinstance(row[21], str) else [],
+                "locations": row[22] if isinstance(row[22], list) else json.loads(row[22]) if isinstance(row[22], str) else [],
+                "pattern_metadata": row[23] if isinstance(row[23], dict) else json.loads(row[23]) if isinstance(row[23], str) else {},
+                "evidence_gaps": row[24] if isinstance(row[24], list) else json.loads(row[24]) if isinstance(row[24], str) else [],
+                "is_facilitator": bool(row[25]),
+                "computed_at": str(row[26]),
+            })
+
+        return success_response({
+            "patterns": patterns,
+            "count": len(patterns),
+            "case_id": case_id,
+        }, 200, event)
+
+    except Exception as exc:
+        if "does not exist" in str(exc):
+            return error_response(404, "TABLE_NOT_FOUND",
+                "IPS tables not yet created. Run migration 018_geospatial_travel_intelligence.sql first.",
+                event)
+        logger.exception("Failed to read IPS results")
+        return error_response(500, "INTERNAL_ERROR", str(exc)[:300], event)
+
+
+# ------------------------------------------------------------------
+# Neptune Dedup: POST /case-files/{id}/dedup
+# ------------------------------------------------------------------
+
+def _trigger_neptune_dedup(event, context):
+    """Trigger Neptune deduplication for a case."""
+    from lambdas.api.response_helper import error_response, success_response
+
+    case_id = (event.get("pathParameters") or {}).get("id", "")
+    if not case_id:
+        return error_response(400, "MISSING_PARAM", "Missing case file ID", event)
+
+    try:
+        from services.ips_engine import NeptuneDedup
+        dedup = NeptuneDedup()
+        case_label = f"Entity_{case_id}"
+        duplicates = dedup.find_duplicates(case_label)
+
+        if not duplicates:
+            return success_response({
+                "status": "clean",
+                "duplicates_found": 0,
+                "message": "No duplicate nodes found in Neptune for this case.",
+            }, 200, event)
+
+        result = dedup.merge_duplicates(case_label, duplicates)
+        return success_response({
+            "status": "completed",
+            "duplicates_found": len(duplicates),
+            "merged": result.get("merged", 0),
+            "errors": result.get("errors", 0),
+        }, 200, event)
+
+    except Exception as exc:
+        logger.exception("Neptune dedup failed")
+        return error_response(500, "DEDUP_FAILED", str(exc)[:300], event)
+
+# ------------------------------------------------------------------
+# Admin: Bulk rename entities
+# ------------------------------------------------------------------
+
+def _admin_rename_entities(event, context):
+    """POST /admin/rename-entities — rename entity canonical_names in bulk."""
+    from lambdas.api.response_helper import error_response, success_response
+    from db.connection import ConnectionManager
+    import json as _json
+
+    try:
+        body = _json.loads(event.get("body") or "{}")
+        case_id = body.get("case_id")
+        renames = body.get("renames", {})
+
+        if not case_id or not renames:
+            return error_response(400, "VALIDATION_ERROR", "case_id and renames required", event)
+
+        cm = ConnectionManager()
+        results = {}
+        total = 0
+
+        with cm.cursor() as cur:
+            for old_name, new_name in renames.items():
+                # Rename in entities
+                cur.execute(
+                    "UPDATE entities SET canonical_name = %s WHERE case_file_id = %s::uuid AND canonical_name = %s",
+                    (new_name, case_id, old_name)
+                )
+                ent_count = cur.rowcount
+
+                # Rename in relationships (source)
+                cur.execute(
+                    "UPDATE relationships SET source_entity = %s WHERE case_file_id = %s::uuid AND source_entity = %s",
+                    (new_name, case_id, old_name)
+                )
+                rel_src = cur.rowcount
+
+                # Rename in relationships (target)
+                cur.execute(
+                    "UPDATE relationships SET target_entity = %s WHERE case_file_id = %s::uuid AND target_entity = %s",
+                    (new_name, case_id, old_name)
+                )
+                rel_tgt = cur.rowcount
+
+                if ent_count or rel_src or rel_tgt:
+                    results[old_name] = {"new_name": new_name, "entities": ent_count, "relationships": rel_src + rel_tgt}
+                    total += ent_count + rel_src + rel_tgt
+
+        # Clear caches
+        cache_tables = ['command_center_cache', 'case_typology_scores', 'case_ips_results',
+                        'top_pattern_cache', 'investigator_analysis_cache', 'pattern_reports']
+        with cm.cursor() as cur:
+            for table in cache_tables:
+                try:
+                    cur.execute(f"DELETE FROM {table} WHERE case_file_id = %s::uuid", (case_id,))
+                except Exception:
+                    pass
+
+        return success_response({"renamed": results, "total_updated": total}, 200, event)
+
+    except Exception as exc:
+        logger.exception("Admin rename-entities failed")
         return error_response(500, "INTERNAL_ERROR", str(exc)[:500], event)
