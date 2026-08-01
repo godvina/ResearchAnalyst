@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-04-20T22:45:25.094512",
+  "case_id": "7f05e8d5-4492-4f19-8894-25367606db96",
+  "documents_tested": 1,
+  "models_tested": 3,
+  "recommendation": "Claude 3 Haiku",
+  "results": {
+    "Nova Lite": {
+      "avg_precision": 0.88,
+      "avg_cost": 0.00018354,
+      "avg_time": 2.1866257190704346,
+      "est_75k_cost": 13.7655
+    },
+    "Nova Pro": {
+      "avg_precision": 0.9411764705882353,
+      "avg_cost": 0.0018872,
+      "avg_time": 3.167909860610962,
+      "est_75k_cost": 141.54
+    },
+    "Claude 3 Haiku": {
+      "avg_precision": 0.95,
+      "avg_cost": 0.0010225,
+      "avg_time": 4.706332683563232,
+      "est_75k_cost": 76.6875
+    }
+  }
+}
