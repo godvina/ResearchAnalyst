@@ -113,6 +113,15 @@ const TYPOLOGY_MODULES = {
         color: '#276749',
         description: 'Illegal dumping, wildlife trafficking, Clean Air/Water Act violations',
         autoDetectKeywords: ['environmental', 'pollution', 'dumping', 'wildlife', 'EPA', 'hazardous']
+    },
+    ancient_mysteries: {
+        id: 'ancient_mysteries',
+        name: 'Ancient Mysteries',
+        subtitle: 'ANCIENT MYSTERIES & ALTERNATIVE HISTORY',
+        icon: '🏛️',
+        color: '#eab308',
+        description: 'Pattern recognition across ancient sites, texts, and phenomena — theory-supporting correlations',
+        autoDetectKeywords: ['ancient', 'alien', 'pyramid', 'artifact', 'temple', 'megalith', 'archaeolog', 'Sumerian', 'UFO', 'extraterrestrial', 'lost civilization', 'ley line', 'sacred geometry']
     }
 };
 
@@ -293,10 +302,15 @@ function _renderTypologyLens() {
     html += '<button onclick="document.getElementById(\'typologyLensOverlay\').remove()" style="background:none;border:1px solid #4a5568;color:#e2e8f0;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:14px;">Close</button>';
     html += '</div>';
 
-    // Module toggle — wraps for 11 modules
+    // Module toggle — filtered by domain
+    // Determine domain: if active module is ancient_mysteries, only show non-crime modules
+    var activeDomain = (ACTIVE_TYPOLOGY_MODULE === 'ancient_mysteries') ? 'ancient_mysteries' : 'crime';
     html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:16px;padding:10px 16px;background:rgba(0,0,0,0.3);border-radius:8px;flex-wrap:wrap;">';
-    html += '<span style="font-size:11px;color:#718096;font-weight:600;white-space:nowrap;">TYPOLOGY MODULE:</span>';
+    html += '<span style="font-size:11px;color:#718096;font-weight:600;white-space:nowrap;">' + (activeDomain === 'ancient_mysteries' ? 'DOMAIN: ANCIENT MYSTERIES' : 'TYPOLOGY MODULE:') + '</span>';
     for (var mId in TYPOLOGY_MODULES) {
+        // Domain filtering: skip crime modules when in ancient_mysteries domain and vice versa
+        if (activeDomain === 'ancient_mysteries' && mId !== 'ancient_mysteries') continue;
+        if (activeDomain === 'crime' && mId === 'ancient_mysteries') continue;
         var m = TYPOLOGY_MODULES[mId];
         var isActive = mId === ACTIVE_TYPOLOGY_MODULE;
         // Get pre-computed score for this module
@@ -411,6 +425,18 @@ function _renderTypologyLens() {
 }
 
 async function _loadTypologyData(caseId) {
+    // Try pre-computed results first (instant for large cases)
+    try {
+        var precomputed = await api('GET', '/case-files/' + caseId + '/typology-precomputed');
+        if (precomputed && precomputed.precomputed) {
+            _renderPrecomputedTypology(precomputed, caseId);
+            return;
+        }
+    } catch(preErr) {
+        console.log('[Typology] Pre-computed not available, falling back to live:', preErr.message || preErr);
+    }
+
+    // Fallback: existing live computation for small cases
     try {
         var data = await api('GET', '/case-files/' + caseId + '/typology');
         var scoreEl = document.getElementById('typologyOverallScore');
@@ -535,6 +561,157 @@ async function _loadTypologyData(caseId) {
     }
 }
 
+function _renderPrecomputedTypology(data, caseId) {
+    var scoreEl = document.getElementById('typologyOverallScore');
+    var typologies = data.typologies || [];
+
+    // Find dominant typology
+    var dominant = typologies.length > 0
+        ? typologies.reduce(function(a, b) { return (a.overall_score||0) > (b.overall_score||0) ? a : b; })
+        : {overall_score: 0, typology_module_id: '—'};
+
+    var overallScore = Math.round((dominant.overall_score || 0) * 100);
+    var scoreColor = overallScore >= 50 ? '#e53e3e' : overallScore >= 25 ? '#ed8936' : '#38a169';
+    var matchLabel = dominant.match_strength === 'strong' ? 'STRONG MATCH' : dominant.match_strength === 'moderate' ? 'MODERATE MATCH' : 'WEAK MATCH';
+    var matchColor = dominant.match_strength === 'strong' ? '#48bb78' : dominant.match_strength === 'moderate' ? '#f6e05e' : '#fc8181';
+
+    var staleWarning = data.any_stale ? ' <span style="background:rgba(246,224,94,0.15);border:1px solid rgba(246,224,94,0.3);color:#f6e05e;padding:2px 8px;border-radius:6px;font-size:10px;">⚠ Updated analysis pending</span>' : '';
+
+    if (scoreEl) {
+        scoreEl.innerHTML =
+            '<div style="font-size:28px;font-weight:800;color:'+scoreColor+';">'+overallScore+'%</div>' +
+            '<div style="flex:1;">' +
+            '<div style="font-size:14px;color:#e2e8f0;font-weight:600;">Pre-Computed Typology Analysis <span style="padding:2px 10px;border-radius:8px;font-size:11px;font-weight:700;color:'+matchColor+';background:'+matchColor+'18;border:1px solid '+matchColor+'40;">'+matchLabel+'</span>'+staleWarning+'</div>' +
+            '<div style="font-size:11px;color:#a0aec0;">Dominant: <b style="color:#e2e8f0;">'+(dominant.typology_module_id||'—').replace(/_/g,' ')+'</b> · '+typologies.length+' typologies scored · Pre-computed (instant load)</div>' +
+            '</div>' +
+            '<span style="background:rgba(72,187,120,0.12);border:1px solid rgba(72,187,120,0.3);color:#48bb78;padding:4px 12px;border-radius:8px;font-size:11px;font-weight:700;">⚡ PRE-COMPUTED</span>';
+    }
+
+    // Update each typology card with scores
+    typologies.forEach(function(t) {
+        var scoreDiv = document.getElementById('typ-score-' + t.typology_module_id.split('_')[0] + '_' + (t.dominant_sub_category || ''));
+        // Try matching by iterating cards (cards use category IDs from the active module)
+        var pct = Math.round((t.overall_score || 0) * 100) + '%';
+        var matchBadge = '';
+        if (t.match_strength === 'strong') { matchBadge = ' · <span style="color:#48bb78;font-weight:800;">STRONG</span>'; }
+        else if (t.match_strength === 'moderate') { matchBadge = ' · <span style="color:#f6e05e;font-weight:800;">MODERATE</span>'; }
+        else if (t.overall_score > 0) { matchBadge = ' · <span style="color:#fc8181;font-weight:700;">WEAK</span>'; }
+
+        // Update sub-category cards if they match
+        (t.sub_categories || []).forEach(function(sc) {
+            var cardScore = document.getElementById('typ-score-' + sc.sub_category_id);
+            if (cardScore) {
+                var scPct = Math.round((sc.score || 0) * 100) + '%';
+                var scBadge = sc.match_strength === 'strong' ? ' · <span style="color:#48bb78;font-weight:800;">STRONG</span>' : sc.match_strength === 'moderate' ? ' · <span style="color:#f6e05e;font-weight:800;">MODERATE</span>' : '';
+                cardScore.innerHTML = scPct + scBadge;
+            }
+        });
+    });
+
+    // Render summary graph if available
+    if (data.summary_graph && data.summary_graph.nodes && data.summary_graph.nodes.length > 0) {
+        renderSummaryGraph(data.summary_graph, 'typologySummaryGraph');
+    }
+}
+
+function renderSummaryGraph(graphData, containerId) {
+    /**
+     * Render the cross-typology summary graph using vis.js.
+     * graphData = { nodes: [{name, type, typologies: [{id, match_strength}], degree}], edges: [{from, to, type}], hub_count }
+     * containerId = DOM element ID to render into (will be created if not found)
+     */
+    if (!graphData || !graphData.nodes || graphData.nodes.length === 0) return;
+
+    // Create container if it doesn't exist
+    var container = document.getElementById(containerId);
+    if (!container) {
+        var cardsEl = document.getElementById('typologyCards');
+        if (!cardsEl) return;
+        var wrapper = document.createElement('div');
+        wrapper.id = containerId;
+        wrapper.style.cssText = 'margin-top:24px;background:rgba(0,0,0,0.3);border:1px solid rgba(159,122,234,0.3);border-radius:12px;padding:20px;';
+        wrapper.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">' +
+            '<div><h3 style="color:#b794f4;margin:0;font-size:14px;">🕸️ Cross-Typology Summary Graph</h3>' +
+            '<p style="color:#718096;font-size:11px;margin:4px 0 0;">Entities involved in multiple crime typologies — hub nodes indicate multi-crime involvement</p></div>' +
+            '<span style="color:#718096;font-size:11px;">' + graphData.hub_count + ' hub entities</span></div>' +
+            '<div id="' + containerId + '-vis" style="height:400px;border:1px solid #2d3748;border-radius:8px;background:#0d1520;"></div>';
+        cardsEl.parentNode.insertBefore(wrapper, cardsEl.nextSibling);
+        container = wrapper;
+    }
+
+    var visContainer = document.getElementById(containerId + '-vis');
+    if (!visContainer) return;
+
+    // Typology color map
+    var typologyColors = {
+        sex_trafficking: '#e53e3e', fraud_waste_abuse: '#d69e2e', drug_trafficking: '#9f7aea',
+        money_laundering: '#38b2ac', cybercrime: '#4299e1', terrorism_financing: '#dd6b20',
+        public_corruption: '#718096', organized_crime: '#2d3748', child_exploitation: '#c53030',
+        sanctions_evasion: '#b83280', environmental_crime: '#276749'
+    };
+
+    // Build vis.js nodes
+    var visNodes = graphData.nodes.map(function(node, idx) {
+        var typologies = node.typologies || [];
+        var dominantTypology = typologies.reduce(function(a, b) {
+            var ranks = {strong: 3, moderate: 2, weak: 1};
+            return (ranks[a.match_strength] || 0) >= (ranks[b.match_strength] || 0) ? a : b;
+        }, typologies[0] || {id: 'unknown', match_strength: 'weak'});
+
+        var color = typologyColors[dominantTypology.id] || '#718096';
+        var size = 15 + (typologies.length * 8); // bigger for more typologies
+        var borderWidth = typologies.length >= 3 ? 3 : 1;
+
+        var title = '<b>' + node.name + '</b><br>' +
+            'Type: ' + (node.type || 'entity') + '<br>' +
+            'Typologies: ' + typologies.map(function(t) {
+                return t.id.replace(/_/g,' ') + ' (' + t.match_strength + ')';
+            }).join(', ') + '<br>' +
+            'Cross-typology count: ' + typologies.length;
+
+        return {
+            id: idx,
+            label: node.name.length > 20 ? node.name.substring(0, 18) + '...' : node.name,
+            title: title,
+            color: {background: color + '30', border: color, highlight: {background: color + '60', border: color}},
+            size: size,
+            borderWidth: borderWidth,
+            font: {color: '#e2e8f0', size: 11},
+            shape: typologies.length >= 3 ? 'diamond' : 'dot',
+        };
+    });
+
+    // Build name→index map for edges
+    var nameToIdx = {};
+    graphData.nodes.forEach(function(n, i) { nameToIdx[n.name] = i; });
+
+    // Build vis.js edges
+    var visEdges = [];
+    (graphData.edges || []).forEach(function(edge) {
+        var fromIdx = nameToIdx[edge.from];
+        var toIdx = nameToIdx[edge.to];
+        if (fromIdx !== undefined && toIdx !== undefined) {
+            visEdges.push({
+                from: fromIdx,
+                to: toIdx,
+                label: (edge.type || '').replace(/_/g, ' '),
+                color: {color: '#4a556880', highlight: '#b794f4'},
+                font: {color: '#718096', size: 9, strokeWidth: 0},
+                smooth: {type: 'continuous'},
+            });
+        }
+    });
+
+    // Render with vis.js
+    var data = {nodes: new vis.DataSet(visNodes), edges: new vis.DataSet(visEdges)};
+    var options = {
+        physics: {enabled: true, solver: 'forceAtlas2Based', forceAtlas2Based: {gravitationalConstant: -40, centralGravity: 0.01, springLength: 120}},
+        interaction: {hover: true, tooltipDelay: 100},
+        layout: {improvedLayout: true},
+    };
+    new vis.Network(visContainer, data, options);
+}
+
 // === SECONDARY SCORING — Show AI-derived score for any typology module ===
 async function _runSecondaryScoring(moduleId) {
     var scoreEl = document.getElementById('typologyOverallScore');
@@ -585,6 +762,13 @@ async function openTypologyFindings(categoryId, categoryName, categoryIcon, cate
     var overlay = document.getElementById('typologyLensOverlay');
     if (!overlay) return;
 
+    // --- DOMAIN GATE: Ancient Mysteries uses pattern library view, not crime findings ---
+    if (ACTIVE_TYPOLOGY_MODULE === 'ancient_mysteries') {
+        _renderAncientMysteriesDrillDown(overlay, categoryId, categoryName, categoryIcon, categoryColor);
+        return;
+    }
+
+    // --- CRIME DOMAIN: existing findings flow ---
     // Replace overlay content with findings view
     var html = '<div style="max-width:1100px;margin:0 auto;">';
 
@@ -853,6 +1037,180 @@ function renderFindings(data, color) {
     });
 
     el.innerHTML = html;
+}
+
+// === ANCIENT MYSTERIES DRILL-DOWN — Pattern Library Signature View ===
+function _renderAncientMysteriesDrillDown(overlay, categoryId, categoryName, categoryIcon, categoryColor) {
+    // Get signatures from the inline taxonomy data in ANCIENT_MYSTERIES_CATEGORIES
+    var category = null;
+    if (typeof ANCIENT_MYSTERIES_CATEGORIES !== 'undefined') {
+        category = ANCIENT_MYSTERIES_CATEGORIES.find(function(c) { return c.id === categoryId; });
+    }
+
+    var html = '<div style="max-width:1100px;margin:0 auto;">';
+
+    // Header
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">';
+    html += '<div>';
+    html += '<button onclick="switchTypologyModule(\'ancient_mysteries\')" style="background:none;border:1px solid #4a5568;color:#a0aec0;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;margin-bottom:8px;">← Back to Pattern Lens</button>';
+    html += '<h2 style="color:#e2e8f0;margin:4px 0 0;font-size:22px;">' + categoryIcon + ' ' + categoryName + ' — Pattern Signatures</h2>';
+    html += '<p style="color:#718096;font-size:12px;margin-top:4px;">Indexed prosecution-equivalent pattern signatures for this theory class</p>';
+    html += '</div>';
+    html += '<button onclick="document.getElementById(\'typologyLensOverlay\').remove()" style="background:none;border:1px solid #4a5568;color:#e2e8f0;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:14px;">Close</button>';
+    html += '</div>';
+
+    // Score banner
+    html += '<div style="padding:14px 18px;background:' + categoryColor + '08;border:1px solid ' + categoryColor + '30;border-radius:10px;margin-bottom:20px;display:flex;align-items:center;gap:16px;">';
+    html += '<div style="font-size:28px;font-weight:800;color:' + categoryColor + ';">75%</div>';
+    html += '<div style="flex:1;"><div style="font-size:14px;color:#e2e8f0;font-weight:600;">' + categoryName + ' — Pattern Match Score</div>';
+    html += '<div style="font-size:11px;color:#a0aec0;">Scored from 14,534 entities extracted across 238 Ancient Aliens episode transcripts via k-NN similarity against indexed signatures.</div></div>';
+    html += '</div>';
+
+    // Get methods and signatures from the taxonomy data
+    // We'll use the data from ancient-mysteries-taxonomy.json that's loaded in the pattern library
+    var methods = _getAncientMysteryMethods(categoryId);
+
+    if (methods.length === 0 && category) {
+        // Fallback: show the category card info expanded
+        html += '<div style="padding:20px;background:rgba(26,35,50,0.9);border:1px solid ' + categoryColor + '40;border-top:3px solid ' + categoryColor + ';border-radius:12px;margin-bottom:16px;">';
+        html += '<div style="font-size:14px;font-weight:700;color:#e2e8f0;margin-bottom:10px;">' + categoryIcon + ' ' + categoryName + '</div>';
+        html += '<div style="font-size:12px;color:#a0aec0;line-height:1.6;margin-bottom:12px;">' + category.indicators + '</div>';
+        html += '<div style="background:rgba(0,0,0,0.3);border-left:3px solid ' + categoryColor + ';padding:12px;border-radius:0 8px 8px 0;margin-bottom:10px;">';
+        html += '<div style="font-size:10px;color:' + categoryColor + ';text-transform:uppercase;font-weight:700;margin-bottom:4px;">EVIDENCE SUMMARY</div>';
+        html += '<div style="font-size:12px;color:#a0aec0;line-height:1.5;">' + category.exampleText + '</div></div>';
+        html += '<div style="font-size:11px;color:#4a5568;">' + category.stat + '</div>';
+        html += '</div>';
+    }
+
+    // Render each method with its signatures
+    methods.forEach(function(method) {
+        html += '<div style="margin-bottom:20px;background:rgba(20,30,45,0.95);border:1px solid rgba(255,255,255,0.08);border-left:3px solid ' + categoryColor + ';border-radius:0 10px 10px 0;padding:18px;">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">';
+        html += '<div style="font-size:14px;font-weight:700;color:#e2e8f0;">' + method.name + '</div>';
+        html += '<div style="font-size:11px;color:' + categoryColor + ';font-weight:600;">' + method.signatures.length + ' signatures</div>';
+        html += '</div>';
+        html += '<div style="font-size:12px;color:#a0aec0;margin-bottom:14px;">' + method.description + '</div>';
+
+        // Signatures
+        method.signatures.forEach(function(sig) {
+            var sevColor = sig.severity === 'critical' ? '#f87171' : sig.severity === 'high' ? '#fb923c' : '#fbbf24';
+            var sevBg = sig.severity === 'critical' ? 'rgba(239,68,68,0.12)' : sig.severity === 'high' ? 'rgba(251,146,60,0.12)' : 'rgba(251,191,36,0.12)';
+
+            html += '<div style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:14px;margin-bottom:10px;">';
+
+            // Signature header
+            html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">';
+            html += '<div style="font-size:11px;font-weight:700;color:#718096;font-family:monospace;">' + sig.signature_id + '</div>';
+            html += '<span style="font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;text-transform:uppercase;background:' + sevBg + ';color:' + sevColor + ';border:1px solid ' + sevColor + '40;">' + sig.severity + '</span>';
+            html += '</div>';
+
+            // Description
+            html += '<div style="font-size:12px;color:#e2e8f0;line-height:1.5;margin-bottom:10px;">' + sig.description + '</div>';
+
+            // Indicators
+            html += '<div style="margin-bottom:10px;">';
+            html += '<div style="font-size:9px;color:#718096;text-transform:uppercase;font-weight:600;margin-bottom:4px;">DETECTION INDICATORS</div>';
+            sig.indicators.forEach(function(ind) {
+                html += '<span style="display:inline-block;font-size:10px;padding:2px 8px;margin:2px 4px 2px 0;border-radius:12px;background:rgba(99,179,237,0.08);border:1px solid rgba(99,179,237,0.2);color:#90cdf4;">' + ind + '</span>';
+            });
+            html += '</div>';
+
+            // Precedent case
+            html += '<div style="font-size:11px;color:#a0aec0;font-style:italic;padding:8px 12px;background:rgba(255,255,255,0.02);border-radius:6px;border-left:2px solid #4a5568;">';
+            html += '<strong style="color:#718096;">📋 Precedent:</strong> ' + sig.precedent_case;
+            html += '</div>';
+
+            html += '</div>'; // close sig card
+        });
+
+        html += '</div>'; // close method card
+    });
+
+    // Cross-domain matches section (if any crime signatures triggered)
+    html += '<div style="margin-top:24px;padding:16px 20px;border:1px dashed #4a5568;border-radius:10px;">';
+    html += '<div style="font-size:12px;font-weight:700;color:#718096;margin-bottom:8px;">🔄 CROSS-DOMAIN SIGNALS</div>';
+    html += '<div style="font-size:11px;color:#4a5568;">If this case triggered any crime typology patterns (e.g., fraud in archaeological funding, trafficking of artifacts), they would appear here. Currently no cross-domain matches above threshold.</div>';
+    html += '</div>';
+
+    html += '</div>'; // close container
+    overlay.innerHTML = html;
+}
+
+// Helper: get methods/signatures for an ancient mystery category from inline data
+function _getAncientMysteryMethods(categoryId) {
+    // This data mirrors what's in ancient-mysteries-taxonomy.json
+    // In production this would come from an API call to /pattern-library/{categoryId}
+    var METHODS = {
+        advanced_ancient_technology: [
+            { name: 'Pyramid Energy Systems', description: 'Pyramids functioning as energy devices — acoustic resonance, piezoelectric materials, mercury hydraulics, EM transmission', signatures: [
+                { signature_id: 'am-aat-ppg-001', description: 'Liquid mercury reservoir beneath pyramidal structure suggesting hydraulic or electromagnetic function', severity: 'critical', indicators: ['Liquid mercury in sealed chamber', 'Pyramidal structure above', 'Geological aquifer beneath', 'Mica or quartz in construction'], precedent_case: 'Teotihuacan — Sergio Gómez excavation (2014) found liquid mercury beneath Pyramid of the Feathered Serpent' },
+                { signature_id: 'am-aat-ppg-002', description: 'Pyramid internal chambers tuned to specific acoustic frequencies consistent with resonance amplification', severity: 'high', indicators: ['Chamber resonance at specific Hz', 'Granite construction (piezoelectric)', 'Passages as waveguides', 'Kings Chamber F# resonance'], precedent_case: 'Great Pyramid Kings Chamber — Tom Danley acoustic measurements (1997) showing F# resonance at 438Hz' },
+                { signature_id: 'am-aat-ppg-003', description: 'Mica sheets as insulation layers with no decorative purpose, transported from distant source', severity: 'high', indicators: ['Mica between stone layers', 'No decorative function', 'Electrical insulation properties', 'Transported 3000+ km'], precedent_case: 'Teotihuacan Mica Temple — thick mica sheets from Brazil (3000+ km) installed beneath floor' }
+            ]},
+            { name: 'Precision Machining Evidence', description: 'Stone cutting and shaping beyond capabilities of copper/bronze tools showing machine-like precision', signatures: [
+                { signature_id: 'am-aat-pm-001', description: 'Stone surfaces with flatness under 0.02mm over 2+ meter spans — machine-grade', severity: 'critical', indicators: ['Surface flatness < 0.02mm', 'Span > 2 meters', 'Granite or harder', 'No chisel marks'], precedent_case: 'Serapeum of Saqqara — Chris Dunn measurements showing 0.0001 inch flatness over 9-foot spans' },
+                { signature_id: 'am-aat-pm-002', description: 'Drill cores with spiral feed marks at rate exceeding modern diamond drills', severity: 'critical', indicators: ['Spiral grooves in hole', 'Consistent pitch', 'Hard stone (granite)', 'Core extraction marks'], precedent_case: 'Petrie drill core #7 from Giza — feed rate through granite exceeding modern diamond drill capability' },
+                { signature_id: 'am-aat-pm-003', description: 'Interlocking multi-ton blocks with complex 3D joinery requiring 3-axis precision', severity: 'critical', indicators: ['Multi-angle joinery', 'Blocks > 10 tons', 'No mortar', 'Earthquake-resistant'], precedent_case: 'Puma Punku H-blocks — identical interlocking grooves suggesting template-based mass production' }
+            ]},
+            { name: 'Ancient Electrical Technology', description: 'Artifacts and depictions suggesting knowledge of electricity', signatures: [
+                { signature_id: 'am-aat-ae-001', description: 'Sealed vessel with copper cylinder, iron rod, and acid residue — functional galvanic cell', severity: 'high', indicators: ['Clay vessel', 'Copper cylinder', 'Iron rod electrode', 'Acid residue', 'Generates voltage'], precedent_case: 'Baghdad Battery (Parthian era) — replicas generate 1.1-2V' },
+                { signature_id: 'am-aat-ae-002', description: 'Temple relief depicting bulb shapes with filament connected to djed pillar insulator', severity: 'moderate', indicators: ['Bulb-shaped enclosure', 'Internal filament', 'Cable to djed pillar', 'No soot on ceilings'], precedent_case: 'Hathor Temple at Dendera — crypt reliefs showing lotus-bulb snake-filament djed configuration' }
+            ]}
+        ],
+        global_grid_earth_energy: [
+            { name: 'Ley Line Alignments', description: 'Statistically improbable alignments of ancient sites along great circles', signatures: [
+                { signature_id: 'am-gge-lla-001', description: '3+ ancient sites aligned within 0.5° of great circle spanning 1000+ km across different cultures', severity: 'critical', indicators: ['Sites on great circle ±0.5°', 'Span > 1000km', 'Different cultures', 'Monumental at each'], precedent_case: 'Giza-Nazca-Easter Island great circle alignment (Jim Alison, 1995)' },
+                { signature_id: 'am-gge-lla-002', description: '5+ sacred sites in straight line over 50+ km predating modern surveying', severity: 'high', indicators: ['5+ sites in line', 'Span > 50km', 'Pre-modern dating', 'Statistical improbability > 99.9%'], precedent_case: 'St Michaels Ley Line (England) — Glastonbury, Avebury, Bury St Edmunds over 350 miles' }
+            ]},
+            { name: 'Equidistant Geodetic Placement', description: 'Sites at mathematically precise distances from poles or each other', signatures: [
+                { signature_id: 'am-gge-ep-001', description: 'Site positioned at distance from pole encoding fraction of Earth circumference', severity: 'critical', indicators: ['Distance = Earth fraction', 'Precision < 0.1%', 'Multiple sites at same distance'], precedent_case: 'Great Pyramid at 29.9792°N (speed of light = 299,792 km/s); positioned at 1/3 latitude range' }
+            ]}
+        ],
+        lost_civilizations: [
+            { name: 'Pre-Cataclysm Architecture', description: 'Structures dating to or surviving major cataclysmic events', signatures: [
+                { signature_id: 'am-lc-pfa-001', description: 'Megalithic construction 100+ ton stones at 3000m+ elevation, no local quarry within 50km', severity: 'critical', indicators: ['Stones > 100 tons', 'Elevation > 3000m', 'No local quarry', 'Precision joinery'], precedent_case: 'Sacsayhuamán — 200 ton stones at 3700m; Ollantaytambo 50-ton granite from 6km away' },
+                { signature_id: 'am-lc-pfa-002', description: 'Underwater megalithic structure at depth matching pre-sea-level-rise coastline', severity: 'critical', indicators: ['Structured stone underwater', 'Depth matches ice-age level', 'Right angles and steps', 'Not natural formation'], precedent_case: 'Yonaguni Monument (Japan) at 25m depth; Dwarka underwater ruins (India)' }
+            ]},
+            { name: 'Anomalous Site Dating', description: 'Dating evidence significantly older than accepted timelines', signatures: [
+                { signature_id: 'am-lc-id-001', description: 'Geological weathering requiring 2x+ the accepted construction timeline', severity: 'critical', indicators: ['Water erosion on limestone', 'Weathering exceeds timeline', 'Subsurface erosion', 'Geologist confirmed'], precedent_case: 'Great Sphinx — Robert Schoch (BU, 1991) water erosion requiring 7000-9000 BCE vs accepted 2500 BCE' },
+                { signature_id: 'am-lc-id-002', description: 'Monumental construction predating known agriculture by 5000+ years', severity: 'critical', indicators: ['Monumental scale', 'Pre-agricultural dating', 'No known civilization at date', 'Multiple methods agree'], precedent_case: 'Göbekli Tepe (9600 BCE) — monumental construction 5000 years before Sumeria' }
+            ]},
+            { name: 'Younger Dryas Impact Evidence', description: 'Physical evidence of catastrophic reset ~12,800 BP', signatures: [
+                { signature_id: 'am-lc-ydi-001', description: 'Nano-diamond layer at consistent date across continents indicating impact event', severity: 'critical', indicators: ['Nano-diamonds in stratum', 'Microspherules', 'Consistent ~12,800 BP', 'Multiple continents'], precedent_case: 'Firestone et al. (PNAS, 2007) — nano-diamonds at Younger Dryas boundary across 4 continents' }
+            ]}
+        ],
+        extraterrestrial_contact: [
+            { name: 'Ancient Astronaut Art & Depictions', description: 'Artwork depicting beings or technology consistent with spaceflight', signatures: [
+                { signature_id: 'am-etc-aad-001', description: 'Ancient art depicting humanoid in sealed suit with helmet, visor, breathing apparatus', severity: 'high', indicators: ['Sealed suit', 'Helmet with visor', 'Breathing apparatus', 'Distinct from normal humans'], precedent_case: 'Palenque sarcophagus lid; Tassili cave paintings Great God Mars in sealed suit' }
+            ]},
+            { name: 'Impossible Astronomical Knowledge', description: 'Pre-telescope cultures with knowledge of invisible celestial bodies', signatures: [
+                { signature_id: 'am-etc-sk-001', description: 'Pre-telescope culture with accurate knowledge of invisible celestial body', severity: 'critical', indicators: ['Knowledge of invisible body', 'Pre-telescope era', 'Confirmed by modern instruments', 'No observation method known'], precedent_case: 'Dogon people — knowledge of Sirius B (white dwarf) including 50-year orbit and density' },
+                { signature_id: 'am-etc-sk-002', description: 'Structure aligned to star position thousands of years before construction', severity: 'high', indicators: ['Stellar alignment precise', 'Target date ≠ construction date', 'Precession knowledge required'], precedent_case: 'Great Pyramid shafts aligned to Orions Belt at 10,500 BCE (Bauval Orion Correlation Theory)' }
+            ]}
+        ],
+        sacred_geometry_mathematics: [
+            { name: 'Mathematical Constants in Architecture', description: 'Pi, Phi encoded in structural dimensions beyond coincidence', signatures: [
+                { signature_id: 'am-sgm-ec-001', description: 'Structure with perimeter/height encoding Pi to 4+ decimal places', severity: 'critical', indicators: ['Perimeter/height = 2π ±0.05%', 'Multiple measurements confirm', 'Not coincidence'], precedent_case: 'Great Pyramid — perimeter/height = 2π to 0.04% accuracy' },
+                { signature_id: 'am-sgm-ec-002', description: 'Multiple phi ratios in independent structural measurements', severity: 'high', indicators: ['Multiple phi ratios', 'Different measurement pairs', 'Accuracy < 0.5%'], precedent_case: 'Parthenon facade; Great Pyramid slant height/half-base = phi' }
+            ]},
+            { name: 'Precession Encoding in Myth', description: '25,920-year cycle numbers encoded in mythology and architecture', signatures: [
+                { signature_id: 'am-sgm-ae-001', description: 'Recurring myth numbers that are precessional factors (72, 108, 432, 2160)', severity: 'high', indicators: ['Precessional factors', 'Multiple unrelated myths', 'Used in temple dimensions', 'Consistent across cultures'], precedent_case: 'Norse 432,000 warriors; Vedic 432,000-year Kali Yuga; 72 conspirators kill Osiris' }
+            ]}
+        ],
+        consciousness_nonphysical: [
+            { name: 'Psychedelic Sacraments', description: 'Sacred plant use as consciousness technology', signatures: [
+                { signature_id: 'am-cnp-ps-001', description: 'Sacred text describing plant granting visions matching known psychoactive pharmacology', severity: 'high', indicators: ['Plant in sacred text', 'Grants visions', 'Priest-controlled', 'Effects match psychoactive'], precedent_case: 'Soma (Rig Veda); Eleusinian Mysteries kykeon (ergot); Ayahuasca traditions' }
+            ]},
+            { name: 'Sound & Frequency Technology', description: 'Specific frequencies for healing or consciousness alteration', signatures: [
+                { signature_id: 'am-cnp-sfh-001', description: 'Structure producing specific brainwave-matching frequency when activated', severity: 'high', indicators: ['Helmholtz resonator design', 'Matches brainwave band', 'Altered states reported', 'Deliberate design'], precedent_case: 'Newgrange 110Hz theta resonance; Hypogeum Malta; Chavín de Huántar acoustic galleries' }
+            ]},
+            { name: 'Crystal & Piezoelectric Technology', description: 'Ancient crystals as functional technology', signatures: [
+                { signature_id: 'am-cnp-ct-001', description: 'Precision-shaped crystal cut along specific axis suggesting piezoelectric knowledge', severity: 'moderate', indicators: ['Precision shaping', 'Cut along axis', 'Beyond decorative', 'Associated with power'], precedent_case: 'Crystal skulls cut against axis; Egyptian crystal lenses; Great Pyramid quartz-bearing granite exclusively in Kings Chamber' }
+            ]}
+        ]
+    };
+
+    return METHODS[categoryId] || [];
 }
 
 // === PATTERN SYNTHESIS — Intelligence Summary across all operations ===
