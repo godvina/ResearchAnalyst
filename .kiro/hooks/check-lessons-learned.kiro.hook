@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Check Lessons Learned",
+  "description": "Before deploying code or making infrastructure changes, remind the agent to check docs/lessons-learned.md for known gotchas.",
+  "version": "1",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": [
+      ".*update-function-code.*|.*deploy.*|.*create-stack.*|.*put-role-policy.*|.*update-state-machine.*"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "You are about to deploy or modify infrastructure. Before proceeding, confirm you have checked docs/lessons-learned.md for: AOSS 403 on HEAD (use GET _settings), Step Functions ResultPath nesting, Lambda role permissions for new functions, RDS Data API for migrations, entity_count=0 in case_files, VPC endpoint SG rules, and deploy via S3 (not direct upload)."
+  }
+}
