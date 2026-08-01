@@ -1,11 +1,17 @@
-"""Test geocode endpoint directly."""
-import urllib.request
-import json
+import urllib.request, json
 
-cid = "ed0b6c27-3b6b-4255-b9d0-efe8f4383a99"
-url = f"https://edb025my3i.execute-api.us-east-1.amazonaws.com/v1/case-files/{cid}/geocode"
-body = json.dumps({"locations": ["New York", "Paris", "Washington", "London"]}).encode()
-req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"}, method="POST")
-with urllib.request.urlopen(req, timeout=30) as resp:
-    d = json.loads(resp.read().decode())
-print(json.dumps(d, indent=2))
+API = 'https://edb025my3i.execute-api.us-east-1.amazonaws.com/v1'
+CASE_ID = '0b24a307-a674-41b6-8d22-581c4a4aa566'
+
+# Try more specific names
+locations = ['Barcelona, Spain', 'Antalya, Turkey', 'Casablanca, Morocco', 
+             'Morocco', 'Barcelona', 'Antalya']
+body = json.dumps({'locations': locations}).encode()
+req = urllib.request.Request(API + '/case-files/' + CASE_ID + '/geocode', data=body, method='POST')
+req.add_header('Content-Type', 'application/json')
+resp = urllib.request.urlopen(req, timeout=30)
+data = json.loads(resp.read().decode())
+geo = data.get('geocoded', {})
+for k, v in geo.items():
+    print(f"  {k}: lat={v.get('lat')}, lng={v.get('lng')}")
+print(f"Resolved: {data.get('resolved', 0)}/{data.get('total', 0)}")
