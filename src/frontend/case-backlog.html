@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Backlog — Antitrust Division</title>
+<link rel="stylesheet" href="common.css">
+<style>
+.filter-bar{background:#1a2332;border:1px solid #2d3748;border-radius:12px;padding:16px;margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.filter-bar select,.filter-bar input{background:#0d1520;border:1px solid #2d3748;color:#e2e8f0;padding:8px 12px;border-radius:6px;font-size:0.8em}
+.filter-bar select:focus,.filter-bar input:focus{border-color:#f6ad55;outline:none}
+.filter-bar label{font-size:0.72em;color:#718096;text-transform:uppercase;letter-spacing:0.5px}
+.filter-group{display:flex;flex-direction:column;gap:4px}
+.backlog-list{display:flex;flex-direction:column;gap:12px}
+.backlog-card{background:linear-gradient(135deg,#1a2332,#243447);border:1px solid #2d3748;border-radius:12px;padding:18px 20px;cursor:pointer;transition:all 0.25s;position:relative}
+.backlog-card:hover{border-color:#63b3ed;transform:translateY(-2px);box-shadow:0 6px 20px rgba(99,179,237,0.12)}
+.backlog-card.top-5{border-color:#f6ad55;background:linear-gradient(135deg,#1a2332,#2d2a1f);box-shadow:0 0 12px rgba(246,173,85,0.1)}
+.backlog-card.top-5:hover{border-color:#ed8936;box-shadow:0 6px 20px rgba(246,173,85,0.2)}
+.card-rank{position:absolute;top:12px;left:12px;background:rgba(246,173,85,0.2);color:#f6ad55;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75em;font-weight:800}
+.top-5 .card-rank{background:#f6ad55;color:#1a202c}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-left:36px}
+.card-title{font-size:0.92em;font-weight:700;color:#e2e8f0;margin-bottom:4px}
+.card-score{font-size:1.4em;font-weight:800;color:#48bb78}
+.card-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;margin-left:36px}
+.meta-badge{padding:3px 10px;border-radius:12px;font-size:0.68em;font-weight:600}
+.badge-case-type{background:rgba(144,205,244,0.15);color:#90cdf4;border:1px solid rgba(144,205,244,0.3)}
+.badge-priority-critical{background:rgba(255,107,107,0.15);color:#ff6b6b;border:1px solid rgba(255,107,107,0.3)}
+.badge-priority-high{background:rgba(246,173,85,0.15);color:#f6ad55;border:1px solid rgba(246,173,85,0.3)}
+.badge-priority-medium{background:rgba(144,205,244,0.15);color:#90cdf4;border:1px solid rgba(144,205,244,0.3)}
+.badge-priority-low{background:rgba(113,128,150,0.15);color:#a0aec0;border:1px solid rgba(113,128,150,0.3)}
+.badge-policy{background:rgba(214,188,250,0.15);color:#d6bcfa;border:1px solid rgba(214,188,250,0.3)}
+.card-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px;margin-left:36px}
+.stat-item{text-align:center}
+.stat-value{font-size:0.82em;font-weight:700;color:#e2e8f0}
+.stat-label{font-size:0.6em;color:#718096;text-transform:uppercase}
+.pagination{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:20px}
+.pagination button{background:#1a2332;border:1px solid #2d3748;color:#e2e8f0;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.78em}
+.pagination button:hover{border-color:#f6ad55}
+.pagination button:disabled{opacity:0.4;cursor:not-allowed}
+.pagination .page-info{font-size:0.78em;color:#718096}
+.algo-panel{background:#1a2332;border:1px solid #2d3748;border-radius:12px;margin-bottom:16px;overflow:hidden}
+.algo-toggle{padding:14px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:0.82em;font-weight:600;color:#f6ad55}
+.algo-toggle:hover{background:rgba(246,173,85,0.05)}
+.algo-body{padding:0 20px 16px;display:none;font-size:0.78em;color:#a0aec0;line-height:1.8}
+.algo-body.open{display:block}
+.algo-table{width:100%;border-collapse:collapse;margin:10px 0}
+.algo-table th,.algo-table td{padding:6px 10px;text-align:left;border-bottom:1px solid #2d3748}
+.algo-table th{color:#718096;font-size:0.9em;text-transform:uppercase}
+.algo-table td{color:#e2e8f0}
+.empty-state{text-align:center;padding:60px 20px;color:#718096;font-size:0.9em}
+.card-detail-panel{margin-top:14px;padding:16px;background:#0d1520;border:1px solid #2d3748;border-radius:8px;animation:slideDown 0.2s ease}
+@keyframes slideDown{from{opacity:0;max-height:0}to{opacity:1;max-height:600px}}
+.detail-section{margin-bottom:14px}
+.detail-section h4{color:#f6ad55;font-size:0.82em;margin:0 0 8px 0}
+.score-breakdown{width:100%;border-collapse:collapse;font-size:0.78em}
+.score-breakdown th{color:#718096;text-align:left;padding:4px 8px;border-bottom:1px solid #2d3748;font-size:0.85em}
+.score-breakdown td{padding:4px 8px;color:#e2e8f0;border-bottom:1px solid rgba(45,55,72,0.5)}
+.score-breakdown strong{color:#48bb78}
+.detail-total{margin-top:10px;text-align:right;font-size:0.85em;color:#a0aec0}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:0.78em}
+.detail-label{color:#718096}
+.detail-grid code{font-size:0.85em;color:#90cdf4;background:rgba(144,205,244,0.1);padding:1px 4px;border-radius:3px}
+.detail-actions{text-align:right;margin-top:10px}
+.btn-detail{background:linear-gradient(135deg,#f6ad55,#ed8936);color:#1a202c;border:none;padding:8px 16px;border-radius:6px;font-size:0.78em;font-weight:700;cursor:pointer}
+.btn-detail:hover{transform:scale(1.02)}
+.summary-bar{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.summary-stat{background:#1a2332;border:1px solid #2d3748;border-radius:10px;padding:12px 18px;min-width:120px}
+.summary-stat .val{font-size:1.3em;font-weight:800;color:#48bb78}
+.summary-stat .lbl{font-size:0.68em;color:#718096;text-transform:uppercase;margin-top:2px}
+</style>
+</head>
+<body>
+<script src="config.js"></script>
+<div class="header">
+    <h1>⚖️ Case Backlog — <span>Prioritized Queue</span></h1>
+    <div class="header-right">
+        <div class="header-badge">Antitrust Division</div>
+        <div class="header-badge">Backlog Manager</div>
+    </div>
+</div>
+<div class="nav-bar">
+    <a href="index.html" class="nav-link">🏠 Home</a>
+    <a href="investigator.html" class="nav-link">📋 Cases</a>
+    <a href="pre-case-intelligence.html" class="nav-link">⚖️ Pre-Case</a>
+    <a href="case-backlog.html" class="nav-link active">📊 Backlog</a>
+    <a href="pipeline-config.html" class="nav-link">⚙️ Pipeline</a>
+    <a href="admin.html" class="nav-link">🔐 Admin</a>
+</div>
+<div class="page-content">
+    <div class="summary-bar" id="summaryBar">
+        <div class="summary-stat"><div class="val" id="totalLeads">—</div><div class="lbl">Total Leads</div></div>
+        <div class="summary-stat"><div class="val" id="avgScore">—</div><div class="lbl">Avg Score</div></div>
+        <div class="summary-stat"><div class="val" id="criticalCount">—</div><div class="lbl">Critical</div></div>
+        <div class="summary-stat"><div class="val" id="highCount">—</div><div class="lbl">High Priority</div></div>
+    </div>
+    <div class="algo-panel">
+        <div class="algo-toggle" onclick="toggleAlgo()">
+            <span>📐 Scoring Algorithm Explanation</span>
+            <span id="algoArrow">▶</span>
+        </div>
+        <div class="algo-body" id="algoBody">
+            <p><strong>Backlog Score</strong> is a weighted composite of 7 factors (0–100 scale):</p>
+            <table class="algo-table">
+                <tr><th>Factor</th><th>Weight</th><th>Normalization</th></tr>
+                <tr><td>Pre-Assessment Score</td><td>25%</td><td>Direct (0–100)</td></tr>
+                <tr><td>Priority Level</td><td>20%</td><td>critical=100, high=75, medium=50, low=25</td></tr>
+                <tr><td>Classification Confidence</td><td>15%</td><td>Direct percentage (0–100)</td></tr>
+                <tr><td>Estimated Harm</td><td>15%</td><td>Log scale: $0=0, $1M≈50, $100M≈75, $1B+=100</td></tr>
+                <tr><td>Policy Alignment</td><td>10%</td><td>0=none, 50=low boost, 75=med, 100=high</td></tr>
+                <tr><td>OSINT Sources</td><td>10%</td><td>Linear: 0→0, 7+→100</td></tr>
+                <tr><td>Urgency (Age)</td><td>5%</td><td>min(100, days×2) — caps at 50 days</td></tr>
+            </table>
+            <p><strong>Worked Example:</strong> A lead with priority=high (75), confidence=85%, pre-assessment=70, 4 OSINT sources (57), $50M harm (68), policy match at 1.7x (100), 20 days old (40):</p>
+            <p style="color:#48bb78;font-family:monospace">Score = 70×0.25 + 75×0.20 + 85×0.15 + 68×0.15 + 100×0.10 + 57×0.10 + 40×0.05 = <strong>72.5</strong></p>
+            <div id="policyList"></div>
+        </div>
+    </div>
+    <div class="filter-bar">
+        <div class="filter-group"><label>Case Type</label>
+            <select id="filterCaseType" onchange="loadBacklog()">
+                <option value="">All Types</option>
+                <option value="procurement_collusion">Procurement Collusion</option>
+                <option value="price_fixing">Price Fixing</option>
+                <option value="market_allocation">Market Allocation</option>
+                <option value="merger_review">Merger Review</option>
+                <option value="monopolization">Monopolization</option>
+                <option value="criminal_cartel">Criminal Cartel</option>
+            </select>
+        </div>
+        <div class="filter-group"><label>Priority</label>
+            <select id="filterPriority" onchange="loadBacklog()">
+                <option value="">All Priorities</option>
+                <option value="critical">Critical</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+            </select>
+        </div>
+        <div class="filter-group"><label>Min Score</label>
+            <input type="number" id="filterMinScore" min="0" max="100" placeholder="0" onchange="loadBacklog()">
+        </div>
+    </div>
+    <div class="backlog-list" id="backlogList"><div class="empty-state">Loading backlog...</div></div>
+    <div class="pagination" id="pagination" style="display:none">
+        <button id="prevBtn" onclick="changePage(-1)">← Previous</button>
+        <span class="page-info" id="pageInfo">Page 1 of 1</span>
+        <button id="nextBtn" onclick="changePage(1)">Next →</button>
+    </div>
+</div>
+<script>
+const API_URL = typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : (window.APP_CONFIG ? window.APP_CONFIG.API_URL : '');
+let currentPage = 1, totalPages = 1;
+const PAGE_SIZE = 25;
+
+function toggleAlgo() {
+    const body = document.getElementById('algoBody');
+    const arrow = document.getElementById('algoArrow');
+    body.classList.toggle('open');
+    arrow.textContent = body.classList.contains('open') ? '▼' : '▶';
+}
+
+async function loadBacklog() {
+    const ct = document.getElementById('filterCaseType').value;
+    const pr = document.getElementById('filterPriority').value;
+    const ms = document.getElementById('filterMinScore').value;
+    let url = API_URL + '/pre-case/backlog?page=' + currentPage + '&page_size=' + PAGE_SIZE;
+    if (ct) url += '&case_type=' + ct;
+    if (pr) url += '&priority=' + pr;
+    if (ms) url += '&min_score=' + ms;
+    try {
+        const resp = await fetch(url, {headers:{'Content-Type':'application/json'}});
+        if (!resp.ok) throw new Error(resp.statusText);
+        const data = await resp.json();
+        renderBacklog(data); updateSummary(data); updatePagination(data);
+    } catch(e) {
+        document.getElementById('backlogList').innerHTML = '<div class="empty-state">Failed to load backlog: ' + e.message + '</div>';
+    }
+}
+
+function renderBacklog(data) {
+    const list = document.getElementById('backlogList');
+    const leads = data.leads || [];
+    backlogLeadsCache = leads;
+    if (!leads.length) { list.innerHTML = '<div class="empty-state">No leads in backlog matching filters.</div>'; return; }
+    let html = '';
+    leads.forEach((lead, idx) => {
+        const rank = (currentPage - 1) * PAGE_SIZE + idx + 1;
+        const isTop5 = rank <= 5;
+        const sc = lead.backlog_score >= 70 ? '#48bb78' : lead.backlog_score >= 40 ? '#f6ad55' : '#fc8181';
+        html += '<div class="backlog-card ' + (isTop5 ? 'top-5' : '') + '" data-lead-id="' + lead.lead_id + '" onclick="viewLead(\'' + lead.lead_id + '\')">';
+        html += '<div class="card-rank">' + rank + '</div>';
+        html += '<div class="card-header"><div class="card-title">' + (lead.title||'Untitled') + '</div>';
+        html += '<div class="card-score" style="color:' + sc + '">' + (lead.backlog_score||0).toFixed(1) + '</div></div>';
+        html += '<div class="card-meta">';
+        if (lead.case_type) html += '<span class="meta-badge badge-case-type">' + lead.case_type.replace(/_/g,' ') + '</span>';
+        if (lead.priority) html += '<span class="meta-badge badge-priority-' + lead.priority + '">' + lead.priority + '</span>';
+        html += '</div>';
+        html += '<div class="card-stats">';
+        html += '<div class="stat-item"><div class="stat-value">' + (lead.classification_confidence||0).toFixed(0) + '%</div><div class="stat-label">Confidence</div></div>';
+        html += '<div class="stat-item"><div class="stat-value">' + (lead.pre_assessment_score||0).toFixed(0) + '</div><div class="stat-label">Assessment</div></div>';
+        html += '<div class="stat-item"><div class="stat-value">' + (lead.osint_sources_count||0) + '</div><div class="stat-label">OSINT Src</div></div>';
+        html += '<div class="stat-item"><div class="stat-value">' + formatHarm(lead.estimated_harm) + '</div><div class="stat-label">Est. Harm</div></div>';
+        html += '<div class="stat-item"><div class="stat-value">' + (lead.days_since_submission||0) + 'd</div><div class="stat-label">Age</div></div>';
+        html += '</div></div>';
+    });
+    list.innerHTML = html;
+}
+
+function formatHarm(a) {
+    if (!a||a===0) return '$0';
+    if (a>=1e9) return '$'+(a/1e9).toFixed(1)+'B';
+    if (a>=1e6) return '$'+(a/1e6).toFixed(1)+'M';
+    if (a>=1e3) return '$'+(a/1e3).toFixed(0)+'K';
+    return '$'+a;
+}
+
+function updateSummary(data) {
+    const leads = data.leads||[];
+    document.getElementById('totalLeads').textContent = data.total_count||0;
+    if (leads.length) {
+        const avg = leads.reduce((s,l) => s+(l.backlog_score||0),0)/leads.length;
+        document.getElementById('avgScore').textContent = avg.toFixed(1);
+    } else document.getElementById('avgScore').textContent = '—';
+    document.getElementById('criticalCount').textContent = leads.filter(l=>l.priority==='critical').length;
+    document.getElementById('highCount').textContent = leads.filter(l=>l.priority==='high').length;
+}
+
+function updatePagination(data) {
+    const total = data.total_count||0;
+    totalPages = Math.ceil(total/PAGE_SIZE)||1;
+    const pag = document.getElementById('pagination');
+    if (total > PAGE_SIZE) {
+        pag.style.display = 'flex';
+        document.getElementById('pageInfo').textContent = 'Page '+currentPage+' of '+totalPages;
+        document.getElementById('prevBtn').disabled = currentPage<=1;
+        document.getElementById('nextBtn').disabled = currentPage>=totalPages;
+    } else pag.style.display = 'none';
+}
+
+function changePage(d) { currentPage+=d; if(currentPage<1)currentPage=1; if(currentPage>totalPages)currentPage=totalPages; loadBacklog(); }
+
+let expandedLeadId = null;
+let backlogLeadsCache = [];
+
+function viewLead(id) {
+    // Toggle expanded detail panel inline instead of navigating away
+    if (expandedLeadId === id) {
+        expandedLeadId = null;
+        document.querySelectorAll('.card-detail-panel').forEach(el => el.remove());
+        return;
+    }
+    expandedLeadId = id;
+    document.querySelectorAll('.card-detail-panel').forEach(el => el.remove());
+
+    const lead = backlogLeadsCache.find(l => l.lead_id === id);
+    if (!lead) return;
+
+    const card = document.querySelector('[data-lead-id="' + id + '"]');
+    if (!card) return;
+
+    // Build score breakdown
+    const priorityScore = ({critical:100,high:75,medium:50,low:25})[lead.priority||'medium'] || 50;
+    const confidenceScore = lead.classification_confidence || 0;
+    const assessmentScore = lead.pre_assessment_score || 0;
+    const osintScore = Math.min(100, (lead.osint_sources_count||0) * 100 / 7).toFixed(1);
+    const harmScore = lead.estimated_harm > 0 ? 'log($' + formatHarm(lead.estimated_harm) + ')' : '0';
+    const urgencyScore = Math.min(100, (lead.days_since_submission||0) * 2);
+
+    let panel = document.createElement('div');
+    panel.className = 'card-detail-panel';
+    panel.innerHTML = `
+        <div class="detail-section">
+            <h4>📊 Score Breakdown</h4>
+            <table class="score-breakdown">
+                <tr><th>Factor</th><th>Raw</th><th>Normalized</th><th>Weight</th><th>Contribution</th></tr>
+                <tr><td>Pre-Assessment Score</td><td>${assessmentScore}</td><td>${assessmentScore}</td><td>×0.25</td><td><strong>${(assessmentScore*0.25).toFixed(1)}</strong></td></tr>
+                <tr><td>Priority (${lead.priority||'medium'})</td><td>${lead.priority}</td><td>${priorityScore}</td><td>×0.20</td><td><strong>${(priorityScore*0.20).toFixed(1)}</strong></td></tr>
+                <tr><td>Classification Confidence</td><td>${confidenceScore}%</td><td>${confidenceScore}</td><td>×0.15</td><td><strong>${(confidenceScore*0.15).toFixed(1)}</strong></td></tr>
+                <tr><td>Estimated Harm</td><td>${formatHarm(lead.estimated_harm)}</td><td>${harmScore}</td><td>×0.15</td><td>—</td></tr>
+                <tr><td>Policy Alignment</td><td>—</td><td>—</td><td>×0.10</td><td>—</td></tr>
+                <tr><td>OSINT Sources</td><td>${lead.osint_sources_count||0} sources</td><td>${osintScore}</td><td>×0.10</td><td><strong>${((lead.osint_sources_count||0)*100/7*0.10).toFixed(1)}</strong></td></tr>
+                <tr><td>Urgency (Age)</td><td>${lead.days_since_submission||0} days</td><td>${urgencyScore}</td><td>×0.05</td><td><strong>${(urgencyScore*0.05).toFixed(1)}</strong></td></tr>
+            </table>
+            <div class="detail-total">Final Score: <span style="color:#48bb78;font-size:1.3em;font-weight:800">${(lead.backlog_score||0).toFixed(1)}</span> / 100</div>
+        </div>
+        <div class="detail-section">
+            <h4>📋 Case Details</h4>
+            <div class="detail-grid">
+                <div><span class="detail-label">Case Type:</span> ${(lead.case_type||'—').replace(/_/g,' ')}</div>
+                <div><span class="detail-label">Status:</span> ${lead.status||'—'}</div>
+                <div><span class="detail-label">Created:</span> ${lead.created_at ? new Date(lead.created_at).toLocaleDateString() : '—'}</div>
+                <div><span class="detail-label">Lead ID:</span> <code>${lead.lead_id}</code></div>
+            </div>
+        </div>
+        <div class="detail-actions">
+            <button onclick="window.location.href='pre-case-intelligence.html?lead_id=${id}'" class="btn-detail">Open Full Detail →</button>
+        </div>
+    `;
+    card.appendChild(panel);
+}
+
+async function loadPolicies() {
+    try {
+        const resp = await fetch(API_URL+'/pre-case/policy-priorities',{headers:{'Content-Type':'application/json'}});
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const policies = data.policies||[];
+        if (policies.length) {
+            let html = '<h4 style="color:#d6bcfa;margin-top:14px">Active Policy Directives</h4><table class="algo-table">';
+            html += '<tr><th>Directive</th><th>Source</th><th>Industries</th><th>Case Types</th><th>Boost</th></tr>';
+            policies.forEach(p => {
+                html += '<tr><td>'+p.directive_title+'</td><td>'+p.source+'</td>';
+                html += '<td>'+(p.target_industries||[]).join(', ')+'</td>';
+                html += '<td>'+(p.target_case_types||[]).join(', ')+'</td>';
+                html += '<td>'+p.boost_multiplier+'×</td></tr>';
+            });
+            html += '</table>';
+            document.getElementById('policyList').innerHTML = html;
+        }
+    } catch(e) {}
+}
+
+document.addEventListener('DOMContentLoaded', function() { loadBacklog(); loadPolicies(); });
+</script>
+</body>
+</html>
