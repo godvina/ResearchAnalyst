@@ -113,17 +113,41 @@ def get_analysis(event, context):
         case_id = (event.get("pathParameters") or {}).get("id", "")
         if not case_id:
             return error_response(400, "VALIDATION_ERROR", "Missing case ID", event)
+
+        # --- FAST PATH: Pre-computed typology for large cases (skip Neptune entirely) ---
+        try:
+            from services.typology_pipeline_utils import get_case_entity_count, has_precomputed_results
+            from services.typology_query_definitions import CASE_ENTITY_THRESHOLD
+
+            entity_count = get_case_entity_count(case_id)
+            if entity_count >= CASE_ENTITY_THRESHOLD and has_precomputed_results(case_id):
+                logger.info("Large case %s (%d entities) — routing to Intelligence Command Brief", case_id, entity_count)
+                from lambdas.api.intelligence_command_brief import handler as brief_handler
+                brief_event = {"pathParameters": {"id": case_id}, "queryStringParameters": {}}
+                brief_resp = brief_handler(brief_event, context)
+                brief_body = json.loads(brief_resp.get("body", "{}"))
+
+                response_data = {
+                    "status": "completed",
+                    "case_id": case_id,
+                    "large_case": True,
+                    "intelligence_brief": brief_body,
+                }
+                return success_response(response_data, 200, event)
+        except Exception as precomp_exc:
+            logger.warning("Intelligence Brief fast path failed for %s, falling through: %s", case_id, str(precomp_exc)[:200])
+
+        # --- Standard path: build engine, query Neptune (small cases) ---
         engine = _build_engine()
         result = engine.get_analysis_status(case_id)
         if not result:
-            # No analysis yet — still try to return Command Center data
             response_data = {"status": "no_analysis", "case_id": case_id}
         else:
             response_data = result.model_dump(mode="json")
 
         # --- Command Center enhancement (time-budgeted) ---
         elapsed = time.time() - t0
-        if elapsed < 10:  # Only attempt if we have >19s headroom before 29s API GW timeout
+        if elapsed < 5:  # Only attempt if we have >24s headroom before 29s API GW timeout
             try:
                 params = event.get("queryStringParameters") or {}
                 bypass_cache = params.get("bypass_cache", "").lower() == "true"
@@ -153,6 +177,24 @@ def get_analysis(event, context):
                             logger.info("Resolved graph_case_id=%s from parent_case_id for case %s", graph_case_id, case_id)
                 except Exception:
                     pass  # Fall back to case_id
+
+                # For very large cases (>100K entities), reduce Neptune timeout to avoid API GW 29s limit
+                entity_count = 0
+                try:
+                    with aurora_cm.cursor() as cur:
+                        cur.execute("SELECT entity_count FROM case_files WHERE case_id = %s", (case_id,))
+                        row = cur.fetchone()
+                        if row and row[0]:
+                            entity_count = int(row[0])
+                except Exception:
+                    pass
+
+                if entity_count > 100000:
+                    # Large case: shorten Neptune timeouts to 5s per query
+                    logger.info("Large case detected (%d entities) — reducing Neptune timeouts", entity_count)
+                    original_timeout = cc_engine._gremlin.__defaults__
+                    cc_engine._neptune_timeout_override = 5
+
                 # Use Bedrock for strategic assessment — AI-written case narrative
                 cc_data = cc_engine.compute(case_id, bypass_cache=bypass_cache, graph_case_id=graph_case_id)
                 response_data["command_center"] = cc_data
