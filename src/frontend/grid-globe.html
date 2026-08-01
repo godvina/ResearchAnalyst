@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UVG Grid Investigation — Intelligence Dashboard</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0f19;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.header{padding:12px 24px;background:rgba(16,24,40,0.95);border-bottom:1px solid rgba(236,201,75,0.15);display:flex;align-items:center;gap:16px}
+.header h1{font-size:1rem;font-weight:700;color:#ecc94b}
+.header .sub{font-size:0.7rem;color:#718096}
+.header .nav-links{margin-left:auto;display:flex;gap:8px}
+.header .nav-links a{color:#a0aec0;text-decoration:none;font-size:0.7rem;padding:4px 10px;border:1px solid #4a5568;border-radius:5px}
+.header .nav-links a:hover{color:#63b3ed;border-color:#63b3ed}
+.main{display:grid;grid-template-columns:1fr 440px;height:calc(100vh - 48px);overflow:hidden}
+.map-area{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.map-container{flex:1;min-height:200px;position:relative}
+#map{width:100%;height:100%}
+</style>
+</head>
+<body>
+<div class="header">
+    <h1>🌐 UVG Grid Investigation</h1>
+    <span class="sub">62 Vertices • Becker-Hagens Grid • AI Research Findings</span>
+    <div class="nav-links">
+        <button id="audioBtn" onclick="toggleAudioPlayer()" style="background:rgba(183,148,244,0.1);border:1px solid rgba(183,148,244,0.3);border-radius:5px;padding:4px 10px;font-size:0.7rem;color:#b794f4;cursor:pointer;">🎧 Listen</button>
+        <a href="pattern-library.html">📚 Pattern Library</a>
+        <a href="index.html">🏠 Home</a>
+    </div>
+</div>
+<!-- Audio Player Bar (hidden by default) -->
+<div id="audioPlayer" style="display:none;padding:8px 24px;background:rgba(16,24,40,0.98);border-bottom:1px solid rgba(183,148,244,0.2);">
+    <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="seekBack()" title="Back 10s" style="background:none;border:none;color:#a0aec0;font-size:0.8rem;cursor:pointer;">⏪</button>
+        <button onclick="playPause()" id="playBtn" style="background:none;border:none;color:#b794f4;font-size:1.2rem;cursor:pointer;">▶️</button>
+        <button onclick="seekForward()" title="Forward 10s" style="background:none;border:none;color:#a0aec0;font-size:0.8rem;cursor:pointer;">⏩</button>
+        <div style="flex:1;">
+            <div id="audioTitle" style="font-size:0.72rem;color:#e2e8f0;font-weight:600;">Loading briefing...</div>
+            <div id="audioChapter" style="font-size:0.6rem;color:#718096;">—</div>
+        </div>
+        <select id="speedSelect" onchange="setSpeed(this.value)" style="background:#1a202c;border:1px solid #4a5568;border-radius:4px;color:#a0aec0;font-size:0.6rem;padding:2px 4px;">
+            <option value="0.75">0.75x</option>
+            <option value="1" selected>1x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2x</option>
+        </select>
+        <button onclick="toggleCaptions()" id="captionBtn" title="Show captions" style="background:none;border:1px solid #4a5568;border-radius:4px;padding:3px 7px;font-size:0.6rem;color:#a0aec0;cursor:pointer;">CC</button>
+        <button onclick="toggleAudioPlayer()" style="background:none;border:none;color:#718096;cursor:pointer;font-size:0.8rem;">✕</button>
+    </div>
+    <!-- Progress bar -->
+    <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
+        <span id="audioTime" style="font-size:0.55rem;color:#718096;min-width:35px;">0:00</span>
+        <input type="range" id="audioScrubber" min="0" max="100" value="0" oninput="scrubAudio(this.value)" style="flex:1;height:4px;accent-color:#b794f4;cursor:pointer;">
+        <span id="audioDuration" style="font-size:0.55rem;color:#718096;min-width:35px;">0:00</span>
+    </div>
+    <!-- Chapter buttons -->
+    <div id="chapterList" style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;"></div>
+    <!-- Captions -->
+    <div id="captionBar" style="display:none;padding:8px 0;font-size:0.78rem;color:#e2e8f0;line-height:1.6;max-height:80px;overflow-y:auto;border-top:1px solid rgba(255,255,255,0.06);margin-top:6px;background:rgba(0,0,0,0.2);padding:8px 12px;border-radius:4px;"></div>
+    <audio id="audioElement" onended="nextChapter()" ontimeupdate="updateProgress()"></audio>
+</div>
+<div class="main">
+    <div class="map-area">
+        <div class="map-container">
+            <div id="map"></div>
+            <!-- Picture-in-Picture window (shows site photos synced to narration) -->
+            <div id="pipWindow" class="pip-window" style="display:none;">
+                <img id="pipImage" src="" alt="Site photo">
+                <div id="pipCaption" class="pip-caption"></div>
+            </div>
+        </div>
+        <!-- Network Graph Panel (appears below map on pattern click) -->
+        <div id="networkPanel" class="network-panel" style="display:none;">
+            <div class="network-header">
+                <span class="network-title" id="networkTitle">🕸️ Network Graph</span>
+                <button class="network-close" onclick="closeNetworkGraph()">✕ Close</button>
+            </div>
+            <div style="display:flex;flex:1;min-height:0;">
+                <svg id="networkSvg" style="flex:1;"></svg>
+                <div id="networkBrief" style="width:220px;padding:8px 10px;overflow-y:auto;border-left:1px solid rgba(255,255,255,0.06);font-size:0.68rem;color:#a0aec0;line-height:1.5;">
+                    <div style="color:#718096;font-size:0.6rem;">Click a node for its intelligence brief</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="sidebar" id="sidebar"></div>
+</div>
+<style>
+/* Sidebar */
+.sidebar{background:rgba(16,24,40,0.98);border-left:1px solid rgba(255,255,255,0.06);overflow-y:auto;padding:18px;font-size:0.78rem}
+/* Network Graph Panel — below map */
+.network-panel{height:260px;border-top:1px solid rgba(183,148,244,0.25);background:#0d1320;display:flex;flex-direction:column;flex-shrink:0}
+.network-header{padding:5px 14px;background:rgba(16,24,40,0.95);border-bottom:1px solid rgba(183,148,244,0.12);display:flex;align-items:center;justify-content:space-between}
+.network-title{font-size:0.7rem;font-weight:700;color:#b794f4}
+.network-close{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:3px 8px;font-size:0.58rem;color:#a0aec0;cursor:pointer}
+.network-close:hover{color:#fc8181;border-color:#fc8181}
+#networkSvg{flex:1;width:100%}
+.node-circle{cursor:pointer;transition:r 0.2s}
+.node-circle:hover{filter:brightness(1.3)}
+.node-text{font-size:9px;fill:#e2e8f0;pointer-events:none;text-anchor:middle}
+.link-line{stroke-opacity:0.4}
+.link-label{font-size:7px;fill:#718096;text-anchor:middle}
+/* New Finding Popup */
+.new-finding-popup{position:absolute;top:50px;right:10px;z-index:2000;width:280px;background:rgba(16,24,40,0.95);border:1px solid rgba(72,187,120,0.4);border-radius:8px;padding:12px;animation:slideIn 0.3s ease;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
+@keyframes slideIn{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
+.nf-header{font-size:0.7rem;font-weight:700;color:#48bb78;margin-bottom:6px}
+.nf-title{font-size:0.76rem;color:#e2e8f0;font-weight:600;margin-bottom:4px;line-height:1.3}
+.nf-source{font-size:0.6rem;color:#718096;margin-bottom:6px}
+.nf-text{font-size:0.68rem;color:#a0aec0;line-height:1.4}
+.nf-dismiss{position:absolute;top:8px;right:8px;background:none;border:none;color:#718096;cursor:pointer;font-size:0.8rem}
+.nf-dismiss:hover{color:#fc8181}
+/* Picture-in-Picture window */
+.pip-window{position:absolute;bottom:16px;right:16px;z-index:1500;width:240px;border-radius:8px;overflow:hidden;border:2px solid rgba(236,201,75,0.4);box-shadow:0 8px 32px rgba(0,0,0,0.6);animation:fadeIn 0.3s ease}
+.pip-window img{width:100%;height:140px;object-fit:cover;display:block}
+.pip-caption{padding:6px 10px;background:rgba(16,24,40,0.95);font-size:0.65rem;color:#e2e8f0;text-align:center}
+.section-title{font-size:0.65rem;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.5px;margin:16px 0 8px;padding-bottom:5px;border-bottom:1px solid rgba(255,255,255,0.05)}
+.pattern-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:11px 13px;margin-bottom:7px;cursor:pointer;transition:all 0.2s}
+.pattern-card:hover{border-color:rgba(236,201,75,0.4);background:rgba(236,201,75,0.03)}
+.pattern-card.active{border-color:#ecc94b;background:rgba(236,201,75,0.06);box-shadow:0 0 12px rgba(236,201,75,0.08)}
+.pattern-card .p-title{font-size:0.76rem;font-weight:600;color:#e2e8f0}
+.pattern-card .p-count{font-size:0.62rem;color:#ecc94b;margin-top:2px}
+/* Layer toggles on map */
+.layer-bar{position:absolute;top:10px;left:10px;z-index:1000;display:flex;gap:5px}
+.layer-btn{background:rgba(16,24,40,0.9);border:1px solid rgba(255,255,255,0.12);border-radius:5px;padding:5px 9px;font-size:0.62rem;color:#a0aec0;cursor:pointer;transition:all 0.15s}
+.layer-btn:hover{border-color:#63b3ed;color:#63b3ed}
+.layer-btn.active{border-color:#ecc94b;color:#ecc94b;background:rgba(236,201,75,0.06)}
+/* Legend */
+.legend{position:absolute;bottom:12px;left:12px;z-index:1000;background:rgba(16,24,40,0.9);padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);font-size:0.6rem;line-height:1.7}
+.legend-row{display:flex;align-items:center;gap:6px}
+.l-diamond{width:8px;height:8px;transform:rotate(45deg);border:1.5px solid #4a5568;background:transparent}
+.l-circle{width:8px;height:8px;border-radius:50%}
+.l-line{width:16px;height:0;border-top:1.5px solid}
+/* Intel brief */
+.intel{display:none;animation:fadeIn 0.25s ease}
+.intel.visible{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.intel-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(236,201,75,0.15)}
+.intel-code{font-size:0.82rem;font-weight:800;color:#ecc94b;letter-spacing:0.3px}
+.intel-badge{font-size:0.55rem;font-weight:700;padding:2px 7px;border-radius:8px;text-transform:uppercase}
+.intel-badge.confirmed{background:rgba(72,187,120,0.12);color:#48bb78;border:1px solid rgba(72,187,120,0.25)}
+.intel-badge.probable{background:rgba(99,179,237,0.12);color:#63b3ed;border:1px solid rgba(99,179,237,0.25)}
+.intel-badge.inconclusive{background:rgba(160,174,192,0.1);color:#a0aec0;border:1px solid rgba(160,174,192,0.2)}
+.intel-text{font-size:0.7rem;color:#cbd5e0;line-height:1.5;margin-bottom:10px}
+.intel-key{background:rgba(236,201,75,0.05);border:1px solid rgba(236,201,75,0.15);border-radius:6px;padding:9px;margin-bottom:10px}
+.intel-key .lbl{font-size:0.58rem;font-weight:700;color:#ecc94b;text-transform:uppercase;margin-bottom:3px}
+.intel-key .val{font-size:0.68rem;color:#e2e8f0;line-height:1.5}
+.ev-item{font-size:0.66rem;padding:5px 7px;margin-bottom:3px;background:rgba(0,0,0,0.2);border-radius:4px;border-left:2px solid #4a5568;color:#cbd5e0;line-height:1.4}
+.ev-item.confirmed{border-left-color:#48bb78}
+.ev-item.probable{border-left-color:#63b3ed}
+.ev-item .src{font-size:0.55rem;color:#718096;margin-top:2px}
+.back-link{font-size:0.68rem;color:#a0aec0;cursor:pointer;margin-bottom:12px;display:block}
+.back-link:hover{color:#ecc94b}
+/* Node label on map */
+.node-label{font-size:9px;color:#e2e8f0;background:rgba(16,24,40,0.85);padding:1px 5px;border-radius:3px;border:1px solid rgba(255,255,255,0.1);white-space:nowrap}
+/* Focus mode: dim non-matching nodes */
+.leaflet-marker-icon.dimmed, .leaflet-interactive.dimmed{opacity:0.15!important}
+</style>
+<script src="config.js"></script>
+<script>
+// INLINE DATA — eliminates fetch issues when served from S3/API Gateway
+var INLINE_CUE_SHEET = {"version": "1.0", "chapters": [{"chapter": 1, "title": "The Theory", "start_time": 0, "end_time": 78, "duration": 78, "cues": [{"time": 2, "action": "zoom", "target": {"lat": 20, "lng": 20, "zoom": 2}}, {"time": 75, "action": "zoom", "target": {"lat": 20, "lng": 20, "zoom": 2}}]}, {"chapter": 2, "title": "The Evidence", "start_time": 78, "end_time": 155, "duration": 77, "cues": [{"time": 80, "action": "zoom", "target": {"lat": 20, "lng": 20, "zoom": 2}}, {"time": 152, "action": "zoom", "target": {"lat": 20, "lng": 20, "zoom": 2}}]}, {"chapter": 3, "title": "Sacred Sites", "start_time": 155, "end_time": 250, "duration": 95, "cues": [{"time": 157, "action": "zoom", "target": {"lat": 20, "lng": 20, "zoom": 2}}, {"time": 160, "action": "focus_pattern", "pattern": "sacred"}, {"time": 163, "action": "highlight_site", "node_id": 1, "target": {"lat": 29.979, "lng": 31.134, "zoom": 4}, "label": "Great Pyramid of Giza"}, {"time": 202, "action": "highlight_site", "node_id": 12, "target": {"lat": 27.324, "lng": 68.138, "zoom": 4}, "label": "Mohenjo-daro"}, {"time": 247, "action": "zoom", "target": {"lat": 20, "lng": 20, "zoom": 2}}]}, {"chapter": 4, "title": "The Connections", "start_time": 250, "end_time": 355, "duration": 105, "cues": [{"time": 252, "action": "zoom", "target": {"lat": 20, "lng": 20, "zoom": 2}}, {"time": 255, "action": "focus_pattern", "pattern": "cluster"}, {"time": 276, "action": "highlight_site", "node_id": 25, "target": {"lat": 13.412, "lng": 103.866, "zoom": 4}, "label": "Angkor Wat"}, {"time": 296, "action": "highlight_site", "node_id": 47, "target": {"lat": -27.116, "lng": -109.349, "zoom": 4}, "label": "Easter Island"}, {"time": 352, "action": "zoom", "target": {"lat": 20, "lng": 20, "zoom": 2}}]}, {"chapter": 5, "title": "What the AI Discovered", "start_time": 355, "end_time": 454, "duration": 99, "cues": [{"time": 357, "action": "zoom", "target": {"lat": 20, "lng": 20, "zoom": 2}}, {"time": 360, "action": "focus_pattern", "pattern": "submerged"}, {"time": 406, "action": "highlight_site", "node_id": 11, "target": {"lat": 51.428, "lng": -1.854, "zoom": 5}, "label": "Avebury"}, {"time": 409, "action": "highlight_site", "node_id": 11, "target": {"lat": 51.144, "lng": -2.699, "zoom": 5}, "label": "Glastonbury Tor"}, {"time": 412, "action": "highlight_site", "node_id": 11, "target": {"lat": 51.179, "lng": -1.826, "zoom": 5}, "label": "Stonehenge"}, {"time": 451, "action": "zoom", "target": {"lat": 20, "lng": 20, "zoom": 2}}]}, {"chapter": 6, "title": "The Unexplained", "start_time": 454, "end_time": 547, "duration": 93, "cues": [{"time": 456, "action": "zoom", "target": {"lat": 20, "lng": 20, "zoom": 2}}, {"time": 459, "action": "focus_pattern", "pattern": "tectonic"}, {"time": 544, "action": "zoom", "target": {"lat": 20, "lng": 20, "zoom": 2}}]}, {"chapter": 7, "title": "What Comes Next", "start_time": 547, "end_time": 635, "duration": 88, "cues": [{"time": 549, "action": "zoom", "target": {"lat": 20, "lng": 20, "zoom": 2}}, {"time": 576, "action": "highlight_site", "node_id": 12, "target": {"lat": 27.324, "lng": 68.138, "zoom": 4}, "label": "Mohenjo-daro"}, {"time": 632, "action": "zoom", "target": {"lat": 20, "lng": 20, "zoom": 2}}]}], "total_duration": 635};
+var INLINE_SCRIPT_DATA = {"chapters": [{"chapter": 1, "title": "The Theory", "narration": "For decades, a radical idea has lived at the edges of mainstream science — the notion that Earth itself is a geometric organism, its surface divided into a vast invisible lattice of energy and mathematics. In 1921, amateur archaeologist Alfred Watkins was riding across the English countryside when he noticed something that would change how we think about the ancient world: ancient sites, standing stones, churches, and hilltops seemed to fall in eerily straight lines across the landscape. He called them ley lines, and his discovery ignited a century of debate that has never fully been resolved. Then, in the 1980s, researchers Bethe Hagens and William Becker took that idea and stretched it around the entire planet — constructing a geodesic grid of 62 vertices they called the Unified Vector Geometry World Grid, a spherical framework of interlocking triangles that, they claimed, predicted exactly where the world's most significant ancient sites would be found. The question was no longer just whether this grid existed — the question had become whether modern artificial intelligence, with no prior assumptions and no cultural bias, could look at the evidence and reach the same conclusion on its own."}, {"chapter": 2, "title": "The Evidence", "narration": "The investigation began with a simple, almost audacious premise: load the coordinates of all 62 vertices of the Becker-Hagens UVG grid into an AI research system, and let it search — autonomously — for any archaeological, astronomical, geological, or cultural significance at each location. Of the 62 grid vertices programmed into the system, 59 could be meaningfully researched with available data, and the results were, by any measure, striking. Forty-six of those 59 nodes — that is, nearly 78 percent — returned evidence of ancient human significance, whether through confirmed archaeological sites, sacred traditions, documented astronomical alignments, or persistent indigenous memory. To put that in perspective, if you were to randomly scatter 59 points across the surface of the Earth, the statistical probability of that many landing near sites of ancient significance is extraordinarily low. Two sites emerged from the analysis with what the system classified as confirmed status — sites where the evidence was so overwhelming, so precisely documented, that no reasonable doubt remained — and one of them has been staring humanity in the face for four and a half thousand years."}, {"chapter": 3, "title": "Sacred Sites", "narration": "The first confirmed site sits at precisely 29.98 degrees North, 31.13 degrees East — the coordinates of the Great Pyramid of Giza, one of the most precisely engineered structures ever built by human hands, and a monument whose full purpose we still cannot claim to fully understand. The AI system flagged it not simply because it is famous, but because of the extraordinary convergence of evidence: its cardinal alignment to true north accurate to within one-twentieth of a degree, its geographic position remarkably close to the center of Earth's landmass, and now its near-perfect placement on a mathematically predicted grid vertex. The second confirmed site is less famous in the Western world but no less astonishing — Mohenjo-daro, at 26.57 degrees North, 67.20 degrees East, one of the largest cities of the ancient Indus Valley Civilization, a metropolis of perhaps 40,000 people built around 2500 BCE with grid-planned streets, advanced sanitation, and a level of urban sophistication that was not matched in Europe for thousands of years. That two of humanity's most precisely planned ancient cities — separated by over 2,000 kilometers — should both fall on the same predictive geometric framework is either one of history's greatest coincidences, or it is telling us something profound. But the grid's reach doesn't stop at two sites — it reaches across oceans, across continents, and into territory that no single ancient civilization could have known."}, {"chapter": 4, "title": "The Connections", "narration": "Among the most compelling findings to emerge from the AI's cross-pattern analysis were not the individual sites themselves, but the relationships between sites on opposite sides of the world — connections that no single ancient culture could have engineered, and yet which appear to exist with mathematical precision. The system identified a striking alignment between Teotihuacan in central Mexico and Angkor Wat in Cambodia — two civilizations with no known contact, separated by the entire width of the Pacific Ocean, yet sharing an identical astronomical alignment orientation that researchers have struggled to explain through coincidence alone. Perhaps even more remarkable was the connection drawn between Easter Island in the remote South Pacific and the Callanish Standing Stones on the Isle of Lewis in Scotland — two sites separated by over 16,000 kilometers that the AI determined share the same 18.6-year lunar cycle as the governing principle of their ceremonial design, a cycle known to astronomers as the Metonic-related lunar standstill. Scottish engineer Alexander Thom spent decades in the mid-20th century measuring megalithic sites across Britain and discovered that their builders worked to a standardized unit he called the Megalithic Yard — 2.72 feet — a measurement so consistent across hundreds of sites that it implied either a single coordinating culture or a shared astronomical measurement system. If distant civilizations were independently tuning their sacred architecture to the same celestial rhythms, the grid may not have been built by humans at all — it may have been read from the sky."}, {"chapter": 5, "title": "What the AI Discovered", "narration": "What makes this investigation different from every previous study of ley lines and sacred geometry is not the theory — it is the method. The AI research system deployed here used a multi-agent architecture: a Broad Scanner to survey the historical and archaeological literature, a Taxonomy Scanner to classify and categorize site types, and a Cross-Pattern Agent designed specifically to find connections that human researchers might overlook or dismiss. The Broad Scanner independently rediscovered Alfred Watkins' 1921 ley line theory and Alexander Thom's megalithic measurements — findings it was never explicitly told to look for — and surfaced them as relevant context from the research literature without any human prompting. The Taxonomy Scanner confirmed the significance of the Avebury megaliths, the sacred traditions of Glastonbury, and the precise geometric properties of Stonehenge — sites that cluster in a region of England that sits, according to the UVG framework, in a zone of particular grid density. But it was the Cross-Pattern Agent that produced the finding that stopped the research team in their tracks: 128 unexpected similarity pairs between sites that had never been formally compared in the archaeological literature, detected not because the system was looking for them, but because the patterns were strong enough that the AI flagged them as statistically anomalous. One hundred and twenty-eight connections, hiding in plain sight, waiting for a mind fast enough and unbiased enough to find them."}, {"chapter": 6, "title": "The Unexplained", "narration": "Not all of what the AI found fits neatly into existing archaeological frameworks — and perhaps the most intriguing discovery of all emerged not from land, but from the ocean. Analysis of the UVG grid's southern hemisphere vertices revealed a clustering pattern among nodes located in the Southern Ocean — a region of the planet so remote and so understudied that it rarely appears in discussions of ancient human activity. The AI detected that these oceanic nodes share distinctive bathymetric characteristics — that is, patterns in the shape and depth of the ocean floor — in a way that appears statistically non-random, prompting the system to generate a new classificatory label that had never appeared in the research literature before: Oceanic Grid Geometry. What this means is not yet fully understood. It may reflect the influence of geological forces that shaped both the seafloor and the grid simultaneously — or it may suggest that the grid's geometry is not a human construction at all, but a natural property of a rotating, crystallizing planet, one that ancient peoples somehow perceived and encoded into their most sacred spaces. The ancient Polynesians navigated the Pacific using stars, waves, and currents with a precision that still baffles modern sailors — could they have also been reading something in the geometry of the ocean floor itself? The data doesn't answer that question. But it refuses to let us stop asking it."}, {"chapter": 7, "title": "What Comes Next", "narration": "We began this investigation with a question that has haunted archaeologists, geometers, and dreamers for over a century: is there a hidden order underlying the placement of the world's ancient sacred sites? What we found was not a simple yes or no, but something far more interesting — a 78 percent correlation between a mathematically derived global grid and sites of confirmed ancient significance, two confirmed anchor points in the Great Pyramid and Mohenjo-daro, 128 unexplained cross-site similarity pairs, and an entirely new pattern in the Southern Ocean that no human researcher had ever formally described. The UVG grid remains a theory — it has not been proven, and the mechanisms by which ancient peoples might have accessed or encoded its geometry remain entirely unknown. But the evidence assembled here, by a system with no agenda, no cultural allegiance, and no prior hypothesis to protect, suggests that the theory deserves something it has rarely received: rigorous, open-minded scientific investigation at the highest level. Somewhere beneath the ocean, beneath the sand, beneath centuries of dismissal and ridicule, there may be an answer — and for the first time in human history, we have tools intelligent enough, fast enough, and curious enough to go looking for it. The grid is waiting. The question is whether we are ready to follow it."}]};
+
+// =====================================================================
+// UVG GRID INVESTIGATION DASHBOARD
+// Design: Clean grid skeleton → overlay sites → focus on one pattern
+// =====================================================================
+
+var API_BASE = (window.APP_CONFIG ? window.APP_CONFIG.API_URL : '') + '/pattern-library/grid';
+var map, allNodes = [], researchData = null, scoredData = null;
+
+// Map layers (independent, toggleable)
+var gridLayer, siteLayer, focusLayer, leyLineLayer;
+var _leyLinesOn = false, _sitesOn = true;
+var _focusedPattern = null; // currently active pattern filter
+
+// The 62 grid vertices (loaded from API/JSON)
+// Known named sites (for Layer 2 — plotted at REAL coords when available)
+var KNOWN_SITES = [
+    {nodeId:1, name:'Great Pyramid of Giza', realLat:29.979, realLng:31.134, icon:'pyramid'},
+    {nodeId:4, name:'Lake Baikal', realLat:53.5, realLng:108.0, icon:'water'},
+    {nodeId:12, name:'Mohenjo-daro', realLat:27.324, realLng:68.138, icon:'ruin'},
+    {nodeId:14, name:'Dragon Triangle', realLat:25.0, realLng:137.0, icon:'ocean'},
+    {nodeId:17, name:'Sedona Vortexes', realLat:34.87, realLng:-111.76, icon:'vortex'},
+    {nodeId:25, name:'Angkor Wat', realLat:13.412, realLng:103.866, icon:'temple'},
+    {nodeId:35, name:'Nazca Lines', realLat:-14.692, realLng:-75.130, icon:'glyph'},
+    {nodeId:47, name:'Easter Island', realLat:-27.116, realLng:-109.349, icon:'moai'}
+];
+// Primary icosahedral edges forming clean triangles
+var GRID_TRIANGLES = [
+    // North cap → 58°N
+    [3,5],[5,7],[7,9],[9,11],[11,3],
+    // 58°N → 52°N
+    [3,2],[3,4],[5,4],[5,6],[7,6],[7,8],[9,8],[9,10],[11,10],[11,2],
+    [2,4],[4,6],[6,8],[8,10],[10,2],
+    // 52°N → 31°N
+    [2,12],[2,20],[4,12],[4,14],[6,14],[6,16],[8,16],[8,18],[10,18],[10,20],
+    [12,14],[14,16],[16,18],[18,20],[20,12],
+    // 31°N → 26°N
+    [12,1],[12,13],[14,13],[14,15],[16,15],[16,17],[18,17],[18,19],[20,19],[20,1],
+    [1,13],[13,15],[15,17],[17,19],[19,1],
+    // 26°N → equatorial 10°
+    [1,21],[1,40],[13,22],[13,24],[15,26],[15,28],[17,30],[17,32],[19,34],[19,36],
+    [21,22],[22,24],[24,25],[25,26],[26,28],[28,29],[29,30],[30,32],[32,33],[33,34],[34,36],[36,37],[37,38],[38,40],[40,21],
+    // Equator → 10°S
+    [21,39],[21,23],[25,23],[25,27],[29,27],[29,31],[33,31],[33,35],[37,35],[37,39],
+    // 10°S → 26°S
+    [23,41],[23,43],[27,43],[27,45],[31,45],[31,47],[35,47],[35,49],[39,49],[39,41],
+    [41,43],[43,45],[45,47],[47,49],[49,41],
+    // 26°S → 31°S
+    [41,42],[41,50],[43,42],[43,44],[45,44],[45,46],[47,46],[47,48],[49,48],[49,50],
+    [42,44],[44,46],[46,48],[48,50],[50,42],
+    // 31°S → 52°S
+    [42,52],[42,51],[44,54],[44,53],[46,56],[46,55],[48,58],[48,57],[50,60],[50,59],
+    [52,54],[54,56],[56,58],[58,60],[60,52],
+    // 52°S → 58°S
+    [51,53],[53,55],[55,57],[57,59],[59,51],
+    [52,51],[52,53],[54,53],[54,55],[56,55],[56,57],[58,57],[58,59],[60,59],[60,51]
+];
+
+// Documented Ley Lines
+var LEY_LINES = [
+    {name:"St Michael's Line",color:"#48bb78",pts:[[50.118,-5.488],[50.347,-4.746],[51.070,-2.717],[51.401,-1.772],[52.244,0.717],[52.493,1.760]]},
+    {name:"Great Alignment",color:"#63b3ed",pts:[[29.979,31.134],[30.329,35.444],[27.324,68.138],[13.412,103.866],[-27.116,-109.349],[-14.692,-75.130]]},
+    {name:"Apollo Line",color:"#ecc94b",pts:[[36.428,28.227],[36.749,27.179],[37.401,24.325],[37.971,23.726],[38.482,22.501]]},
+    {name:"Richer Line",color:"#fc8181",pts:[[48.647,-2.005],[48.801,2.128],[45.778,4.867],[43.296,5.370],[40.632,14.603]]},
+    {name:"Stonehenge Alignment",color:"#b794f4",pts:[[51.214,-1.854],[51.179,-1.826],[51.178,-1.826]]}
+];
+// =====================================================================
+// INIT
+// =====================================================================
+async function init() {
+    map = L.map('map', {minZoom:2, maxZoom:10, worldCopyJump:true}).setView([20, 20], 2);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution:'OpenStreetMap, CARTO', subdomains:'abcd', maxZoom:18
+    }).addTo(map);
+
+    gridLayer = L.layerGroup().addTo(map);
+    siteLayer = L.layerGroup().addTo(map);
+    focusLayer = L.layerGroup();
+    leyLineLayer = L.layerGroup();
+
+    // Load data
+    await loadGridNodes();
+    await loadResearch();
+    await loadScored();
+
+    // Render
+    drawGrid();
+    drawSites();
+    renderSidebar();
+    addMapControls();
+
+    // URL param: pre-toggle ley lines
+    if (location.search.indexOf('leylines=1') >= 0) toggleLeyLines();
+}
+
+async function loadGridNodes() {
+    try {
+        var r = await fetch(API_BASE + '/nodes');
+        if (r.ok) { var d = await r.json(); allNodes = d.nodes || []; return; }
+    } catch(e) {}
+    // Fallback
+    try { var r2 = await fetch('../data/uvg-grid-investigation-database.json'); if(r2.ok){var d2=await r2.json();allNodes=d2.nodes||[];} } catch(e){}
+}
+async function loadResearch() {
+    try { var r = await fetch(API_BASE + '/research'); if(r.ok){researchData=await r.json();return;} } catch(e){}
+    try { var r2 = await fetch('../data/uvg-grid-research-all-nodes.json'); if(r2.ok){researchData=await r2.json();} } catch(e){}
+}
+async function loadScored() {
+    try { var r = await fetch(API_BASE + '/scored'); if(r.ok){scoredData=await r.json();return;} } catch(e){}
+    try { var r2 = await fetch('../data/uvg-grid-scored-findings.json'); if(r2.ok){scoredData=await r2.json();} } catch(e){}
+}
+// =====================================================================
+// LAYER 1: THE GRID — clean vertices (diamonds) + faint triangle edges
+// =====================================================================
+function drawGrid() {
+    gridLayer.clearLayers();
+    var nodeMap = {};
+    allNodes.forEach(function(n){ nodeMap[n.id] = n; });
+
+    // Draw triangle edges (faint)
+    GRID_TRIANGLES.forEach(function(edge) {
+        var a = nodeMap[edge[0]], b = nodeMap[edge[1]];
+        if (!a || !b) return;
+        if (Math.abs(a.lat) >= 85 || Math.abs(b.lat) >= 85) return;
+        var ld = Math.abs(a.lng - b.lng);
+        if (ld > 120) return; // skip antimeridian wraps
+        L.polyline([[a.lat,a.lng],[b.lat,b.lng]], {
+            color:'#718096', weight:0.9, opacity:0.6
+        }).addTo(gridLayer);
+    });
+
+    // Draw vertices as small diamonds
+    allNodes.forEach(function(n) {
+        if (Math.abs(n.lat) >= 85) return;
+        var icon = L.divIcon({
+            className:'grid-vertex',
+            html:'<svg width="10" height="10" viewBox="0 0 10 10"><polygon points="5,0 10,5 5,10 0,5" fill="none" stroke="#a0aec0" stroke-width="1.5"/></svg>',
+            iconSize:[10,10], iconAnchor:[5,5]
+        });
+        var marker = L.marker([n.lat, n.lng], {icon:icon}).addTo(gridLayer);
+        marker.bindTooltip('Vertex ' + n.id, {direction:'top', offset:[0,-6], className:'node-label'});
+        marker.nodeData = n;
+        marker.on('click', function(){ showNodeBrief(n); });
+    });
+}
+
+// =====================================================================
+// LAYER 2: KNOWN SITES — circles at real coordinates, linked to vertex
+// =====================================================================
+function drawSites() {
+    siteLayer.clearLayers();
+    KNOWN_SITES.forEach(function(site) {
+        var node = allNodes.find(function(n){ return n.id === site.nodeId; });
+        if (!node) return;
+
+        // Site circle at real coordinates
+        var marker = L.circleMarker([site.realLat, site.realLng], {
+            radius: 7, color:'#48bb78', fillColor:'#48bb78', fillOpacity:0.7, weight:1.5
+        }).addTo(siteLayer);
+        marker.bindTooltip(site.name, {direction:'top', offset:[0,-8], className:'node-label', permanent:false});
+        marker.on('click', function(){ showNodeBrief(node); });
+
+        // Thin dotted line from site to its nearest grid vertex
+        L.polyline([[site.realLat, site.realLng],[node.lat, node.lng]], {
+            color:'#48bb78', weight:0.8, opacity:0.3, dashArray:'2,4'
+        }).addTo(siteLayer);
+    });
+}
+// =====================================================================
+// LAYER 3: PATTERN FOCUS — hide everything irrelevant, spotlight matches
+// =====================================================================
+function focusPattern(patternId) {
+    // Clear previous focus
+    focusLayer.clearLayers();
+    map.removeLayer(focusLayer);
+
+    if (_focusedPattern === patternId) {
+        // Toggle off — back to clean view
+        _focusedPattern = null;
+        siteLayer.eachLayer(function(l){ if(l.setStyle) l.setStyle({opacity:0.7, fillOpacity:0.7}); if(l.setOpacity) l.setOpacity(1); });
+        closeNetworkGraph();
+        renderSidebar();
+        return;
+    }
+
+    _focusedPattern = patternId;
+
+    // Get nodes matching this pattern (from scored data)
+    var matchNodeIds = getMatchingNodes(patternId);
+    var nodeMap = {};
+    allNodes.forEach(function(n){ nodeMap[n.id] = n; });
+
+    // DIM the sites only — keep grid visible for geographic context
+    siteLayer.eachLayer(function(l){ if(l.setStyle) l.setStyle({opacity:0.1, fillOpacity:0.1}); if(l.setOpacity) l.setOpacity(0.15); });
+
+    // Draw ONLY matching nodes as bright circles
+    var focusNodes = [];
+    matchNodeIds.forEach(function(id) {
+        var n = nodeMap[id];
+        if (!n || Math.abs(n.lat) >= 85) return;
+        focusNodes.push(n);
+
+        // Check if this is a known site — use real coords
+        var site = KNOWN_SITES.find(function(s){ return s.nodeId === id; });
+        var lat = site ? site.realLat : n.lat;
+        var lng = site ? site.realLng : n.lng;
+        var name = site ? site.name : getNodeLabel(n);
+
+        var marker = L.circleMarker([lat, lng], {
+            radius: 9, color:'#ecc94b', fillColor:'#ecc94b', fillOpacity:0.6, weight:2
+        }).addTo(focusLayer);
+        marker.bindTooltip(name, {direction:'top', offset:[0,-8], className:'node-label', permanent: matchNodeIds.length <= 12});
+        marker.on('click', function(){ showNodeBrief(n); highlightNetworkNode(n.id); });
+    });
+
+    // NO connection lines on the map — relationships shown in network graph below
+    // drawFocusConnections(patternId, matchNodeIds, nodeMap);
+
+    focusLayer.addTo(map);
+
+    // Fit bounds to focus nodes
+    if (focusNodes.length > 1) {
+        var bounds = focusNodes.map(function(n){
+            var site = KNOWN_SITES.find(function(s){ return s.nodeId === n.id; });
+            return [site ? site.realLat : n.lat, site ? site.realLng : n.lng];
+        });
+        map.fitBounds(bounds, {padding:[40,40], maxZoom:5});
+    }
+
+    // Auto-show network graph for this pattern
+    showNetworkGraph(patternId);
+
+    renderSidebar();
+}
+function drawFocusConnections(patternId, matchNodeIds, nodeMap) {
+    // Only draw lines between nodes sharing SPECIFIC non-generic indicators
+    if (!scoredData || !scoredData.results) return;
+
+    var sigId = PATTERNS.find(function(p){ return p.id === patternId; });
+    if (!sigId) return;
+    sigId = sigId.sigId;
+
+    var genericTerms = ['Within','km','node','ocean'];
+
+    for (var i = 0; i < matchNodeIds.length; i++) {
+        for (var j = i + 1; j < matchNodeIds.length; j++) {
+            var sA = scoredData.results.find(function(r){ return r.node_id === matchNodeIds[i]; });
+            var sB = scoredData.results.find(function(r){ return r.node_id === matchNodeIds[j]; });
+            if (!sA || !sB) continue;
+
+            var mA = sA.matches.find(function(m){ return m.signature_id === sigId; });
+            var mB = sB.matches.find(function(m){ return m.signature_id === sigId; });
+            if (!mA || !mB) continue;
+
+            // Both must be strong or moderate
+            if (mA.confidence === 'weak' || mB.confidence === 'weak') continue;
+
+            var indA = mA.matched_indicators || [];
+            var indB = mB.matched_indicators || [];
+            var shared = indA.filter(function(x){
+                if (genericTerms.some(function(g){ return x.indexOf(g) >= 0; })) return false;
+                return indB.indexOf(x) >= 0;
+            });
+            if (shared.length === 0) continue;
+
+            var nA = nodeMap[matchNodeIds[i]], nB = nodeMap[matchNodeIds[j]];
+            if (!nA || !nB) continue;
+            var siteA = KNOWN_SITES.find(function(s){ return s.nodeId === nA.id; });
+            var siteB = KNOWN_SITES.find(function(s){ return s.nodeId === nB.id; });
+            var latA = siteA ? siteA.realLat : nA.lat, lngA = siteA ? siteA.realLng : nA.lng;
+            var latB = siteB ? siteB.realLat : nB.lat, lngB = siteB ? siteB.realLng : nB.lng;
+
+            if (Math.abs(lngA - lngB) > 180) continue;
+
+            var line = L.polyline([[latA,lngA],[latB,lngB]], {
+                color:'#ecc94b', weight: 1 + shared.length * 0.5, opacity: 0.4 + shared.length * 0.1
+            }).addTo(focusLayer);
+            var nameA = siteA ? siteA.name : getNodeLabel(nA);
+            var nameB = siteB ? siteB.name : getNodeLabel(nB);
+            line.bindTooltip(nameA + ' ↔ ' + nameB + ': ' + shared.join(', '), {sticky:true, className:'node-label'});
+        }
+    }
+}
+
+function getMatchingNodes(patternId) {
+    if (!scoredData || !scoredData.results) return [];
+    var pattern = PATTERNS.find(function(p){ return p.id === patternId; });
+    if (!pattern) return [];
+    var ids = [];
+    scoredData.results.forEach(function(r) {
+        if (!r.matches) return;
+        var hit = r.matches.find(function(m){ return m.signature_id === pattern.sigId; });
+        if (hit && hit.confidence !== 'weak') ids.push(r.node_id);
+    });
+    return ids;
+}
+
+function getNodeLabel(n) {
+    // Priority: known site name → AI codename → continent
+    if (n.nearest_known_site) return 'V' + n.id + ' ' + n.nearest_known_site;
+    var site = KNOWN_SITES.find(function(s){ return s.nodeId === n.id; });
+    if (site) return 'V' + n.id + ' ' + site.name;
+    // Try codename from research data
+    if (researchData && researchData.results) {
+        var r = researchData.results.find(function(x){ return x.node_id === n.id; });
+        if (r && r.brief && r.brief.codename) {
+            // Convert APEX_GIZA → Apex Giza, TOBOL_STEPPE → Tobol Steppe
+            var name = r.brief.codename.replace(/_/g,' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); }).replace(/\b(Node|Grid)\b/gi,'').trim();
+            if (name.length > 20) name = name.substring(0,18) + '..';
+            return 'V' + n.id + ' ' + name;
+        }
+    }
+    // Fallback: continent
+    return 'V' + n.id + (n.continent ? ' ' + n.continent : '');
+}
+// =====================================================================
+// PATTERNS DEFINITION
+// =====================================================================
+var PATTERNS = [
+    {id:'sacred', sigId:'am-gge-cm-001', title:'Indigenous Sacred Sites', color:'#ecc94b',
+     brief:'Sites independently designated as sacred or power places by indigenous peoples without cross-cultural contact.'},
+    {id:'cluster', sigId:'am-gge-cnp-004', title:'Ancient Site Clusters', color:'#63b3ed',
+     brief:'Statistically improbable concentration of 5+ ancient sites within 300km of a single grid vertex.'},
+    {id:'submerged', sigId:'am-gge-se-004', title:'Ice Age Coastal Platforms', color:'#48bb78',
+     brief:'Submerged continental shelf at <200m depth that was exposed habitable land during the last glacial maximum (12,000+ years ago).'},
+    {id:'tectonic', sigId:'am-gge-ga-003', title:'Tectonic / Volcanic Nodes', color:'#fc8181',
+     brief:'Grid vertex coincides with plate boundary, fault line, or volcanic hotspot — suggesting geomagnetic selection.'},
+    {id:'geometric', sigId:'am-gge-ga-002', title:'Geometric Formations', color:'#b794f4',
+     brief:'Natural or constructed geometric patterns visible from aerial/satellite at grid vertex.'}
+];
+
+// =====================================================================
+// SIDEBAR RENDERING
+// =====================================================================
+function renderSidebar() {
+    var sb = document.getElementById('sidebar');
+    var html = '';
+
+    if (_focusedPattern) {
+        // Focused mode: show pattern brief + matching nodes
+        var p = PATTERNS.find(function(x){ return x.id === _focusedPattern; });
+        var matchIds = getMatchingNodes(_focusedPattern);
+        html += '<span class="back-link" onclick="focusPattern(\'' + _focusedPattern + '\')">← Back to all patterns</span>';
+        html += '<div style="font-size:0.85rem;font-weight:700;color:'+p.color+';margin-bottom:4px;">'+p.title+'</div>';
+        html += '<div style="font-size:0.62rem;color:#ecc94b;margin-bottom:10px;">'+matchIds.length+' vertices match (strong/moderate)</div>';
+        html += '<div style="font-size:0.7rem;color:#cbd5e0;line-height:1.5;margin-bottom:14px;">'+p.brief+'</div>';
+        html += '<div style="margin-bottom:12px;"><button onclick="showNetworkGraph(\'' + _focusedPattern + '\')" style="background:rgba(183,148,244,0.1);border:1px solid rgba(183,148,244,0.3);border-radius:5px;padding:6px 12px;font-size:0.68rem;color:#b794f4;cursor:pointer;width:100%;">🕸️ View Network Graph</button></div>';
+        html += '<div class="section-title">Matching Vertices</div>';
+        matchIds.forEach(function(id) {
+            var n = allNodes.find(function(x){ return x.id === id; });
+            if (!n) return;
+            var label = getNodeLabel(n);
+            html += '<div style="font-size:0.68rem;color:#a0aec0;padding:4px 0;cursor:pointer;" onclick="showNodeBrief(allNodes.find(function(x){return x.id==='+id+'}))">';
+            html += '<span style="color:'+p.color+'">●</span> ' + label + '</div>';
+        });
+    } else {
+        // Default: show ley line summary + patterns list
+        html += '<div style="font-size:0.78rem;font-weight:700;color:#ecc94b;margin-bottom:6px;">Ley Lines & The World Grid</div>';
+        html += '<div style="font-size:0.67rem;color:#cbd5e0;line-height:1.5;margin-bottom:14px;">';
+        html += 'In 1921, Alfred Watkins noticed ancient sites in England aligned along invisible straight lines he called "ley lines." ';
+        html += 'Researchers since — John Michell, Jim Alison, the Becker-Hagens team — found these alignments extend globally. ';
+        html += 'The St Michael\'s Line runs 364 miles through 7 sacred sites. The Great Alignment connects Giza, Petra, Angkor Wat, and Nazca along a single great circle. ';
+        html += 'The UVG grid proposes 62 vertices where these planetary lines intersect — an icosahedral geometry overlaid on Earth. ';
+        html += 'This dashboard plots those vertices, overlays known ancient sites, and lets you focus on specific patterns to see which connections have evidence.</div>';
+
+        html += '<div class="section-title">Focus on a Pattern</div>';
+        html += '<div style="font-size:0.63rem;color:#718096;margin-bottom:8px;">Click to hide everything else. See only what matters to this story.</div>';
+        PATTERNS.forEach(function(p) {
+            var count = getMatchingNodes(p.id).length;
+            var cls = (_focusedPattern === p.id) ? ' active' : '';
+            html += '<div class="pattern-card'+cls+'" onclick="focusPattern(\''+p.id+'\')" style="border-left:3px solid '+p.color+'">';
+            html += '<div class="p-title">'+p.title+'</div>';
+            html += '<div class="p-count">'+count+' vertices (strong/moderate)</div>';
+            html += '</div>';
+        });
+
+        html += '<div class="section-title" style="margin-top:20px;">Known Sites</div>';
+        KNOWN_SITES.forEach(function(site) {
+            html += '<div style="font-size:0.68rem;color:#a0aec0;padding:3px 0;cursor:pointer;" onclick="showNodeBrief(allNodes.find(function(x){return x.id==='+site.nodeId+'}))">';
+            html += '<span style="color:#48bb78">●</span> ' + site.name + '</div>';
+        });
+
+        // Emergent Patterns section
+        html += '<div class="section-title" style="margin-top:20px;color:#b794f4;">🔮 Emergent Patterns (AI-detected)</div>';
+        html += '<div style="font-size:0.63rem;color:#718096;margin-bottom:8px;">Clusters found by OpenSearch k-NN similarity that don\'t match any existing signature — patterns you didn\'t search for.</div>';
+        html += '<div id="emergentPatterns" style="font-size:0.66rem;color:#a0aec0;">Loading...</div>';
+    }
+
+    sb.innerHTML = html;
+    // Render emergent patterns if data already loaded
+    if (emergentData && !_focusedPattern) renderEmergent();
+}
+// =====================================================================
+// NODE CLICK → AI INTELLIGENCE BRIEF (replaces sidebar content)
+// =====================================================================
+function showNodeBrief(node) {
+    if (!node) return;
+    var sb = document.getElementById('sidebar');
+    var brief = null, scored = null;
+
+    if (researchData && researchData.results) {
+        var r = researchData.results.find(function(x){ return x.node_id === node.id; });
+        if (r) brief = r.brief;
+    }
+    if (scoredData && scoredData.results) {
+        scored = scoredData.results.find(function(x){ return x.node_id === node.id; });
+    }
+
+    var html = '<span class="back-link" onclick="renderSidebar()">← Back</span>';
+
+    if (brief) {
+        var statusCls = brief.investigation_status === 'CONFIRMED' ? 'confirmed' :
+                        brief.investigation_status === 'PROBABLE' ? 'probable' : 'inconclusive';
+        html += '<div class="intel visible">';
+        html += '<div class="intel-head"><span class="intel-code">'+brief.codename+'</span>';
+        html += '<span class="intel-badge '+statusCls+'">'+brief.investigation_status+'</span></div>';
+        html += '<div class="intel-text">'+brief.situation+'</div>';
+
+        if (brief.smoking_gun) {
+            html += '<div class="intel-key"><div class="lbl">💡 Key Finding</div>';
+            html += '<div class="val">'+brief.smoking_gun+'</div></div>';
+        }
+
+        // Signatures
+        if (scored && scored.matches && scored.matches.length > 0) {
+            html += '<div class="section-title">Signatures Matched</div>';
+            scored.matches.forEach(function(m) {
+                var p = PATTERNS.find(function(x){ return x.sigId === m.signature_id; });
+                var name = p ? p.title : m.signature_id;
+                var color = p ? p.color : '#63b3ed';
+                html += '<div style="font-size:0.65rem;margin:3px 0;"><span style="color:'+color+'">✓</span> '+name+' <span style="color:#718096">('+m.confidence+')</span></div>';
+            });
+        }
+
+        // Evidence
+        if (brief.evidence_found && brief.evidence_found.length > 0) {
+            html += '<div class="section-title" style="margin-top:12px">Evidence</div>';
+            brief.evidence_found.slice(0,5).forEach(function(ev) {
+                html += '<div class="ev-item '+ev.confidence+'">'+ev.finding;
+                html += '<div class="src">'+ev.source_type+'</div></div>';
+            });
+        }
+
+        html += '</div>';
+    } else {
+        html += '<div class="intel visible">';
+        html += '<div class="intel-head"><span class="intel-code">VERTEX '+node.id+'</span>';
+        html += '<span class="intel-badge inconclusive">NO DATA</span></div>';
+        html += '<div class="intel-text">No AI research brief generated for this vertex yet. ';
+        html += 'Classification: '+(node.classification||'unknown').replace(/_/g,' ')+'. ';
+        html += 'Coordinates: '+node.lat.toFixed(2)+'°, '+node.lng.toFixed(2)+'°</div>';
+        html += '</div>';
+    }
+
+    sb.innerHTML = html;
+
+    // Pulse this node on map
+    map.setView([node.lat, node.lng], Math.max(map.getZoom(), 4), {animate:true});
+}
+// =====================================================================
+// LEY LINES TOGGLE
+// =====================================================================
+function toggleLeyLines() {
+    var btn = document.getElementById('btnLey');
+    if (_leyLinesOn) {
+        map.removeLayer(leyLineLayer);
+        leyLineLayer.clearLayers();
+        _leyLinesOn = false;
+        if (btn) btn.classList.remove('active');
+    } else {
+        leyLineLayer.clearLayers();
+        LEY_LINES.forEach(function(line) {
+            var coords = line.pts.map(function(p){ return [p[0],p[1]]; });
+            var poly = L.polyline(coords, {color:line.color, weight:2.5, opacity:0.7});
+            poly.bindPopup('<strong style="color:'+line.color+'">'+line.name+'</strong>');
+            leyLineLayer.addLayer(poly);
+            line.pts.forEach(function(p) {
+                L.circleMarker([p[0],p[1]], {radius:3, color:line.color, fillColor:line.color, fillOpacity:0.8, weight:1}).addTo(leyLineLayer);
+            });
+        });
+        leyLineLayer.addTo(map);
+        _leyLinesOn = true;
+        if (btn) btn.classList.add('active');
+    }
+}
+
+// Sites layer toggle
+function toggleSites() {
+    var btn = document.getElementById('btnSites');
+    if (_sitesOn) {
+        map.removeLayer(siteLayer);
+        _sitesOn = false;
+        if (btn) btn.classList.remove('active');
+    } else {
+        siteLayer.addTo(map);
+        _sitesOn = true;
+        if (btn) btn.classList.add('active');
+    }
+}
+
+// =====================================================================
+// MAP CONTROLS (layer bar + legend)
+// =====================================================================
+function addMapControls() {
+    // Layer toggle bar
+    var bar = L.DomUtil.create('div','layer-bar');
+    bar.innerHTML = '<button class="layer-btn active" id="btnSites" onclick="toggleSites()">● Sites</button>'
+        + '<button class="layer-btn" id="btnLey" onclick="toggleLeyLines()">⟋ Ley Lines</button>';
+    bar.style.position = 'absolute';
+    bar.style.top = '10px';
+    bar.style.left = '10px';
+    bar.style.zIndex = '1000';
+    bar.style.display = 'flex';
+    bar.style.gap = '5px';
+    document.querySelector('.map-area').appendChild(bar);
+
+    // Legend
+    var leg = L.DomUtil.create('div','legend');
+    leg.innerHTML = '<div class="legend-row"><div class="l-diamond"></div> Grid vertex (theory)</div>'
+        + '<div class="legend-row"><div class="l-circle" style="background:#48bb78"></div> Confirmed ancient site</div>'
+        + '<div class="legend-row"><div class="l-circle" style="background:#ecc94b"></div> Pattern match (focused)</div>'
+        + '<div class="legend-row"><div class="l-line" style="border-color:#4a5568"></div> Grid edge</div>'
+        + '<div class="legend-row"><div class="l-line" style="border-color:#ecc94b"></div> Shared trait connection</div>';
+    document.querySelector('.map-area').appendChild(leg);
+}
+
+// =====================================================================
+// NETWORK GRAPH (D3 force-directed) — opens over map on pattern focus
+// =====================================================================
+function showNetworkGraph(patternId) {
+    var pattern = PATTERNS.find(function(p){ return p.id === patternId; });
+    if (!pattern || !scoredData) return;
+
+    var panel = document.getElementById('networkPanel');
+    var title = document.getElementById('networkTitle');
+    panel.style.display = 'flex';
+    setTimeout(function(){ map.invalidateSize(); }, 100);
+
+    // Build nodes and edges from scored data
+    var matchNodeIds = getMatchingNodes(patternId);
+    var nodes = [];
+    var edges = [];
+
+    matchNodeIds.forEach(function(id) {
+        var n = allNodes.find(function(x){ return x.id === id; });
+        if (!n) return;
+        var label = getNodeLabel(n);
+        var scored = scoredData.results.find(function(r){ return r.node_id === id; });
+        var matchCount = scored ? scored.matches.length : 0;
+        nodes.push({id: id, label: label, continent: n.continent || 'Ocean', matchCount: matchCount});
+    });
+
+    // ONLY draw edges between nodes sharing SPECIFIC non-generic indicators
+    var genericTerms = ['Within','km','node','ocean','Indigenous oral tradition','500+ year continuity','Plate boundary','High seismic','Shallow plateau','Depth <200m'];
+    if (scoredData && scoredData.results) {
+        for (var i = 0; i < matchNodeIds.length; i++) {
+            for (var j = i + 1; j < matchNodeIds.length; j++) {
+                var sA = scoredData.results.find(function(r){ return r.node_id === matchNodeIds[i]; });
+                var sB = scoredData.results.find(function(r){ return r.node_id === matchNodeIds[j]; });
+                if (!sA || !sB) continue;
+                var mA = (sA.matches || []).find(function(m){ return m.signature_id === pattern.sigId; });
+                var mB = (sB.matches || []).find(function(m){ return m.signature_id === pattern.sigId; });
+                if (!mA || !mB) continue;
+                if (mA.confidence === 'weak' || mB.confidence === 'weak') continue;
+                var indA = mA.matched_indicators || [];
+                var indB = mB.matched_indicators || [];
+                var shared = indA.filter(function(x){
+                    if (genericTerms.some(function(g){ return x.indexOf(g) >= 0; })) return false;
+                    return indB.indexOf(x) >= 0;
+                });
+                if (shared.length > 0) {
+                    edges.push({source: matchNodeIds[i], target: matchNodeIds[j], label: shared[0], weight: shared.length});
+                }
+            }
+        }
+        // Cap at 15 edges max to prevent spaghetti
+        if (edges.length > 15) {
+            edges.sort(function(a,b){ return b.weight - a.weight; });
+            edges = edges.slice(0, 15);
+        }
+    }
+
+    // Generate intelligence summary
+    var summary = generatePatternInsight(pattern, nodes, edges);
+    title.innerHTML = '🕸️ <span style="color:#e2e8f0;font-weight:400;font-size:0.65rem;margin-left:8px;">' + summary + '</span>';
+
+    renderD3Network(nodes, edges, pattern.color);
+}
+
+function generatePatternInsight(pattern, nodes, edges) {
+    var continents = {};
+    nodes.forEach(function(n){ continents[n.continent] = (continents[n.continent]||0) + 1; });
+    var numContinents = Object.keys(continents).filter(function(c){ return c !== 'Ocean'; }).length;
+    
+    if (pattern.id === 'sacred') {
+        return nodes.length + ' sites on ' + numContinents + ' continents independently designated sacred — ' + (edges.length > 0 ? edges.length + ' share specific ceremonial traits' : 'no specific shared ceremonies documented yet');
+    } else if (pattern.id === 'cluster') {
+        return nodes.length + ' vertices show improbable site clustering (5+ ancient sites within 300km) — ' + (edges.length > 0 ? 'connected by shared archaeological features' : 'each cluster is independently significant');
+    } else if (pattern.id === 'submerged') {
+        return nodes.length + ' ocean vertices sit on shallow platforms (<200m) that were habitable land 12,000+ years ago';
+    } else if (pattern.id === 'tectonic') {
+        return nodes.length + ' vertices coincide with plate boundaries or volcanic hotspots — suggesting geomagnetic selection of grid points';
+    } else if (pattern.id === 'geometric') {
+        return nodes.length + ' vertices show geometric precision in natural or constructed features visible from satellite';
+    }
+    return nodes.length + ' vertices match this pattern across ' + numContinents + ' continents';
+}
+
+function renderD3Network(nodes, edges, color) {
+    var svg = d3.select('#networkSvg');
+    svg.selectAll('*').remove();
+
+    var panel = document.getElementById('networkPanel');
+    var width = panel.clientWidth || 700;
+    var height = 220;
+
+    svg.attr('viewBox', '0 0 ' + width + ' ' + height);
+
+    // Color by continent
+    var continentColors = {
+        'Africa': '#ecc94b', 'Asia': '#fc8181', 'Europe': '#48bb78',
+        'North America': '#63b3ed', 'South America': '#b794f4',
+        'Oceania': '#ed64a6', 'Ocean': '#4a5568', 'Pacific': '#4a5568'
+    };
+
+    var simulation = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(edges).id(function(d){ return d.id; }).distance(100))
+        .force('charge', d3.forceManyBody().strength(-250))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('collision', d3.forceCollide().radius(45));
+
+    // Draw edges
+    var link = svg.append('g').selectAll('line')
+        .data(edges).enter().append('line')
+        .attr('class', 'link-line')
+        .attr('stroke', color)
+        .attr('stroke-width', function(d){ return Math.min(d.weight + 0.5, 3); });
+
+    // Draw nodes
+    var node = svg.append('g').selectAll('g')
+        .data(nodes).enter().append('g')
+        .attr('class', 'network-node-group')
+        .attr('cursor', 'pointer')
+        .call(d3.drag()
+            .on('start', function(event, d){ if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+            .on('drag', function(event, d){ d.fx = event.x; d.fy = event.y; })
+            .on('end', function(event, d){ if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; })
+        );
+
+    // Circle for each node
+    node.append('circle')
+        .attr('class', 'node-circle')
+        .attr('r', function(d){ return d.isHub ? 14 : 8 + (d.matchCount || 0) * 2; })
+        .attr('fill', function(d){ return continentColors[d.continent] || color; })
+        .attr('stroke', '#1a202c')
+        .attr('stroke-width', 2)
+        .attr('data-node-id', function(d){ return d.id; });
+
+    // Labels always visible
+    node.append('text')
+        .attr('class', 'node-text')
+        .attr('dy', function(d){ return (d.isHub ? 14 : 8 + (d.matchCount || 0) * 2) + 12; })
+        .attr('fill', '#e2e8f0')
+        .attr('font-size', '8px')
+        .attr('text-anchor', 'middle')
+        .text(function(d){ 
+            var lbl = d.label || d.id || '';
+            return lbl.length > 16 ? lbl.substring(0,14) + '..' : lbl;
+        });
+
+    // Click node in network graph → show insight + highlight on map
+    node.on('click', function(event, d) {
+        // Find the allNodes entry
+        var mapNode = allNodes.find(function(n){ return n.id === d.id; });
+        
+        if (mapNode) {
+            // Pulse on map
+            L.circleMarker([mapNode.lat, mapNode.lng], {
+                radius: 18, color: '#fff', fillColor: 'transparent', weight: 2, opacity: 0.8
+            }).addTo(focusLayer);
+            map.setView([mapNode.lat, mapNode.lng], Math.max(map.getZoom(), 4), {animate: true});
+        }
+        
+        // Show brief in the network panel's brief area
+        showNetworkNodeBrief(d.id);
+        
+        // Highlight in network
+        svg.selectAll('.node-circle').attr('stroke', '#1a202c').attr('stroke-width', 2);
+        d3.select(this).select('circle').attr('stroke', '#fff').attr('stroke-width', 3);
+    });
+    
+    // Hover shows quick tooltip
+    node.on('mouseenter', function(event, d) {
+        var briefPanel = document.getElementById('networkBrief');
+        var n = allNodes.find(function(x){ return x.id === d.id; });
+        if (!n) return;
+        var brief = null;
+        if (researchData && researchData.results) {
+            var r = researchData.results.find(function(x){ return x.node_id === d.id; });
+            if (r) brief = r.brief;
+        }
+        if (brief) {
+            briefPanel.innerHTML = '<div style="color:#ecc94b;font-weight:700;font-size:0.72rem;margin-bottom:4px;">' + brief.codename + '</div>' +
+                '<div style="color:#cbd5e0;margin-bottom:6px;">' + brief.situation.split('.').slice(0,2).join('.') + '.</div>' +
+                (brief.smoking_gun ? '<div style="color:#ecc94b;font-size:0.62rem;margin-top:4px;">💡 ' + brief.smoking_gun.split('.')[0] + '.</div>' : '');
+        } else {
+            briefPanel.innerHTML = '<div style="color:#e2e8f0;font-weight:600;">' + getNodeLabel(n) + '</div><div style="color:#718096;margin-top:4px;">No research brief available.</div>';
+        }
+    });
+
+    // Tick
+    simulation.on('tick', function() {
+        link.attr('x1', function(d){ return d.source.x; }).attr('y1', function(d){ return d.source.y; })
+            .attr('x2', function(d){ return d.target.x; }).attr('y2', function(d){ return d.target.y; });
+        node.attr('transform', function(d){ return 'translate(' + d.x + ',' + d.y + ')'; });
+    });
+
+    // Store reference for cross-highlighting from map clicks
+    window._networkSvg = svg;
+    window._networkNodes = nodes;
+}
+
+// Highlight a node in the network graph (called from map click)
+function highlightNetworkNode(nodeId) {
+    if (!window._networkSvg) return;
+    var svg = window._networkSvg;
+    // Reset all
+    svg.selectAll('.node-circle').attr('stroke', '#1a202c').attr('stroke-width', 2);
+    // Find and highlight matching node
+    var label = '';
+    var n = allNodes.find(function(x){ return x.id === nodeId; });
+    if (n) label = getNodeLabel(n);
+    
+    svg.selectAll('.network-node-group').each(function(d) {
+        if (d.id === nodeId || d.id === label || d.label === label) {
+            d3.select(this).select('circle').attr('stroke', '#fff').attr('stroke-width', 3);
+        }
+    });
+}
+
+function closeNetworkGraph() {
+    document.getElementById('networkPanel').style.display = 'none';
+    setTimeout(function(){ map.invalidateSize(); }, 100);
+}
+
+// =====================================================================
+// PICTURE-IN-PICTURE — shows photos of sites during audio playback
+// =====================================================================
+var SITE_PHOTOS = {
+    'Great Pyramid of Giza': {url:'https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=400&h=280&fit=crop', credit:'Pixabay'},
+    'Mohenjo-daro': {url:'https://images.unsplash.com/photo-1624461209670-1b1e5fdd03e5?w=400&h=280&fit=crop', credit:'Unsplash'},
+    'Angkor Wat': {url:'https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?w=400&h=280&fit=crop', credit:'Unsplash'},
+    'Easter Island': {url:'https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?w=400&h=280&fit=crop', credit:'Unsplash'},
+    'Nazca Lines': {url:'https://images.unsplash.com/photo-1631761421979-44c2cdbbb634?w=400&h=280&fit=crop', credit:'Unsplash'},
+    'Sedona Vortexes': {url:'https://images.unsplash.com/photo-1558645836-e44122a743ee?w=400&h=280&fit=crop', credit:'Unsplash'},
+    'Lake Baikal': {url:'https://images.unsplash.com/photo-1548786811-dd6e453ccca2?w=400&h=280&fit=crop', credit:'Unsplash'},
+    'Stonehenge': {url:'https://images.unsplash.com/photo-1549890762-0a3f8933bc76?w=400&h=280&fit=crop', credit:'Unsplash'},
+    'Avebury': {url:'https://images.unsplash.com/photo-1590254553942-6d7fa498dcdf?w=400&h=280&fit=crop', credit:'Unsplash'},
+    'Glastonbury Tor': {url:'https://images.unsplash.com/photo-1595069906974-f8ae82db058e?w=400&h=280&fit=crop', credit:'Unsplash'}
+};
+
+function showPip(siteName) {
+    var photo = SITE_PHOTOS[siteName];
+    if (!photo) return;
+    var pip = document.getElementById('pipWindow');
+    var img = document.getElementById('pipImage');
+    var cap = document.getElementById('pipCaption');
+    img.src = photo.url;
+    img.alt = siteName;
+    cap.textContent = siteName + ' — ' + photo.credit;
+    pip.style.display = 'block';
+    if (window._pipTimeout) clearTimeout(window._pipTimeout);
+    window._pipTimeout = setTimeout(hidePip, 12000);
+}
+
+function hidePip() {
+    var pip = document.getElementById('pipWindow');
+    if (pip) pip.style.display = 'none';
+}
+
+// Show full intelligence brief in the network panel's brief area
+function showNetworkNodeBrief(nodeId) {
+    var briefPanel = document.getElementById('networkBrief');
+    var n = allNodes.find(function(x){ return x.id === nodeId; });
+    if (!n) return;
+    
+    var brief = null;
+    if (researchData && researchData.results) {
+        var r = researchData.results.find(function(x){ return x.node_id === nodeId; });
+        if (r) brief = r.brief;
+    }
+    
+    var html = '';
+    if (brief) {
+        var statusColor = brief.investigation_status === 'CONFIRMED' ? '#48bb78' : 
+                          brief.investigation_status === 'PROBABLE' ? '#63b3ed' : '#718096';
+        html += '<div style="color:#ecc94b;font-weight:700;font-size:0.75rem;">' + brief.codename + '</div>';
+        html += '<div style="color:' + statusColor + ';font-size:0.6rem;margin-bottom:6px;">' + brief.investigation_status + '</div>';
+        html += '<div style="color:#cbd5e0;margin-bottom:8px;">' + brief.situation.split('.').slice(0,3).join('.') + '.</div>';
+        if (brief.smoking_gun) {
+            html += '<div style="background:rgba(236,201,75,0.06);border:1px solid rgba(236,201,75,0.15);border-radius:4px;padding:6px;margin-bottom:6px;">';
+            html += '<div style="color:#ecc94b;font-size:0.58rem;font-weight:700;">💡 KEY FINDING</div>';
+            html += '<div style="color:#e2e8f0;font-size:0.64rem;margin-top:2px;">' + brief.smoking_gun.split('.').slice(0,2).join('.') + '.</div>';
+            html += '</div>';
+        }
+        // Show why this matters in context of the pattern
+        html += '<div style="color:#718096;font-size:0.58rem;margin-top:6px;">Click node on map for full evidence list →</div>';
+    } else {
+        html += '<div style="color:#e2e8f0;font-weight:600;">' + getNodeLabel(n) + '</div>';
+        html += '<div style="color:#718096;margin-top:6px;">No AI research brief available for this vertex yet. Run the research agent chain to generate one.</div>';
+    }
+    
+    briefPanel.innerHTML = html;
+}
+
+// Generate a 2-3 sentence insight for a node in the context of the current pattern
+function getNodeInsight(nodeId) {
+    var n = allNodes.find(function(x){ return x.id === nodeId; });
+    if (!n) return '';
+    var brief = null;
+    if (researchData && researchData.results) {
+        var r = researchData.results.find(function(x){ return x.node_id === nodeId; });
+        if (r) brief = r.brief;
+    }
+    if (!brief) return getNodeLabel(n) + ' — no research brief available yet.';
+    
+    // Build contextual insight
+    var insight = brief.codename + ': ' + brief.situation.split('.').slice(0,2).join('.') + '.';
+    if (brief.smoking_gun) {
+        insight += ' Key finding: ' + brief.smoking_gun.split('.')[0] + '.';
+    }
+    return insight;
+}
+
+// =====================================================================
+// EMERGENT PATTERNS (loaded from OpenSearch k-NN analysis)
+// =====================================================================
+var emergentData = null;
+
+async function loadEmergentPatterns() {
+    try {
+        var r = await fetch(API_BASE + '/emergent');
+        if (r.ok) { emergentData = await r.json(); renderEmergent(); return; }
+    } catch(e) {}
+    try {
+        var r2 = await fetch('../data/emergent-patterns.json');
+        if (r2.ok) { emergentData = await r2.json(); renderEmergent(); }
+    } catch(e) {}
+}
+
+function renderEmergent() {
+    var el = document.getElementById('emergentPatterns');
+    if (!el || !emergentData || !emergentData.patterns) return;
+
+    // Group into clusters (multiple pairs involving same nodes = a cluster)
+    var nodeCounts = {};
+    emergentData.patterns.forEach(function(p) {
+        nodeCounts[p.node_a_name] = (nodeCounts[p.node_a_name] || 0) + 1;
+        nodeCounts[p.node_b_name] = (nodeCounts[p.node_b_name] || 0) + 1;
+    });
+
+    // Find the most-connected nodes (hubs of emergent clusters)
+    var hubs = Object.entries(nodeCounts).sort(function(a,b){ return b[1]-a[1]; }).slice(0,5);
+
+    var html = '';
+    hubs.forEach(function(hub, i) {
+        var name = hub[0];
+        var count = hub[1];
+        // Find what themes this hub shares
+        var themes = new Set();
+        emergentData.patterns.forEach(function(p) {
+            if (p.node_a_name === name || p.node_b_name === name) {
+                (p.shared_themes || []).forEach(function(t){ themes.add(t); });
+            }
+        });
+        var themeStr = Array.from(themes).slice(0,4).join(', ');
+        html += '<div style="padding:5px 0;border-bottom:1px solid rgba(183,148,244,0.1);cursor:pointer;" onclick="focusEmergentHub(\'' + name.replace(/'/g,"\\'") + '\')">';
+        html += '<span style="color:#b794f4;font-weight:600;">' + (i+1) + '.</span> ';
+        html += '<span style="color:#e2e8f0;">' + name + '</span>';
+        html += '<div style="font-size:0.58rem;color:#718096;margin-top:2px;">';
+        html += 'Connected to ' + count + ' other nodes | Themes: ' + (themeStr || 'deep similarity');
+        html += '</div></div>';
+    });
+
+    html += '<div style="font-size:0.55rem;color:#718096;margin-top:8px;">';
+    html += emergentData.total_pairs + ' unexpected similarity pairs detected.';
+    html += '</div>';
+
+    el.innerHTML = html;
+}
+
+// =====================================================================
+// EMERGENT HUB FOCUS — click an emergent pattern to explore it
+// =====================================================================
+function focusEmergentHub(hubName) {
+    if (!emergentData) return;
+
+    // Find all nodes connected to this hub
+    var connectedNodes = new Set();
+    var connections = [];
+    connectedNodes.add(hubName);
+
+    emergentData.patterns.forEach(function(p) {
+        if (p.node_a_name === hubName) {
+            connectedNodes.add(p.node_b_name);
+            connections.push({from: p.node_a_name, to: p.node_b_name, similarity: p.similarity, themes: p.shared_themes || []});
+        } else if (p.node_b_name === hubName) {
+            connectedNodes.add(p.node_a_name);
+            connections.push({from: p.node_a_name, to: p.node_b_name, similarity: p.similarity, themes: p.shared_themes || []});
+        }
+    });
+
+    // Find node IDs for these codenames
+    var matchNodeIds = [];
+    allNodes.forEach(function(n) {
+        var brief = null;
+        if (researchData && researchData.results) {
+            var r = researchData.results.find(function(x){ return x.node_id === n.id; });
+            if (r) brief = r.brief;
+        }
+        var codename = brief ? brief.codename : '';
+        if (connectedNodes.has(codename) || connectedNodes.has(n.nearest_known_site || '')) {
+            matchNodeIds.push(n.id);
+        }
+    });
+
+    // Focus the map on these nodes
+    focusLayer.clearLayers();
+    map.removeLayer(focusLayer);
+    // Dim sites only — keep grid skeleton visible
+    siteLayer.eachLayer(function(l){ if(l.setStyle) l.setStyle({opacity:0.1, fillOpacity:0.1}); if(l.setOpacity) l.setOpacity(0.15); });
+
+    var focusNodes = [];
+    matchNodeIds.forEach(function(id) {
+        var n = allNodes.find(function(x){ return x.id === id; });
+        if (!n || Math.abs(n.lat) >= 85) return;
+        focusNodes.push(n);
+        L.circleMarker([n.lat, n.lng], {
+            radius: 9, color:'#b794f4', fillColor:'#b794f4', fillOpacity:0.6, weight:2
+        }).addTo(focusLayer);
+    });
+    focusLayer.addTo(map);
+
+    if (focusNodes.length > 1) {
+        var bounds = focusNodes.map(function(n){ return [n.lat, n.lng]; });
+        map.fitBounds(bounds, {padding:[40,40], maxZoom:5});
+    }
+
+    // Show network graph below
+    showEmergentNetwork(hubName, connectedNodes, connections);
+
+    // Update sidebar with AI summary
+    var sb = document.getElementById('sidebar');
+    var allThemes = new Set();
+    connections.forEach(function(c){ c.themes.forEach(function(t){ allThemes.add(t); }); });
+
+    var html = '<span class="back-link" onclick="resetFromEmergent()">← Back to all patterns</span>';
+    html += '<div style="font-size:0.82rem;font-weight:700;color:#b794f4;margin-bottom:4px;">🔮 Emergent Pattern: ' + hubName + '</div>';
+    html += '<div style="font-size:0.62rem;color:#ecc94b;margin-bottom:10px;">' + connectedNodes.size + ' nodes in cluster | ' + connections.length + ' connections</div>';
+
+    // Documentary-style AI summary
+    html += '<div style="font-size:0.7rem;color:#cbd5e0;line-height:1.5;margin-bottom:12px;">';
+    html += '<strong style="color:#ecc94b;">THE ANOMALY:</strong> OpenSearch k-NN similarity analysis detected that ';
+    html += connectedNodes.size + ' grid vertices share unusually high semantic similarity (>';
+    html += '0.75 cosine) despite having NO common taxonomy signature. ';
+    html += 'Shared themes include: <em>' + Array.from(allThemes).slice(0,6).join(', ') + '</em>. ';
+    html += 'This cluster was not searched for — it emerged from cross-document vector analysis.</div>';
+
+    html += '<div style="background:rgba(183,148,244,0.06);border:1px solid rgba(183,148,244,0.15);border-radius:6px;padding:9px;margin-bottom:12px;">';
+    html += '<div style="font-size:0.58rem;font-weight:700;color:#b794f4;text-transform:uppercase;margin-bottom:3px;">💡 Why This Matters</div>';
+    html += '<div style="font-size:0.68rem;color:#e2e8f0;line-height:1.5;">';
+    html += 'These nodes share language patterns that suggest a COMMON characteristic not captured by any existing signature. ';
+    html += 'This is a candidate for a NEW taxonomy signature — the system found a pattern the investigator didn\'t know to look for.</div></div>';
+
+    html += '<div class="section-title">Connected Nodes</div>';
+    Array.from(connectedNodes).forEach(function(name) {
+        html += '<div style="font-size:0.68rem;color:#a0aec0;padding:3px 0;">';
+        html += '<span style="color:#b794f4">●</span> ' + name + '</div>';
+    });
+
+    html += '<div class="section-title" style="margin-top:12px;">Connections</div>';
+    connections.slice(0,8).forEach(function(c) {
+        html += '<div style="font-size:0.62rem;color:#718096;padding:2px 0;">';
+        html += c.from + ' ↔ ' + c.to + ' <span style="color:#b794f4">(sim: ' + c.similarity + ')</span></div>';
+    });
+
+    sb.innerHTML = html;
+}
+
+function showEmergentNetwork(hubName, nodeNames, connections) {
+    var panel = document.getElementById('networkPanel');
+    var title = document.getElementById('networkTitle');
+    title.textContent = '🕸️ ' + hubName + ' cluster';
+    panel.style.display = 'flex';
+    setTimeout(function(){ map.invalidateSize(); }, 100);
+
+    // Build D3 nodes
+    var nodesArr = Array.from(nodeNames).map(function(name) {
+        return {id: name, label: name, isHub: name === hubName};
+    });
+
+    // Build D3 edges
+    var edgesArr = connections.map(function(c) {
+        return {source: c.from, target: c.to, weight: Math.round(c.similarity * 10) / 10};
+    });
+
+    renderD3Network(nodesArr, edgesArr, '#b794f4');
+}
+
+function resetFromEmergent() {
+    _focusedPattern = null;
+    focusLayer.clearLayers();
+    map.removeLayer(focusLayer);
+    siteLayer.eachLayer(function(l){ if(l.setStyle) l.setStyle({opacity:0.7, fillOpacity:0.7}); if(l.setOpacity) l.setOpacity(1); });
+    closeNetworkGraph();
+    renderSidebar();
+}
+
+// =====================================================================
+// AUDIO BRIEFING PLAYER with CUE SHEET ANIMATION
+// =====================================================================
+var audioData = null;
+var cueSheet = null;
+var currentChapter = 0;
+var isPlaying = false;
+var cueInterval = null;
+var lastCueIndex = -1;
+
+async function loadAudioData() {
+    // Load audio manifest (presigned URLs for chapters)
+    try {
+        var r = await fetch(API_BASE + '/audio');
+        if (r.ok) audioData = await r.json();
+    } catch(e) { console.log('Audio API failed:', e); }
+    
+    // Cue sheet and script are already inline (INLINE_CUE_SHEET, INLINE_SCRIPT_DATA)
+    cueSheet = INLINE_CUE_SHEET;
+    if (INLINE_SCRIPT_DATA) _scriptData = INLINE_SCRIPT_DATA;
+}
+
+function toggleAudioPlayer() {
+    var player = document.getElementById('audioPlayer');
+    if (player.style.display === 'none') {
+        player.style.display = 'block';
+        if (audioData && audioData.chapters) {
+            document.getElementById('audioTitle').textContent = audioData.title || 'Research Briefing';
+            renderChapterList();
+        } else {
+            loadAudioData().then(function() {
+                if (audioData && audioData.chapters) {
+                    document.getElementById('audioTitle').textContent = audioData.title || 'Research Briefing';
+                    renderChapterList();
+                }
+            });
+        }
+    } else {
+        player.style.display = 'none';
+        stopPlayback();
+    }
+}
+
+function renderChapterList() {
+    if (!audioData || !audioData.chapters) return;
+    var list = document.getElementById('chapterList');
+    var html = '<button onclick="playChapter(\'all\')" style="background:rgba(183,148,244,0.1);border:1px solid rgba(183,148,244,0.3);border-radius:4px;padding:3px 8px;font-size:0.58rem;color:#b794f4;cursor:pointer;">▶ All</button>';
+    audioData.chapters.forEach(function(ch, i) {
+        html += '<button onclick="playChapter(' + i + ')" id="chBtn' + i + '" style="background:rgba(255,255,255,0.03);border:1px solid #4a5568;border-radius:4px;padding:3px 8px;font-size:0.58rem;color:#a0aec0;cursor:pointer;">' + ch.chapter + '. ' + ch.title + '</button>';
+    });
+    list.innerHTML = html;
+}
+
+function highlightChapterBtn(idx) {
+    if (!audioData) return;
+    audioData.chapters.forEach(function(ch, i) {
+        var btn = document.getElementById('chBtn' + i);
+        if (btn) {
+            btn.style.borderColor = (i === idx) ? '#b794f4' : '#4a5568';
+            btn.style.color = (i === idx) ? '#b794f4' : '#a0aec0';
+            btn.style.background = (i === idx) ? 'rgba(183,148,244,0.12)' : 'rgba(255,255,255,0.03)';
+        }
+    });
+}
+
+function playChapter(val) {
+    if (!audioData) return;
+    var audio = document.getElementById('audioElement');
+    
+    // Reset cue fired flags
+    if (cueSheet) cueSheet.chapters.forEach(function(ch){ ch.cues.forEach(function(c){ c._fired = false; }); });
+    
+    if (val === 'all') {
+        audio.src = audioData.full_url;
+        currentChapter = 0;
+        document.getElementById('audioChapter').textContent = 'Full Briefing';
+    } else {
+        currentChapter = parseInt(val);
+        var ch = audioData.chapters[currentChapter];
+        audio.src = ch.url;
+        document.getElementById('audioChapter').textContent = 'Ch ' + ch.chapter + ': ' + ch.title;
+    }
+    // Maintain speed setting
+    audio.playbackRate = parseFloat(document.getElementById('speedSelect').value);
+    audio.play();
+    isPlaying = true;
+    document.getElementById('playBtn').textContent = '⏸️';
+    highlightChapterBtn(currentChapter);
+    startCueEngine();
+}
+
+function playPause() {
+    var audio = document.getElementById('audioElement');
+    if (isPlaying) {
+        audio.pause();
+        isPlaying = false;
+        document.getElementById('playBtn').textContent = '▶️';
+        stopCueEngine();
+    } else {
+        if (!audio.src && audioData && audioData.chapters) {
+            playChapter('all');
+        } else {
+            audio.play();
+            isPlaying = true;
+            document.getElementById('playBtn').textContent = '⏸️';
+            startCueEngine();
+        }
+    }
+}
+
+function nextChapter() {
+    if (!audioData) return;
+    currentChapter++;
+    if (currentChapter < audioData.chapters.length) {
+        playChapter(currentChapter);
+        document.getElementById('chapterSelect').value = currentChapter;
+    } else {
+        stopPlayback();
+        document.getElementById('audioChapter').textContent = 'Briefing complete';
+    }
+}
+
+function stopPlayback() {
+    var audio = document.getElementById('audioElement');
+    audio.pause();
+    isPlaying = false;
+    document.getElementById('playBtn').textContent = '▶️';
+    stopCueEngine();
+}
+
+function seekBack() {
+    var audio = document.getElementById('audioElement');
+    audio.currentTime = Math.max(0, audio.currentTime - 10);
+}
+
+function seekForward() {
+    var audio = document.getElementById('audioElement');
+    audio.currentTime = Math.min(audio.duration || 9999, audio.currentTime + 10);
+}
+
+function setSpeed(val) {
+    var audio = document.getElementById('audioElement');
+    audio.playbackRate = parseFloat(val);
+}
+
+function scrubAudio(val) {
+    var audio = document.getElementById('audioElement');
+    if (audio.duration) audio.currentTime = (val / 100) * audio.duration;
+}
+
+function updateProgress() {
+    var audio = document.getElementById('audioElement');
+    if (!audio.duration) return;
+    var pct = (audio.currentTime / audio.duration) * 100;
+    document.getElementById('audioScrubber').value = pct;
+    document.getElementById('audioTime').textContent = formatTime(audio.currentTime);
+    document.getElementById('audioDuration').textContent = formatTime(audio.duration);
+}
+
+function formatTime(s) {
+    var m = Math.floor(s / 60);
+    var sec = Math.floor(s % 60);
+    return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+// =====================================================================
+// CUE ENGINE — animates map/network in sync with audio
+// =====================================================================
+function startCueEngine() {
+    if (cueInterval) clearInterval(cueInterval);
+    lastCueIndex = -1;
+    cueInterval = setInterval(processCues, 500); // Check every 500ms
+}
+
+function stopCueEngine() {
+    if (cueInterval) { clearInterval(cueInterval); cueInterval = null; }
+}
+
+function processCues() {
+    if (!cueSheet || !isPlaying) return;
+    var audio = document.getElementById('audioElement');
+    var currentTime = audio.currentTime;
+
+    // Determine which chapter and offset based on play mode
+    var chapterCues = cueSheet.chapters[currentChapter];
+    if (!chapterCues) return;
+
+    // If playing full briefing (all chapters in one file), currentTime is absolute
+    // If playing individual chapter, offset currentTime by chapter's start_time
+    var effectiveTime;
+    if (audioData && audioData.full_url && audio.src && audio.src.indexOf('briefing-full') >= 0) {
+        // Full briefing mode — absolute time
+        effectiveTime = currentTime;
+        // Update current chapter based on time
+        for (var i = 0; i < cueSheet.chapters.length; i++) {
+            var ch = cueSheet.chapters[i];
+            if (currentTime >= ch.start_time && currentTime < ch.end_time) {
+                if (currentChapter !== i) {
+                    currentChapter = i;
+                    chapterCues = ch;
+                    document.getElementById('audioChapter').textContent = 'Ch ' + ch.chapter + ': ' + ch.title;
+                    highlightChapterBtn(i);
+                }
+                break;
+            }
+        }
+    } else {
+        // Individual chapter mode — offset time
+        effectiveTime = currentTime + chapterCues.start_time;
+    }
+
+    // Process cues that should have fired by now
+    chapterCues.cues.forEach(function(cue) {
+        if (effectiveTime >= cue.time && cue._fired !== true) {
+            cue._fired = true;
+            executeCue(cue);
+        }
+    });
+}
+
+function executeCue(cue) {
+    switch(cue.action) {
+        case 'zoom':
+            map.flyTo([cue.target.lat, cue.target.lng], cue.target.zoom, {duration: 1.5});
+            hidePip();
+            break;
+        case 'highlight_site':
+            var ring = L.circleMarker([cue.target.lat, cue.target.lng], {
+                radius: 15, color: '#ecc94b', fillColor: 'transparent', weight: 2.5, opacity: 0.9
+            }).addTo(focusLayer);
+            map.flyTo([cue.target.lat, cue.target.lng], cue.target.zoom || 4, {duration: 1.2});
+            L.popup({closeButton: false, className: 'node-label', offset: [0, -20]})
+                .setLatLng([cue.target.lat, cue.target.lng])
+                .setContent('<strong style="color:#ecc94b">' + cue.label + '</strong>')
+                .openOn(map);
+            setTimeout(function(){ map.closePopup(); }, 8000);
+            showPip(cue.label);
+            break;
+        case 'focus_pattern':
+            focusPattern(cue.pattern);
+            break;
+        case 'show_network':
+            showNetworkGraph(cue.pattern);
+            break;
+        case 'show_card':
+            console.log('Card cue:', cue.card);
+            break;
+    }
+}
+
+// =====================================================================
+// PHASE 2: LIVE RESEARCH TRIGGERS — search for new findings during playback
+// =====================================================================
+var _liveSearchDone = {}; // Track which chapters already searched
+var RESEARCH_DATE = '2026-07-31'; // Our last research date
+
+function triggerLiveSearch(chapterIdx) {
+    if (_liveSearchDone[chapterIdx]) return;
+    _liveSearchDone[chapterIdx] = true;
+
+    if (!cueSheet || !cueSheet.chapters[chapterIdx]) return;
+    var ch = cueSheet.chapters[chapterIdx];
+    var query = ch.live_search_query || ch.title + ' ancient sites new discovery 2026';
+
+    // Call our API which proxies to Tavily
+    fetch(API_BASE + '/live-search?q=' + encodeURIComponent(query))
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(data) {
+            if (data && data.new_finding) {
+                showNewFindingPopup(data);
+            }
+        })
+        .catch(function(){});
+}
+
+function showNewFindingPopup(data) {
+    // Create popup element
+    var popup = document.createElement('div');
+    popup.className = 'new-finding-popup';
+    popup.innerHTML = '<div class="nf-header">🆕 New Finding</div>' +
+        '<div class="nf-title">' + (data.title || 'Recent discovery') + '</div>' +
+        '<div class="nf-source">' + (data.source || '') + ' • ' + (data.date || 'Recent') + '</div>' +
+        '<div class="nf-text">' + (data.summary || '') + '</div>' +
+        '<button class="nf-dismiss" onclick="this.parentElement.remove()">✕</button>';
+    
+    document.querySelector('.map-area').appendChild(popup);
+    
+    // Auto-dismiss after 12 seconds
+    setTimeout(function(){ if (popup.parentElement) popup.remove(); }, 12000);
+}
+
+// Override processCues to also trigger live search on chapter change
+var _prevChapter = -1;
+var _origProcessCues2 = processCues;
+processCues = function() {
+    _origProcessCues2();
+    if (currentChapter !== _prevChapter) {
+        _prevChapter = currentChapter;
+        triggerLiveSearch(currentChapter);
+    }
+    if (_captionsOn) updateCaption();
+};
+
+// =====================================================================
+init();
+loadEmergentPatterns();
+loadAudioData();
+
+// Caption mode
+var _captionsOn = false;
+var _scriptData = null;
+
+function toggleCaptions() {
+    _captionsOn = !_captionsOn;
+    var bar = document.getElementById('captionBar');
+    var btn = document.getElementById('captionBtn');
+    if (_captionsOn) {
+        bar.style.display = 'block';
+        btn.style.color = '#ecc94b';
+        btn.style.borderColor = '#ecc94b';
+        if (!_scriptData) {
+            // Try API first, then local
+            fetch(API_BASE + '/audio').then(function(r){ return r.json(); }).then(function(d){
+                // Audio endpoint doesn't have script text — load separately
+                return fetch('../data/audio-briefing-script.json');
+            }).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+                if (d) { _scriptData = d; updateCaption(); }
+            }).catch(function(){
+                // Last resort: fetch from S3 via presigned or build from narration in cueSheet
+                if (cueSheet) {
+                    _scriptData = {chapters: cueSheet.chapters.map(function(c,i){
+                        return {chapter: c.chapter, title: c.title, narration: 'Chapter ' + c.chapter + ': ' + c.title + ' — Narration text loading...'};
+                    })};
+                }
+            });
+        } else { updateCaption(); }
+    } else {
+        bar.style.display = 'none';
+        btn.style.color = '#a0aec0';
+        btn.style.borderColor = '#4a5568';
+    }
+}
+
+function updateCaption() {
+    if (!_captionsOn || !_scriptData || !_scriptData.chapters) return;
+    var bar = document.getElementById('captionBar');
+    var ch = _scriptData.chapters[currentChapter];
+    if (!ch) return;
+    var audio = document.getElementById('audioElement');
+    var progress = (audio.duration > 0) ? (audio.currentTime / audio.duration) : 0;
+    var text = ch.narration;
+    var charPos = Math.floor(progress * text.length);
+    var start = Math.max(0, charPos - 60);
+    var end = Math.min(text.length, charPos + 180);
+    var before = text.substring(start, charPos);
+    var current = text.substring(charPos, Math.min(charPos + 30, end));
+    var after = text.substring(Math.min(charPos + 30, end), end);
+    bar.innerHTML = (start > 0 ? '...' : '') + '<span style="color:#718096">' + before + '</span><span style="color:#ecc94b;font-weight:600;background:rgba(236,201,75,0.1);padding:0 2px;border-radius:2px;">' + current + '</span><span style="color:#a0aec0">' + after + '</span>';
+}
+
+// Update captions every 500ms alongside cue processing
+var _origProcessCues = processCues;
+processCues = function() {
+    _origProcessCues();
+    if (_captionsOn && isPlaying) updateCaption();
+};
+</script>
+</body>
+</html>
