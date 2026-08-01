@@ -1,0 +1,23 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": ["s3:PutObject", "s3:GetObject", "s3:ListBucket", "s3:DeleteObject"],
+            "Resource": [
+                "arn:aws:s3:::research-analyst-data-lake-974220725866",
+                "arn:aws:s3:::research-analyst-data-lake-974220725866/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": ["iam:CreateRole", "iam:PutRolePolicy", "iam:GetRole"],
+            "Resource": "arn:aws:iam::974220725866:role/BedrockBatchInferenceRole"
+        },
+        {
+            "Effect": "Allow",
+            "Action": ["bedrock:CreateModelInvocationJob", "bedrock:GetModelInvocationJob", "bedrock:ListModelInvocationJobs"],
+            "Resource": "*"
+        }
+    ]
+}
