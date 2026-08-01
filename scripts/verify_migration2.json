@@ -1,0 +1,1 @@
+{"sql": "SELECT COUNT(*) as cnt FROM ips_computation_runs"}
