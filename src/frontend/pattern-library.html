@@ -1,0 +1,2406 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pattern Library — Universal Taxonomy Browser</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",system-ui,sans-serif;background:#0a0f19;color:#e2e8f0;min-height:100vh}
+.header{background:linear-gradient(135deg,#0f1419,#1a1a2e);padding:14px 28px;border-bottom:1px solid rgba(99,179,237,0.2);display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:1.3rem;color:#63b3ed;display:flex;align-items:center;gap:10px}
+.header h1 span{font-size:0.7rem;color:#718096;font-weight:400}
+.header-right{display:flex;gap:10px;align-items:center}
+.nav-link{color:#a0aec0;text-decoration:none;font-size:0.72rem;padding:5px 12px;border:1px solid #4a5568;border-radius:6px;transition:all 0.2s}
+.nav-link:hover{color:#63b3ed;border-color:#63b3ed;background:rgba(99,179,237,0.08)}
+.stats-bar{display:flex;gap:16px;padding:12px 28px;background:rgba(0,0,0,0.3);border-bottom:1px solid rgba(255,255,255,0.05);flex-wrap:wrap}
+.stat-item{font-size:0.72rem;color:#718096}
+.stat-item strong{color:#e2e8f0;font-size:0.85rem;margin-right:4px}
+.container{max-width:1400px;margin:0 auto;padding:20px 28px}
+.breadcrumb{display:flex;align-items:center;gap:6px;margin-bottom:16px;font-size:0.78rem;flex-wrap:wrap}
+.breadcrumb a{color:#63b3ed;text-decoration:none;cursor:pointer}
+.breadcrumb a:hover{text-decoration:underline}
+.breadcrumb .sep{color:#4a5568}
+.breadcrumb .current{color:#e2e8f0;font-weight:600}
+.domain-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.domain-tab{padding:8px 18px;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s;border:1px solid #4a5568;background:rgba(255,255,255,0.03);color:#a0aec0}
+.domain-tab:hover{transform:translateY(-1px)}
+.domain-tab.active{border-width:2px}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px}
+.typo-card{background:rgba(26,35,50,0.9);border:1px solid rgba(255,255,255,0.1);border-top:3px solid;border-radius:12px;padding:18px;transition:all 0.2s;cursor:pointer}
+.typo-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+.method-card{background:rgba(20,30,45,0.95);border:1px solid rgba(255,255,255,0.08);border-left:3px solid;border-radius:10px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all 0.2s}
+.method-card:hover{background:rgba(30,40,55,0.95);transform:translateX(3px)}
+.sig-card{background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:14px;margin-bottom:10px}
+.sig-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.severity-badge{font-size:0.65rem;padding:2px 8px;border-radius:10px;font-weight:700;text-transform:uppercase}
+.sev-critical{background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)}
+.sev-high{background:rgba(251,146,60,0.15);color:#fb923c;border:1px solid rgba(251,146,60,0.3)}
+.sev-moderate{background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.3)}
+.indicator-tag{display:inline-block;font-size:0.68rem;padding:2px 8px;margin:2px 4px 2px 0;border-radius:12px;background:rgba(99,179,237,0.08);border:1px solid rgba(99,179,237,0.2);color:#90cdf4}
+.precedent{font-size:0.72rem;color:#a0aec0;font-style:italic;margin-top:8px;padding:8px 12px;background:rgba(255,255,255,0.02);border-radius:6px;border-left:2px solid #4a5568}
+.back-btn{background:none;border:1px solid #4a5568;color:#a0aec0;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.75rem;margin-bottom:16px;transition:all 0.2s}
+.back-btn:hover{border-color:#63b3ed;color:#63b3ed}
+
+/* === AI Insight Panel === */
+.ai-insight-panel{background:rgba(16,24,40,0.85);border:1px solid rgba(99,179,237,0.18);border-radius:10px;margin-bottom:20px;overflow:hidden;transition:all 0.3s ease}
+.ai-insight-panel.collapsed .ai-insight-body{max-height:0;padding:0 18px;opacity:0}
+.ai-insight-header{display:flex;align-items:center;gap:10px;padding:12px 18px;background:rgba(99,179,237,0.04);border-bottom:1px solid rgba(99,179,237,0.1)}
+.ai-label{font-size:0.82rem;font-weight:700;color:#63b3ed;letter-spacing:0.3px}
+.ai-status{font-size:0.68rem;color:#718096;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)}
+.ai-status.cached{color:#48bb78;border-color:rgba(72,187,120,0.3);background:rgba(72,187,120,0.08)}
+.ai-status.generated{color:#ecc94b;border-color:rgba(236,201,75,0.3);background:rgba(236,201,75,0.08)}
+.ai-status.error{color:#fc8181;border-color:rgba(252,129,129,0.3);background:rgba(252,129,129,0.08)}
+.ai-refresh-btn{margin-left:auto;background:none;border:1px solid #4a5568;color:#a0aec0;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s;line-height:1}
+.ai-refresh-btn:hover{border-color:#63b3ed;color:#63b3ed;background:rgba(99,179,237,0.08)}
+.ai-refresh-btn:disabled{opacity:0.4;cursor:not-allowed;border-color:#2d3748;color:#4a5568}
+.ai-refresh-btn.spinning{animation:spin 0.8s linear infinite}
+.ai-collapse-btn{background:none;border:none;color:#718096;cursor:pointer;font-size:0.8rem;padding:4px 8px;border-radius:4px;transition:all 0.2s}
+.ai-collapse-btn:hover{color:#63b3ed;background:rgba(99,179,237,0.06)}
+.ai-insight-body{padding:14px 18px;max-height:600px;opacity:1;transition:max-height 0.3s ease, padding 0.3s ease, opacity 0.25s ease;overflow:hidden}
+.ai-insight-body p{font-size:0.8rem;color:#cbd5e0;line-height:1.65;margin:0}
+.ai-insight-body .ai-expand-toggle{display:inline-block;margin-top:8px;font-size:0.72rem;color:#63b3ed;cursor:pointer;border:none;background:none;padding:0;transition:color 0.2s}
+.ai-insight-body .ai-expand-toggle:hover{color:#90cdf4;text-decoration:underline}
+.ai-error-msg{font-size:0.78rem;color:#fc8181;padding:10px 14px;background:rgba(252,129,129,0.06);border:1px solid rgba(252,129,129,0.15);border-radius:6px;display:flex;align-items:center;gap:8px}
+.ai-error-msg .ai-dismiss{margin-left:auto;cursor:pointer;color:#fc8181;opacity:0.7;font-size:1rem;background:none;border:none;transition:opacity 0.2s}
+.ai-error-msg .ai-dismiss:hover{opacity:1}
+
+/* Loading skeleton animation */
+.ai-skeleton{display:flex;flex-direction:column;gap:8px}
+.ai-skeleton-line{height:12px;border-radius:6px;background:linear-gradient(90deg,rgba(99,179,237,0.06) 25%,rgba(99,179,237,0.12) 50%,rgba(99,179,237,0.06) 75%);background-size:200% 100%;animation:shimmer 1.5s ease-in-out infinite}
+.ai-skeleton-line:nth-child(1){width:95%}
+.ai-skeleton-line:nth-child(2){width:88%}
+.ai-skeleton-line:nth-child(3){width:72%}
+
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+
+/* === Geospatial Map Panel === */
+.map-panel{background:rgba(16,24,40,0.85);border:1px solid rgba(72,187,120,0.18);border-radius:10px;margin-bottom:20px;overflow:hidden;transition:all 0.3s ease}
+.map-panel-header{display:flex;align-items:center;gap:10px;padding:12px 18px;background:rgba(72,187,120,0.04);border-bottom:1px solid rgba(72,187,120,0.1)}
+.map-label{font-size:0.82rem;font-weight:700;color:#48bb78;letter-spacing:0.3px}
+.map-status{font-size:0.68rem;color:#718096;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)}
+.map-status.cached{color:#48bb78;border-color:rgba(72,187,120,0.3);background:rgba(72,187,120,0.08)}
+.map-status.generated{color:#ecc94b;border-color:rgba(236,201,75,0.3);background:rgba(236,201,75,0.08)}
+.map-grid-btn{background:rgba(236,201,75,0.1);border:1px solid rgba(236,201,75,0.3);color:#ecc94b;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.7rem;transition:all 0.2s}
+.map-grid-btn:hover{background:rgba(236,201,75,0.2);border-color:#ecc94b}
+.map-grid-btn.active{background:rgba(236,201,75,0.25);border-color:#ecc94b;color:#fff}
+.map-toggle-btn{margin-left:auto;background:none;border:1px solid #4a5568;color:#a0aec0;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.72rem;transition:all 0.2s}
+.map-toggle-btn:hover{border-color:#48bb78;color:#48bb78}
+.map-panel-body{padding:14px 18px;transition:max-height 0.3s ease,padding 0.3s ease}
+.map-panel-body.collapsed{max-height:0;padding:0 18px;overflow:hidden}
+.map-no-data{font-size:0.8rem;color:#718096;text-align:center;padding:30px 0}
+.map-site-label{background:rgba(16,24,40,0.9)!important;border:1px solid rgba(72,187,120,0.4)!important;color:#e2e8f0!important;font-size:0.7rem!important;padding:2px 6px!important;border-radius:4px!important;box-shadow:none!important}
+.map-site-label::before{border-right-color:rgba(72,187,120,0.4)!important}
+.line-label{font-size:0.6rem;color:#48bb78;background:rgba(16,24,40,0.85);padding:1px 4px;border-radius:3px;white-space:nowrap}
+.line-label-icon{background:none!important;border:none!important}
+.map-viz-description{font-size:0.72rem;color:#a0aec0;padding:8px 0 0;margin-top:8px;border-top:1px solid rgba(255,255,255,0.05);font-style:italic}
+
+/* === Research Recommendations Panel === */
+.research-panel{background:rgba(16,24,40,0.85);border:1px solid rgba(236,201,75,0.18);border-radius:10px;margin-bottom:20px;overflow:hidden}
+.research-panel-header{display:flex;align-items:center;gap:10px;padding:12px 18px;background:rgba(236,201,75,0.04);border-bottom:1px solid rgba(236,201,75,0.1)}
+.research-label{font-size:0.82rem;font-weight:700;color:#ecc94b;letter-spacing:0.3px}
+.research-status{font-size:0.68rem;color:#718096;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)}
+.research-panel-body{padding:14px 18px}
+.research-summary{font-size:0.8rem;color:#a0aec0;line-height:1.6;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.05)}
+.research-card{background:rgba(255,255,255,0.02);border:1px solid rgba(236,201,75,0.12);border-radius:8px;padding:12px 16px;margin-bottom:10px;transition:border-color 0.2s}
+.research-card:hover{border-color:rgba(236,201,75,0.3)}
+.research-card-title{font-size:0.8rem;font-weight:600;color:#e2e8f0;margin-bottom:4px}
+.research-card-desc{font-size:0.72rem;color:#a0aec0;line-height:1.5;margin-bottom:8px}
+.research-card-badge{display:inline-block;font-size:0.62rem;padding:2px 6px;border-radius:4px;margin-right:6px;text-transform:uppercase;letter-spacing:0.5px}
+.research-card-badge.high{background:rgba(252,129,129,0.15);color:#fc8181;border:1px solid rgba(252,129,129,0.3)}
+.research-card-badge.medium{background:rgba(236,201,75,0.15);color:#ecc94b;border:1px solid rgba(236,201,75,0.3)}
+.research-card-badge.low{background:rgba(72,187,120,0.15);color:#48bb78;border:1px solid rgba(72,187,120,0.3)}
+.research-btn{background:rgba(236,201,75,0.1);border:1px solid rgba(236,201,75,0.3);color:#ecc94b;padding:5px 12px;border-radius:5px;cursor:pointer;font-size:0.7rem;transition:all 0.2s}
+.research-btn:hover{background:rgba(236,201,75,0.2);border-color:#ecc94b}
+.research-btn:disabled{opacity:0.4;cursor:not-allowed}
+.research-brief{margin-top:10px;padding:12px;background:rgba(99,179,237,0.05);border:1px solid rgba(99,179,237,0.15);border-radius:6px;font-size:0.75rem}
+.research-brief-summary{color:#cbd5e0;line-height:1.6;margin-bottom:8px}
+.research-brief-findings{list-style:none;padding:0;margin:0 0 8px}
+.research-brief-findings li{color:#a0aec0;padding:3px 0 3px 12px;border-left:2px solid rgba(99,179,237,0.3);margin-bottom:4px;font-size:0.72rem;line-height:1.5}
+.research-brief-sources{font-size:0.65rem;color:#718096;margin-top:6px}
+.research-brief-sources a{color:#63b3ed;text-decoration:none}
+.research-brief-sources a:hover{text-decoration:underline}
+
+/* === Concept Research Panel (Phase 1) === */
+#conceptResearchPanel .research-panel-header{background:rgba(99,179,237,0.04);border-bottom:1px solid rgba(99,179,237,0.12)}
+#conceptResearchPanel .research-card{border-left:3px solid rgba(99,179,237,0.3)}
+#conceptResearchPanel .research-card:hover{border-left-color:rgba(99,179,237,0.6)}
+
+/* Intelligence Brief Card Styling */
+.intel-brief{display:flex;flex-direction:column;gap:10px}
+.intel-assessment{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:rgba(99,179,237,0.05);border-radius:6px;border-left:3px solid #63b3ed}
+.intel-conf-badge{font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:0.5px;white-space:nowrap;margin-top:2px}
+.intel-conf-badge.high{background:rgba(72,187,120,0.2);color:#48bb78;border:1px solid rgba(72,187,120,0.4)}
+.intel-conf-badge.medium{background:rgba(236,201,75,0.2);color:#ecc94b;border:1px solid rgba(236,201,75,0.4)}
+.intel-conf-badge.low{background:rgba(252,129,129,0.2);color:#fc8181;border:1px solid rgba(252,129,129,0.4)}
+.intel-assess-text{font-size:0.78rem;color:#e2e8f0;line-height:1.5}
+.intel-indicators{padding:4px 0}
+.intel-section-label{font-size:0.65rem;font-weight:700;color:#718096;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:6px}
+.intel-indicator{font-size:0.76rem;color:#cbd5e0;line-height:1.6;padding:3px 0 3px 4px;border-left:2px solid rgba(99,179,237,0.2);margin-left:4px;padding-left:10px;margin-bottom:4px}
+.intel-gaps{padding:8px 12px;background:rgba(236,201,75,0.04);border-radius:6px;border:1px solid rgba(236,201,75,0.1)}
+.intel-gap-text{font-size:0.75rem;color:#a0aec0;line-height:1.5}
+.intel-action{padding:8px 12px;background:rgba(72,187,120,0.04);border-radius:6px;border:1px solid rgba(72,187,120,0.15)}
+.intel-action-text{font-size:0.76rem;color:#48bb78;line-height:1.5;font-weight:500}
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+</head><body>
+<div class="header">
+<h1>📚 Pattern Library <span>Universal Taxonomy Browser — 5-Level Drill-Down</span></h1>
+<div class="header-right">
+<a href="grid-globe.html" class="nav-link" style="border-color:rgba(236,201,75,0.4);color:#ecc94b;">🌐 Grid Globe</a>
+<a href="index.html" class="nav-link">🏠 Home</a>
+<a href="investigator.html" class="nav-link">🔍 Investigator</a>
+<a href="antitrust-report.html" class="nav-link">⚖️ Antitrust</a>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat-item"><strong id="totalDomains">—</strong> Domains</div>
+<div class="stat-item"><strong id="totalTypologies">—</strong> Typologies</div>
+<div class="stat-item"><strong id="totalMethods">—</strong> Methods</div>
+<div class="stat-item"><strong id="totalSignatures">—</strong> Signatures</div>
+<div class="stat-item" style="margin-left:auto;color:#4a5568">Domain → Typology → Method → Signature → Precedent Case</div>
+</div>
+<div class="container">
+<div id="breadcrumb" class="breadcrumb"></div>
+<div id="domainTabs" class="domain-tabs"></div>
+
+<!-- AI Insight Panel -->
+<div class="ai-insight-panel" id="aiInsightPanel" style="display:none;">
+    <div class="ai-insight-header">
+        <span class="ai-label">🤖 AI Insight</span>
+        <span class="ai-status" id="aiStatus">—</span>
+        <button class="ai-collapse-btn" id="aiCollapseBtn" title="Collapse">▾</button>
+        <button class="ai-refresh-btn" id="aiRefreshBtn" title="Regenerate">↻</button>
+    </div>
+    <div class="ai-insight-body" id="aiInsightBody">
+        <!-- Loading skeleton or summary text rendered dynamically -->
+    </div>
+</div>
+
+<!-- Geospatial Map Panel -->
+<div class="map-panel" id="mapPanel" style="display:none;">
+    <div class="map-panel-header">
+        <span class="map-label">🗺️ Geographic Context</span>
+        <span class="map-status" id="mapStatus">—</span>
+        <button class="map-grid-btn" id="mapGridBtn" onclick="toggleGlobalGrid()" style="display:none;">🌐 Ley Lines</button><button class="map-grid-btn" id="mapPoleBtn" onclick="viewPoles()" style="display:none;">📐 Theory</button><a href="grid-globe.html?leylines=1" class="map-grid-btn" id="mapGridLink" style="display:none;text-decoration:none;">🌐 Full Grid Investigation</a><button class="map-toggle-btn" id="mapToggleBtn" onclick="toggleMapPanel()">Hide Map</button>
+    </div>
+    <div class="map-panel-body" id="mapPanelBody">
+        <div id="leafletMap" style="height: 350px; border-radius: 8px;"></div>
+    </div>
+</div>
+
+<!-- Concept Research Panel (Phase 1: auto-research on navigation) -->
+<div class="research-panel" id="conceptResearchPanel" style="display:none;">
+    <div class="research-panel-header" style="background:rgba(99,179,237,0.06);border-bottom:1px solid rgba(99,179,237,0.15);">
+        <span class="research-label" style="color:#63b3ed;">🧠 Concept Intelligence Briefing</span>
+        <span class="research-status" id="conceptResearchStatus">—</span>
+        <button class="research-btn" id="conceptRefreshBtn" onclick="refreshConceptResearch()" style="margin-left:auto;font-size:0.65rem;">↻ Re-research</button>
+    </div>
+    <div class="research-panel-body" id="conceptResearchBody">
+        <!-- Concept briefing rendered here -->
+    </div>
+</div>
+
+<!-- Research Recommendations Panel -->
+<div class="research-panel" id="researchPanel" style="display:none;">
+    <div class="research-panel-header">
+        <span class="research-label">🔍 Research Recommendations</span>
+        <span class="research-status" id="researchStatus">—</span>
+    </div>
+    <div class="research-panel-body" id="researchPanelBody">
+        <!-- Loading or recommendations rendered here -->
+    </div>
+</div>
+
+<div id="content"></div>
+</div>
+
+<script>
+// === TAXONOMY DATA ===
+// Will be loaded from JSON files
+var TAXONOMY = { domains: [] };
+var currentView = { level: 'domains', domain: null, typology: null, method: null };
+
+async function loadTaxonomy() {
+  try {
+    // Load crime taxonomy
+    var crimeResp = await fetch('pattern-library-crime.json');
+    if (crimeResp.ok) {
+      var crimeData = await crimeResp.json();
+      TAXONOMY.domains.push(crimeData);
+    }
+  } catch(e) { console.log('Crime taxonomy not available as separate file, using inline'); }
+
+  try {
+    // Load ancient mysteries taxonomy
+    var amResp = await fetch('pattern-library-ancient-mysteries.json');
+    if (amResp.ok) {
+      var amData = await amResp.json();
+      TAXONOMY.domains.push(amData);
+    }
+  } catch(e) { console.log('Ancient mysteries not available as separate file'); }
+
+  // If no files loaded, use inline data
+  if (TAXONOMY.domains.length === 0) {
+    TAXONOMY = buildInlineData();
+  }
+
+  computeStats();
+  renderDomainTabs();
+  navigateTo('domains');
+}
+</script>
+<script>
+// === INLINE TAXONOMY DATA (loaded if JSON files not available) ===
+function buildInlineData() {
+  return { domains: [CRIME_DOMAIN, ANCIENT_MYSTERIES_DOMAIN] };
+}
+
+// Crime domain with full method/signature detail for antitrust (others summarized)
+var CRIME_DOMAIN = {
+  domain_id: 'crime', name: 'Crime Typology', icon: '⚖️', color: '#e53e3e',
+  description: 'Criminal pattern recognition across 12 enforcement domains — from human trafficking to antitrust violations.',
+  typologies: [
+    { typology_id:'sex_trafficking', name:'Human Trafficking', icon:'🔴', color:'#e53e3e', needle_count:35, primary_statute:'18 USC § 1591',
+      methods:[
+        {method_id:'recruitment_grooming',name:'Recruitment & Grooming',description:'Social media targeting, age disparity, false promises, Romeo pimp tactics',signatures:[
+          {signature_id:'st-rg-001',description:'Pattern of social media contact with vulnerable individuals followed by isolation from support network',indicators:['Social media targeting','Age-inappropriate contact','Isolation tactics','Gift-giving escalation','False employment promises'],vector_text:'Social media recruitment pattern targeting vulnerable individuals',severity:'critical',precedent_case:'United States v. Fields (social media trafficking recruitment)'},
+          {signature_id:'st-rg-002',description:'Romeo/boyfriend pimp tactic — feigned romantic relationship to establish control before exploitation',indicators:['Feigned romance','Rapid attachment','Financial dependency creation','Isolation from family','Gradual boundary erosion'],vector_text:'Romeo pimp romance-based recruitment with gradual control establishment',severity:'critical',precedent_case:'United States v. R. Kelly (NDIL 2022) — systematic recruitment through position of influence'}
+        ]},
+        {method_id:'transportation_movement',name:'Transportation & Movement',description:'Interstate travel, hotel patterns, circuit rotation, third-party bookings',signatures:[
+          {signature_id:'st-tm-001',description:'Multi-city hotel rotation pattern with compressed timeframes and third-party bookings',indicators:['4+ cities in 2 weeks','Third-party card payments','Alias bookings','Same hotel chains','Night-only stays'],vector_text:'Multi-city hotel circuit rotation with compressed timeframes third-party bookings and aliases',severity:'high',precedent_case:'United States v. Rivera (SDFL 2021) — interstate circuit trafficking via hotel rotation'}
+        ]},
+        {method_id:'financial_control',name:'Financial Control',description:'Structuring deposits, victim accounts controlled by trafficker, prepaid cards, quotas',signatures:[
+          {signature_id:'st-fc-001',description:'Multiple bank accounts in victims names with identical deposit patterns controlled by single authorized signer',indicators:['Victim-name accounts','Identical deposit patterns','Single controller','$8500-$9800 amounts','2-3x weekly'],vector_text:'Multiple bank accounts opened in trafficking victims names showing identical structured deposit patterns with single controller as authorized signer',severity:'critical',precedent_case:'United States v. Backpage.com (D.AZ 2021) — financial infrastructure facilitating trafficking'}
+        ]},
+        {method_id:'communication_networks',name:'Communication Networks',description:'Burner phones, encrypted apps, star topology, ad scheduling',signatures:[
+          {signature_id:'st-cn-001',description:'Cluster of prepaid phones activated same day/location with star topology communication pattern',indicators:['Same-day activation','Same retail location','Star topology (one hub)','Activity spikes at booking windows','Disposable rotation'],vector_text:'Cluster of prepaid phones activated simultaneously at same location showing star topology with central hub phone and activity spikes during booking windows',severity:'high',precedent_case:'United States v. Pipkins (WD-TN 2020) — phone GPS proving 4-city rotation'}
+        ]},
+        {method_id:'venue_infrastructure',name:'Venue & Infrastructure',description:'Massage parlor fronts, hotel rotation, residential brothels, online ads',signatures:[
+          {signature_id:'st-vi-001',description:'Multiple rented apartments used on rotating schedule matching online ad posting cadence',indicators:['3+ apartments different zip codes','2-3 day rotation','Ad schedule matches rotation','Short-term leases','Cash payments'],vector_text:'Multiple rented apartments in different zip codes used on rotating schedule precisely matching online advertisement posting cadence',severity:'high',precedent_case:'United States v. Martono (EDVA 2023) — venue rotation proved via ad timing'}
+        ]},
+        {method_id:'power_control',name:'Power & Control',description:'Debt bondage, document confiscation, quotas, branding, GPS tracking',signatures:[
+          {signature_id:'st-pc-001',description:'Digital ledger tracking victim earnings with running debt balances and daily quotas',indicators:['Debt ledger on phone/computer','Running balances $15K-$45K','Daily quota $500-$1000','Penalty entries','Multiple victims tracked'],vector_text:'Digital ledger on trafficker device tracking multiple victims with running debt balances daily earning quotas and penalty entries constituting debt bondage evidence',severity:'critical',precedent_case:'United States v. Raniere (EDNY 2019) — systematic control through debt and branding'}
+        ]}
+      ]
+    },
+    { typology_id:'fraud_waste_abuse', name:'Fraud, Waste & Abuse', icon:'🟡', color:'#d69e2e', needle_count:42, primary_statute:'18 USC § 1341/1343',
+      methods:[
+        {method_id:'procurement_fraud',name:'Procurement Fraud',description:'Bid rigging, phantom vendors, split purchases, sole-source manipulation',signatures:[
+          {signature_id:'fwa-pf-001',description:'Bid rotation pattern among fixed group of 3+ vendors across 5+ contracts',indicators:['Win rotation periodicity','Consistent bidder pool','Losing bids within 5% of winner','Same vendors always participate'],vector_text:'Bid rotation among fixed group of vendors with losing bids clustered near winning price across multiple contracts',severity:'critical',precedent_case:'United States v. Kellogg Brown & Root (procurement bid rotation)'},
+          {signature_id:'fwa-pf-002',description:'Phantom vendor receiving payments with no physical operations, employees, or deliverables',indicators:['No physical address','No employees on record','Payments without deliverables','Recently incorporated','Shared bank with real vendor'],vector_text:'Payments to phantom vendor entity with no physical operations employees or documented deliverables sharing banking infrastructure with legitimate vendor',severity:'critical',precedent_case:'United States v. Epstein Trucking (fraudulent hauling invoices to phantom entities)'}
+        ]},
+        {method_id:'billing_schemes',name:'Billing & Invoice Schemes',description:'Duplicate invoices, inflated charges, services not rendered, ghost employees',signatures:[
+          {signature_id:'fwa-bs-001',description:'Invoice amounts consistently $50-$500 below approval threshold requiring higher authorization',indicators:['Amounts cluster below threshold','Same vendor repeatedly','Round numbers avoided','Frequency higher than service warrants'],vector_text:'Invoice amounts consistently just below approval threshold from same vendor at frequency exceeding service needs suggesting deliberate threshold avoidance',severity:'high',precedent_case:'ACFE Report to the Nations (2024) — threshold avoidance is #1 billing fraud indicator'}
+        ]},
+        {method_id:'conflict_of_interest',name:'Conflict of Interest',description:'Undisclosed relationships, revolving door, family connections to vendors',signatures:[
+          {signature_id:'fwa-ci-001',description:'Contracting officer approving awards to vendor with undisclosed family/financial relationship',indicators:['Undisclosed relationship to vendor','Approval authority exercised','OGE-450 omission','Pattern of awards to same vendor'],vector_text:'Government contracting officer repeatedly approving awards to vendor with undisclosed family or financial relationship constituting conflict of interest',severity:'critical',precedent_case:'DOJ Public Integrity Section — conflict of interest in contracting (annual report pattern)'}
+        ]},
+        {method_id:'grant_misuse',name:'Grant & Fund Misuse',description:'Commingled funds, personal expenses on grants, fabricated match requirements',signatures:[
+          {signature_id:'fwa-gm-001',description:'Grant funds transferred to personal accounts as unauthorized administrative fees not in approved budget',indicators:['Transfer to personal accounts','Labeled admin fees','Not in approved budget','Exceeds indirect cost rate','No board approval'],vector_text:'Federal grant funds transferred to executive personal accounts labeled as administrative fees not included in approved budget exceeding authorized indirect cost rates',severity:'critical',precedent_case:'GAO Improper Payments Report (2023) — $175B in improper federal grant payments'}
+        ]},
+        {method_id:'kickback_schemes',name:'Kickback & Bribery',description:'Intermediary payments, vendor-paid travel, cash transactions correlated with awards',signatures:[
+          {signature_id:'fwa-ks-001',description:'Payments from vendor to official via intermediary LLC correlated temporally with contract award dates',indicators:['Intermediary LLC payments','Temporal correlation with awards','Cash or crypto','Vendor-paid travel','Gift pattern escalation'],vector_text:'Payments from vendor to government official through intermediary LLC temporally correlated with contract award decisions suggesting quid pro quo kickback scheme',severity:'critical',precedent_case:'DOJ Civil Division Anti-Kickback Act enforcement (2023) — average settlement $2.1M'}
+        ]},
+        {method_id:'data_manipulation',name:'Data & Reporting Manipulation',description:'Altered records, backdated documents, falsified metrics, suppressed audits',signatures:[
+          {signature_id:'fwa-dm-001',description:'Bulk record deletion timestamps clustering around reporting deadlines inflating performance metrics',indicators:['Deletion timestamp clusters','Near report deadlines','Metrics improved post-deletion','No audit trail','IT logs preserved'],vector_text:'Bulk data record deletions with timestamps clustering around quarterly reporting deadlines resulting in artificially inflated performance metrics with no documented audit justification',severity:'high',precedent_case:'ACFE (2024) — 28% of fraud cases involve document alteration; digital forensics detects 89%'}
+        ]}
+      ]
+    },
+    { typology_id:'drug_trafficking', name:'Drug Trafficking', icon:'💊', color:'#9f7aea', needle_count:38, primary_statute:'21 USC § 841',
+      methods:[
+        {method_id:'supply_chain',name:'Supply Chain & Sourcing',description:'Source country connections, precursor procurement, bulk importation, cartel affiliations',signatures:[
+          {signature_id:'dt-sc-001',description:'Wire transfers totaling $1M+ from source-country-linked accounts to front businesses with no legitimate trade',indicators:['Source country wire transfers','Front business recipients','No matching goods/services','Structuring patterns','Cartel-linked accounts'],vector_text:'Multiple wire transfers from drug source country linked accounts to domestic front businesses with no legitimate trade documentation and structured amounts',severity:'critical',precedent_case:'DEA National Drug Threat Assessment (2024) — Mexican cartels control 80% US meth/fentanyl supply'}
+        ]},
+        {method_id:'distribution_network',name:'Distribution Network',description:'Cell structure, tiered hierarchy, territory control, retail operations',signatures:[
+          {signature_id:'dt-dn-001',description:'3-tier hierarchical communication pattern: wholesale→mid-level→retail with strict compartmentalization',indicators:['Hierarchical phone tree','No cross-tier communication','Territory boundaries enforced','Regular resupply schedule'],vector_text:'Three-tier drug distribution hierarchy with strict communication compartmentalization territory boundaries and regular resupply scheduling',severity:'high',precedent_case:'HIDTA Annual Report (2024) — average DTO has 3.4 hierarchical levels'}
+        ]},
+        {method_id:'stash_logistics',name:'Stash Houses & Logistics',description:'Rotating stash locations, nominee properties, counter-surveillance, trap vehicles',signatures:[]},
+        {method_id:'drug_financial',name:'Drug Proceeds & Laundering',description:'Bulk cash, MSBs, trade-based laundering, crypto conversion, BMPE',signatures:[]},
+        {method_id:'violence_enforcement',name:'Violence & Enforcement',description:'Territorial disputes, debt collection, witness intimidation, firearms trafficking',signatures:[]},
+        {method_id:'communication_opsec',name:'Communication & OPSEC',description:'Encrypted platforms, code words, burner rotation, counter-surveillance, dead drops',signatures:[]}
+      ]
+    },
+    { typology_id:'money_laundering', name:'Money Laundering', icon:'💰', color:'#38b2ac', needle_count:40, primary_statute:'18 USC § 1956',
+      methods:[
+        {method_id:'placement',name:'Placement',description:'Structuring, smurfing networks, cash-intensive businesses, funnel accounts',signatures:[{signature_id:'ml-pl-001',description:'Coordinated deposits by 8+ individuals at multiple banks on same day, all below CTR threshold',indicators:['Multiple depositors same day','All below $10K','Linked via phone records','Same geographic area','Funnel to single account'],vector_text:'Coordinated structured deposits by multiple smurfs below CTR reporting threshold across banks on same day funneling to single controlled account',severity:'critical',precedent_case:'FinCEN Enforcement (2024) — structuring accounts for 31% of BSA/AML actions'}]},
+        {method_id:'layering',name:'Layering & Obfuscation',description:'Shell companies, wire cascades, trade-based laundering, crypto mixing',signatures:[{signature_id:'ml-ly-001',description:'Funds moved through 5+ shell entities across 3+ jurisdictions in under 72 hours with each holding under 24hrs',indicators:['5+ shell entities','3+ jurisdictions','Rapid transfers <72hrs','Each holds <24hrs','UBO obscured'],vector_text:'Rapid layering through multiple shell company chain across jurisdictions with funds held less than 24 hours at each entity obscuring ultimate beneficial owner',severity:'critical',precedent_case:'FATF Typology Report (2024) — average layering scheme uses 4.7 intermediaries'}]},
+        {method_id:'integration',name:'Integration',description:'Real estate, luxury assets, legitimate business investment, loan-back schemes',signatures:[]},
+        {method_id:'trade_based',name:'Trade-Based Laundering',description:'Over/under-invoicing, phantom shipments, multiple invoicing, BMPE',signatures:[]},
+        {method_id:'crypto_laundering',name:'Cryptocurrency Laundering',description:'Mixing services, chain-hopping, privacy coins, DeFi protocols, P2P exchanges',signatures:[]},
+        {method_id:'professional_enablers',name:'Professional Enablers',description:'Complicit attorneys, accountants, formation agents, nominee directors',signatures:[]}
+      ]
+    },
+    { typology_id:'cybercrime', name:'Cybercrime', icon:'💻', color:'#4299e1', needle_count:36, primary_statute:'18 USC § 1030', methods:[
+        {method_id:'ransomware',name:'Ransomware Operations',description:'Initial access brokers, lateral movement, data exfil before encryption, RaaS',signatures:[]},
+        {method_id:'bec_fraud',name:'Business Email Compromise',description:'Domain spoofing, executive impersonation, payroll diversion',signatures:[]},
+        {method_id:'credential_theft',name:'Credential Theft & Access',description:'Phishing, credential stuffing, infostealers, MFA bypass',signatures:[]},
+        {method_id:'data_exfil',name:'Data Exfiltration & Extortion',description:'Insider access, cloud misconfig, double extortion',signatures:[]},
+        {method_id:'infrastructure_attacks',name:'Critical Infrastructure',description:'ICS/SCADA targeting, supply chain compromise, APTs',signatures:[]},
+        {method_id:'crypto_crime',name:'Cryptocurrency Crime',description:'Exchange hacks, DeFi exploits, rug pulls, pig butchering',signatures:[]}
+    ]},
+    { typology_id:'terrorism_financing', name:'Terrorism Financing', icon:'🔶', color:'#dd6b20', needle_count:30, primary_statute:'18 USC § 2339', methods:[
+        {method_id:'fundraising',name:'Fundraising & Collection',description:'Charity fronts, crowdfunding, zakat diversion, diaspora networks',signatures:[]},
+        {method_id:'transfer_mechanisms',name:'Transfer Mechanisms',description:'Hawala networks, cash couriers, crypto channels',signatures:[]},
+        {method_id:'material_support',name:'Material Support (§2339)',description:'Equipment procurement, travel facilitation, training',signatures:[]},
+        {method_id:'radicalization_pipeline',name:'Radicalization Pipeline',description:'Online recruitment, encrypted channels, escalation patterns',signatures:[]},
+        {method_id:'operational_planning',name:'Operational Planning',description:'Target surveillance, materials procurement, timeline coordination',signatures:[]},
+        {method_id:'network_structure',name:'Network Structure',description:'Cell organization, facilitation networks, command hierarchy',signatures:[]}
+    ]},
+    { typology_id:'public_corruption', name:'Public Corruption', icon:'🏛️', color:'#718096', needle_count:32, primary_statute:'18 USC § 1346', methods:[
+        {method_id:'bribery',name:'Bribery & Gratuities',description:'Cash payments, campaign contributions, quid pro quo',signatures:[]},
+        {method_id:'extortion_hobbs',name:'Extortion (Hobbs Act)',description:'Pay-to-play, permit conditioning, contract steering',signatures:[]},
+        {method_id:'honest_services',name:'Honest Services Fraud',description:'Self-dealing, undisclosed conflicts, kickbacks',signatures:[]},
+        {method_id:'election_fraud',name:'Election & Campaign Fraud',description:'Straw donors, foreign contributions, vote buying',signatures:[]},
+        {method_id:'obstruction_coverup',name:'Obstruction & Cover-Up',description:'Document destruction, witness tampering, false statements',signatures:[]},
+        {method_id:'revolving_door',name:'Revolving Door Abuse',description:'Post-employment violations, regulatory capture',signatures:[]}
+    ]},
+    { typology_id:'organized_crime', name:'Organized Crime (RICO)', icon:'🕸️', color:'#2d3748', needle_count:34, primary_statute:'18 USC § 1962', methods:[
+        {method_id:'enterprise_structure',name:'Enterprise Structure',description:'Hierarchical leadership, defined roles, territorial control',signatures:[]},
+        {method_id:'predicate_acts',name:'Predicate Acts (Pattern)',description:'2+ racketeering acts within 10 years, continuity',signatures:[]},
+        {method_id:'protection_rackets',name:'Protection & Extortion',description:'Regular tribute, territorial enforcement, legitimate business penetration',signatures:[]},
+        {method_id:'infiltration_legitimate',name:'Legitimate Business Infiltration',description:'Union control, construction dominance, market manipulation',signatures:[]},
+        {method_id:'money_operations',name:'Financial Operations',description:'Loan sharking, illegal gambling, crypto operations',signatures:[]},
+        {method_id:'violence_discipline',name:'Violence & Internal Discipline',description:'Organizational murders, witness elimination, crew conflicts',signatures:[]}
+    ]},
+    { typology_id:'child_exploitation', name:'Child Exploitation', icon:'🛡️', color:'#c53030', needle_count:28, primary_statute:'18 USC § 2251', methods:[
+        {method_id:'production',name:'Production & Contact Offenses',description:'Access to minors, grooming, image creation, coercion',signatures:[]},
+        {method_id:'distribution',name:'Distribution Networks',description:'Dark web forums, P2P sharing, Tor hidden services',signatures:[]},
+        {method_id:'sextortion',name:'Sextortion & Coercion',description:'Image coercion escalation, threats, financial demands',signatures:[]},
+        {method_id:'victim_identification',name:'Victim Identification Intel',description:'Background forensics, metadata, series identification',signatures:[]},
+        {method_id:'live_streaming',name:'Live Streaming Abuse',description:'Pay-per-view exploitation, offshore facilitators',signatures:[]},
+        {method_id:'tech_facilitation',name:'Technology & Platform Abuse',description:'End-to-end encryption abuse, cloud storage, AI-generated CSAM',signatures:[]}
+    ]},
+    { typology_id:'sanctions_evasion', name:'Sanctions Evasion', icon:'🚫', color:'#b83280', needle_count:26, primary_statute:'IEEPA / OFAC', methods:[
+        {method_id:'front_companies',name:'Front Company Networks',description:'Shell entities in non-sanctioned jurisdictions, nominee structures',signatures:[]},
+        {method_id:'transshipment',name:'Transshipment & Re-export',description:'Goods routed through third countries to evade controls',signatures:[]},
+        {method_id:'financial_channels',name:'Alternative Financial Channels',description:'Crypto, hawala, barter, correspondent banking abuse',signatures:[]},
+        {method_id:'deceptive_shipping',name:'Deceptive Shipping Practices',description:'Flag changes, AIS manipulation, ship-to-ship transfers',signatures:[]},
+        {method_id:'procurement_networks',name:'Procurement Networks',description:'Dual-use technology acquisition, export control evasion',signatures:[]},
+        {method_id:'cyber_evasion',name:'Cyber-Enabled Evasion',description:'Cryptocurrency mixing, DeFi bridges, ransomware payments',signatures:[]}
+    ]},
+    { typology_id:'environmental_crime', name:'Environmental Crime', icon:'🌍', color:'#276749', needle_count:24, primary_statute:'Clean Air/Water Act', methods:[
+        {method_id:'illegal_dumping',name:'Illegal Waste Dumping',description:'Midnight dumping, falsified manifests, organized crime involvement',signatures:[]},
+        {method_id:'wildlife_trafficking',name:'Wildlife Trafficking',description:'CITES violations, poaching networks, traditional medicine trade',signatures:[]},
+        {method_id:'pollution_fraud',name:'Pollution & Emissions Fraud',description:'Falsified monitoring data, defeat devices, permit violations',signatures:[]},
+        {method_id:'illegal_logging',name:'Illegal Logging & Mining',description:'Deforestation, conflict minerals, document fraud',signatures:[]},
+        {method_id:'fisheries_crime',name:'Fisheries Crime (IUU)',description:'Illegal fishing, quota fraud, vessel identity fraud',signatures:[]},
+        {method_id:'carbon_fraud',name:'Carbon Credit Fraud',description:'Fictitious offsets, double-counting, greenwashing schemes',signatures:[]}
+    ]},
+    { typology_id:'antitrust', name:'Antitrust Enforcement', icon:'⚖️', color:'#FF9900', needle_count:39, primary_statute:'Sherman Act §1/§2',
+      methods:[
+        {method_id:'bid_rotation',name:'Bid Rotation',description:'Conspirators take turns being lowest bidder on rotating basis',signatures:[
+          {signature_id:'atr-pc-br-001',description:'Sequential winning pattern where same group of 3+ firms rotate wins across 5+ contracts',indicators:['Win rotation periodicity','Consistent bidder pool','Losing bids cluster within 5% of winner'],vector_text:'Sequential contract wins rotating among fixed group of bidders',severity:'critical',precedent_case:'United States v. Floreada Const. Co. (bid rotation highway contracts)'},
+          {signature_id:'atr-pc-br-002',description:'Calendar-based rotation where specific firms win in predictable months or quarters',indicators:['Temporal periodicity in wins','Non-random distribution','Pre-determined scheduling'],vector_text:'Calendar-based bid win patterns with firms winning in specific quarters',severity:'high',precedent_case:'United States v. Biovail Corp. (quarterly rotation scheme)'}
+        ]},
+        {method_id:'cover_bidding',name:'Cover Bidding',description:'Non-competitive bids submitted to create appearance of genuine competition',signatures:[
+          {signature_id:'atr-pc-cb-001',description:'Intentionally high bids by co-conspirators to make designated winner appear competitive',indicators:['Bid spread > 15% above winner','Consistent cover bidders','No intent to win'],vector_text:'Cover bids priced 15-25% above designated winner',severity:'critical',precedent_case:'United States v. SCI Systems Inc. (military electronics cover bidding)'}
+        ]},
+        {method_id:'phantom_bidding',name:'Phantom Bidding',description:'Shell entities submit fake bids to inflate apparent competition',signatures:[
+          {signature_id:'atr-pc-pb-001',description:'Bids from shell entities with no real operations, shared addresses',indicators:['No physical office','Recently incorporated','Shared registered agent','No employees'],vector_text:'Bids submitted by shell companies with no employees no physical operations',severity:'critical',precedent_case:'United States v. Kellogg Brown & Root (phantom subcontractor bidding)'}
+        ]},
+        {method_id:'horizontal_price_agreement',name:'Horizontal Price Agreement',description:'Direct competitors agree on prices, floors, or pricing formulas',signatures:[
+          {signature_id:'atr-pf-hp-001',description:'Parallel price increases within 48 hours across 3+ competitors with no cost justification',indicators:['Synchronous price movements','No input cost change','Communication preceding price change'],vector_text:'Parallel price increases within 48 hours across multiple competitors with no cost changes',severity:'critical',precedent_case:'United States v. AU Optronics (LCD panel price-fixing)'}
+        ]},
+        {method_id:'market_division',name:'Market Division',description:'Competitors divide markets by geography, product, or customer segment',signatures:[
+          {signature_id:'atr-pf-md-001',description:'Competitors withdrawing from each others territory simultaneously',indicators:['Mutual territory withdrawal','No cost pressure','Complementary geographic patterns'],vector_text:'Simultaneous mutual withdrawal from geographic territories between competitors',severity:'critical',precedent_case:'United States v. Topco Associates (geographic market division)'}
+        ]},
+        {method_id:'international_cartel',name:'International Cartel Operations',description:'Cross-border conspiracies via offshore meetings and intermediaries',signatures:[
+          {signature_id:'atr-cc-ic-001',description:'Regular meetings in neutral countries with coded agendas and no business purpose',indicators:['Foreign meeting locations','Coded agenda items','Travel patterns match competitors','No minutes taken'],vector_text:'Regular meetings between competitors in neutral countries with coded agendas',severity:'critical',precedent_case:'United States v. Vitamins Inc. (vitamin cartel global meetings)'}
+        ]},
+        {method_id:'exclusionary_conduct',name:'Exclusionary Conduct',description:'Dominant firm uses market power to exclude or disadvantage rivals',signatures:[
+          {signature_id:'atr-mo-ec-001',description:'Exclusive dealing contracts foreclosing rivals from 40%+ of distribution channels',indicators:['Exclusive contracts','Distribution foreclosure > 40%','Duration > 2 years','Switching penalties'],vector_text:'Exclusive dealing contracts foreclosing rivals from over 40 percent of distribution',severity:'critical',precedent_case:'United States v. Microsoft Corp. (exclusive OEM licensing)'}
+        ]},
+        {method_id:'no_poach_agreements',name:'No-Poach & Wage-Fixing',description:'Competing employers agree not to recruit each others employees',signatures:[
+          {signature_id:'atr-ma-np-001',description:'Written or verbal agreements between HR departments not to solicit each others employees',indicators:['No-hire clauses','HR communications about off-limits','Wage stagnation despite tight market'],vector_text:'Agreements between competing employers not to solicit or hire each others employees',severity:'critical',precedent_case:'United States v. DaVita Inc. (healthcare no-poach agreements)'}
+        ]},
+        {method_id:'horizontal_concentration',name:'Horizontal Concentration (Merger)',description:'Merger creating or enhancing market power by eliminating direct competitor',signatures:[
+          {signature_id:'atr-mr-hc-001',description:'Post-merger HHI exceeds 2500 with delta > 200 in relevant market',indicators:['HHI > 2500 post-merger','Delta HHI > 200','Top 4 firms > 80%','High barriers'],vector_text:'Merger creating highly concentrated market with HHI exceeding 2500',severity:'critical',precedent_case:'United States v. AT&T/Time Warner (media concentration)'}
+        ]}
+      ]
+    }
+  ]
+};
+
+var ANCIENT_MYSTERIES_DOMAIN = {
+  domain_id:'ancient_mysteries', name:'Ancient Mysteries & Alternative History', icon:'🏛️', color:'#eab308',
+  description:'Pattern recognition across ancient sites, texts, and phenomena — detecting theory-supporting correlations in archaeological and textual evidence.',
+  typologies:[
+    { typology_id:'advanced_ancient_technology', name:'Advanced Ancient Technology', icon:'⚡', color:'#eab308', needle_count:18, primary_statute:null,
+      methods:[
+        {method_id:'pyramid_power_generation',name:'Pyramid Energy Systems',description:'Pyramids as energy devices — acoustic resonance, piezoelectric limestone, mercury/water systems',signatures:[
+          {signature_id:'am-aat-ppg-001',description:'Liquid mercury reservoir beneath pyramidal structure suggesting hydraulic or electromagnetic function',indicators:['Liquid mercury in sealed chamber','Pyramidal structure above','Geological aquifer beneath','Mica or quartz in construction'],vector_text:'Liquid mercury reservoir found beneath ancient pyramidal structure with geological aquifer and piezoelectric construction materials',severity:'critical',precedent_case:'Teotihuacan — Sergio Gómez excavation (2014) found liquid mercury beneath Pyramid of the Feathered Serpent'},
+          {signature_id:'am-aat-ppg-002',description:'Pyramid internal chambers tuned to specific acoustic frequencies consistent with resonance amplification',indicators:['Chamber resonance at specific Hz','Granite construction (piezoelectric)','Passages as waveguides','Kings Chamber F# resonance'],vector_text:'Pyramid internal chambers constructed from granite exhibiting specific acoustic resonance frequencies',severity:'high',precedent_case:'Great Pyramid Kings Chamber — Tom Danley acoustic measurements (1997) showing F# resonance at 438Hz'},
+          {signature_id:'am-aat-ppg-003',description:'Mica sheets as insulation layers with no decorative purpose transported from distant source',indicators:['Mica between stone layers','No decorative function','Electrical insulation properties','Transported 3000+ km'],vector_text:'Mica sheets installed between construction layers with no decorative function suggesting electrical insulation',severity:'high',precedent_case:'Teotihuacan Mica Temple — thick mica sheets from Brazil (3000+ km) installed beneath floor'},
+          {signature_id:'am-aat-ppg-004',description:'Pyramid over underground water source with internal channels suggesting hydraulic process',indicators:['Underground aquifer confirmed','Internal water channels','Salt deposits in chambers','Water erosion patterns'],vector_text:'Pyramid constructed over underground water source with internal channels showing water erosion',severity:'high',precedent_case:'Great Pyramid subterranean chamber — confirmed aquifer beneath Giza plateau'},
+          {signature_id:'am-aat-ppg-005',description:'Electromagnetic anomalies measurable above pyramid apex inconsistent with geological baseline',indicators:['EM readings above apex elevated','Different from surrounding terrain','Air ionization above structure','Schumann resonance amplification'],vector_text:'Electromagnetic anomalies measured above pyramid apex elevated above geological baseline',severity:'moderate',precedent_case:'Bosnian Pyramid of the Sun — 28kHz ultrasound beam measured emanating from apex (2012)'}
+        ]},
+        {method_id:'precision_machining',name:'Precision Machining Evidence',description:'Stone cutting beyond copper/bronze tool capabilities showing machine-like precision',signatures:[
+          {signature_id:'am-aat-pm-001',description:'Stone surfaces with flatness under 0.02mm over 2+ meter spans — machine-grade',indicators:['Surface flatness < 0.02mm','Span > 2 meters','Granite or harder','No chisel marks'],vector_text:'Ancient stone surfaces with machine-grade flatness tolerance in granite with no visible chisel marks',severity:'critical',precedent_case:'Serapeum of Saqqara — Chris Dunn measurements showing 0.0001 inch flatness over 9-foot spans'},
+          {signature_id:'am-aat-pm-002',description:'Drill cores with spiral feed marks at feed rate exceeding modern diamond drills',indicators:['Spiral grooves in hole','Consistent pitch','Hard stone (granite)','Core extraction marks'],vector_text:'Ancient drill cores in granite showing spiral feed marks with rate exceeding modern diamond drill',severity:'critical',precedent_case:'Petrie drill core #7 from Giza — feed rate through granite exceeding modern capability'},
+          {signature_id:'am-aat-pm-003',description:'Interlocking multi-ton blocks with complex 3D joinery requiring 3-axis precision',indicators:['Multi-angle joinery','Blocks > 10 tons','No mortar','Earthquake-resistant','Multiple contact faces'],vector_text:'Interlocking megalithic blocks with complex three-dimensional joinery requiring three-axis precision cutting',severity:'critical',precedent_case:'Puma Punku H-blocks — identical interlocking grooves suggesting template-based mass production'}
+        ]},
+        {method_id:'ancient_electricity',name:'Ancient Electrical Technology',description:'Artifacts suggesting knowledge of electricity in pre-modern civilizations',signatures:[
+          {signature_id:'am-aat-ae-001',description:'Sealed vessel with copper cylinder, iron rod, and acidic residue — functional galvanic cell',indicators:['Clay vessel container','Copper cylinder','Iron rod electrode','Acid residue','Generates voltage when replicated'],vector_text:'Ancient sealed vessel containing copper cylinder iron rod and acid residue producing voltage when replicated',severity:'high',precedent_case:'Baghdad Battery (Parthian era) — replicas generate 1.1-2V; possible electroplating use'},
+          {signature_id:'am-aat-ae-002',description:'Temple relief depicting bulb shapes with internal filament and djed pillar insulator',indicators:['Bulb-shaped enclosure','Internal filament','Cable to djed pillar','No soot on ceilings'],vector_text:'Temple relief depicting bulb-shaped enclosure with filament connected to djed pillar insulator',severity:'moderate',precedent_case:'Hathor Temple at Dendera — crypt reliefs showing lotus-bulb snake-filament djed configuration'}
+        ]},
+        {method_id:'acoustic_technology',name:'Acoustic Levitation',description:'Sound-based stone moving, healing, or consciousness alteration',signatures:[
+          {signature_id:'am-aat-at-001',description:'Multiple cultures describing sound/chanting to levitate massive construction stones',indicators:['Sound-levitation tradition','Priestly class involved','Specific instruments','Multiple independent cultures'],vector_text:'Multiple independent cultural traditions describing use of sound to levitate massive stones',severity:'moderate',precedent_case:'Tibetan acoustic levitation account (Jarl, 1939) — monks using drums and trumpets to lift stones'},
+          {signature_id:'am-aat-at-002',description:'Structure with acoustic properties generating brainwave-matching frequencies at significant construction cost',indicators:['Standing waves measured','Infrasound < 20Hz','Deliberate acoustic design','Used for ritual/healing'],vector_text:'Ancient structure with deliberately engineered acoustics generating brainwave-matching frequencies',severity:'high',precedent_case:'Hypogeum of Hal-Saflieni, Malta — Oracle Room generates 110Hz matching theta brainwave'}
+        ]},
+        {method_id:'ancient_aviation',name:'Ancient Aviation & Flight',description:'Texts and artifacts suggesting knowledge of flight',signatures:[
+          {signature_id:'am-aat-av-001',description:'Detailed technical descriptions of flying vehicles in ancient texts including materials and propulsion',indicators:['Multi-chapter descriptions','Specific materials named','Propulsion described','Operational procedures','Multiple sources corroborate'],vector_text:'Detailed technical descriptions of flying vehicles in ancient texts with materials and propulsion mechanisms',severity:'high',precedent_case:'Vaimanika Shastra — describes mercury vortex engine, specific alloys, and piloting procedures'},
+          {signature_id:'am-aat-av-002',description:'Small artifact with aerodynamic profile generating lift when tested in wind tunnel',indicators:['Aerodynamic wing profile','Generates lift','Vertical stabilizer','Pre-flight era','Not matching any bird'],vector_text:'Ancient artifact with aerodynamic profile generating measurable lift in wind tunnel testing',severity:'high',precedent_case:'Saqqara Bird (Egypt, 200 BCE); Quimbaya gold artifacts (Colombia) with delta wing profiles'}
+        ]},
+        {method_id:'lost_metallurgy',name:'Lost Metallurgical Knowledge',description:'Metal artifacts with properties not reproducible with attributed technology',signatures:[
+          {signature_id:'am-aat-lm-001',description:'Iron structure exposed 1000+ years with no corrosion due to unknown ancient composition',indicators:['1000+ years old','Minimal corrosion','Unusual phosphorus content','Mass > 1 ton'],vector_text:'Ancient iron structure exposed to elements for 1000+ years with minimal corrosion from unusual composition',severity:'high',precedent_case:'Iron Pillar of Delhi (402 CE) — 6.7 tons, no rust after 1600 years'},
+          {signature_id:'am-aat-lm-002',description:'Complex mechanical device with precision gearing pre-dating known technology by 1000+ years',indicators:['Precision gear teeth','Multiple gear trains','Differential mechanism','Pre-dates by 1000+ years'],vector_text:'Complex mechanical device with precision gears pre-dating known development by over 1000 years',severity:'critical',precedent_case:'Antikythera Mechanism (150 BCE) — 37+ gears computing astronomical positions; not seen again until 14th century'}
+        ]}
+      ]
+    },
+    { typology_id:'global_grid_earth_energy', name:'Global Grid & Earth Energy', icon:'🌐', color:'#06b6d4', needle_count:9, primary_statute:null,
+      methods:[
+        {method_id:'ley_line_alignments',name:'Ley Line Alignments',description:'Statistically improbable alignments of ancient sites along great circles',signatures:[
+          {signature_id:'am-gge-lla-001',description:'3+ ancient sites aligned within 0.5° of great circle spanning 1000+ km across cultures',indicators:['Sites on great circle ±0.5°','Span > 1000km','Different cultures','Monumental at each'],vector_text:'Multiple ancient sites from different cultures aligned on great circle spanning 1000+ km',severity:'critical',precedent_case:'Giza-Nazca-Easter Island great circle alignment (Jim Alison, 1995)'},
+          {signature_id:'am-gge-lla-002',description:'5+ sacred sites in straight line over 50+ km predating modern surveying by 3000+ years',indicators:['5+ sites in line','Span > 50km','Pre-modern dating','Statistical improbability > 99.9%'],vector_text:'Five or more ancient sites aligned in straight line over 50km predating modern surveying',severity:'high',precedent_case:'St Michaels Ley Line (England) — Glastonbury, Avebury, Bury St Edmunds over 350 miles'}
+        ]},
+        {method_id:'earth_energy_nodes',name:'Earth Energy Vortex Sites',description:'Measurable geomagnetic anomalies co-located with ancient sacred sites',signatures:[
+          {signature_id:'am-gge-een-001',description:'Sacred site on measurable geomagnetic anomaly 2+ sigma above regional mean',indicators:['Geomagnetic anomaly confirmed','Sacred site at location','Field > 2σ above mean','Historical phenomena reports'],vector_text:'Ancient sacred site on measurable geomagnetic anomaly significantly above regional mean',severity:'high',precedent_case:'Sedona vortex sites — confirmed magnetic anomalies; Avebury ultrasound emanations at dawn'}
+        ]},
+        {method_id:'equidistant_placement',name:'Equidistant Geodetic Placement',description:'Sites at mathematically precise distances from poles or each other',signatures:[
+          {signature_id:'am-gge-ep-001',description:'Site at distance from pole encoding Earth measurement (circumference fraction)',indicators:['Distance = Earth fraction','Precision < 0.1%','Multiple sites same distance'],vector_text:'Ancient site at precise distance from geographic pole encoding fraction of Earth circumference',severity:'critical',precedent_case:'Great Pyramid at 29.9792°N (speed of light = 299,792 km/s); 1/3 latitude range'}
+        ]},
+        {method_id:'geomagnetic_construction',name:'Geomagnetic-Aware Construction',description:'Structures using magnetically active materials in deliberate orientation',signatures:[
+          {signature_id:'am-gge-gc-001',description:'Stone circle using magnetically oriented stones to amplify local field',indicators:['Stones with residual magnetism','Deliberate pole orientation','Non-random selection'],vector_text:'Megalithic structure using deliberately selected magnetic stones oriented to amplify field',severity:'high',precedent_case:'Avebury — alternating magnetic polarity stones; Carnac magnetic orientation'}
+        ]},
+        {method_id:'sacred_geometry_placement',name:'Sacred Geometry in Site Positioning',description:'Phi ratios and Platonic solid vertices in geographic relationships',signatures:[
+          {signature_id:'am-gge-sgp-001',description:'Three sites forming triangle with side ratios matching golden ratio within 1%',indicators:['Triangle of sites','Ratio = phi ±1%','All sites significant','Different eras'],vector_text:'Three ancient sites forming triangle with golden ratio proportions within one percent',severity:'moderate',precedent_case:'Giza-Delphi-Mecca triangle proportions; Stonehenge-Carnac geometric relationships'}
+        ]}
+      ]
+    },
+    { typology_id:'lost_civilizations', name:'Lost Civilizations', icon:'🏛️', color:'#8b5cf6', needle_count:11, primary_statute:null,
+      methods:[
+        {method_id:'pre_flood_architecture',name:'Pre-Cataclysm Architecture',description:'Structures surviving or pre-dating major catastrophic events',signatures:[
+          {signature_id:'am-lc-pfa-001',description:'Megalithic construction 100+ ton stones at 3000m+ elevation, no local quarry within 50km',indicators:['Stones > 100 tons','Elevation > 3000m','No local quarry','Precision joinery','Polygonal fitting'],vector_text:'Megalithic construction with 100+ ton precision-fitted stones at extreme elevation from distant quarries',severity:'critical',precedent_case:'Sacsayhuamán — 200 ton stones at 3700m; Ollantaytambo 50-ton granite from 6km away'},
+          {signature_id:'am-lc-pfa-002',description:'Underwater megalithic structure at depth matching pre-sea-level-rise coastline',indicators:['Structured stone underwater','Depth matches ice-age level','Right angles and steps','Not natural formation'],vector_text:'Underwater megalithic structure at depth consistent with pre-glacial sea level',severity:'critical',precedent_case:'Yonaguni Monument (Japan) at 25m depth; Dwarka underwater ruins (India)'}
+        ]},
+        {method_id:'younger_dryas_impact',name:'Younger Dryas Impact Evidence',description:'Physical evidence of catastrophic reset circa 12,800 BP',signatures:[
+          {signature_id:'am-lc-ydi-001',description:'Nano-diamond layer at consistent date across continents indicating impact event',indicators:['Nano-diamonds in stratum','Microspherules','Consistent ~12,800 BP','Multiple continents','Iridium anomaly'],vector_text:'Nano-diamond and microspherule layer at 12800 BP across multiple continents indicating impact event',severity:'critical',precedent_case:'Firestone et al. (2007) PNAS — nano-diamonds at Younger Dryas boundary; Kennett (2009) confirmed'}
+        ]},
+        {method_id:'impossible_dating',name:'Anomalous Site Dating',description:'Dating evidence significantly older than accepted timelines',signatures:[
+          {signature_id:'am-lc-id-001',description:'Geological weathering requiring 2x+ the accepted construction timeline',indicators:['Water erosion on limestone','Weathering exceeds timeline','Subsurface erosion','Geologist confirmed'],vector_text:'Geological weathering patterns requiring at least double the accepted construction timeline',severity:'critical',precedent_case:'Great Sphinx — Robert Schoch (1991) water erosion requiring 7000-9000 BCE vs accepted 2500 BCE'},
+          {signature_id:'am-lc-id-002',description:'Monumental construction predating known agriculture in region by 5000+ years',indicators:['Monumental scale','Pre-agricultural dating','No known civilization at date','Multiple methods agree'],vector_text:'Monumental construction dating thousands of years before known agriculture or civilization in region',severity:'critical',precedent_case:'Göbekli Tepe (9600 BCE) — monumental construction 5000 years before Sumeria'}
+        ]},
+        {method_id:'shared_flood_narratives',name:'Global Flood Narratives',description:'200+ independent myths sharing specific structural elements',signatures:[
+          {signature_id:'am-lc-sfn-001',description:'Flood narrative with 4+ shared elements across independent cultures',indicators:['Divine warning','Family survives','Vessel built','Seeds/animals preserved','Mountain landing','Bird released'],vector_text:'Flood narrative with multiple shared elements matching pattern across independent cultures',severity:'moderate',precedent_case:'Genesis, Gilgamesh, Hindu Manu, Greek Deucalion, Aztec Coxcox — all share 4+ elements'}
+        ]},
+        {method_id:'knowledge_preservation',name:'Knowledge Preservation Networks',description:'Deliberate transmission of advanced knowledge through mystery schools',signatures:[
+          {signature_id:'am-lc-kp-001',description:'Same astronomical knowledge in initiatory traditions across 3+ disconnected cultures',indicators:['Same knowledge','Initiatory tradition','3+ cultures','Consistent symbols','Priest-class guardianship'],vector_text:'Consistent astronomical knowledge transmitted through mystery schools across disconnected cultures',severity:'moderate',precedent_case:'Precession knowledge in Egyptian, Hindu, Norse, Mesoamerican traditions (Hamlets Mill, 1969)'}
+        ]}
+      ]
+    },
+    { typology_id:'extraterrestrial_contact', name:'Extraterrestrial Contact', icon:'👽', color:'#ef4444', needle_count:9, primary_statute:null,
+      methods:[
+        {method_id:'ancient_astronaut_depictions',name:'Ancient Astronaut Art',description:'Artwork depicting beings/technology consistent with spaceflight',signatures:[
+          {signature_id:'am-etc-aad-001',description:'Art depicting humanoid in sealed suit with helmet, visor, breathing apparatus',indicators:['Sealed suit','Helmet with visor','Breathing apparatus','Distinct from normal humans'],vector_text:'Ancient artwork depicting humanoid figure in sealed suit with helmet visor and breathing apparatus',severity:'high',precedent_case:'Palenque sarcophagus lid; Tassili cave paintings Great God Mars in sealed suit'},
+          {signature_id:'am-etc-aad-002',description:'Rock art showing disc craft with propulsion indicators hovering above ground',indicators:['Disc/cylindrical shape','Exhaust depicted','Hovering','Beings entering/exiting'],vector_text:'Ancient rock art depicting disc craft with propulsion hovering with beings entering or exiting',severity:'moderate',precedent_case:'Charama cave (India, 10,000 BCE) disc craft; Egyptian Tulli Papyrus circles of fire'}
+        ]},
+        {method_id:'star_knowledge',name:'Impossible Astronomical Knowledge',description:'Pre-telescope cultures with knowledge of invisible celestial bodies',signatures:[
+          {signature_id:'am-etc-sk-001',description:'Pre-telescope culture with accurate knowledge of invisible celestial body',indicators:['Knowledge of invisible body','Pre-telescope era','Confirmed by modern instruments','No observation method known'],vector_text:'Pre-telescope culture possessing accurate knowledge of celestial body invisible to naked eye',severity:'critical',precedent_case:'Dogon people — knowledge of Sirius B (white dwarf) including 50-year orbit and density'},
+          {signature_id:'am-etc-sk-002',description:'Structure aligned to star position thousands of years before construction (precession-aware)',indicators:['Stellar alignment precise','Target date ≠ construction date','Precession knowledge required','Encodes earlier epoch'],vector_text:'Ancient structure aligned to star position at date thousands of years before construction',severity:'high',precedent_case:'Great Pyramid shafts aligned to Orions Belt at 10,500 BCE (Bauval Orion Correlation Theory)'}
+        ]},
+        {method_id:'genetic_intervention',name:'Genetic Intervention Evidence',description:'Anomalies in human evolution suggesting external modification',signatures:[
+          {signature_id:'am-etc-gi-001',description:'Sudden cognitive leap without transitional record coinciding with genetic bottleneck',indicators:['Cognitive leap','No transition in record','Symbolic behavior suddenly','Genetic bottleneck'],vector_text:'Sudden appearance of modern human cognitive abilities without gradual transition coinciding with genetic bottleneck',severity:'moderate',precedent_case:'Great Leap Forward (~50,000 BP); human chromosome 2 fusion anomaly'}
+        ]},
+        {method_id:'religious_texts_contact',name:'Sacred Texts as Contact Reports',description:'Religious texts reinterpreted as extraterrestrial encounter descriptions',signatures:[
+          {signature_id:'am-etc-rtc-001',description:'Text describing sky vehicle with specific mechanical details and occupants',indicators:['Vehicle from sky','Mechanical details','Metallic appearance','Fire propulsion','Occupants described'],vector_text:'Ancient text describing sky vehicle with metallic construction wheels fire and occupants',severity:'high',precedent_case:'Ezekiel 1:4-28 wheel within wheel; Book of Enoch taken aboard craft to observe Earth'},
+          {signature_id:'am-etc-rtc-002',description:'Text describing aerial warfare with mass destruction weapons and radiation-like effects',indicators:['Aerial combat','Weapons from sky','Cities destroyed','Radiation effects','Survivors warned away'],vector_text:'Ancient text describing aerial warfare with weapons destroying cities with radiation effects',severity:'moderate',precedent_case:'Mahabharata Brahmastra weapon; Mohenjo-daro vitrified ruins; Ramayana aerial battles'}
+        ]}
+      ]
+    },
+    { typology_id:'sacred_geometry_mathematics', name:'Sacred Geometry & Mathematics', icon:'🔺', color:'#22c55e', needle_count:7, primary_statute:null,
+      methods:[
+        {method_id:'encoded_constants',name:'Mathematical Constants in Architecture',description:'Pi, Phi, speed of light encoded in structural dimensions',signatures:[
+          {signature_id:'am-sgm-ec-001',description:'Structure with perimeter/height encoding Pi to 4+ decimal places',indicators:['Perimeter/height = 2π ±0.05%','Multiple measurements confirm','Not coincidence'],vector_text:'Ancient structure with perimeter to height ratio encoding Pi to four decimal places',severity:'critical',precedent_case:'Great Pyramid — perimeter/height = 2π to 0.04% accuracy'},
+          {signature_id:'am-sgm-ec-002',description:'Multiple phi ratios in independent structural measurements',indicators:['Multiple phi ratios','Different measurement pairs','Accuracy < 0.5%','Pre-dates phi discovery'],vector_text:'Ancient structure with golden ratio in multiple independent structural dimensions',severity:'high',precedent_case:'Parthenon facade; Great Pyramid slant height/half-base = phi'}
+        ]},
+        {method_id:'astronomical_encoding',name:'Precession Encoding in Myth',description:'25,920-year precession cycle numbers encoded in mythology and architecture',signatures:[
+          {signature_id:'am-sgm-ae-001',description:'Recurring myth numbers that are precessional factors (72, 108, 144, 360, 432, 2160)',indicators:['Precessional factors','Multiple unrelated myths','Used in temple dimensions','Consistent across cultures'],vector_text:'Recurring mythological numbers that are precise factors of 25920-year precession cycle across cultures',severity:'high',precedent_case:'Norse 432,000 warriors; Vedic 432,000-year Kali Yuga; 72 conspirators kill Osiris'}
+        ]},
+        {method_id:'universal_measurements',name:'Universal Ancient Measurement Systems',description:'Standardized units across cultures derived from Earth dimensions',signatures:[
+          {signature_id:'am-sgm-um-001',description:'Multiple cultures using unit that is precise fraction of Earth circumference',indicators:['Unit = Earth fraction','Multiple cultures','Precision < 0.1%','Pre-dates measurement'],vector_text:'Multiple ancient cultures using same measurement unit that is precise fraction of Earth circumference',severity:'high',precedent_case:'Megalithic Yard consistent across 600 sites; Egyptian royal cubit = 1/25,000,000 polar circumference'}
+        ]},
+        {method_id:'cymatics_vibrational',name:'Cymatics & Vibrational Geometry',description:'Sacred patterns matching frequency-generated cymatics',signatures:[
+          {signature_id:'am-sgm-cv-001',description:'Sacred symbol matching cymatic pattern produced by specific laboratory frequency',indicators:['Pattern matches cymatic','Specific frequency identified','Cross-cultural symbol','Sacred context'],vector_text:'Sacred geometric pattern matching cymatic standing wave pattern at specific frequency',severity:'moderate',precedent_case:'Sri Yantra matches cymatic frequency; Flower of Life = standing wave interference pattern'}
+        ]}
+      ]
+    },
+    { typology_id:'consciousness_nonphysical', name:'Consciousness & Non-Physical', icon:'🧬', color:'#f97316', needle_count:8, primary_statute:null,
+      methods:[
+        {method_id:'pineal_third_eye',name:'Pineal Gland & Third Eye',description:'Cross-cultural pine cone/pineal symbolism and activation practices',signatures:[
+          {signature_id:'am-cnp-pte-001',description:'Pine cone symbolism in religious iconography across 3+ independent cultures',indicators:['Pine cone held by deity','Enlightenment association','Third eye position','3+ cultures','Serpent imagery'],vector_text:'Pine cone symbolism in religious iconography across three or more independent cultures',severity:'moderate',precedent_case:'Vatican pine cone; Sumerian Anunnaki with pine cones; Hindu Ajna chakra; Eye of Horus anatomy'}
+        ]},
+        {method_id:'psychedelic_sacraments',name:'Psychedelic Sacraments',description:'Sacred plant use as consciousness technology',signatures:[
+          {signature_id:'am-cnp-ps-001',description:'Sacred text describing plant granting visions matching known psychoactive pharmacology',indicators:['Plant in sacred text','Grants visions','Priest-controlled','Preparation described','Effects match psychoactive'],vector_text:'Sacred text describing plant substance granting divine visions matching known psychoactive pharmacology',severity:'high',precedent_case:'Soma (Rig Veda); Eleusinian Mysteries kykeon (ergot); Ayahuasca traditions'}
+        ]},
+        {method_id:'sound_frequency_healing',name:'Sound & Frequency Technology',description:'Specific frequencies for healing or consciousness alteration',signatures:[
+          {signature_id:'am-cnp-sfh-001',description:'Structure producing specific brainwave-matching frequency when activated by voice',indicators:['Helmholtz resonator design','Matches brainwave band','Altered states reported','Deliberate design'],vector_text:'Ancient structure producing specific frequency matching human brainwave states',severity:'high',precedent_case:'Newgrange 110Hz theta resonance; Hypogeum Malta; Chavín de Huántar acoustic galleries'}
+        ]},
+        {method_id:'crystal_technology',name:'Crystal & Piezoelectric Technology',description:'Ancient crystals as functional technology beyond decoration',signatures:[
+          {signature_id:'am-cnp-ct-001',description:'Precision-shaped crystal cut along specific axis suggesting piezoelectric knowledge',indicators:['Precision shaping','Cut along axis','Beyond decorative','Associated with power','Multiple examples'],vector_text:'Ancient crystal artifact precision-shaped along specific crystallographic axis for energy function',severity:'moderate',precedent_case:'Crystal skulls cut against axis; Egyptian crystal lenses; Atlantean fire stones (Cayce readings)'},
+          {signature_id:'am-cnp-ct-002',description:'Quartz deposits in construction at energy transduction positions despite not being cheapest material',indicators:['Quartz in construction','Energy positions','Not cheapest option','Transported distance','Piezoelectric possible'],vector_text:'Ancient construction incorporating quartz at energy transduction positions despite not being nearest available material',severity:'moderate',precedent_case:'Great Pyramid granite (quartz) in Kings Chamber only; Newgrange quartz facade'}
+        ]}
+      ]
+    }
+  ]
+};
+</script>
+<script>
+// === NAVIGATION & RENDERING ENGINE ===
+function computeStats() {
+  var td = 0, tt = 0, tm = 0, ts = 0;
+  td = TAXONOMY.domains.length;
+  TAXONOMY.domains.forEach(function(d) {
+    d.typologies.forEach(function(t) { tt++; t.methods.forEach(function(m) { tm++; ts += m.signatures.length; }); });
+  });
+  document.getElementById('totalDomains').textContent = td;
+  document.getElementById('totalTypologies').textContent = tt;
+  document.getElementById('totalMethods').textContent = tm;
+  document.getElementById('totalSignatures').textContent = ts;
+}
+
+function renderDomainTabs() {
+  var html = '';
+  TAXONOMY.domains.forEach(function(d) {
+    var isActive = currentView.domain && currentView.domain.domain_id === d.domain_id;
+    html += '<div class="domain-tab' + (isActive ? ' active' : '') + '" style="' + (isActive ? 'background:'+d.color+'18;border-color:'+d.color+';color:'+d.color : '') + '" onclick="selectDomain(\''+d.domain_id+'\')">';
+    html += d.icon + ' ' + d.name;
+    var sc = 0; d.typologies.forEach(function(t){t.methods.forEach(function(m){sc+=m.signatures.length;});});
+    html += ' <span style="opacity:0.6;font-size:0.7rem;margin-left:4px;">'+sc+' sigs</span>';
+    html += '</div>';
+  });
+  document.getElementById('domainTabs').innerHTML = html;
+}
+
+function selectDomain(domainId) {
+  currentView = { level:'typologies', domain: TAXONOMY.domains.find(function(d){return d.domain_id===domainId;}), typology:null, method:null };
+  renderDomainTabs();
+  renderView();
+}
+
+function selectTypology(typId) {
+  currentView.typology = currentView.domain.typologies.find(function(t){return t.typology_id===typId;});
+  currentView.level = 'methods';
+  currentView.method = null;
+  renderView();
+}
+
+function selectMethod(methId) {
+  currentView.method = currentView.typology.methods.find(function(m){return m.method_id===methId;});
+  currentView.level = 'signatures';
+  renderView();
+}
+
+function goBack() {
+  if (currentView.level === 'signatures') { currentView.level = 'methods'; currentView.method = null; }
+  else if (currentView.level === 'methods') { currentView.level = 'typologies'; currentView.typology = null; }
+  else { currentView.level = 'domains'; currentView.domain = null; }
+  renderDomainTabs();
+  renderView();
+}
+
+function navigateTo(level) {
+  if (level === 'domains') { currentView = {level:'domains',domain:null,typology:null,method:null}; }
+  else if (level === 'typologies') { currentView.level='typologies'; currentView.typology=null; currentView.method=null; }
+  else if (level === 'methods') { currentView.level='methods'; currentView.method=null; }
+  renderDomainTabs();
+  renderView();
+}
+
+function renderBreadcrumb() {
+  var parts = ['<a onclick="navigateTo(\'domains\')">📚 All Domains</a>'];
+  if (currentView.domain) {
+    parts.push('<span class="sep">›</span>');
+    if (currentView.typology) {
+      parts.push('<a onclick="navigateTo(\'typologies\')">' + currentView.domain.icon + ' ' + currentView.domain.name + '</a>');
+    } else {
+      parts.push('<span class="current">' + currentView.domain.icon + ' ' + currentView.domain.name + '</span>');
+    }
+  }
+  if (currentView.typology) {
+    parts.push('<span class="sep">›</span>');
+    if (currentView.method) {
+      parts.push('<a onclick="navigateTo(\'methods\')">' + currentView.typology.icon + ' ' + currentView.typology.name + '</a>');
+    } else {
+      parts.push('<span class="current">' + currentView.typology.icon + ' ' + currentView.typology.name + '</span>');
+    }
+  }
+  if (currentView.method) {
+    parts.push('<span class="sep">›</span>');
+    parts.push('<span class="current">' + currentView.method.name + '</span>');
+  }
+  document.getElementById('breadcrumb').innerHTML = parts.join('');
+}
+
+function renderView() {
+  renderBreadcrumb();
+  var el = document.getElementById('content');
+  if (currentView.level === 'domains' || (!currentView.domain && currentView.level === 'typologies')) {
+    // Show all domains as starting view — pick first one
+    if (!currentView.domain && TAXONOMY.domains.length > 0) {
+      currentView.domain = TAXONOMY.domains[0];
+      currentView.level = 'typologies';
+      renderDomainTabs();
+      renderBreadcrumb();
+    }
+  }
+  if (currentView.level === 'typologies') renderTypologies(el);
+  else if (currentView.level === 'methods') renderMethods(el);
+  else if (currentView.level === 'signatures') renderSignatures(el);
+
+  // Trigger AI summary fetch on each level change
+  if (typeof triggerAiSummary === 'function') triggerAiSummary();
+  if (typeof triggerMapCoordinates === 'function') triggerMapCoordinates();
+  if (typeof triggerResearchRecommendations === 'function') triggerResearchRecommendations();
+
+  // If at domain level (viewing typologies), start panels collapsed
+  if (currentView.level === 'typologies') {
+    // Collapse AI panel
+    var aiPanel = document.getElementById('aiInsightPanel');
+    if (aiPanel) aiPanel.classList.add('collapsed');
+    var aiBtn = document.getElementById('aiCollapseBtn');
+    if (aiBtn) aiBtn.textContent = '▸';
+    // Collapse map panel
+    var mapBody = document.getElementById('mapPanelBody');
+    if (mapBody) mapBody.classList.add('collapsed');
+    var mapBtn = document.getElementById('mapToggleBtn');
+    if (mapBtn) mapBtn.textContent = 'Show Map';
+    // Hide research panel at domain level entirely (too much for overview)
+    var researchPanel = document.getElementById('researchPanel');
+    if (researchPanel) researchPanel.style.display = 'none';
+  }
+}
+
+function renderTypologies(el) {
+  var d = currentView.domain;
+  var html = '<div style="margin-bottom:20px;padding:16px 20px;background:rgba(255,255,255,0.02);border:1px solid '+d.color+'30;border-left:4px solid '+d.color+';border-radius:0 10px 10px 0;">';
+  html += '<div style="font-size:1rem;font-weight:700;color:'+d.color+';">'+d.icon+' '+d.name+'</div>';
+  html += '<div style="font-size:0.8rem;color:#a0aec0;margin-top:4px;">'+d.description+'</div></div>';
+  html += '<div class="card-grid">';
+  d.typologies.forEach(function(t) {
+    var sigCount = 0; t.methods.forEach(function(m){sigCount+=m.signatures.length;});
+    html += '<div class="typo-card" style="border-top-color:'+t.color+'" onclick="selectTypology(\''+t.typology_id+'\')">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">';
+    html += '<div><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:20px;">'+t.icon+'</span><span style="font-size:0.9rem;font-weight:700;color:#e2e8f0;">'+t.name+'</span></div>';
+    if(t.primary_statute) html += '<div style="font-size:0.65rem;color:#718096;margin-top:3px;margin-left:28px;">'+t.primary_statute+'</div>';
+    html += '</div>';
+    html += '<div style="text-align:right;"><div style="font-size:1.3rem;font-weight:800;color:'+t.color+';">'+sigCount+'</div><div style="font-size:0.6rem;color:#718096;">signatures</div></div>';
+    html += '</div>';
+    html += '<div style="font-size:0.72rem;color:#a0aec0;margin-bottom:8px;"><strong style="color:#e2e8f0;">'+t.methods.length+'</strong> methods</div>';
+    // List methods
+    html += '<div style="border-top:1px solid rgba(255,255,255,0.05);padding-top:8px;">';
+    t.methods.forEach(function(m) {
+      html += '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:0.7rem;">';
+      html += '<span style="color:#cbd5e0;">'+m.name+'</span>';
+      html += '<span style="color:'+t.color+';font-weight:600;">'+m.signatures.length+' sigs</span>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function renderMethods(el) {
+  var t = currentView.typology;
+  var html = '<button class="back-btn" onclick="goBack()">← Back to '+currentView.domain.name+'</button>';
+  html += '<div style="margin-bottom:20px;display:flex;align-items:center;gap:12px;">';
+  html += '<span style="font-size:28px;">'+t.icon+'</span>';
+  html += '<div><div style="font-size:1.1rem;font-weight:700;color:'+t.color+';">'+t.name+'</div>';
+  if(t.primary_statute) html += '<div style="font-size:0.72rem;color:#718096;">'+t.primary_statute+'</div>';
+  html += '</div></div>';
+  t.methods.forEach(function(m) {
+    html += '<div class="method-card" style="border-left-color:'+t.color+'" onclick="selectMethod(\''+m.method_id+'\')">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
+    html += '<div><div style="font-size:0.88rem;font-weight:700;color:#e2e8f0;">'+m.name+'</div>';
+    html += '<div style="font-size:0.73rem;color:#a0aec0;margin-top:3px;">'+m.description+'</div></div>';
+    html += '<div style="text-align:right;min-width:60px;"><div style="font-size:1.1rem;font-weight:800;color:'+t.color+';">'+m.signatures.length+'</div><div style="font-size:0.6rem;color:#718096;">signatures</div></div>';
+    html += '</div></div>';
+  });
+  el.innerHTML = html;
+}
+
+function renderSignatures(el) {
+  var m = currentView.method, t = currentView.typology;
+  var html = '<button class="back-btn" onclick="goBack()">← Back to '+t.name+' methods</button>';
+  html += '<div style="margin-bottom:24px;">';
+  html += '<div style="font-size:1.1rem;font-weight:700;color:'+t.color+';">'+m.name+'</div>';
+  html += '<div style="font-size:0.82rem;color:#cbd5e0;margin-top:6px;line-height:1.6;">'+m.description+'</div>';
+  html += '<div style="font-size:0.7rem;color:#718096;margin-top:8px;">'+m.signatures.length+' documented alignment pattern'+(m.signatures.length !== 1 ? 's' : '')+' in database</div>';
+  html += '</div>';
+
+  if (m.signatures.length === 0) {
+    html += '<div style="padding:40px;text-align:center;color:#4a5568;font-size:0.85rem;">No documented patterns yet for this category.</div>';
+  }
+
+  m.signatures.forEach(function(s, i) {
+    // Parse the precedent case for display
+    var precedent = s.precedent_case || '';
+    var precedentParts = precedent.split(' — ');
+    var caseName = precedentParts[0] || '';
+    var caseDetail = precedentParts[1] || precedent;
+
+    // Determine confidence color from severity
+    var confColor = s.severity === 'critical' ? '#48bb78' : s.severity === 'high' ? '#63b3ed' : s.severity === 'moderate' ? '#ecc94b' : '#718096';
+    var confLabel = s.severity === 'critical' ? 'STRONG EVIDENCE' : s.severity === 'high' ? 'DOCUMENTED' : s.severity === 'moderate' ? 'THEORETICAL' : 'PRELIMINARY';
+
+    html += '<div class="sig-card" style="border-left:3px solid '+confColor+';padding:16px 20px;">';
+
+    // Header: Case name + confidence
+    html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">';
+    html += '<div style="font-size:0.88rem;font-weight:700;color:#e2e8f0;line-height:1.4;">'+escapeHtml(caseName || s.description.substring(0, 60))+'</div>';
+    html += '<span style="font-size:0.6rem;padding:3px 8px;border-radius:4px;background:'+confColor+'20;color:'+confColor+';border:1px solid '+confColor+'40;white-space:nowrap;font-weight:600;">'+confLabel+'</span>';
+    html += '</div>';
+
+    // Main description as investigation brief
+    html += '<div style="font-size:0.8rem;color:#cbd5e0;line-height:1.7;margin-bottom:12px;">'+escapeHtml(s.description)+'</div>';
+
+    // Evidence criteria (formerly "indicators") — reframed as "What to look for"
+    html += '<div style="margin-bottom:14px;">';
+    html += '<div style="font-size:0.65rem;color:#a0aec0;text-transform:uppercase;font-weight:600;margin-bottom:6px;letter-spacing:0.5px;">🔍 Evidence Criteria</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    s.indicators.forEach(function(ind) {
+      html += '<span style="font-size:0.68rem;padding:3px 10px;border-radius:12px;background:rgba(99,179,237,0.08);border:1px solid rgba(99,179,237,0.2);color:#90cdf4;">'+escapeHtml(ind)+'</span>';
+    });
+    html += '</div></div>';
+
+    // Precedent / Known Examples
+    if (caseDetail) {
+      html += '<div style="padding:10px 14px;background:rgba(236,201,75,0.04);border:1px solid rgba(236,201,75,0.12);border-radius:6px;margin-bottom:12px;">';
+      html += '<div style="font-size:0.65rem;color:#ecc94b;text-transform:uppercase;font-weight:600;margin-bottom:4px;letter-spacing:0.5px;">📍 Known Examples</div>';
+      html += '<div style="font-size:0.76rem;color:#e2e8f0;line-height:1.5;">'+escapeHtml(caseDetail)+'</div>';
+      html += '</div>';
+    }
+
+    // Investigation action — what a researcher would do next
+    html += '<div style="display:flex;gap:8px;align-items:center;margin-top:12px;">';
+    html += '<button class="research-btn" onclick="investigateSignature('+i+', this)" data-query="'+escapeHtml(caseName + ' ' + s.indicators.slice(0,2).join(' '))+'" data-context="'+escapeHtml(m.name + ' - ' + caseName)+'">🔍 Investigate This</button>';
+    html += '<span style="font-size:0.62rem;color:#4a5568;">AI will search for evidence, sources, and field opportunities</span>';
+    html += '</div>';
+
+    // Results container (populated when "Investigate" is clicked)
+    html += '<div id="sigInvestigation_'+i+'" style="margin-top:12px;"></div>';
+
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// Investigate a specific signature — runs alignment-focused research
+async function investigateSignature(index, btn) {
+  var query = btn.getAttribute('data-query');
+  var context = btn.getAttribute('data-context');
+  var resultDiv = document.getElementById('sigInvestigation_' + index);
+
+  // Get the current method context to frame the research properly
+  var method = currentView.method || {};
+  var methodName = method.name || '';
+  var sig = method.signatures ? method.signatures[index] : null;
+  var precedent = sig ? sig.precedent_case : '';
+  var description = sig ? sig.description : '';
+
+  // Build an alignment-specific research query
+  // The key question: what else is on this line? What's at the intersections?
+  var alignmentQuery = '';
+  if (methodName.toLowerCase().indexOf('ley line') >= 0 || methodName.toLowerCase().indexOf('alignment') >= 0) {
+    // This is a ley line / alignment investigation — ask the RIGHT question
+    alignmentQuery = precedent + ' alignment intersection points undiscovered sites between known locations archaeological survey';
+    context = 'LEY LINE INVESTIGATION: I know these sites are aligned: ' + precedent + '. ' +
+      'Research question: What OTHER sites exist along this same alignment? ' +
+      'What is at the intersection points where this line crosses other documented alignments? ' +
+      'What undiscovered or under-investigated locations exist BETWEEN the known sites on this line? ' +
+      'Focus on: 1) sites within 50km of the alignment that have not been fully surveyed, ' +
+      '2) intersection coordinates where multiple alignments cross, ' +
+      '3) geological or magnetic anomalies along the line, ' +
+      '4) satellite/LiDAR evidence of structures between known sites.';
+  } else {
+    // Generic investigation for non-alignment patterns
+    alignmentQuery = query;
+    context = context || methodName;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Investigating alignment...';
+  resultDiv.innerHTML = '<div style="color:#718096;font-size:0.75rem;padding:8px 0;">Researching intersection points, undiscovered sites along alignment, and cross-references with other documented lines...</div>';
+
+  var url = (window.APP_CONFIG ? window.APP_CONFIG.API_URL : '') + '/pattern-library/research/execute';
+  try {
+    var resp = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({query: alignmentQuery, context: context})
+    });
+
+    if (!resp.ok) {
+      resultDiv.innerHTML = '<div style="color:#fc8181;font-size:0.72rem;">Investigation failed. Try again later.</div>';
+      btn.disabled = false;
+      btn.textContent = '🔍 Retry';
+      return;
+    }
+
+    var data = await resp.json();
+    var brief = data.brief || {};
+    renderSignatureInvestigation(index, brief);
+    btn.textContent = '✅ Report Ready';
+  } catch (err) {
+    resultDiv.innerHTML = '<div style="color:#fc8181;font-size:0.72rem;">Network error.</div>';
+    btn.disabled = false;
+    btn.textContent = '🔍 Retry';
+  }
+}
+
+function renderSignatureInvestigation(index, brief) {
+  var div = document.getElementById('sigInvestigation_' + index);
+  if (!brief || !brief.codename) { div.innerHTML = ''; return; }
+
+  var statusColor = '#ecc94b';
+  if (brief.investigation_status && brief.investigation_status.indexOf('CONFIRMED') >= 0) statusColor = '#48bb78';
+  else if (brief.investigation_status && brief.investigation_status.indexOf('PROBABLE') >= 0) statusColor = '#63b3ed';
+  else if (brief.investigation_status && brief.investigation_status.indexOf('NEGATIVE') >= 0) statusColor = '#fc8181';
+
+  var html = '<div style="padding:16px 18px;background:rgba(16,24,40,0.7);border:1px solid '+statusColor+'30;border-radius:8px;border-left:3px solid '+statusColor+';">';
+
+  // Header
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">';
+  html += '<div style="font-size:0.8rem;font-weight:700;color:'+statusColor+';letter-spacing:0.5px;">'+escapeHtml(brief.codename)+'</div>';
+  if (brief.investigation_status) html += '<div style="font-size:0.6rem;padding:2px 8px;border-radius:4px;border:1px solid '+statusColor+'40;color:'+statusColor+';">'+escapeHtml(brief.investigation_status)+'</div>';
+  html += '</div>';
+
+  // Situation / Core answer
+  var situation = brief.situation || brief.summary || '';
+  if (situation && situation !== 'Investigation pending.') {
+    html += '<div style="font-size:0.78rem;color:#e2e8f0;line-height:1.7;margin-bottom:12px;">'+escapeHtml(situation)+'</div>';
+  }
+
+  // Smoking gun
+  if (brief.smoking_gun && brief.smoking_gun.indexOf('No definitive') === -1) {
+    html += '<div style="padding:8px 12px;background:rgba(236,201,75,0.06);border-radius:4px;margin-bottom:12px;">';
+    html += '<span style="font-size:0.7rem;font-weight:600;color:#ecc94b;">💡 Key Discovery: </span>';
+    html += '<span style="font-size:0.74rem;color:#e2e8f0;">'+escapeHtml(brief.smoking_gun)+'</span>';
+    html += '</div>';
+  }
+
+  // UNDISCOVERED SITES — what's between/beyond the known points
+  var undiscovered = brief.undiscovered_sites || [];
+  if (undiscovered.length > 0) {
+    html += '<div style="margin-bottom:14px;">';
+    html += '<div style="font-size:0.68rem;color:#ecc94b;text-transform:uppercase;font-weight:600;margin-bottom:6px;">🎯 Undiscovered Sites Along Alignment</div>';
+    undiscovered.forEach(function(site) {
+      html += '<div style="padding:8px 12px;margin-bottom:6px;background:rgba(236,201,75,0.04);border:1px solid rgba(236,201,75,0.12);border-radius:6px;">';
+      html += '<div style="font-size:0.76rem;font-weight:600;color:#e2e8f0;">'+escapeHtml(site.location || '')+'</div>';
+      if (site.coordinates_approx) html += '<div style="font-size:0.65rem;color:#718096;">📍 '+escapeHtml(site.coordinates_approx)+'</div>';
+      if (site.rationale) html += '<div style="font-size:0.72rem;color:#a0aec0;margin-top:3px;">'+escapeHtml(site.rationale)+'</div>';
+      if (site.what_to_look_for) html += '<div style="font-size:0.68rem;color:#63b3ed;margin-top:3px;">🔍 '+escapeHtml(site.what_to_look_for)+'</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // INTERSECTION POINTS — where this line crosses others
+  var intersections = brief.intersection_points || [];
+  if (intersections.length > 0) {
+    html += '<div style="margin-bottom:14px;">';
+    html += '<div style="font-size:0.68rem;color:#63b3ed;text-transform:uppercase;font-weight:600;margin-bottom:6px;">✖ Alignment Intersections</div>';
+    intersections.forEach(function(pt) {
+      html += '<div style="font-size:0.72rem;color:#cbd5e0;padding:4px 0 4px 10px;border-left:2px solid rgba(99,179,237,0.4);margin-bottom:4px;">';
+      html += escapeHtml(pt.description || '');
+      if (pt.significance) html += ' <span style="color:#63b3ed;font-style:italic;">— '+escapeHtml(pt.significance)+'</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Evidence found
+  if (brief.evidence_found && brief.evidence_found.length > 0) {
+    html += '<div style="margin-bottom:12px;">';
+    html += '<div style="font-size:0.65rem;color:#a0aec0;text-transform:uppercase;margin-bottom:4px;">Evidence Trail</div>';
+    brief.evidence_found.forEach(function(e) {
+      var eColor = e.confidence === 'confirmed' ? '#48bb78' : e.confidence === 'probable' ? '#63b3ed' : '#718096';
+      html += '<div style="font-size:0.72rem;color:#cbd5e0;padding:3px 0 3px 10px;border-left:2px solid '+eColor+';margin-bottom:3px;">['+escapeHtml(e.source_type || '?')+'] '+escapeHtml(e.finding || '')+'</div>';
+    });
+    html += '</div>';
+  }
+
+  // Field recommendation
+  if (brief.field_recommendation) {
+    html += '<div style="font-size:0.72rem;color:#a0aec0;font-style:italic;margin-top:10px;padding:8px 12px;background:rgba(72,187,120,0.04);border-radius:4px;border-left:2px solid rgba(72,187,120,0.3);">→ '+escapeHtml(brief.field_recommendation)+'</div>';
+  }
+
+  // Production value
+  if (brief.production_value && brief.production_value.indexOf('pending') === -1) {
+    html += '<div style="font-size:0.65rem;color:#718096;margin-top:8px;">🎬 '+escapeHtml(brief.production_value)+'</div>';
+  }
+
+  html += '</div>';
+  div.innerHTML = html;
+}
+
+// === INIT ===
+loadTaxonomy();
+</script>
+<script src="config.js"></script>
+<script>
+// === AI INSIGHT PANEL — Summary Fetch & Render ===
+var AI_API_URL = (window.APP_CONFIG ? window.APP_CONFIG.API_URL : '') + '/pattern-library/summary';
+
+/**
+ * Build context_key from current navigation state.
+ * Format: domain/typology/method (matching path-based hierarchy)
+ */
+function buildContextKey() {
+  var parts = [];
+  if (currentView.domain) parts.push(currentView.domain.domain_id);
+  if (currentView.typology) parts.push(currentView.typology.typology_id);
+  if (currentView.method) parts.push(currentView.method.method_id);
+  return parts.join('/');
+}
+
+/**
+ * Map currentView.level to API taxonomy level.
+ * The view level 'typologies' means we're viewing a domain's typologies, so the level is 'domain'.
+ */
+function getApiLevel() {
+  if (currentView.level === 'typologies') return 'domain';
+  if (currentView.level === 'methods') return 'typology';
+  if (currentView.level === 'signatures') return 'method';
+  return null;
+}
+
+/**
+ * fetchSummary(level, contextKey, bypassCache)
+ * Calls GET /pattern-library/summary/{level}/{context_key}
+ * Manages loading skeleton display during fetch.
+ * Handles error responses: shows dismissible error message, preserves taxonomy content.
+ * Requirements: 4.2, 4.5
+ */
+async function fetchSummary(level, contextKey, bypassCache) {
+  var panel = document.getElementById('aiInsightPanel');
+  var body = document.getElementById('aiInsightBody');
+  var status = document.getElementById('aiStatus');
+
+  // Show panel and loading skeleton
+  panel.style.display = '';
+  panel.classList.remove('collapsed');
+  status.textContent = '—';
+  status.className = 'ai-status';
+  body.innerHTML = '<div class="ai-skeleton"><div class="ai-skeleton-line"></div><div class="ai-skeleton-line"></div><div class="ai-skeleton-line"></div></div>';
+
+  // Build request URL
+  var url = AI_API_URL + '/' + encodeURIComponent(level) + '/' + encodeURIComponent(contextKey);
+  if (bypassCache) url += '?bypass_cache=true';
+
+  try {
+    var resp = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
+
+    if (!resp.ok) {
+      var errData;
+      try { errData = await resp.json(); } catch(e) { errData = {}; }
+      var errMsg = (errData.error && errData.error.message) ? errData.error.message : 'Summary could not be loaded (HTTP ' + resp.status + ')';
+      showAiError(errMsg);
+      return;
+    }
+
+    var data = await resp.json();
+    renderInsightPanel(data);
+  } catch (err) {
+    showAiError('Network error — summary could not be loaded.');
+  }
+}
+
+/**
+ * Show a dismissible error message in the AI panel body.
+ * Preserves taxonomy content (panel body only, not #content).
+ * Requirements: 4.5
+ */
+function showAiError(message) {
+  var body = document.getElementById('aiInsightBody');
+  var status = document.getElementById('aiStatus');
+  status.textContent = 'Error';
+  status.className = 'ai-status error';
+  body.innerHTML = '<div class="ai-error-msg"><span>⚠️ ' + message + '</span><button class="ai-dismiss" onclick="dismissAiError()" title="Dismiss">✕</button></div>';
+}
+
+function dismissAiError() {
+  var panel = document.getElementById('aiInsightPanel');
+  panel.style.display = 'none';
+}
+
+/**
+ * renderInsightPanel(response)
+ * Renders summary text with 500-character truncation and expand/collapse toggle.
+ * Displays "Cached", "Generated", or "Throttled" status based on response flags.
+ * Requirements: 4.3, 4.4
+ */
+function renderInsightPanel(response) {
+    var body = document.getElementById('aiInsightBody');
+    var status = document.getElementById('aiStatus');
+
+    // Determine status badge
+    if (response.is_throttled) {
+        status.textContent = 'Throttled';
+        status.className = 'ai-status generated';
+    } else if (response.is_cached) {
+        status.textContent = 'Cached';
+        status.className = 'ai-status cached';
+    } else {
+        status.textContent = 'Generated';
+        status.className = 'ai-status generated';
+    }
+
+    var text = response.summary_text || '';
+    
+    // Try to parse as structured intelligence brief
+    var formatted = formatIntelBrief(text);
+    if (formatted) {
+        body.innerHTML = formatted;
+        body.dataset.fullText = text;
+        body.dataset.expanded = 'true';
+    } else {
+        // Fallback to plain text rendering
+        var truncated = text.length > 500;
+        if (truncated) {
+            var shortText = text.substring(0, 500) + '…';
+            body.innerHTML = '<p id="aiSummaryText">' + escapeHtml(shortText) + '</p>'
+                + '<button class="ai-expand-toggle" id="aiExpandToggle" onclick="toggleAiExpand()">Show more</button>';
+            body.dataset.fullText = text;
+            body.dataset.expanded = 'false';
+        } else {
+            body.innerHTML = '<p id="aiSummaryText">' + escapeHtml(text) + '</p>';
+            body.dataset.fullText = text;
+            body.dataset.expanded = 'true';
+        }
+    }
+}
+
+function formatIntelBrief(text) {
+    // Check if text contains intelligence brief markers
+    if (!text || (!text.includes('ASSESSMENT') && !text.includes('KEY INDICATORS'))) {
+        return null;
+    }
+    
+    var html = '<div class="intel-brief">';
+    
+    // Parse ASSESSMENT
+    var assessMatch = text.match(/ASSESSMENT[:\s-]*(.*?)(?=KEY INDICATORS|GAPS|RECOMMENDED|$)/is);
+    if (assessMatch) {
+        var assessText = assessMatch[1].trim();
+        // Extract confidence level
+        var confMatch = assessText.match(/(HIGH|MEDIUM|LOW)/i);
+        var confLevel = confMatch ? confMatch[1].toUpperCase() : 'MEDIUM';
+        var confClass = confLevel === 'HIGH' ? 'high' : confLevel === 'LOW' ? 'low' : 'medium';
+        html += '<div class="intel-assessment">';
+        html += '<span class="intel-conf-badge ' + confClass + '">' + confLevel + '</span>';
+        html += '<span class="intel-assess-text">' + escapeHtml(assessText.replace(/(HIGH|MEDIUM|LOW)\s*[-–—]?\s*/i, '')) + '</span>';
+        html += '</div>';
+    }
+    
+    // Parse KEY INDICATORS
+    var indMatch = text.match(/KEY INDICATORS[:\s]*(.*?)(?=GAPS|RECOMMENDED|$)/is);
+    if (indMatch) {
+        var indicators = indMatch[1].trim().split(/[•\n]+/).filter(function(s) { return s.trim().length > 5; });
+        if (indicators.length > 0) {
+            html += '<div class="intel-indicators">';
+            html += '<div class="intel-section-label">KEY INDICATORS</div>';
+            indicators.forEach(function(ind) {
+                html += '<div class="intel-indicator">▸ ' + escapeHtml(ind.trim()) + '</div>';
+            });
+            html += '</div>';
+        }
+    }
+    
+    // Parse GAPS
+    var gapMatch = text.match(/GAPS[:\s]*(.*?)(?=RECOMMENDED|$)/is);
+    if (gapMatch) {
+        var gapText = gapMatch[1].trim();
+        if (gapText) {
+            html += '<div class="intel-gaps">';
+            html += '<div class="intel-section-label">⚠️ GAPS</div>';
+            html += '<div class="intel-gap-text">' + escapeHtml(gapText) + '</div>';
+            html += '</div>';
+        }
+    }
+    
+    // Parse RECOMMENDED ACTION
+    var recMatch = text.match(/RECOMMENDED ACTION[:\s]*(.*?)$/is);
+    if (recMatch) {
+        var recText = recMatch[1].trim();
+        if (recText) {
+            html += '<div class="intel-action">';
+            html += '<div class="intel-section-label">🎯 RECOMMENDED ACTION</div>';
+            html += '<div class="intel-action-text">' + escapeHtml(recText) + '</div>';
+            html += '</div>';
+        }
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+/**
+ * Toggle expand/collapse of the summary text.
+ */
+function toggleAiExpand() {
+  var body = document.getElementById('aiInsightBody');
+  var textEl = document.getElementById('aiSummaryText');
+  var toggleBtn = document.getElementById('aiExpandToggle');
+  var fullText = body.dataset.fullText || '';
+
+  if (body.dataset.expanded === 'false') {
+    textEl.textContent = fullText;
+    toggleBtn.textContent = 'Show less';
+    body.dataset.expanded = 'true';
+  } else {
+    textEl.textContent = fullText.substring(0, 500) + '…';
+    toggleBtn.textContent = 'Show more';
+    body.dataset.expanded = 'false';
+  }
+}
+
+/**
+ * Collapse/expand the entire AI panel body.
+ */
+function toggleAiCollapse() {
+  var panel = document.getElementById('aiInsightPanel');
+  var btn = document.getElementById('aiCollapseBtn');
+  panel.classList.toggle('collapsed');
+  btn.textContent = panel.classList.contains('collapsed') ? '▸' : '▾';
+}
+
+/**
+ * Refresh button handler: disable on click, bypass cache, re-enable on response/error.
+ * Requirements: 4.6
+ */
+async function handleAiRefresh() {
+  var btn = document.getElementById('aiRefreshBtn');
+  btn.disabled = true;
+  btn.classList.add('spinning');
+
+  var level = getApiLevel();
+  var contextKey = buildContextKey();
+
+  if (level && contextKey) {
+    await fetchSummary(level, contextKey, true);
+  }
+
+  btn.disabled = false;
+  btn.classList.remove('spinning');
+}
+
+/**
+ * Trigger AI summary fetch for the current navigation level.
+ * Called by navigation handlers on each level change.
+ */
+function triggerAiSummary() {
+  var level = getApiLevel();
+  var contextKey = buildContextKey();
+  if (level && contextKey) {
+    fetchSummary(level, contextKey, false);
+  } else {
+    // Hide panel when at top-level domains view with no specific domain
+    document.getElementById('aiInsightPanel').style.display = 'none';
+  }
+}
+
+/** Simple HTML escaping for summary text */
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
+// === Wire event listeners ===
+document.getElementById('aiRefreshBtn').addEventListener('click', handleAiRefresh);
+document.getElementById('aiCollapseBtn').addEventListener('click', toggleAiCollapse);
+</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+// === GEOSPATIAL MAP PANEL ===
+var MAP_API_URL = (window.APP_CONFIG ? window.APP_CONFIG.API_URL : '') + '/pattern-library/coordinates';
+var _leafletMap = null;
+var _mapMarkers = [];
+var _gridLayer = null;
+var _gridVisible = false;
+
+// === DOCUMENTED LEY LINES & ALIGNMENTS ===
+// Based on published research, not arbitrary geometry.
+// Sources: Alfred Watkins (1921), John Michell, Paul Devereux, Jim Alison
+
+var DOCUMENTED_LEY_LINES = [
+    {
+        name: "The St Michael's Line",
+        region: "England",
+        researcher: "John Michell (1969), Hamish Miller & Paul Broadhurst (1989)",
+        description: "SW to NE across England through major sacred sites.",
+        points: [
+            {lat: 50.118, lng: -5.488, name: "St Michael's Mount"},
+            {lat: 50.347, lng: -4.746, name: "Brentor Church"},
+            {lat: 51.070, lng: -2.717, name: "Glastonbury Tor"},
+            {lat: 51.401, lng: -1.772, name: "Avebury"},
+            {lat: 52.244, lng: 0.717, name: "Bury St Edmunds"},
+            {lat: 52.493, lng: 1.760, name: "Hopton-on-Sea"}
+        ],
+        color: "#48bb78", significance: "high"
+    },
+    {
+        name: "The Great Alignment (Giza–Nazca)",
+        region: "Global",
+        researcher: "Jim Alison, Graham Hancock",
+        description: "Great circle connecting Giza, Petra, Mohenjo-daro, Easter Island, Nazca.",
+        points: [
+            {lat: 29.979, lng: 31.134, name: "Great Pyramid of Giza"},
+            {lat: 30.329, lng: 35.444, name: "Petra"},
+            {lat: 27.324, lng: 68.138, name: "Mohenjo-daro"},
+            {lat: -13.163, lng: -72.546, name: "Machu Picchu"},
+            {lat: -14.692, lng: -75.126, name: "Nazca Lines"},
+            {lat: -27.116, lng: -109.366, name: "Easter Island"}
+        ],
+        color: "#63b3ed", significance: "high"
+    },
+    {
+        name: "The Apollo–St Michael Axis",
+        region: "Ireland to Israel",
+        researcher: "Jean Richer (1958), Lucien Richer",
+        description: "Skellig Michael to Mt Carmel — all sites dedicated to St Michael or Apollo.",
+        points: [
+            {lat: 51.771, lng: -10.540, name: "Skellig Michael"},
+            {lat: 48.636, lng: -1.511, name: "Mont Saint-Michel"},
+            {lat: 45.098, lng: 7.342, name: "Sacra di San Michele"},
+            {lat: 41.708, lng: 15.953, name: "Monte Sant'Angelo"},
+            {lat: 37.396, lng: 25.268, name: "Delos (Apollo Temple)"},
+            {lat: 32.736, lng: 35.058, name: "Mt Carmel"}
+        ],
+        color: "#ecc94b", significance: "high"
+    },
+    {
+        name: "The Rose Line (Paris Meridian)",
+        region: "France",
+        researcher: "Henry Lincoln",
+        description: "Ancient Paris meridian through sacred sites from Dunkirk to Barcelona.",
+        points: [
+            {lat: 51.034, lng: 2.377, name: "Dunkirk"},
+            {lat: 48.851, lng: 2.335, name: "Saint-Sulpice, Paris"},
+            {lat: 47.322, lng: 2.396, name: "Bourges Cathedral"},
+            {lat: 42.947, lng: 2.148, name: "Rennes-le-Château"},
+            {lat: 41.404, lng: 2.174, name: "Sagrada Familia, Barcelona"}
+        ],
+        color: "#d69e2e", significance: "medium"
+    },
+    {
+        name: "Stonehenge–Old Sarum–Salisbury",
+        region: "England",
+        researcher: "Alfred Watkins (1921) — original ley line observation",
+        description: "One of the first documented ley lines, precise N-S alignment.",
+        points: [
+            {lat: 51.214, lng: -1.854, name: "Sidbury Hill"},
+            {lat: 51.179, lng: -1.826, name: "Stonehenge"},
+            {lat: 51.094, lng: -1.802, name: "Old Sarum"},
+            {lat: 51.065, lng: -1.798, name: "Salisbury Cathedral"},
+            {lat: 50.956, lng: -1.774, name: "Clearbury Ring"},
+            {lat: 50.876, lng: -1.755, name: "Frankenbury Camp"}
+        ],
+        color: "#fc8181", significance: "high"
+    },
+    {
+        name: "Teotihuacan–Cahokia Line",
+        region: "Americas",
+        researcher: "David Hatcher Childress, Gregory Little",
+        description: "Alignment connecting major Pre-Columbian ceremonial centers.",
+        points: [
+            {lat: 19.692, lng: -98.844, name: "Teotihuacan"},
+            {lat: 20.683, lng: -88.568, name: "Chichen Itza"},
+            {lat: 32.616, lng: -91.407, name: "Poverty Point"},
+            {lat: 38.660, lng: -90.062, name: "Cahokia Mounds"},
+            {lat: 41.041, lng: -81.345, name: "Newark Earthworks"}
+        ],
+        color: "#b794f4", significance: "medium"
+    },
+    {
+        name: "Nile–Ganges Sacred River Line",
+        region: "Africa–Asia",
+        researcher: "Graham Hancock, Livio Stecchini",
+        description: "Ancient route connecting sacred river temple complexes.",
+        points: [
+            {lat: 29.979, lng: 31.134, name: "Giza"},
+            {lat: 25.719, lng: 32.657, name: "Luxor/Karnak"},
+            {lat: 21.422, lng: 39.826, name: "Mecca"},
+            {lat: 25.321, lng: 68.371, name: "Mohenjo-daro"},
+            {lat: 25.267, lng: 83.012, name: "Varanasi"},
+            {lat: 27.175, lng: 84.987, name: "Lumbini"}
+        ],
+        color: "#f6ad55", significance: "medium"
+    }
+];
+
+/**
+ * Haversine distance in km between two points.
+ */
+function haversineKm(lat1, lng1, lat2, lng2) {
+    var R = 6371;
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLng = (lng2 - lng1) * Math.PI / 180;
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
+
+/**
+ * Compute sites that lie near documented ley lines vs sites not on any line.
+ * Returns gaps (sites on lines that lack investigation).
+ */
+function computeGridIntersectionGaps(siteCoordinates) {
+    var PROXIMITY_KM = 200;
+    var gaps = [];
+    
+    // Check each ley line point — are there known sites nearby?
+    DOCUMENTED_LEY_LINES.forEach(function(line) {
+        line.points.forEach(function(point, i) {
+            var hasNearbySite = siteCoordinates.some(function(site) {
+                return haversineKm(point.lat, point.lng, site.lat, site.lng) < PROXIMITY_KM;
+            });
+            if (!hasNearbySite) {
+                gaps.push({
+                    nodeIndex: i,
+                    lat: point.lat,
+                    lng: point.lng,
+                    label: point.name + ' (' + line.name + ')'
+                });
+            }
+        });
+    });
+    
+    return gaps;
+}
+
+function toggleGlobalGrid() {
+    var btn = document.getElementById('mapGridBtn');
+
+    if (_gridVisible) {
+        // Remove grid
+        if (_gridLayer) {
+            _leafletMap.removeLayer(_gridLayer);
+            _gridLayer = null;
+        }
+        _gridVisible = false;
+        btn.classList.remove('active');
+        btn.textContent = '🌐 Ley Lines';
+    } else {
+        // Add documented ley lines
+        _gridLayer = L.layerGroup();
+
+        DOCUMENTED_LEY_LINES.forEach(function(line) {
+            var coords = line.points.map(function(p) { return [p.lat, p.lng]; });
+
+            // Draw the line
+            var polyline = L.polyline(coords, {
+                color: line.color,
+                weight: line.significance === 'high' ? 3 : 2,
+                opacity: 0.75,
+                dashArray: line.significance === 'high' ? null : '6, 8'
+            });
+            polyline.bindPopup(
+                '<strong style="color:' + line.color + ';">' + line.name + '</strong><br>' +
+                '<em>' + line.region + '</em><br>' +
+                '<span style="font-size:0.85em;">' + line.description + '</span><br>' +
+                '<span style="font-size:0.75em;color:#718096;">Source: ' + line.researcher + '</span>'
+            );
+            _gridLayer.addLayer(polyline);
+
+            // Site dots along the line
+            line.points.forEach(function(point) {
+                var dot = L.circleMarker([point.lat, point.lng], {
+                    radius: 4,
+                    color: line.color,
+                    fillColor: line.color,
+                    fillOpacity: 0.7,
+                    weight: 1
+                });
+                dot.bindTooltip(point.name, {direction: 'top', offset: [0, -6], className: 'map-site-label'});
+                _gridLayer.addLayer(dot);
+            });
+
+            // Label at midpoint
+            var midIdx = Math.floor(coords.length / 2);
+            L.marker(coords[midIdx], {
+                icon: L.divIcon({
+                    className: 'line-label-icon',
+                    html: '<span class="line-label" style="background:' + line.color + ';color:#fff;padding:2px 6px;font-size:0.58rem;border-radius:3px;white-space:nowrap;">' + line.name + '</span>',
+                    iconSize: [140, 16],
+                    iconAnchor: [70, 8]
+                })
+            }).addTo(_gridLayer);
+        });
+
+        _gridLayer.addTo(_leafletMap);
+        _gridVisible = true;
+        btn.classList.add('active');
+        btn.textContent = '🌐 Ley Lines ✓';
+    }
+}
+
+var _theoreticalVisible = false;
+
+function viewPoles() {
+    // Repurposed: toggles the Becker-Hagens theoretical grid as a faint overlay
+    if (!_leafletMap) return;
+    if (!_gridVisible) toggleGlobalGrid(); // Show ley lines first
+
+    var btn = document.getElementById('mapPoleBtn');
+    _theoreticalVisible = !_theoreticalVisible;
+
+    if (_theoreticalVisible) {
+        // Add theoretical grid nodes as faint reference
+        var THEORETICAL_VERTICES = [
+            {lat: 26.57, lng: 31.72, label: "Giza node"},
+            {lat: 26.57, lng: 103.72, label: "SE Asia node"},
+            {lat: 26.57, lng: 175.72, label: "Pacific node"},
+            {lat: 26.57, lng: -112.28, label: "Sedona node"},
+            {lat: 26.57, lng: -40.28, label: "Bermuda node"},
+            {lat: -26.57, lng: 67.72, label: "Indian Ocean node"},
+            {lat: -26.57, lng: 139.72, label: "Australia node"},
+            {lat: -26.57, lng: -148.28, label: "S. Pacific node"},
+            {lat: -26.57, lng: -76.28, label: "Nazca node"},
+            {lat: -26.57, lng: -4.28, label: "W. Africa node"}
+        ];
+
+        THEORETICAL_VERTICES.forEach(function(v) {
+            var circle = L.circleMarker([v.lat, v.lng], {
+                radius: 5, color: 'rgba(236,201,75,0.5)',
+                fillColor: 'rgba(236,201,75,0.15)', fillOpacity: 0.5,
+                weight: 1, dashArray: '2, 3'
+            });
+            circle.bindTooltip(v.label + ' (Becker-Hagens theoretical)', {direction: 'top', offset: [0, -6], className: 'map-site-label'});
+            _gridLayer.addLayer(circle);
+        });
+
+        // Faint connecting lines between adjacent nodes
+        for (var i = 0; i < 5; i++) {
+            // Northern ring
+            var nextN = (i + 1) % 5;
+            _gridLayer.addLayer(L.polyline([[THEORETICAL_VERTICES[i].lat, THEORETICAL_VERTICES[i].lng], [THEORETICAL_VERTICES[nextN].lat, THEORETICAL_VERTICES[nextN].lng]], {color:'#ecc94b', weight:0.5, opacity:0.2, dashArray:'2, 6'}));
+            // Southern ring
+            var nextS = (i + 1) % 5;
+            _gridLayer.addLayer(L.polyline([[THEORETICAL_VERTICES[i+5].lat, THEORETICAL_VERTICES[i+5].lng], [THEORETICAL_VERTICES[nextS+5].lat, THEORETICAL_VERTICES[nextS+5].lng]], {color:'#ecc94b', weight:0.5, opacity:0.2, dashArray:'2, 6'}));
+            // Cross connections
+            _gridLayer.addLayer(L.polyline([[THEORETICAL_VERTICES[i].lat, THEORETICAL_VERTICES[i].lng], [THEORETICAL_VERTICES[i+5].lat, THEORETICAL_VERTICES[i+5].lng]], {color:'#ecc94b', weight:0.5, opacity:0.15, dashArray:'2, 6'}));
+        }
+
+        btn.textContent = '📐 Theory ✓';
+        btn.classList.add('active');
+    } else {
+        // Remove and re-add just the documented ley lines
+        _gridVisible = false;
+        if (_gridLayer) { _leafletMap.removeLayer(_gridLayer); _gridLayer = null; }
+        toggleGlobalGrid();
+        btn.textContent = '📐 Theory';
+        btn.classList.remove('active');
+    }
+}
+
+function scrollToGridResearch(nodeIndex) {
+    // Find the research card for this grid node
+    var cards = document.querySelectorAll('.research-card');
+    var found = false;
+    for (var j = 0; j < cards.length; j++) {
+        var title = cards[j].querySelector('.research-card-title');
+        if (title && title.textContent.indexOf('Grid Node ' + nodeIndex) >= 0) {
+            cards[j].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Flash highlight
+            cards[j].style.borderColor = '#ecc94b';
+            cards[j].style.boxShadow = '0 0 12px rgba(236,201,75,0.3)';
+            cards[j].style.transition = 'all 0.3s';
+            setTimeout(function() {
+                cards[j].style.borderColor = '';
+                cards[j].style.boxShadow = '';
+            }, 3000);
+            found = true;
+            break;
+        }
+    }
+    // If research panel hasn't loaded yet, scroll to research panel and flash it
+    if (!found) {
+        var panel = document.getElementById('researchPanel');
+        if (panel && panel.style.display !== 'none') {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            panel.style.boxShadow = '0 0 16px rgba(236,201,75,0.4)';
+            setTimeout(function() { panel.style.boxShadow = ''; }, 2000);
+        } else {
+            // Research panel not visible yet — show alert
+            alert('Grid Node ' + nodeIndex + ' — research panel is still loading. Scroll down to see it when ready.');
+        }
+    }
+}
+
+async function fetchCoordinates(level, contextKey) {
+    var panel = document.getElementById('mapPanel');
+    var body = document.getElementById('mapPanelBody');
+    var status = document.getElementById('mapStatus');
+
+    // Show panel
+    panel.style.display = '';
+    body.classList.remove('collapsed');
+    document.getElementById('mapToggleBtn').textContent = 'Hide Map';
+    status.textContent = '—';
+    status.className = 'map-status';
+    
+    // Show loading in map area
+    var mapDiv = document.getElementById('leafletMap');
+    mapDiv.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#718096;font-size:0.8rem;">Loading geographic data...</div>';
+
+    var url = MAP_API_URL + '/' + encodeURIComponent(level) + '/' + encodeURIComponent(contextKey);
+
+    try {
+        var resp = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
+        if (!resp.ok) {
+            var errData;
+            try { errData = await resp.json(); } catch(e) { errData = {}; }
+            var errMsg = (errData.error && errData.error.message) ? errData.error.message : 'Coordinates could not be loaded';
+            showMapError(errMsg);
+            return;
+        }
+        var data = await resp.json();
+        renderMap(data);
+    } catch (err) {
+        showMapError('Network error — coordinates could not be loaded.');
+    }
+}
+
+function renderMap(data) {
+    var mapDiv = document.getElementById('leafletMap');
+    var status = document.getElementById('mapStatus');
+    var coordinates = data.coordinates || [];
+
+    // Remove any previous visualization description
+    var existingDesc = document.querySelector('.map-viz-description');
+    if (existingDesc) existingDesc.remove();
+
+    // Set status
+    if (data.is_throttled) {
+        status.textContent = 'Throttled';
+        status.className = 'map-status generated';
+    } else if (data.is_cached) {
+        status.textContent = 'Cached';
+        status.className = 'map-status cached';
+    } else {
+        status.textContent = 'Generated';
+        status.className = 'map-status generated';
+    }
+
+    // Handle empty coordinates
+    if (!coordinates || coordinates.length === 0) {
+        mapDiv.innerHTML = '<div class="map-no-data">No geographic data available for this node.</div>';
+        return;
+    }
+
+    // Reset map div (Leaflet needs a clean div)
+    mapDiv.innerHTML = '';
+    mapDiv.style.height = '350px';
+
+    // Destroy previous map instance if exists
+    if (_leafletMap) {
+        _leafletMap.remove();
+        _leafletMap = null;
+    }
+
+    // Reset grid state
+    _gridLayer = null;
+    _gridVisible = false;
+    var gridBtn = document.getElementById('mapGridBtn');
+    if (gridBtn) {
+        gridBtn.classList.remove('active');
+        gridBtn.textContent = '🌐 Ley Lines';
+    }
+
+    // Create Leaflet map
+    _leafletMap = L.map('leafletMap', {
+        scrollWheelZoom: true,
+        zoomControl: true,
+        minZoom: 2
+    });
+
+    // Add OpenStreetMap tiles (dark theme to match UI)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap contributors © CARTO',
+        subdomains: 'abcd',
+        maxZoom: 19
+    }).addTo(_leafletMap);
+
+    // Clear old markers
+    _mapMarkers = [];
+
+    // Add markers
+    var bounds = L.latLngBounds();
+    coordinates.forEach(function(coord, idx) {
+        var marker = L.marker([coord.lat, coord.lng]).addTo(_leafletMap);
+        // Rich popup with investigate button
+        var popupHtml = '<strong>' + escapeHtml(coord.name) + '</strong><br>' +
+            '<span style="font-size:0.85em;">' + escapeHtml(coord.description || '') + '</span><br>' +
+            '<button onclick="investigateMapSite(\'' + escapeHtml(coord.name).replace(/'/g, "\\'") + '\')" ' +
+            'style="margin-top:6px;padding:4px 10px;background:#2d3748;border:1px solid #4a5568;color:#63b3ed;border-radius:4px;cursor:pointer;font-size:0.75rem;">🔍 Investigate Site</button>';
+        marker.bindPopup(popupHtml);
+        // Permanent label
+        var label = L.tooltip({permanent: true, direction: 'right', offset: [12, 0], className: 'map-site-label'})
+            .setContent(coord.name);
+        marker.bindTooltip(label);
+        bounds.extend([coord.lat, coord.lng]);
+        _mapMarkers.push(marker);
+    });
+
+    // Auto-zoom to fit all markers with padding
+    _leafletMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 8 });
+
+    // Render visualization layer
+    if (data.visualization && data.visualization.type && data.visualization.type !== 'none') {
+        renderVisualization(data.visualization, coordinates);
+    }
+
+    // Show grid button for alignment-related patterns and AUTO-ENABLE
+    var gridBtn = document.getElementById('mapGridBtn');
+    var poleBtn = document.getElementById('mapPoleBtn');
+    var gridLink = document.getElementById('mapGridLink');
+    if (data.visualization && (data.visualization.type === 'great_circle_lines' || data.visualization.type === 'constellation_overlay')) {
+        gridBtn.style.display = '';
+        poleBtn.style.display = '';
+        if (gridLink) gridLink.style.display = '';
+        // Auto-enable grid for alignment patterns
+        if (!_gridVisible) {
+            toggleGlobalGrid();
+        }
+    } else {
+        gridBtn.style.display = 'none';
+        poleBtn.style.display = 'none';
+        if (gridLink) gridLink.style.display = 'none';
+    }
+
+    // Show visualization description below the map
+    if (data.visualization && data.visualization.description) {
+        var existingDesc = document.querySelector('.map-viz-description');
+        if (existingDesc) existingDesc.remove();
+        var descDiv = document.createElement('div');
+        descDiv.className = 'map-viz-description';
+        descDiv.innerHTML = '🔬 <em>' + escapeHtml(data.visualization.description) + '</em>';
+        document.getElementById('mapPanelBody').appendChild(descDiv);
+    }
+
+    // Force a resize after a short delay (Leaflet needs this when panel was hidden)
+    setTimeout(function() {
+        if (_leafletMap) _leafletMap.invalidateSize();
+    }, 200);
+}
+
+function renderVisualization(viz, coordinates) {
+    switch (viz.type) {
+        case 'great_circle_lines':
+            renderGreatCircleLines(viz, coordinates);
+            break;
+        case 'cluster_regions':
+            renderClusterRegions(viz, coordinates);
+            break;
+        case 'sequential_connections':
+            renderSequentialConnections(viz, coordinates);
+            break;
+        case 'heat_zones':
+            renderHeatZones(viz, coordinates);
+            break;
+        case 'constellation_overlay':
+            renderConstellationOverlay(viz, coordinates);
+            break;
+    }
+}
+
+function renderGreatCircleLines(viz, coordinates) {
+    var lines = viz.lines || [];
+    lines.forEach(function(line) {
+        var from = coordinates.find(function(c) { return c.name === line.from; });
+        var to = coordinates.find(function(c) { return c.name === line.to; });
+        if (from && to) {
+            var polyline = L.polyline([[from.lat, from.lng], [to.lat, to.lng]], {
+                color: '#48bb78',
+                weight: 2,
+                opacity: 0.7,
+                dashArray: '8, 6'
+            }).addTo(_leafletMap);
+            if (line.label) {
+                var midLat = (from.lat + to.lat) / 2;
+                var midLng = (from.lng + to.lng) / 2;
+                L.marker([midLat, midLng], {
+                    icon: L.divIcon({
+                        className: 'line-label-icon',
+                        html: '<span class="line-label">' + escapeHtml(line.label) + '</span>',
+                        iconSize: [100, 20],
+                        iconAnchor: [50, 10]
+                    })
+                }).addTo(_leafletMap);
+            }
+        }
+    });
+}
+
+function renderClusterRegions(viz, coordinates) {
+    var clusters = viz.clusters || [];
+    clusters.forEach(function(cluster) {
+        var center = coordinates.find(function(c) { return c.name === cluster.center_site; });
+        if (center) {
+            L.circle([center.lat, center.lng], {
+                radius: (cluster.radius_km || 500) * 1000,
+                color: cluster.color || '#ecc94b',
+                fillColor: cluster.color || '#ecc94b',
+                fillOpacity: 0.1,
+                weight: 1,
+                dashArray: '4, 4'
+            }).addTo(_leafletMap);
+        }
+    });
+}
+
+function renderSequentialConnections(viz, coordinates) {
+    var connections = (viz.connections || []).sort(function(a, b) { return a.order - b.order; });
+    connections.forEach(function(conn) {
+        var from = coordinates.find(function(c) { return c.name === conn.from; });
+        var to = coordinates.find(function(c) { return c.name === conn.to; });
+        if (from && to) {
+            L.polyline([[from.lat, from.lng], [to.lat, to.lng]], {
+                color: '#63b3ed',
+                weight: 2,
+                opacity: 0.8
+            }).addTo(_leafletMap);
+        }
+    });
+}
+
+function renderHeatZones(viz, coordinates) {
+    var zones = viz.zones || [];
+    zones.forEach(function(zone) {
+        var center = coordinates.find(function(c) { return c.name === zone.center_site; });
+        if (center) {
+            var intensity = zone.intensity || 0.5;
+            L.circle([center.lat, center.lng], {
+                radius: (zone.radius_km || 300) * 1000,
+                color: '#fc8181',
+                fillColor: '#fc8181',
+                fillOpacity: intensity * 0.2,
+                weight: 1,
+                opacity: intensity * 0.6
+            }).addTo(_leafletMap);
+        }
+    });
+}
+
+function renderConstellationOverlay(viz, coordinates) {
+    var pattern = viz.pattern || [];
+    pattern.forEach(function(segment) {
+        var from = coordinates.find(function(c) { return c.name === segment.from; });
+        var to = coordinates.find(function(c) { return c.name === segment.to; });
+        if (from && to) {
+            L.polyline([[from.lat, from.lng], [to.lat, to.lng]], {
+                color: '#d69e2e',
+                weight: 1.5,
+                opacity: 0.6,
+                dashArray: '3, 5'
+            }).addTo(_leafletMap);
+        }
+    });
+}
+
+function toggleMapPanel() {
+    var body = document.getElementById('mapPanelBody');
+    var btn = document.getElementById('mapToggleBtn');
+    body.classList.toggle('collapsed');
+    btn.textContent = body.classList.contains('collapsed') ? 'Show Map' : 'Hide Map';
+    // Invalidate map size when expanding
+    if (!body.classList.contains('collapsed') && _leafletMap) {
+        setTimeout(function() { _leafletMap.invalidateSize(); }, 200);
+    }
+}
+
+function showMapError(msg) {
+    var mapDiv = document.getElementById('leafletMap');
+    mapDiv.innerHTML = '<div class="map-no-data" style="color:#fc8181;">⚠️ ' + msg + '</div>';
+}
+
+// Investigate a site from the map popup — scrolls to research panel and triggers search
+async function investigateMapSite(siteName) {
+    // Scroll to the concept research panel or research recommendations
+    var conceptPanel = document.getElementById('conceptResearchPanel');
+    if (conceptPanel && conceptPanel.style.display !== 'none') {
+        conceptPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Trigger a research execution for this specific site
+    var url = (window.APP_CONFIG ? window.APP_CONFIG.API_URL : '') + '/pattern-library/research/execute';
+    var level = getApiLevel();
+    var contextKey = buildContextKey();
+    var context = (currentView.method ? currentView.method.name : '') + ' - ' + siteName;
+
+    try {
+        var resp = await fetch(url, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                query: siteName + ' ancient site archaeological evidence history',
+                context: context
+            })
+        });
+        if (!resp.ok) return;
+        var data = await resp.json();
+        // Show result in an alert-style notification for now
+        var brief = data.brief || {};
+        var msg = (brief.codename || 'INVESTIGATION') + '\n\n' +
+            (brief.situation || brief.summary || 'No data') + '\n\n' +
+            (brief.smoking_gun || '');
+        alert(msg);
+    } catch (err) {
+        alert('Investigation failed: ' + err.message);
+    }
+}
+
+function triggerMapCoordinates() {
+    var level = getApiLevel();
+    var contextKey = buildContextKey();
+    if (level && contextKey) {
+        fetchCoordinates(level, contextKey);
+    } else {
+        document.getElementById('mapPanel').style.display = 'none';
+    }
+}
+</script>
+
+<script>
+// === RESEARCH RECOMMENDATIONS PANEL ===
+var RESEARCH_API_URL = (window.APP_CONFIG ? window.APP_CONFIG.API_URL : '') + '/pattern-library/research';
+
+async function fetchResearchRecommendations(level, contextKey) {
+    var panel = document.getElementById('researchPanel');
+    var body = document.getElementById('researchPanelBody');
+    var status = document.getElementById('researchStatus');
+
+    panel.style.display = '';
+    status.textContent = '—';
+    body.innerHTML = '<div style="color:#718096;font-size:0.78rem;padding:10px 0;">Analyzing pattern for research opportunities...</div>';
+
+    var url = RESEARCH_API_URL + '/' + encodeURIComponent(level) + '/' + encodeURIComponent(contextKey);
+
+    try {
+        var resp = await fetch(url);
+        if (!resp.ok) {
+            body.innerHTML = '<div style="color:#fc8181;font-size:0.78rem;">Could not generate research recommendations.</div>';
+            return;
+        }
+        var data = await resp.json();
+        renderResearchRecommendations(data);
+    } catch (err) {
+        body.innerHTML = '<div style="color:#fc8181;font-size:0.78rem;">Network error loading recommendations.</div>';
+    }
+}
+
+function renderResearchRecommendations(data) {
+    var body = document.getElementById('researchPanelBody');
+    var status = document.getElementById('researchStatus');
+    status.textContent = data.is_cached ? 'Cached' : 'Generated';
+
+    var recs = data.recommendations || [];
+    if (recs.length === 0) {
+        body.innerHTML = '<div style="color:#718096;font-size:0.78rem;">No research recommendations available.</div>';
+        return;
+    }
+
+    var html = '';
+    if (data.summary) {
+        html += '<div class="research-summary">' + escapeHtml(data.summary) + '</div>';
+    }
+
+    recs.forEach(function(rec, i) {
+        html += '<div class="research-card" id="researchCard_' + i + '">';
+        html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
+        html += '<span class="research-card-badge ' + (rec.significance || 'medium') + '">' + (rec.significance || 'medium') + '</span>';
+        html += '<span class="research-card-title">' + escapeHtml(rec.title) + '</span>';
+        html += '</div>';
+        html += '<div class="research-card-desc">' + escapeHtml(rec.description) + '</div>';
+        html += '<button class="research-btn" id="researchBtn_' + i + '" data-query="' + escapeHtml(rec.search_query || '') + '" data-context="' + escapeHtml(rec.title || '') + '" onclick="executeResearchFromBtn(this, ' + i + ')">🔍 Research This</button>';
+        html += '<div id="researchBrief_' + i + '"></div>';
+        html += '</div>';
+    });
+
+    body.innerHTML = html;
+    
+    // If grid is visible, add intersection gap research cards
+    if (_gridVisible && _mapMarkers.length > 0) {
+        var siteCoords = [];
+        _mapMarkers.forEach(function(m) {
+            var ll = m.getLatLng();
+            siteCoords.push({lat: ll.lat, lng: ll.lng});
+        });
+        var gaps = computeGridIntersectionGaps(siteCoords);
+        if (gaps.length > 0) {
+            var gapHtml = '<div style="margin-top:16px;padding-top:12px;border-top:1px solid rgba(236,201,75,0.15);">';
+            gapHtml += '<div style="font-size:0.72rem;font-weight:700;color:#ecc94b;margin-bottom:10px;">🌐 GRID INTERSECTION ANALYSIS — ' + gaps.length + ' unexplored nodes</div>';
+            gaps.forEach(function(gap, gi) {
+                var idx = recs.length + gi;
+                var searchQuery = 'ancient site archaeological ruins ' + gap.lat.toFixed(1) + ' latitude ' + gap.lng.toFixed(1) + ' longitude undiscovered';
+                gapHtml += '<div class="research-card" id="researchCard_' + idx + '">';
+                gapHtml += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
+                gapHtml += '<span class="research-card-badge high">UNEXPLORED</span>';
+                gapHtml += '<span class="research-card-title">' + escapeHtml(gap.label) + '</span>';
+                gapHtml += '</div>';
+                gapHtml += '<div class="research-card-desc">No known ancient site documented within 300km of this grid intersection. The planetary grid theory predicts significant activity at this node.</div>';
+                gapHtml += '<button class="research-btn" id="researchBtn_' + idx + '" data-query="' + escapeHtml(searchQuery) + '" data-context="' + escapeHtml('Grid node ' + gap.nodeIndex + ' intersection research') + '" onclick="executeResearchFromBtn(this, ' + idx + ')">🔍 Research This Intersection</button>';
+                gapHtml += '<div id="researchBrief_' + idx + '"></div>';
+                gapHtml += '</div>';
+            });
+            gapHtml += '</div>';
+            body.innerHTML += gapHtml;
+        }
+    }
+
+    // Ley Line Alignment Score (compute from documented lines vs known sites)
+    if (_gridVisible && _mapMarkers.length > 0) {
+        var siteCoords2 = [];
+        _mapMarkers.forEach(function(m) {
+            var ll = m.getLatLng();
+            siteCoords2.push({lat: ll.lat, lng: ll.lng});
+        });
+        
+        // Count how many documented ley line sites are confirmed by our map markers
+        var totalLinePoints = 0;
+        var confirmedLinePoints = 0;
+        DOCUMENTED_LEY_LINES.forEach(function(line) {
+            line.points.forEach(function(p) {
+                totalLinePoints++;
+                var hasNearbySite = siteCoords2.some(function(site) {
+                    return haversineKm(p.lat, p.lng, site.lat, site.lng) < 200;
+                });
+                if (hasNearbySite) confirmedLinePoints++;
+            });
+        });
+        
+        var confirmPct = Math.round((confirmedLinePoints / totalLinePoints) * 100);
+        var scoreClass = confirmPct >= 70 ? 'high' : confirmPct >= 40 ? 'medium' : 'low';
+        var gaps2 = computeGridIntersectionGaps(siteCoords2);
+        
+        var scoreHtml = '<div style="margin-top:16px;padding:16px;background:rgba(99,179,237,0.05);border:1px solid rgba(99,179,237,0.2);border-radius:8px;">';
+        scoreHtml += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">';
+        scoreHtml += '<div style="font-size:1.8rem;font-weight:800;color:' + (scoreClass === 'high' ? '#48bb78' : scoreClass === 'medium' ? '#ecc94b' : '#fc8181') + ';">' + confirmPct + '%</div>';
+        scoreHtml += '<div><div style="font-size:0.8rem;font-weight:700;color:#e2e8f0;">Ley Line Alignment Verification</div>';
+        scoreHtml += '<div style="font-size:0.7rem;color:#a0aec0;">' + confirmedLinePoints + ' of ' + totalLinePoints + ' documented alignment sites appear in our dataset (within 200km)</div></div>';
+        scoreHtml += '</div>';
+        
+        // Pitch line
+        scoreHtml += '<div style="font-size:0.72rem;color:#cbd5e0;line-height:1.5;padding:8px 12px;background:rgba(236,201,75,0.04);border-radius:6px;border-left:3px solid #ecc94b;">';
+        scoreHtml += '<strong style="color:#ecc94b;">📺 Production Pitch:</strong> ';
+        if (gaps2.length > 0) {
+            scoreHtml += '"We mapped ' + DOCUMENTED_LEY_LINES.length + ' documented ley line alignments from published research (Watkins, Michell, Alison, Richer). ';
+            scoreHtml += confirmedLinePoints + ' of ' + totalLinePoints + ' sites on these lines correlate with our pattern library. ';
+            scoreHtml += gaps2.length + ' alignment sites have no investigation data — these are prime targets for field research."';
+        } else {
+            scoreHtml += '"All documented ley line sites show matches in our dataset — full correlation with published alignment research."';
+        }
+        scoreHtml += '</div>';
+        
+        scoreHtml += '</div>';
+        body.innerHTML += scoreHtml;
+    }
+}
+
+function executeResearchFromBtn(btn, index) {
+    var query = btn.getAttribute('data-query');
+    var context = btn.getAttribute('data-context');
+    executeResearch(index, query, context);
+}
+
+async function executeResearch(index, query, context) {
+    var btn = document.getElementById('researchBtn_' + index);
+    var briefDiv = document.getElementById('researchBrief_' + index);
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Searching...';
+    briefDiv.innerHTML = '<div style="color:#718096;font-size:0.72rem;padding:8px 0;">Searching and analyzing sources...</div>';
+
+    var url = RESEARCH_API_URL + '/execute';
+    try {
+        var resp = await fetch(url, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({query: query, context: context})
+        });
+
+        if (!resp.ok) {
+            briefDiv.innerHTML = '<div style="color:#fc8181;font-size:0.72rem;">Search failed. Try again later.</div>';
+            btn.disabled = false;
+            btn.textContent = '🔍 Retry';
+            return;
+        }
+
+        var data = await resp.json();
+        renderResearchBrief(index, data.brief);
+        btn.textContent = '✅ Researched';
+    } catch (err) {
+        briefDiv.innerHTML = '<div style="color:#fc8181;font-size:0.72rem;">Network error during search.</div>';
+        btn.disabled = false;
+        btn.textContent = '🔍 Retry';
+    }
+}
+
+function renderResearchBrief(index, brief) {
+    var div = document.getElementById('researchBrief_' + index);
+    if (!brief) { div.innerHTML = ''; return; }
+
+    // Determine status color
+    var statusColor = '#ecc94b';
+    var statusIcon = '🔍';
+    if (brief.investigation_status) {
+        if (brief.investigation_status.indexOf('CONFIRMED') >= 0) { statusColor = '#48bb78'; statusIcon = '✅'; }
+        else if (brief.investigation_status.indexOf('PROBABLE') >= 0) { statusColor = '#63b3ed'; statusIcon = '🔵'; }
+        else if (brief.investigation_status.indexOf('NEGATIVE') >= 0) { statusColor = '#fc8181'; statusIcon = '❌'; }
+        else { statusColor = '#ecc94b'; statusIcon = '⚠️'; }
+    }
+    
+    var html = '<div class="research-brief" style="border-left:3px solid ' + statusColor + ';">';
+    
+    // Codename + Status header
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+    html += '<div style="font-size:0.7rem;font-weight:800;color:' + statusColor + ';letter-spacing:1px;">' + statusIcon + ' ' + escapeHtml(brief.codename || 'INVESTIGATION') + '</div>';
+    if (brief.investigation_status) html += '<div style="font-size:0.58rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.05);border:1px solid ' + statusColor + '40;color:' + statusColor + ';">' + escapeHtml(brief.investigation_status) + '</div>';
+    html += '</div>';
+    
+    // Situation
+    if (brief.situation && brief.situation !== 'Analysis complete.' && brief.situation !== 'Investigation pending.') {
+        html += '<div style="font-size:0.76rem;color:#e2e8f0;line-height:1.6;margin-bottom:10px;">' + escapeHtml(brief.situation) + '</div>';
+    } else if (brief.summary && brief.summary !== 'Analysis complete.') {
+        html += '<div style="font-size:0.76rem;color:#e2e8f0;line-height:1.6;margin-bottom:10px;">' + escapeHtml(brief.summary) + '</div>';
+    }
+    
+    // Evidence chain (new OSINT format)
+    if (brief.evidence_found && brief.evidence_found.length > 0) {
+        html += '<div style="margin:10px 0;">';
+        html += '<div style="font-size:0.62rem;font-weight:700;color:#718096;letter-spacing:0.8px;margin-bottom:6px;">EVIDENCE CHAIN (' + brief.evidence_found.length + ' sources)</div>';
+        brief.evidence_found.forEach(function(ev) {
+            var evColor = ev.confidence === 'confirmed' ? '#48bb78' : ev.confidence === 'probable' ? '#63b3ed' : '#718096';
+            var evIcon = ev.source_type === 'satellite' ? '🛰️' : ev.source_type === 'academic' ? '📚' : ev.source_type === 'geological' ? '🌍' : ev.source_type === 'historical' ? '📜' : '📡';
+            html += '<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);">';
+            html += '<span style="font-size:0.85rem;">' + evIcon + '</span>';
+            html += '<div style="flex:1;"><div style="font-size:0.72rem;color:#e2e8f0;">' + escapeHtml(ev.finding || '') + '</div>';
+            if (ev.detail) html += '<div style="font-size:0.65rem;color:#a0aec0;margin-top:2px;">' + escapeHtml(ev.detail) + '</div>';
+            html += '</div>';
+            html += '<span style="font-size:0.56rem;padding:2px 6px;border-radius:3px;background:' + evColor + '20;color:' + evColor + ';border:1px solid ' + evColor + '40;white-space:nowrap;height:fit-content;align-self:center;">' + (ev.confidence || 'unverified').toUpperCase() + '</span>';
+            html += '</div>';
+        });
+        html += '</div>';
+    } else if (brief.key_findings && brief.key_findings.length > 0) {
+        html += '<div style="margin:8px 0;"><div style="font-size:0.62rem;font-weight:700;color:#718096;margin-bottom:4px;">FINDINGS</div>';
+        html += '<ul class="research-brief-findings">';
+        brief.key_findings.forEach(function(f) { html += '<li>' + escapeHtml(f) + '</li>'; });
+        html += '</ul></div>';
+    }
+    
+    // Smoking gun
+    if (brief.smoking_gun && brief.smoking_gun.indexOf('No definitive') < 0) {
+        html += '<div style="margin:10px 0;padding:10px 14px;background:rgba(72,187,120,0.06);border-radius:6px;border:1px solid rgba(72,187,120,0.2);">';
+        html += '<div style="font-size:0.62rem;font-weight:700;color:#48bb78;letter-spacing:0.5px;margin-bottom:4px;">💎 KEY EVIDENCE</div>';
+        html += '<div style="font-size:0.76rem;color:#e2e8f0;font-weight:500;">' + escapeHtml(brief.smoking_gun) + '</div>';
+        html += '</div>';
+    }
+    
+    // Theory impact
+    if (brief.threat_to_theory && brief.threat_to_theory !== 'inconclusive') {
+        var theoryColor = brief.threat_to_theory === 'supports' ? '#48bb78' : '#fc8181';
+        var theoryLabel = brief.threat_to_theory === 'supports' ? '✓ SUPPORTS THEORY' : '✗ CHALLENGES THEORY';
+        html += '<div style="margin:6px 0;font-size:0.7rem;color:' + theoryColor + ';font-weight:700;">' + theoryLabel + '</div>';
+    }
+    if (brief.connection_to_theory) {
+        html += '<div style="font-size:0.7rem;color:#63b3ed;font-style:italic;margin:4px 0;">🔗 ' + escapeHtml(brief.connection_to_theory) + '</div>';
+    }
+    
+    // Field recommendation
+    if (brief.field_recommendation && brief.field_recommendation.indexOf('Conduct ground survey') < 0) {
+        html += '<div style="margin:8px 0;padding:8px 12px;background:rgba(99,179,237,0.04);border-radius:6px;border:1px solid rgba(99,179,237,0.12);">';
+        html += '<div style="font-size:0.62rem;font-weight:700;color:#63b3ed;letter-spacing:0.5px;">🎯 NEXT MOVE</div>';
+        html += '<div style="font-size:0.72rem;color:#cbd5e0;margin-top:3px;">' + escapeHtml(brief.field_recommendation) + '</div>';
+        html += '</div>';
+    }
+    
+    // Production value
+    if (brief.production_value && brief.production_value.indexOf('pending') < 0) {
+        html += '<div style="margin:4px 0;font-size:0.68rem;color:#a0aec0;">🎥 ' + escapeHtml(brief.production_value) + '</div>';
+    }
+
+    // Sources
+    if (brief.sources_consulted && brief.sources_consulted.length > 0) {
+        html += '<div style="margin-top:8px;font-size:0.6rem;color:#4a5568;">';
+        html += '<span style="font-weight:700;color:#718096;">INTEL SOURCES:</span> ';
+        brief.sources_consulted.forEach(function(s, i) {
+            var relColor = s.reliability === 'primary' ? '#48bb78' : s.reliability === 'secondary' ? '#63b3ed' : '#718096';
+            html += (i > 0 ? ' · ' : '');
+            if (s.url) html += '<a href="' + s.url + '" target="_blank" style="color:' + relColor + ';">' + escapeHtml(s.name || 'Source') + '</a>';
+            else html += '<span style="color:' + relColor + ';">' + escapeHtml(s.name || 'Source') + '</span>';
+        });
+        html += '</div>';
+    } else if (brief.sources && brief.sources.length > 0) {
+        html += '<div class="research-brief-sources">Sources: ';
+        brief.sources.forEach(function(s, i) {
+            html += (i > 0 ? ' · ' : '') + '<a href="' + s.url + '" target="_blank">' + escapeHtml(s.title || s.url) + '</a>';
+        });
+        html += '</div>';
+    }
+
+    html += '</div>';
+    div.innerHTML = html;
+}
+
+function triggerResearchRecommendations() {
+    var level = getApiLevel();
+    var contextKey = buildContextKey();
+    if (level && contextKey) {
+        fetchResearchRecommendations(level, contextKey);
+        // Also trigger concept research (Phase 1)
+        fetchConceptResearch(level, contextKey);
+    } else {
+        document.getElementById('researchPanel').style.display = 'none';
+        document.getElementById('conceptResearchPanel').style.display = 'none';
+    }
+}
+
+// === CONCEPT RESEARCH (Phase 1) ===
+var CONCEPT_RESEARCH_API_URL = (window.APP_CONFIG ? window.APP_CONFIG.API_URL : '') + '/pattern-library/concept-research';
+
+async function fetchConceptResearch(level, contextKey) {
+    var panel = document.getElementById('conceptResearchPanel');
+    var body = document.getElementById('conceptResearchBody');
+    var status = document.getElementById('conceptResearchStatus');
+
+    panel.style.display = '';
+    status.textContent = 'Loading...';
+    body.innerHTML = '<div style="color:#718096;font-size:0.78rem;padding:10px 0;">🧠 AI is researching this concept deeply (multi-source analysis)...</div>';
+
+    var url = CONCEPT_RESEARCH_API_URL + '/' + encodeURIComponent(level) + '/' + encodeURIComponent(contextKey);
+
+    try {
+        var resp = await fetch(url);
+        if (resp.status === 429) {
+            status.textContent = 'Rate Limited';
+            body.innerHTML = '<div style="color:#ecc94b;font-size:0.78rem;">Rate limit reached. Concept research will be available shortly.</div>';
+            return;
+        }
+        if (!resp.ok) {
+            status.textContent = 'Error';
+            body.innerHTML = '<div style="color:#fc8181;font-size:0.78rem;">Could not complete concept research. Try again later.</div>';
+            return;
+        }
+        var data = await resp.json();
+        renderConceptBriefing(data);
+    } catch (err) {
+        status.textContent = 'Error';
+        body.innerHTML = '<div style="color:#fc8181;font-size:0.78rem;">Network error loading concept research.</div>';
+    }
+}
+
+function renderConceptBriefing(data) {
+    var body = document.getElementById('conceptResearchBody');
+    var status = document.getElementById('conceptResearchStatus');
+
+    var briefing = data.briefing || {};
+    status.textContent = data.is_cached ? '📋 Cached' : '✨ Fresh';
+
+    var html = '';
+
+    // Codename + Field Status
+    var codename = briefing.codename || 'UNKNOWN';
+    var fieldStatus = briefing.field_status || 'UNKNOWN';
+    var statusColor = fieldStatus === 'ESTABLISHED SCIENCE' ? '#48bb78' :
+                      fieldStatus === 'ACTIVE RESEARCH' ? '#63b3ed' :
+                      fieldStatus === 'CONTESTED THEORY' ? '#ecc94b' : '#fc8181';
+
+    html += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">';
+    html += '<span style="font-size:0.9rem;font-weight:700;color:#e2e8f0;letter-spacing:0.5px;">' + escapeHtml(codename) + '</span>';
+    html += '<span style="font-size:0.62rem;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,0.05);border:1px solid ' + statusColor + ';color:' + statusColor + ';text-transform:uppercase;letter-spacing:0.5px;">' + escapeHtml(fieldStatus) + '</span>';
+    html += '</div>';
+
+    // Executive Summary
+    if (briefing.executive_summary) {
+        html += '<div style="font-size:0.8rem;color:#cbd5e0;line-height:1.7;margin-bottom:14px;padding:10px 14px;background:rgba(99,179,237,0.04);border-left:3px solid rgba(99,179,237,0.3);border-radius:4px;">' + escapeHtml(briefing.executive_summary) + '</div>';
+    }
+
+    // Evidence Landscape
+    var evidence = briefing.evidence_landscape || {};
+    if (evidence.confirmed && evidence.confirmed.length > 0) {
+        html += '<div style="margin-bottom:10px;">';
+        html += '<div style="font-size:0.7rem;font-weight:600;color:#48bb78;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">✓ Confirmed</div>';
+        evidence.confirmed.forEach(function(item) {
+            html += '<div style="font-size:0.72rem;color:#a0aec0;padding:2px 0 2px 12px;border-left:2px solid rgba(72,187,120,0.3);">' + escapeHtml(item) + '</div>';
+        });
+        html += '</div>';
+    }
+    if (evidence.contested && evidence.contested.length > 0) {
+        html += '<div style="margin-bottom:10px;">';
+        html += '<div style="font-size:0.7rem;font-weight:600;color:#ecc94b;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">⚠ Contested</div>';
+        evidence.contested.forEach(function(item) {
+            html += '<div style="font-size:0.72rem;color:#a0aec0;padding:2px 0 2px 12px;border-left:2px solid rgba(236,201,75,0.3);">' + escapeHtml(item) + '</div>';
+        });
+        html += '</div>';
+    }
+    if (evidence.unexplored && evidence.unexplored.length > 0) {
+        html += '<div style="margin-bottom:10px;">';
+        html += '<div style="font-size:0.7rem;font-weight:600;color:#63b3ed;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">? Unexplored</div>';
+        evidence.unexplored.forEach(function(item) {
+            html += '<div style="font-size:0.72rem;color:#a0aec0;padding:2px 0 2px 12px;border-left:2px solid rgba(99,179,237,0.3);">' + escapeHtml(item) + '</div>';
+        });
+        html += '</div>';
+    }
+
+    // Key Researchers
+    var researchers = briefing.key_researchers || [];
+    if (researchers.length > 0) {
+        html += '<div style="margin:14px 0 10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05);">';
+        html += '<div style="font-size:0.7rem;font-weight:600;color:#a0aec0;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Key Researchers</div>';
+        researchers.slice(0, 5).forEach(function(r) {
+            var credColor = r.credibility === 'high' ? '#48bb78' : r.credibility === 'medium' ? '#ecc94b' : '#fc8181';
+            html += '<div style="font-size:0.72rem;color:#cbd5e0;margin-bottom:3px;">';
+            html += '<span style="font-weight:600;">' + escapeHtml(r.name || '') + '</span>';
+            if (r.affiliation) html += ' <span style="color:#718096;">(' + escapeHtml(r.affiliation) + ')</span>';
+            html += ' <span style="font-size:0.6rem;color:' + credColor + ';">●</span>';
+            html += '</div>';
+            if (r.contribution) {
+                html += '<div style="font-size:0.68rem;color:#718096;padding-left:12px;margin-bottom:4px;">' + escapeHtml(r.contribution) + '</div>';
+            }
+        });
+        html += '</div>';
+    }
+
+    // Priority Targets (the key output — ranked investigation sites)
+    var targets = briefing.priority_targets || [];
+    if (targets.length > 0) {
+        html += '<div style="margin:14px 0 10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05);">';
+        html += '<div style="font-size:0.75rem;font-weight:700;color:#ecc94b;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">🎯 Priority Investigation Targets</div>';
+        targets.forEach(function(t, idx) {
+            var diffColor = t.difficulty === 'easy' ? '#48bb78' : t.difficulty === 'moderate' ? '#ecc94b' : t.difficulty === 'hard' ? '#fc8181' : '#e53e3e';
+            html += '<div class="research-card" style="border-left:3px solid rgba(236,201,75,0.4);">';
+            html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">';
+            html += '<span style="font-size:0.7rem;font-weight:700;color:#ecc94b;min-width:18px;">#' + (t.rank || idx + 1) + '</span>';
+            html += '<span class="research-card-title">' + escapeHtml(t.location || 'Unknown') + '</span>';
+            html += '<span style="font-size:0.6rem;padding:1px 5px;border-radius:3px;background:rgba(255,255,255,0.04);color:' + diffColor + ';border:1px solid ' + diffColor + ';">' + escapeHtml(t.difficulty || '?') + '</span>';
+            html += '</div>';
+            html += '<div class="research-card-desc">' + escapeHtml(t.rationale || '') + '</div>';
+            if (t.expected_evidence) {
+                html += '<div style="font-size:0.68rem;color:#63b3ed;margin-top:4px;">Expected: ' + escapeHtml(t.expected_evidence) + '</div>';
+            }
+            if (t.production_value) {
+                html += '<div style="font-size:0.65rem;color:#718096;margin-top:3px;font-style:italic;">🎬 ' + escapeHtml(t.production_value) + '</div>';
+            }
+            // Drill-down button for Phase 2 site investigation
+            var searchQuery = (t.location || '') + ' archaeological site ancient ruins';
+            html += '<button class="research-btn" style="margin-top:8px;" onclick="executeResearchFromConcept(this, \'' + escapeHtml(searchQuery).replace(/'/g, "\\'") + '\', \'' + escapeHtml(t.location || '').replace(/'/g, "\\'") + '\')">🔍 Investigate Site</button>';
+            html += '</div>';
+        });
+        html += '</div>';
+    }
+
+    // Investigation Strategy
+    if (briefing.investigation_strategy) {
+        html += '<div style="margin-top:12px;padding:10px 14px;background:rgba(236,201,75,0.04);border:1px solid rgba(236,201,75,0.12);border-radius:6px;">';
+        html += '<div style="font-size:0.68rem;font-weight:600;color:#ecc94b;margin-bottom:4px;">STRATEGY</div>';
+        html += '<div style="font-size:0.72rem;color:#a0aec0;line-height:1.5;">' + escapeHtml(briefing.investigation_strategy) + '</div>';
+        html += '</div>';
+    }
+
+    // Red Flags
+    var redFlags = briefing.red_flags || [];
+    if (redFlags.length > 0) {
+        html += '<div style="margin-top:10px;font-size:0.68rem;color:#fc8181;">';
+        html += '<strong>⚠ Red Flags:</strong> ' + redFlags.map(function(f) { return escapeHtml(f); }).join(' | ');
+        html += '</div>';
+    }
+
+    // Source count metadata
+    var meta = briefing._meta || {};
+    if (meta.sources_count || briefing._search_results_count) {
+        html += '<div style="margin-top:10px;font-size:0.62rem;color:#4a5568;">';
+        html += 'Sources analyzed: ' + (meta.sources_count || briefing._search_results_count || 0);
+        if (meta.generated_at) html += ' | Generated: ' + meta.generated_at.split('T')[0];
+        html += '</div>';
+    }
+
+    body.innerHTML = html;
+}
+
+function refreshConceptResearch() {
+    var level = getApiLevel();
+    var contextKey = buildContextKey();
+    if (!level || !contextKey) return;
+
+    var btn = document.getElementById('conceptRefreshBtn');
+    btn.disabled = true;
+    btn.textContent = '↻ Researching...';
+
+    var url = CONCEPT_RESEARCH_API_URL + '/' + encodeURIComponent(level) + '/' + encodeURIComponent(contextKey) + '?refresh=true';
+
+    fetch(url).then(function(resp) {
+        if (!resp.ok) throw new Error('Failed');
+        return resp.json();
+    }).then(function(data) {
+        renderConceptBriefing(data);
+        btn.disabled = false;
+        btn.textContent = '↻ Re-research';
+    }).catch(function() {
+        btn.disabled = false;
+        btn.textContent = '↻ Re-research';
+    });
+}
+
+async function executeResearchFromConcept(btn, query, locationContext) {
+    btn.disabled = true;
+    btn.textContent = '🔍 Investigating...';
+
+    // Use the existing Phase 2 research execute endpoint
+    var url = (window.APP_CONFIG ? window.APP_CONFIG.API_URL : '') + '/pattern-library/research/execute';
+
+    try {
+        var resp = await fetch(url, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({query: query, context: locationContext})
+        });
+        if (!resp.ok) {
+            btn.textContent = '❌ Failed';
+            setTimeout(function() { btn.textContent = '🔍 Investigate Site'; btn.disabled = false; }, 3000);
+            return;
+        }
+        var data = await resp.json();
+        var brief = data.brief || {};
+
+        // Render inline brief below the button
+        var briefHtml = '<div class="research-brief" style="margin-top:10px;">';
+        briefHtml += '<div style="font-weight:700;color:#63b3ed;font-size:0.78rem;margin-bottom:6px;">' + escapeHtml(brief.codename || 'REPORT') + ' — ' + escapeHtml(brief.investigation_status || 'Pending') + '</div>';
+        briefHtml += '<div class="research-brief-summary">' + escapeHtml(brief.situation || brief.summary || 'No situation report.') + '</div>';
+        if (brief.smoking_gun) {
+            briefHtml += '<div style="color:#ecc94b;font-size:0.72rem;margin:6px 0;font-weight:600;">💡 ' + escapeHtml(brief.smoking_gun) + '</div>';
+        }
+        if (brief.evidence_found && brief.evidence_found.length > 0) {
+            briefHtml += '<ul class="research-brief-findings">';
+            brief.evidence_found.forEach(function(e) {
+                var confColor = e.confidence === 'confirmed' ? '#48bb78' : e.confidence === 'probable' ? '#ecc94b' : '#718096';
+                briefHtml += '<li style="border-left-color:' + confColor + ';">[' + escapeHtml(e.source_type || '?') + '] ' + escapeHtml(e.finding || '') + '</li>';
+            });
+            briefHtml += '</ul>';
+        }
+        if (brief.field_recommendation) {
+            briefHtml += '<div style="font-size:0.7rem;color:#a0aec0;font-style:italic;">→ ' + escapeHtml(brief.field_recommendation) + '</div>';
+        }
+        briefHtml += '</div>';
+
+        btn.textContent = '✅ Report Ready';
+        btn.insertAdjacentHTML('afterend', briefHtml);
+    } catch (err) {
+        btn.textContent = '❌ Error';
+        setTimeout(function() { btn.textContent = '🔍 Investigate Site'; btn.disabled = false; }, 3000);
+    }
+}
+</script>
+</html>
