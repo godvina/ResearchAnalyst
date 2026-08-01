@@ -262,6 +262,33 @@ class PatternDiscoveryService:
                 })
             nodes.sort(key=lambda x: x["degree"], reverse=True)
 
+            # Build name→type lookup so connected entities get proper types
+            type_lookup: dict = {n["name"]: n["type"] for n in nodes if n["name"] and n["type"]}
+
+            # Resolve types for neighbors not in the top-200 query via a batch lookup
+            all_neighbor_names: set = set()
+            for node in nodes:
+                for nb in node["neighbors"]:
+                    if nb and nb not in type_lookup:
+                        all_neighbor_names.add(nb)
+            if all_neighbor_names:
+                try:
+                    # Batch query: get entity_type for up to 100 unresolved neighbors
+                    names_to_resolve = list(all_neighbor_names)[:100]
+                    name_predicates = ",".join(f"'{_escape(n)}'" for n in names_to_resolve)
+                    type_query = (
+                        f"g.V().hasLabel('{_escape(label)}')"
+                        f".has('canonical_name', within({name_predicates}))"
+                        f".project('name','type')"
+                        f".by('canonical_name').by('entity_type')"
+                    )
+                    type_results = _gremlin_query(type_query)
+                    for tr in (type_results or []):
+                        if isinstance(tr, dict) and tr.get("name") and tr.get("type"):
+                            type_lookup[tr["name"]] = tr["type"]
+                except Exception as exc:
+                    logger.warning("Neighbor type resolution failed: %s", str(exc)[:200])
+
             # Build patterns from high-centrality clusters
             patterns = []
             seen_entities: set[str] = set()
@@ -280,7 +307,7 @@ class PatternDiscoveryService:
                 unexpected_connections = len(cluster_names) - 1
                 patterns.append({
                     "entities": [
-                        {"name": name, "type": node["type"] if name == node["name"] else "unknown", "role": "hub" if name == node["name"] else "connected"}
+                        {"name": name, "type": type_lookup.get(name, node["type"] if name == node["name"] else "unknown"), "role": "hub" if name == node["name"] else "connected"}
                         for name in cluster_names[:10]
                     ],
                     "modalities": [EvidenceModality.TEXT],
@@ -784,8 +811,19 @@ class PatternDiscoveryService:
             body = json.loads(resp["body"].read())
             text = body.get("content", [{}])[0].get("text", "")
 
-            # Parse JSON from Claude's response
-            ai_results = json.loads(text)
+            # Parse JSON from Claude's response — handle markdown code blocks and trailing text
+            clean_text = text.strip()
+            if clean_text.startswith("```"):
+                # Strip markdown code block
+                lines = clean_text.split("\n")
+                lines = [l for l in lines if not l.strip().startswith("```")]
+                clean_text = "\n".join(lines).strip()
+            # Try to extract JSON array from the text
+            bracket_start = clean_text.find("[")
+            bracket_end = clean_text.rfind("]")
+            if bracket_start >= 0 and bracket_end > bracket_start:
+                clean_text = clean_text[bracket_start:bracket_end + 1]
+            ai_results = json.loads(clean_text)
             if not isinstance(ai_results, list):
                 raise ValueError("Expected JSON array from Bedrock")
 
@@ -846,6 +884,8 @@ class PatternDiscoveryService:
                 "confidence": 50,
                 "modalities": modalities,
                 "summary": summary,
+                "entities": entities,
+                "composite_score": p.get("composite_score", 0),
                 "document_count": doc_count,
                 "image_count": img_count,
                 "raw_pattern": p,
