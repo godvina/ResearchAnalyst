@@ -143,6 +143,25 @@ def handler(event, context):
         len(embedding), document_id, backend_name,
     )
 
+    # Mark typology results as stale for incremental pipeline updates
+    try:
+        from services.typology_pipeline_utils import mark_stale_typologies, is_large_case
+        if is_large_case(case_id):
+            # Determine entity types from the document's extracted entities
+            new_entity_types = []
+            sections = event.get("sections", [])
+            for section in sections:
+                if isinstance(section, dict):
+                    for entity in section.get("entities", []):
+                        if isinstance(entity, dict) and entity.get("type"):
+                            new_entity_types.append(entity["type"])
+            if new_entity_types:
+                affected = mark_stale_typologies(case_id, list(set(new_entity_types)))
+                if affected:
+                    logger.info("Marked %d typologies stale for case %s: %s", len(affected), case_id, affected[:5])
+    except Exception as stale_exc:
+        logger.warning("Staleness marking failed (non-blocking): %s", str(stale_exc)[:200])
+
     return {
         "case_id": case_id,
         "document_id": document_id,
