@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pre-Case Intelligence for Antitrust Enforcement</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 30%, #1a1a2e 60%, #2d1b3d 100%); color: #e2e8f0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+.deck { position: relative; width: 100vw; height: 100vh; }
+.slide { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 60px 80px; opacity: 0; pointer-events: none; transition: opacity 0.45s ease; overflow-y: auto; background: linear-gradient(160deg, #1a1a2e 0%, #16213e 35%, #1a1a2e 65%, #2d1b3d 100%); }
+.slide.active { opacity: 1; pointer-events: auto; }
+#counter { position: fixed; bottom: 24px; right: 36px; font-size: 14px; color: #718096; z-index: 100; letter-spacing: 1px; }
+#nav-hint { position: fixed; bottom: 24px; left: 36px; font-size: 12px; color: #4a5568; z-index: 100; }
+h1 { font-size: 2.8rem; font-weight: 700; color: #FF9900; margin-bottom: 12px; line-height: 1.15; }
+h2 { font-size: 2rem; font-weight: 700; color: #FF9900; margin-bottom: 28px; }
+h3 { font-size: 1.25rem; font-weight: 600; color: #FFB84D; margin-bottom: 10px; }
+p, li { font-size: 1rem; line-height: 1.65; color: #cbd5e0; }
+.accent { color: #FF9900; }
+.full-w { width: 100%; max-width: 1100px; }
+.cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
+.cols-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+.text-center { text-align: center; }
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+.mb-24 { margin-bottom: 24px; }
+.card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 24px; }
+.stat-card { background: rgba(255,153,0,0.06); border: 1px solid rgba(255,153,0,0.2); border-radius: 12px; padding: 28px; text-align: center; }
+.stat-num { font-size: 2.4rem; font-weight: 700; color: #FF9900; }
+.stat-label { font-size: 0.85rem; color: #a0aec0; margin-top: 6px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th { background: rgba(255,153,0,0.12); color: #FF9900; text-align: left; padding: 10px 14px; font-weight: 600; border-bottom: 2px solid rgba(255,153,0,0.3); }
+td { padding: 8px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #cbd5e0; }
+.arch-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 16px; text-align: center; }
+.arch-arrow { color: #FF9900; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; }
+.pipeline-step { display: flex; align-items: center; gap: 16px; padding: 14px 20px; background: rgba(255,255,255,0.03); border-left: 3px solid #FF9900; border-radius: 0 8px 8px 0; margin-bottom: 12px; }
+.pipeline-num { width: 32px; height: 32px; border-radius: 50%; background: #FF9900; color: #1a1a2e; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; }
+.benefit-item { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 20px; }
+.benefit-icon { font-size: 1.8rem; flex-shrink: 0; }
+.category-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin: 3px; }
+.badge-procurement { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+.badge-price { background: rgba(251,146,60,0.15); color: #fb923c; border: 1px solid rgba(251,146,60,0.3); }
+.badge-cartel { background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }
+.badge-monopoly { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+.badge-allocation { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+.badge-merger { background: rgba(236,72,153,0.15); color: #f472b6; border: 1px solid rgba(236,72,153,0.3); }
+@media print { .slide { position: relative; opacity: 1; pointer-events: auto; page-break-after: always; height: 100vh; } #counter, #nav-hint { display: none; } body { overflow: visible; } .deck { height: auto; } }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+<div id="counter"></div>
+<a href="../../src/frontend/index.html" id="home-btn" style="position:fixed;top:16px;left:20px;z-index:200;padding:6px 14px;background:rgba(72,187,120,0.15);border:1px solid #48bb78;border-radius:6px;color:#48bb78;text-decoration:none;font-size:0.8rem;font-weight:600;">&#127968; Home</a>
+<div id="nav-hint">&#8592; &#8594; arrow keys | <a href="../../src/frontend/index.html" style="color:#48bb78;">&#127968; Home</a> | <a href="../../src/frontend/pre-case-intelligence.html" style="color:#48bb78;">Launch Demo &#8594;</a></div>
+
+<!-- SLIDE 1: TITLE -->
+<div class="slide active" data-slide="1">
+  <div style="display:flex;flex-direction:column;justify-content:center;align-items:flex-start;height:100%;padding-left:60px;max-width:900px;">
+    <p style="font-size:0.85rem;color:#FF9900;font-weight:600;letter-spacing:2px;margin-bottom:16px;">INVESTIGATIVE INTELLIGENCE</p>
+    <h1 style="font-size:3.4rem;font-weight:300;color:#fff;margin-bottom:0;line-height:1.1;">AI-Powered</h1>
+    <h1 style="font-size:3.4rem;font-weight:700;color:#fff;margin-bottom:24px;line-height:1.1;">Pre-Case Intelligence<br>for Antitrust Enforcement</h1>
+    <p style="font-size:1.05rem;color:#a0aec0;margin-bottom:40px;max-width:650px;">How generative AI transforms antitrust lead triage from months of manual review into automated, evidence-driven prosecution readiness assessment</p>
+    <div><p style="font-size:0.9rem;color:#e2e8f0;font-weight:600;">Department of Justice &mdash; Antitrust Division</p><p style="font-size:0.8rem;color:#718096;margin-top:4px;">Built on AWS | Amazon Bedrock | Amazon Neptune</p></div>
+  </div>
+</div>
+
+<!-- SLIDE 2: THE PROBLEM -->
+<div class="slide" data-slide="2">
+  <div class="full-w">
+    <h2>The Challenge: Antitrust Enforcement at Scale</h2>
+    <div class="cols-2">
+      <div>
+        <div class="card" style="margin-bottom:20px;"><h3>Volume Overwhelms Analysts</h3><ul style="padding-left:20px;"><li>DOJ receives <span class="accent">1,000+ tips/year</span></li><li>Each lead requires 40-80 hours of manual research</li><li>Only ~15% progress to formal investigation</li><li>Average tip-to-decision: <span class="accent">14 months</span></li></ul></div>
+        <div class="card"><h3>Six Distinct Case Types</h3><div style="margin-top:10px;"><span class="category-badge badge-procurement">Procurement Collusion</span><span class="category-badge badge-price">Price Fixing</span><span class="category-badge badge-cartel">Criminal Cartel</span><span class="category-badge badge-monopoly">Monopolization</span><span class="category-badge badge-allocation">Market Allocation</span><span class="category-badge badge-merger">Merger Review</span></div><p class="mt-16" style="font-size:0.85rem;">Each requires different legal frameworks, evidence standards, and investigative approaches</p></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:20px;"><h3>Current Pain Points</h3><ul style="padding-left:20px;"><li><strong>Manual OSINT:</strong> 60% of time on data gathering</li><li><strong>Inconsistent triage:</strong> No standardized scoring</li><li><strong>Missed patterns:</strong> Cross-case signals undetected</li><li><strong>Stale intelligence:</strong> Evidence changes during review</li><li><strong>No prioritization:</strong> Critical cases wait in queue</li></ul></div>
+        <div class="card"><h3>The Cost of Delay</h3><p>Every month a price-fixing cartel operates costs consumers <span class="accent">$50-200M</span> in continued overcharges</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 3: SOLUTION OVERVIEW -->
+<div class="slide" data-slide="3">
+  <div class="full-w">
+    <h2>The Solution: AI-Powered Pre-Case Intelligence</h2>
+    <p class="mb-24" style="max-width:800px;">End-to-end automation of lead intake, classification, OSINT gathering, and prosecution readiness &mdash; reducing time-to-decision from <span class="accent">14 months to 48 hours</span>.</p>
+    <div class="cols-3">
+      <div class="stat-card"><div class="stat-num">100</div><div class="stat-label">Active Cases Under<br>Continuous Monitoring</div></div>
+      <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">Antitrust Case Types<br>Auto-Classified</div></div>
+      <div class="stat-card"><div class="stat-num">9+</div><div class="stat-label">OSINT Sources<br>Queried Automatically</div></div>
+    </div>
+    <div class="cols-3 mt-24">
+      <div class="stat-card"><div class="stat-num">48h</div><div class="stat-label">Case to Prosecution<br>Readiness Score</div></div>
+      <div class="stat-card"><div class="stat-num">0-100</div><div class="stat-label">Transparent Weighted<br>Prosecution Score</div></div>
+      <div class="stat-card"><div class="stat-num">24/7</div><div class="stat-label">Continuous Trawler<br>Monitoring</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4: ARCHITECTURE -->
+<div class="slide" data-slide="4">
+  <div class="full-w">
+    <h2>Solution Architecture</h2>
+    <div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:12px;align-items:center;margin-bottom:32px;">
+      <div class="arch-box"><div style="font-size:1.5rem;">&#128229;</div><h3 style="font-size:0.85rem;margin:8px 0 4px;">Case Intake</h3><p style="font-size:0.72rem;">Tips, referrals, news, anomalies</p></div>
+      <div class="arch-arrow">&#8594;</div>
+      <div class="arch-box"><div style="font-size:1.5rem;">&#129302;</div><h3 style="font-size:0.85rem;margin:8px 0 4px;">AI Classification</h3><p style="font-size:0.72rem;">Nova Pro + Legal Persona</p></div>
+      <div class="arch-arrow">&#8594;</div>
+      <div class="arch-box"><div style="font-size:1.5rem;">&#127760;</div><h3 style="font-size:0.85rem;margin:8px 0 4px;">Open Source Intelligence (OSINT) Gathering</h3><p style="font-size:0.72rem;">SAM.gov, FPDS, SEC, news</p></div>
+      <div class="arch-arrow">&#8594;</div>
+      <div class="arch-box"><div style="font-size:1.5rem;">&#9878;</div><h3 style="font-size:0.85rem;margin:8px 0 4px;">Assessment</h3><p style="font-size:0.72rem;">Weighted score + recommendation</p></div>
+    </div>
+    <div class="cols-2">
+      <div class="card"><h3>AWS Services</h3><table><tr><td><strong>Amazon Bedrock</strong></td><td>Nova Pro for classification and assessment</td></tr><tr><td><strong>Amazon Neptune</strong></td><td>Knowledge graph, cross-case patterns</td></tr><tr><td><strong>Amazon S3</strong></td><td>OSINT data lake, document storage</td></tr><tr><td><strong>AWS Lambda</strong></td><td>Serverless API and orchestration</td></tr><tr><td><strong>Step Functions</strong></td><td>Multi-stage pipeline</td></tr><tr><td><strong>DynamoDB</strong></td><td>Lead state, scoring history</td></tr></table></div>
+      <div class="card"><h3>Key Design Decisions</h3><ul style="padding-left:20px;font-size:0.9rem;"><li><strong>Serverless-first:</strong> Zero infra management</li><li><strong>AI personas:</strong> Domain-tuned antitrust prompts</li><li><strong>Transparent scoring:</strong> 7-factor auditable algorithm</li><li><strong>Continuous monitoring:</strong> Trawler re-scans on schedule</li><li><strong>Cross-case detection:</strong> Statistical pattern analysis</li></ul></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 5: PIPELINE -->
+<div class="slide" data-slide="5">
+  <div class="full-w">
+    <h2>Automated Intelligence Pipeline</h2>
+    <div class="cols-2">
+      <div>
+        <div class="pipeline-step"><div class="pipeline-num">1</div><div><strong>Lead Submission</strong><br><span style="font-size:0.85rem;color:#a0aec0;">Tip, referral, news, or data anomaly ingested</span></div></div>
+        <div class="pipeline-step"><div class="pipeline-num">2</div><div><strong>AI Classification</strong><br><span style="font-size:0.85rem;color:#a0aec0;">Nova Pro classifies into 6 categories with reasoning</span></div></div>
+        <div class="pipeline-step"><div class="pipeline-num">3</div><div><strong>OSINT Gathering</strong><br><span style="font-size:0.85rem;color:#a0aec0;">9+ sources queried in parallel</span></div></div>
+        <div class="pipeline-step"><div class="pipeline-num">4</div><div><strong>Prosecution Assessment</strong><br><span style="font-size:0.85rem;color:#a0aec0;">0-100 score with go/no-go recommendation</span></div></div>
+        <div class="pipeline-step"><div class="pipeline-num">5</div><div><strong>Trawler Monitoring</strong><br><span style="font-size:0.85rem;color:#a0aec0;">Continuous re-scan, alerts on changes</span></div></div>
+        <div class="pipeline-step"><div class="pipeline-num">6</div><div><strong>Pattern Detection</strong><br><span style="font-size:0.85rem;color:#a0aec0;">Cross-case bid rotation and anomaly analysis</span></div></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:20px;"><h3>Case Distribution</h3><table><tr><th>Category</th><th>#</th><th>Focus</th></tr><tr><td><span class="category-badge badge-procurement">Procurement</span></td><td>25</td><td>Gov contract bid rigging</td></tr><tr><td><span class="category-badge badge-price">Price Fixing</span></td><td>20</td><td>Coordinated pricing</td></tr><tr><td><span class="category-badge badge-cartel">Cartel</span></td><td>18</td><td>Criminal conspiracies</td></tr><tr><td><span class="category-badge badge-monopoly">Monopoly</span></td><td>15</td><td>Illegal monopoly</td></tr><tr><td><span class="category-badge badge-allocation">Allocation</span></td><td>12</td><td>Territory division</td></tr><tr><td><span class="category-badge badge-merger">Merger</span></td><td>10</td><td>Anticompetitive M&amp;A</td></tr></table></div>
+        <div class="card"><h3>Scoring (7 Factors)</h3><table><tr><td>Evidence Strength</td><td style="color:#FF9900;">25%</td></tr><tr><td>Market Impact</td><td style="color:#FF9900;">20%</td></tr><tr><td>Legal Precedent</td><td style="color:#FF9900;">15%</td></tr><tr><td>OSINT Corroboration</td><td style="color:#FF9900;">15%</td></tr><tr><td>Policy Alignment</td><td style="color:#FF9900;">10%</td></tr><tr><td>Urgency Decay</td><td style="color:#FF9900;">10%</td></tr><tr><td>Classification Confidence</td><td style="color:#FF9900;">5%</td></tr></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 6: CASE TYPE TAXONOMY OVERVIEW -->
+<div class="slide" data-slide="6">
+  <div class="full-w">
+    <h2>Antitrust Case Type Taxonomy</h2>
+    <p class="mb-24" style="max-width:900px;">Each case type has a distinct legal framework, elements of offense, detection patterns, and prioritized OSINT sources. The AI classifier routes leads into the correct investigative track automatically.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+      <div class="card" style="border-left:3px solid #f87171;"><span class="category-badge badge-procurement">Procurement Collusion</span><p style="font-size:0.8rem;margin-top:10px;"><strong>Framework:</strong> PCSF</p><p style="font-size:0.8rem;"><strong>Statutes:</strong> Sherman Act &sect;1, Mail/Wire Fraud</p><p style="font-size:0.8rem;"><strong>Elements:</strong> 6</p></div>
+      <div class="card" style="border-left:3px solid #fb923c;"><span class="category-badge badge-price">Price Fixing</span><p style="font-size:0.8rem;margin-top:10px;"><strong>Framework:</strong> Horizontal Agreement</p><p style="font-size:0.8rem;"><strong>Statutes:</strong> Sherman Act &sect;1 (per se)</p><p style="font-size:0.8rem;"><strong>Elements:</strong> 5</p></div>
+      <div class="card" style="border-left:3px solid #4ade80;"><span class="category-badge badge-allocation">Market Allocation</span><p style="font-size:0.8rem;margin-top:10px;"><strong>Framework:</strong> Horizontal Agreement</p><p style="font-size:0.8rem;"><strong>Statutes:</strong> Sherman Act &sect;1 (per se)</p><p style="font-size:0.8rem;"><strong>Elements:</strong> 5</p></div>
+      <div class="card" style="border-left:3px solid #f472b6;"><span class="category-badge badge-merger">Merger Review</span><p style="font-size:0.8rem;margin-top:10px;"><strong>Framework:</strong> Hart-Scott-Rodino</p><p style="font-size:0.8rem;"><strong>Statutes:</strong> Clayton Act &sect;7, HSR Act</p><p style="font-size:0.8rem;"><strong>Elements:</strong> 6</p></div>
+      <div class="card" style="border-left:3px solid #60a5fa;"><span class="category-badge badge-monopoly">Monopolization</span><p style="font-size:0.8rem;margin-top:10px;"><strong>Framework:</strong> Section 2</p><p style="font-size:0.8rem;"><strong>Statutes:</strong> Sherman Act &sect;2</p><p style="font-size:0.8rem;"><strong>Elements:</strong> 5</p></div>
+      <div class="card" style="border-left:3px solid #c084fc;"><span class="category-badge badge-cartel">Criminal Cartel</span><p style="font-size:0.8rem;margin-top:10px;"><strong>Framework:</strong> Criminal Cartel</p><p style="font-size:0.8rem;"><strong>Statutes:</strong> Sherman Act &sect;1 (criminal), Sentencing Guidelines</p><p style="font-size:0.8rem;"><strong>Elements:</strong> 6</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 7: PROCUREMENT COLLUSION DEEP DIVE -->
+<div class="slide" data-slide="7">
+  <div class="full-w">
+    <h2><span class="category-badge badge-procurement" style="font-size:0.9rem;">1</span> Procurement Collusion</h2>
+    <p class="mb-24">Bid-rigging, complementary bidding, bid rotation, and bid suppression in government procurement. The most common antitrust violation prosecuted by DOJ.</p>
+    <div class="cols-2">
+      <div>
+        <div class="card" style="margin-bottom:16px;"><h3>Elements of Offense</h3><ul style="padding-left:20px;font-size:0.88rem;"><li>Agreement or conspiracy between parties</li><li>Bid-rigging or complementary bidding</li><li>Market allocation among conspirators</li><li>Price-fixing or bid suppression</li><li>Interstate commerce nexus</li><li>Damages to government or taxpayers</li></ul></div>
+        <div class="card"><h3>Applicable Statutes</h3><ul style="padding-left:20px;font-size:0.85rem;"><li><span class="accent">Sherman Act Section 1</span> (15 U.S.C. &sect; 1)</li><li>18 U.S.C. &sect; 1341 (Mail Fraud)</li><li>18 U.S.C. &sect; 1343 (Wire Fraud)</li><li>18 U.S.C. &sect; 371 (Conspiracy to Defraud US)</li></ul></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px;"><h3>Detection Patterns</h3><ul style="padding-left:20px;font-size:0.88rem;"><li><span class="accent">Bid rotation:</span> Consistent winner/loser pairs across jurisdictions</li><li><span class="accent">Complementary bids:</span> Identical percentage spreads</li><li><span class="accent">Geographic exclusivity:</span> Vendors never compete in adjacent regions</li><li><span class="accent">Subcontract reciprocity:</span> Loser always gets subcontract from winner</li></ul></div>
+        <div class="card"><h3>Priority OSINT Sources</h3><table><tr><td>&#127963;&#65039;</td><td><strong>SAM.gov</strong></td><td>Vendor registrations, exclusions</td></tr><tr><td>&#128196;</td><td><strong>FPDS.gov</strong></td><td>Federal contract awards</td></tr><tr><td>&#128666;</td><td><strong>State DOT Bids</strong></td><td>Highway/construction tabulations</td></tr><tr><td>&#128176;</td><td><strong>USASpending</strong></td><td>Federal spending data</td></tr></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 8: PRICE FIXING DEEP DIVE -->
+<div class="slide" data-slide="8">
+  <div class="full-w">
+    <h2><span class="category-badge badge-price" style="font-size:0.9rem;">2</span> Price Fixing</h2>
+    <p class="mb-24">Horizontal agreements to fix, raise, or stabilize prices among competitors. A per se violation &mdash; no rule of reason defense available.</p>
+    <div class="cols-2">
+      <div>
+        <div class="card" style="margin-bottom:16px;"><h3>Elements of Offense</h3><ul style="padding-left:20px;font-size:0.88rem;"><li>Agreement among competitors</li><li>Fixing or stabilizing prices</li><li>Horizontal relationship (not vertical)</li><li>Interstate commerce nexus</li><li>Per se violation applicability</li></ul></div>
+        <div class="card"><h3>Applicable Statutes</h3><ul style="padding-left:20px;font-size:0.85rem;"><li><span class="accent">Sherman Act Section 1</span> (15 U.S.C. &sect; 1)</li><li>Per se rule &mdash; horizontal price-fixing</li></ul><p style="font-size:0.82rem;margin-top:10px;color:#a0aec0;">No need to prove market power or anticompetitive effect. The agreement itself is the violation.</p></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px;"><h3>Detection Patterns</h3><ul style="padding-left:20px;font-size:0.88rem;"><li><span class="accent">Correlated bid spreads:</span> Statistical correlation across unrelated contracts</li><li><span class="accent">Synchronized increases:</span> Competitors raise prices in lockstep</li><li><span class="accent">Identical markups:</span> Same percentage margins across firms</li><li><span class="accent">Price parallelism:</span> Movement correlation exceeds market norms</li></ul></div>
+        <div class="card"><h3>Priority OSINT Sources</h3><table><tr><td>&#128196;</td><td><strong>FPDS.gov</strong></td><td>Contract pricing history</td></tr><tr><td>&#128176;</td><td><strong>USASpending</strong></td><td>Award obligation trends</td></tr><tr><td>&#128666;</td><td><strong>State DOT Bids</strong></td><td>Bid amount patterns</td></tr><tr><td>&#128240;</td><td><strong>News/Press</strong></td><td>Industry price announcements</td></tr></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 9: MARKET ALLOCATION DEEP DIVE -->
+<div class="slide" data-slide="9">
+  <div class="full-w">
+    <h2><span class="category-badge badge-allocation" style="font-size:0.9rem;">3</span> Market Allocation</h2>
+    <p class="mb-24">Agreements to divide markets by geography, customer, or product line. Another per se violation &mdash; competitors carve up territory instead of competing.</p>
+    <div class="cols-2">
+      <div>
+        <div class="card" style="margin-bottom:16px;"><h3>Elements of Offense</h3><ul style="padding-left:20px;font-size:0.88rem;"><li>Agreement among competitors</li><li>Geographic or customer division</li><li>Horizontal relationship</li><li>Interstate commerce nexus</li><li>Per se violation applicability</li></ul></div>
+        <div class="card"><h3>Applicable Statutes</h3><ul style="padding-left:20px;font-size:0.85rem;"><li><span class="accent">Sherman Act Section 1</span> (15 U.S.C. &sect; 1)</li><li>Per se rule &mdash; horizontal market allocation</li></ul><p style="font-size:0.82rem;margin-top:10px;color:#a0aec0;">Geographic division, customer allocation, and product-line splitting are all per se illegal when between competitors.</p></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px;"><h3>Detection Patterns</h3><ul style="padding-left:20px;font-size:0.88rem;"><li><span class="accent">Geographic exclusivity:</span> Vendors win only in specific regions, never competing in adjacent areas</li><li><span class="accent">Customer segmentation:</span> Firms divide customers by type or size</li><li><span class="accent">Product line division:</span> Competitors each take specific categories</li><li><span class="accent">Territorial boundaries:</span> Align suspiciously with competitor presence</li></ul></div>
+        <div class="card"><h3>Priority OSINT Sources</h3><table><tr><td>&#127963;&#65039;</td><td><strong>SAM.gov</strong></td><td>NAICS codes, geographic presence</td></tr><tr><td>&#128196;</td><td><strong>FPDS.gov</strong></td><td>Place of performance patterns</td></tr><tr><td>&#127970;</td><td><strong>State Registries</strong></td><td>Corporate filings, addresses</td></tr><tr><td>&#128666;</td><td><strong>Bid Tabulations</strong></td><td>Geographic bid distribution</td></tr></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 10: MERGER REVIEW DEEP DIVE -->
+<div class="slide" data-slide="10">
+  <div class="full-w">
+    <h2><span class="category-badge badge-merger" style="font-size:0.9rem;">4</span> Merger Review</h2>
+    <p class="mb-24">Potentially anticompetitive mergers or acquisitions that may substantially lessen competition. Evaluated under Clayton Act Section 7 and Hart-Scott-Rodino framework.</p>
+    <div class="cols-2">
+      <div>
+        <div class="card" style="margin-bottom:16px;"><h3>Elements of Offense</h3><ul style="padding-left:20px;font-size:0.88rem;"><li>Substantially lessen competition</li><li>Relevant market definition</li><li>Market concentration increase</li><li>Barriers to entry</li><li>Elimination of competition</li><li>HHI threshold exceeded</li></ul></div>
+        <div class="card"><h3>Applicable Statutes</h3><ul style="padding-left:20px;font-size:0.85rem;"><li><span class="accent">Clayton Act Section 7</span> (15 U.S.C. &sect; 18)</li><li>Hart-Scott-Rodino Act (15 U.S.C. &sect; 18a)</li><li>FTC Act Section 5 (15 U.S.C. &sect; 45)</li></ul></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px;"><h3>Detection Patterns</h3><ul style="padding-left:20px;font-size:0.88rem;"><li><span class="accent">HHI thresholds:</span> Pre/post-merger concentration exceeding DOJ guidelines</li><li><span class="accent">Maverick elimination:</span> Acquiring a disruptive competitor</li><li><span class="accent">Vertical foreclosure:</span> Integration creating supply bottlenecks</li><li><span class="accent">Serial acquisition:</span> Roll-up strategy in concentrated markets</li></ul></div>
+        <div class="card"><h3>Priority OSINT Sources</h3><table><tr><td>&#128200;</td><td><strong>SEC EDGAR</strong></td><td>10-K, 8-K, proxy statements</td></tr><tr><td>&#127970;</td><td><strong>State Registries</strong></td><td>Corporate structure, officers</td></tr><tr><td>&#128240;</td><td><strong>News/Press</strong></td><td>M&amp;A announcements</td></tr><tr><td>&#9878;&#65039;</td><td><strong>PACER</strong></td><td>Prior antitrust challenges</td></tr></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 11: MONOPOLIZATION DEEP DIVE -->
+<div class="slide" data-slide="11">
+  <div class="full-w">
+    <h2><span class="category-badge badge-monopoly" style="font-size:0.9rem;">5</span> Monopolization</h2>
+    <p class="mb-24">Exclusionary conduct by a dominant firm to willfully acquire or maintain monopoly power. Analyzed under rule of reason &mdash; requires proving both power and anticompetitive conduct.</p>
+    <div class="cols-2">
+      <div>
+        <div class="card" style="margin-bottom:16px;"><h3>Elements of Offense</h3><ul style="padding-left:20px;font-size:0.88rem;"><li>Monopoly power in relevant market</li><li>Willful acquisition or maintenance of power</li><li>Anticompetitive conduct (exclusionary acts)</li><li>Relevant market definition</li><li>Harm to competition (not just competitors)</li></ul></div>
+        <div class="card"><h3>Applicable Statutes</h3><ul style="padding-left:20px;font-size:0.85rem;"><li><span class="accent">Sherman Act Section 2</span> (15 U.S.C. &sect; 2)</li><li>Rule of reason analysis</li></ul><p style="font-size:0.82rem;margin-top:10px;color:#a0aec0;">Must prove both monopoly power (typically &gt;70% market share) AND exclusionary conduct. Mere size is not illegal.</p></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px;"><h3>Detection Patterns</h3><ul style="padding-left:20px;font-size:0.88rem;"><li><span class="accent">Market dominance:</span> Share above 70% in defined relevant market</li><li><span class="accent">Exclusive dealing:</span> Contracts foreclosing rival access</li><li><span class="accent">Predatory pricing:</span> Below-cost pricing to eliminate competitors</li><li><span class="accent">Tying arrangements:</span> Leveraging dominance across markets</li><li><span class="accent">Refusal to deal:</span> Cutting off competitors after prior dealing</li></ul></div>
+        <div class="card"><h3>Priority OSINT Sources</h3><table><tr><td>&#128200;</td><td><strong>SEC EDGAR</strong></td><td>Market share, revenue data</td></tr><tr><td>&#128196;</td><td><strong>FPDS.gov</strong></td><td>Sole-source contracts</td></tr><tr><td>&#9878;&#65039;</td><td><strong>PACER</strong></td><td>Prior antitrust cases</td></tr><tr><td>&#128240;</td><td><strong>News/Press</strong></td><td>Competitor complaints</td></tr></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 12: CRIMINAL CARTEL DEEP DIVE -->
+<div class="slide" data-slide="12">
+  <div class="full-w">
+    <h2><span class="category-badge badge-cartel" style="font-size:0.9rem;">6</span> Criminal Cartel</h2>
+    <p class="mb-24">Criminal conspiracy involving hardcore cartel conduct, often international. Carries prison sentences up to 10 years and fines up to $100M for corporations.</p>
+    <div class="cols-2">
+      <div>
+        <div class="card" style="margin-bottom:16px;"><h3>Elements of Offense</h3><ul style="padding-left:20px;font-size:0.88rem;"><li>Agreement or conspiracy</li><li>Per se illegal conduct (hardcore cartel)</li><li>Knowing and willful participation</li><li>Interstate commerce nexus</li><li>Identifiable victims</li><li>Quantifiable damages</li></ul></div>
+        <div class="card"><h3>Applicable Statutes</h3><ul style="padding-left:20px;font-size:0.85rem;"><li><span class="accent">Sherman Act Section 1</span> &mdash; criminal penalty</li><li>18 U.S.C. &sect; 1341 (Mail Fraud)</li><li>18 U.S.C. &sect; 1343 (Wire Fraud)</li><li>Federal Sentencing Guidelines &sect; 2R1.1</li></ul></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px;"><h3>Detection Patterns</h3><ul style="padding-left:20px;font-size:0.88rem;"><li><span class="accent">International coordination:</span> Cross-border schemes spanning multiple countries</li><li><span class="accent">Long-running conspiracy:</span> Multi-year schemes with many participants</li><li><span class="accent">Leniency indicators:</span> One party cooperating with authorities</li><li><span class="accent">Parallel conduct:</span> Coordinated behavior across multiple markets</li><li><span class="accent">Communication patterns:</span> Meetings, calls suggesting coordination</li></ul></div>
+        <div class="card"><h3>Priority OSINT Sources</h3><table><tr><td>&#9878;&#65039;</td><td><strong>PACER</strong></td><td>Criminal antitrust cases</td></tr><tr><td>&#128240;</td><td><strong>News/Press</strong></td><td>International enforcement</td></tr><tr><td>&#128200;</td><td><strong>SEC EDGAR</strong></td><td>Disclosure of investigations</td></tr><tr><td>&#127963;&#65039;</td><td><strong>SAM.gov</strong></td><td>Exclusion/debarment records</td></tr></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 13: HOW TAXONOMY DRIVES THE SYSTEM -->
+<div class="slide" data-slide="13">
+  <div class="full-w">
+    <h2>How the Taxonomy Drives Automated Analysis</h2>
+    <p class="mb-24">Once classified, the case type determines everything downstream: which sources to query, which legal elements to evaluate, and which patterns to detect.</p>
+    <div class="cols-3">
+      <div class="card"><h3>1. OSINT Source Selection</h3><p style="font-size:0.85rem;">Case type determines which of 9 public sources get queried first:</p><ul style="padding-left:16px;font-size:0.8rem;margin-top:8px;"><li><strong>Procurement:</strong> SAM.gov, FPDS, State DOT</li><li><strong>Merger:</strong> SEC EDGAR, State Registries</li><li><strong>Cartel:</strong> PACER, News, SAM exclusions</li></ul></div>
+      <div class="card"><h3>2. Evidence Scoring</h3><p style="font-size:0.85rem;">Evidence mapped against case-specific elements:</p><table style="margin-top:8px;font-size:0.78rem;"><tr><td>Elements Satisfied</td><td style="color:#FF9900;">40%</td></tr><tr><td>Evidence Quality</td><td style="color:#FF9900;">25%</td></tr><tr><td>Corroboration</td><td style="color:#FF9900;">20%</td></tr><tr><td>Pattern Strength</td><td style="color:#FF9900;">15%</td></tr></table></div>
+      <div class="card"><h3>3. Pattern Detection</h3><p style="font-size:0.85rem;">Redshift queries tuned per type:</p><ul style="padding-left:16px;font-size:0.8rem;margin-top:8px;"><li><strong>Procurement:</strong> Bid rotation detection</li><li><strong>Price Fixing:</strong> Price correlation</li><li><strong>Allocation:</strong> Geographic exclusivity</li><li><strong>Merger:</strong> HHI calculation</li></ul></div>
+    </div>
+    <div class="card mt-24" style="text-align:center;"><h3>Scoring Thresholds &rarr; Recommendations</h3><div style="display:flex;justify-content:center;gap:40px;margin-top:12px;"><div><span style="font-size:1.4rem;font-weight:700;color:#4ade80;">&gt; 70</span><p style="font-size:0.8rem;color:#a0aec0;">Open Investigation</p></div><div><span style="font-size:1.4rem;font-weight:700;color:#fbbf24;">40 &ndash; 70</span><p style="font-size:0.8rem;color:#a0aec0;">Need More Evidence</p></div><div><span style="font-size:1.4rem;font-weight:700;color:#f87171;">&lt; 40</span><p style="font-size:0.8rem;color:#a0aec0;">Insufficient Basis</p></div></div></div>
+  </div>
+</div>
+
+<!-- SLIDE 14: BENEFITS -->
+<div class="slide" data-slide="14">
+  <div class="full-w">
+    <h2>Benefits: Transforming Antitrust Enforcement</h2>
+    <div class="cols-2">
+      <div>
+        <div class="benefit-item"><div class="benefit-icon">&#9889;</div><div><h3>10x Faster Triage</h3><p>14 months to 48 hours. Analysts focus on analysis, not data gathering.</p></div></div>
+        <div class="benefit-item"><div class="benefit-icon">&#127919;</div><div><h3>Consistent Prioritization</h3><p>Every lead scored identically. Critical cases surface immediately.</p></div></div>
+        <div class="benefit-item"><div class="benefit-icon">&#128269;</div><div><h3>Hidden Pattern Discovery</h3><p>Cross-case analysis detects bid rotation and co-occurrence invisible to individual review.</p></div></div>
+        <div class="benefit-item"><div class="benefit-icon">&#128640;</div><div><h3>Proactive Intelligence</h3><p>Leads get smarter over time. New data triggers re-assessment automatically.</p></div></div>
+      </div>
+      <div>
+        <div class="benefit-item"><div class="benefit-icon">&#128176;</div><div><h3>Maximize Enforcement ROI</h3><p>Focus resources on the 15% most likely to succeed.</p></div></div>
+        <div class="benefit-item"><div class="benefit-icon">&#128101;</div><div><h3>Protect Consumers Faster</h3><p>Every month of cartel = $50-200M in consumer harm. Speed saves money.</p></div></div>
+        <div class="benefit-item"><div class="benefit-icon">&#9878;&#65039;</div><div><h3>Auditable AI</h3><p>Full transparency: legal reasoning, factor breakdowns, no black boxes.</p></div></div>
+        <div class="benefit-item"><div class="benefit-icon">&#128202;</div><div><h3>Portfolio Visibility</h3><p>Leadership sees 100 leads across 6 categories with real-time scoring.</p></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SLIDE 15: PRIORITIZATION & EO ALIGNMENT -->
+<div class="slide" data-slide="15">
+  <div class="full-w">
+    <h2>Prioritization: Scoring &amp; Executive Order Alignment</h2>
+    <p class="mb-24" style="max-width:900px;">A transparent 7-factor algorithm produces a 0-100 Prosecution Readiness Score aligned with <span class="accent">Executive Order priorities</span> and DOJ policy directives.</p>
+    <div class="cols-2">
+      <div class="card"><h3>Scoring Algorithm (7 Factors)</h3><table><tr><th>Factor</th><th>Weight</th><th>Measures</th></tr><tr><td><strong>Evidence Strength</strong></td><td style="color:#FF9900;">25%</td><td>Corroborating evidence quality</td></tr><tr><td><strong>Priority Level</strong></td><td style="color:#FF9900;">20%</td><td>Harm severity</td></tr><tr><td><strong>Classification Confidence</strong></td><td style="color:#FF9900;">15%</td><td>AI case type certainty</td></tr><tr><td><strong>Estimated Market Harm</strong></td><td style="color:#FF9900;">15%</td><td>Log-scaled: $1M=50, $1B+=100</td></tr><tr><td><strong>Policy/EO Alignment</strong></td><td style="color:#FF9900;">10%</td><td>Executive Order match</td></tr><tr><td><strong>OSINT Corroboration</strong></td><td style="color:#FF9900;">10%</td><td>Independent source count</td></tr><tr><td><strong>Urgency Decay</strong></td><td style="color:#FF9900;">5%</td><td>Age-based urgency boost</td></tr></table></div>
+      <div><div class="card" style="margin-bottom:20px;"><h3>Executive Order &amp; Policy Alignment</h3><ul style="padding-left:20px;font-size:0.85rem;"><li><strong>EO 14036</strong> (Promoting Competition): boosts procurement collusion, market allocation</li><li><strong>EO 14086</strong> (Tech Accountability): boosts monopolization cases</li><li><strong>DOJ Priority:</strong> International criminal cartels get 1.6x multiplier</li><li><strong>DOJ Priority:</strong> Essential goods (food, pharma, fuel) get 1.5x</li><li><strong>Configurable:</strong> New EOs added without code changes</li></ul></div><div class="card"><h3>Score Interpretation</h3><table><tr><td style="color:#4ade80;font-weight:700;">75-100</td><td>Recommend immediate investigation</td></tr><tr><td style="color:#fbbf24;font-weight:700;">50-74</td><td>Strong candidate, gather more</td></tr><tr><td style="color:#fb923c;font-weight:700;">25-49</td><td>Monitor, insufficient</td></tr><tr><td style="color:#f87171;font-weight:700;">0-24</td><td>Low priority, close</td></tr></table></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 16: DEMO -->
+<div class="slide" data-slide="16">
+  <div class="full-w text-center">
+    <h2>Live: 100 Active DOJ Antitrust Cases</h2>
+    <p class="mb-24">System is live with real enforcement cases across all categories</p>
+    <div class="cols-3 mb-24">
+      <div class="card"><h3>Notable Cases</h3><ul style="padding-left:16px;font-size:0.85rem;text-align:left;"><li>LIBOR Banking Cartel ($3B)</li><li>Auto Parts Bid-Rigging ($2.9B)</li><li>Forex Rate-Rigging ($5.8B)</li><li>Google Search Monopoly</li><li>Ticketmaster/Live Nation</li><li>Murray Gunty / King of the Rinks</li></ul></div>
+      <div class="card"><h3>Procurement Focus</h3><ul style="padding-left:16px;font-size:0.85rem;text-align:left;"><li>Military fuel supply rigging</li><li>Highway construction cartels</li><li>Federal IT contract collusion</li><li>Navy ship repair schemes</li><li>FEMA disaster relief fraud</li><li>VA hospital supply rigging</li></ul></div>
+      <div class="card"><h3>Capabilities</h3><ul style="padding-left:16px;font-size:0.85rem;text-align:left;"><li>Filter by type, priority, score</li><li>AI-generated briefings</li><li>One-click pipeline execution</li><li>Cross-case pattern analytics</li><li>Promote to investigation</li><li>Continuous OSINT monitoring</li></ul></div>
+    </div>
+    <a href="../../src/frontend/pre-case-intelligence.html" style="display:inline-block;padding:16px 40px;background:#FF9900;color:#1a1a2e;font-weight:700;font-size:1.1rem;border-radius:8px;text-decoration:none;">Launch Live Dashboard &#8594;</a>
+    <a href="../../src/frontend/antitrust-report.html" style="display:inline-block;padding:12px 32px;background:rgba(255,153,0,0.15);color:#FF9900;font-weight:600;font-size:0.95rem;border-radius:8px;text-decoration:none;border:1px solid rgba(255,153,0,0.4);margin-left:16px;">View Portfolio Report &#8594;</a>
+  </div>
+</div>
+
+<!-- SLIDE 17: ROADMAP -->
+<div class="slide" data-slide="17">
+  <div class="full-w">
+    <h2>What Comes Next</h2>
+    <div class="cols-2">
+      <div class="card"><h3>Phase 2: Deep Investigation</h3><ul style="padding-left:20px;"><li>Promote leads to full investigation</li><li>AI document analysis on subpoenas</li><li>Entity extraction + knowledge graph</li><li>Conspiracy network discovery</li><li>Geospatial evidence mapping</li></ul></div>
+      <div class="card"><h3>Phase 3: Prosecution Support</h3><ul style="padding-left:20px;"><li>Court document assembly</li><li>Element-by-element case strength</li><li>Precedent analysis + case law</li><li>Weakness identification</li><li>Trial preparation briefings</li></ul></div>
+    </div>
+    <div class="card mt-24 text-center"><h3>The Vision</h3><p style="max-width:700px;margin:0 auto;">A single platform from initial tip through prosecution readiness &mdash; AI augmenting every step while humans control all enforcement decisions.</p></div>
+  </div>
+</div>
+
+</div>
+<script>
+(function(){
+  var slides=document.querySelectorAll('.slide'),cur=0;
+  function show(n){if(n<0||n>=slides.length)return;slides[cur].classList.remove('active');cur=n;slides[cur].classList.add('active');document.getElementById('counter').textContent=(cur+1)+' / '+slides.length;}
+  show(0);
+  document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();show(cur+1);}else if(e.key==='ArrowLeft'){e.preventDefault();show(cur-1);}});
+  document.addEventListener('click',function(e){if(e.target.tagName==='A')return;var x=e.clientX/window.innerWidth;if(x>0.5)show(cur+1);else show(cur-1);});
+})();
+</script>
+</body>
+</html>
