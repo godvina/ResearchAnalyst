@@ -25,9 +25,18 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 GITHUB_API = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}"
 PUSH_SHA_FILE = os.path.join(".git", "github-push-sha")
 
+# Load from .env file if token not in environment
+if not GITHUB_TOKEN and os.path.exists(".env"):
+    with open(".env", "r") as f:
+        for line in f:
+            if line.startswith("GITHUB_TOKEN="):
+                GITHUB_TOKEN = line.split("=", 1)[1].strip().strip('"').strip("'")
+                break
+
 if not GITHUB_TOKEN:
-    print("ERROR: Set GITHUB_TOKEN environment variable first")
-    print("  $env:GITHUB_TOKEN = 'ghp_xxx'")
+    print("ERROR: Set GITHUB_TOKEN environment variable or add to .env file")
+    print("  Option 1: $env:GITHUB_TOKEN = 'ghp_xxx'")
+    print("  Option 2: Add GITHUB_TOKEN=ghp_xxx to .env file (already gitignored)")
     sys.exit(1)
 
 HEADERS = {
