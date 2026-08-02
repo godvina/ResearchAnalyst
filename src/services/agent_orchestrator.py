@@ -883,6 +883,178 @@ def lidar_agent_handler(context: InvestigationContext) -> dict:
 LIDAR_AGENT.handler = lidar_agent_handler
 
 
+def auto_query_agent_handler(context: InvestigationContext) -> dict:
+    """Generate the next best research queries based on gaps in current findings.
+
+    This is the "self-directing" agent — it looks at what signatures haven't
+    been matched yet, what sites have no data, and generates specific queries
+    that would fill those gaps. Makes the chain autonomous.
+    """
+    topic = context.domain.replace("_", " ")
+
+    # Build summary of what's been found and what's missing
+    matched_sigs = list(context.signature_matches.keys())
+    all_sigs = [
+        "am-gge-san-001 (megalithic construction)",
+        "am-gge-cnp-002 (astronomical alignment)",
+        "am-gge-lla-001 (great circle alignment)",
+        "am-gge-cnp-001 (shared construction technique)",
+        "am-gge-cm-001 (indigenous sacred site)",
+        "am-gge-ga-002 (geometric precision / math encoding)",
+        "am-gge-ga-003 (tectonic / volcanic node)",
+        "am-gge-se-004 (submerged platform)",
+        "am-gge-cnp-004 (ancient site cluster)",
+        "am-gge-xpat-001 (great circle cross-pattern)",
+        "am-gge-xpat-002 (Orion epoch encoding)",
+    ]
+    unmatched = [s for s in all_sigs if s.split(" ")[0] not in matched_sigs]
+
+    # Gather findings summary
+    findings_summary = ""
+    sites_found = []
+    for findings in context.accumulated_findings:
+        if isinstance(findings, dict):
+            f = findings.get("findings", findings)
+            if isinstance(f, dict):
+                findings_summary += json.dumps(f)[:1000] + "\n"
+                sites_found.extend(f.get("sites_identified", []))
+
+    prompt = (
+        f"You are a research director planning the NEXT investigation cycle for: {topic}\n\n"
+        f"SIGNATURES MATCHED SO FAR ({len(matched_sigs)}):\n"
+        + "\n".join(f"  ✓ {s}" for s in matched_sigs) + "\n\n"
+        f"SIGNATURES NOT YET MATCHED ({len(unmatched)}):\n"
+        + "\n".join(f"  ✗ {s}" for s in unmatched) + "\n\n"
+        f"SITES INVESTIGATED: {list(set(sites_found))[:20]}\n\n"
+        f"FINDINGS SO FAR:\n{findings_summary[:2000]}\n\n"
+        "YOUR TASK: Generate the 5 most valuable next research queries that would:\n"
+        "1. Fill gaps in unmatched signatures (highest priority)\n"
+        "2. Deepen evidence for weak/moderate matches to upgrade them to strong\n"
+        "3. Find NEW cross-site connections not yet discovered\n"
+        "4. Address counter-arguments that weaken existing findings\n"
+        "5. Discover sites not yet in the dataset\n\n"
+        "For each query, specify:\n"
+        "- The exact search query to run\n"
+        "- Which signature it targets\n"
+        "- What a successful result would look like\n"
+        "- Estimated value (high/medium/low)\n\n"
+        "Return ONLY valid JSON (no markdown fences):\n"
+        "{\n"
+        '  "findings": {\n'
+        '    "gap_analysis": "summary of what is missing",\n'
+        '    "queries": [\n'
+        '      {"query": "exact search string", "target_signature": "am-gge-xxx-nnn", '
+        '"success_criteria": "what finding would confirm", "value": "high|medium|low", '
+        '"rationale": "why this query fills the gap"}\n'
+        "    ],\n"
+        '    "recommended_next_agent": "which agent should run next and why",\n'
+        '    "investigation_completeness": "percentage estimate of how complete the investigation is"\n'
+        "  },\n"
+        '  "signature_matches": [],\n'
+        '  "suggested_follow_ups": ["broad_scanner"]\n'
+        "}"
+    )
+
+    raw = _bedrock_synthesize(prompt)
+    result = _parse_llm_json(raw)
+
+    # Ensure expected structure
+    if "findings" not in result:
+        result = {"findings": result, "signature_matches": [], "suggested_follow_ups": ["broad_scanner"]}
+    if "signature_matches" not in result:
+        result["signature_matches"] = []
+    if "suggested_follow_ups" not in result:
+        result["suggested_follow_ups"] = ["broad_scanner"]
+
+    return result
+
+
+AUTO_QUERY_AGENT.handler = auto_query_agent_handler
+
+
+def production_agent_handler(context: InvestigationContext) -> dict:
+    """Generate a documentary production brief from investigation findings.
+
+    Formats all accumulated findings into the 5-layer documentary template:
+    Cold Open → Act 1 (Mystery) → Act 2 (Pattern) → Act 3 (Implication)
+    Plus production needs: drone shots, expert interviews, graphics, field measurements.
+    """
+    topic = context.domain.replace("_", " ")
+
+    # Gather all findings
+    all_findings = []
+    sites_found = []
+    all_sigs = []
+    for findings in context.accumulated_findings:
+        if isinstance(findings, dict):
+            f = findings.get("findings", findings)
+            all_findings.append(json.dumps(f)[:2000])
+            if isinstance(f, dict):
+                sites_found.extend(f.get("sites_identified", []))
+    for sig_id, count in context.signature_matches.items():
+        all_sigs.append(f"{sig_id} (matched {count}x)")
+
+    prompt = (
+        f"You are a documentary series producer creating a PRODUCTION BRIEF for: {topic}\n\n"
+        f"INVESTIGATION FINDINGS:\n" + "\n---\n".join(all_findings[:4]) + "\n\n"
+        f"SIGNATURES CONFIRMED: {', '.join(all_sigs)}\n"
+        f"SITES IDENTIFIED: {list(set(sites_found))[:15]}\n\n"
+        "Create a complete documentary episode production brief using this exact format:\n\n"
+        "EPISODE STRUCTURE:\n"
+        "- TITLE: Max 8 words that make someone click play\n"
+        "- LOGLINE: One sentence that hooks the viewer\n"
+        "- COLD OPEN (30 seconds): The most visually stunning anomaly\n"
+        "- ACT 1 — THE MYSTERY (8 min): What is known + what shouldn't exist\n"
+        "- ACT 2 — THE PATTERN (12 min): Site visits, measurements, 'aha' moment\n"
+        "- ACT 3 — THE IMPLICATION (8 min): If real, what does it mean?\n\n"
+        "PRODUCTION NEEDS:\n"
+        "- Drone/aerial locations (with coordinates)\n"
+        "- Expert interviews (name, institution, what they'd say)\n"
+        "- Graphics/VFX needed (map animations, reconstructions)\n"
+        "- Field measurements to capture on camera\n"
+        "- Archive footage/images needed\n\n"
+        "NARRATION SCRIPT (for each act, write 3-4 sentences of narration in documentary tone)\n\n"
+        "Return ONLY valid JSON (no markdown fences):\n"
+        "{\n"
+        '  "findings": {\n'
+        '    "title": "episode title",\n'
+        '    "logline": "one hook sentence",\n'
+        '    "cold_open": "30-second visual description",\n'
+        '    "act1_mystery": {"summary": "text", "narration": "scripted narration"},\n'
+        '    "act2_pattern": {"summary": "text", "narration": "scripted narration", "site_visits": ["site1","site2"]},\n'
+        '    "act3_implication": {"summary": "text", "narration": "scripted narration"},\n'
+        '    "production_needs": {\n'
+        '      "drone_locations": [{"site": "name", "lat": 0, "lng": 0, "shot_description": "what to capture"}],\n'
+        '      "expert_interviews": [{"name": "researcher", "institution": "place", "topic": "what they discuss"}],\n'
+        '      "graphics_vfx": ["description of each graphic needed"],\n'
+        '      "field_measurements": ["what to measure on camera"],\n'
+        '      "archive_footage": ["what historical footage/images needed"]\n'
+        '    },\n'
+        '    "estimated_runtime_minutes": 28,\n'
+        '    "target_audience": "who this episode appeals to"\n'
+        "  },\n"
+        '  "signature_matches": [],\n'
+        '  "suggested_follow_ups": []\n'
+        "}"
+    )
+
+    raw = _bedrock_synthesize(prompt)
+    result = _parse_llm_json(raw)
+
+    # Ensure expected structure
+    if "findings" not in result:
+        result = {"findings": result, "signature_matches": [], "suggested_follow_ups": []}
+    if "signature_matches" not in result:
+        result["signature_matches"] = []
+    if "suggested_follow_ups" not in result:
+        result["suggested_follow_ups"] = []
+
+    return result
+
+
+PRODUCTION_AGENT.handler = production_agent_handler
+
+
 def create_default_orchestrator() -> AgentOrchestrator:
     """Create an orchestrator pre-loaded with the standard agent library."""
     orchestrator = AgentOrchestrator(max_chain_depth=5)
