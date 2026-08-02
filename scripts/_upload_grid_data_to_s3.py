@@ -18,6 +18,8 @@ FILES_TO_UPLOAD = [
     "uvg-grid-research-all-nodes.json",
     "uvg-grid-scored-findings.json",
     "uvg-grid-investigation-database.json",
+    "audio-combined-v2.json",
+    "investigation-rationales.json",
 ]
 
 def main():
