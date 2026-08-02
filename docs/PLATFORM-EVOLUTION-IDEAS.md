@@ -239,3 +239,101 @@ RESEARCHER uploads data (papers, images, coordinates, observations)
 - [ ] Design quality control / peer review workflow
 - [ ] Prototype with 2 tenants (Ancient Mysteries + Crime) sharing Neptune graph
 - [ ] Cost model for N tenants with M researchers each
+
+
+---
+
+## PROOF ENGINE — Standards of Proof Layer
+
+The Proof Engine is the quality gate that sits downstream of pattern detection and ACH scoring. When the Taxonomy Engine produces a finding (a pattern match, cross-theory connection, or analytical conclusion), the Proof Engine evaluates whether that finding meets a configurable standard of proof before it can be marked as confirmed.
+
+### How It Works
+
+1. A finding arrives from the taxonomy/ACH pipeline
+2. The Proof Engine selects the appropriate standard of proof (based on tenant config or API override)
+3. It generates a checklist of required evidence items for that standard
+4. Bedrock Claude Sonnet scores each checklist item against available evidence
+5. A verdict is produced: **PROVEN**, **UNPROVEN**, or **INSUFFICIENT_EVIDENCE**
+
+### The 6 Standards of Proof
+
+| Standard | Key Criteria | Use Case |
+|----------|-------------|----------|
+| `scientific` | Falsifiable hypothesis, statistical significance, replication, peer critique, alternative elimination | Ancient Mysteries tenant |
+| `criminal_legal` | Chain of custody, independent corroboration, no credible alternative, consistent witnesses, authenticated evidence | Crime tenant |
+| `civil_legal` | Balance of probability, positive evidence, more likely than not | Civil disputes |
+| `intelligence` | Source count, source independence, diagnostic evidence, alternative hypothesis elimination, confidence level | Conspiracy Theories tenant |
+| `financial_audit` | Materiality threshold, substantive testing, adequate sampling, management consistency | Financial investigations |
+| `journalistic` | Two independent sources, subject right of reply, legal review, public interest | Media/documentary |
+
+### Integration with Existing Architecture
+
+- **Upstream**: Receives findings from Taxonomy Scanner, Cross-Pattern Agent, and ACH scoring
+- **Scoring**: Uses Bedrock Claude Sonnet to evaluate evidence against checklist items
+- **Storage**: Verdicts stored in Aurora PostgreSQL (`proof_verdicts` table) with JSONB for structured checklist/score data
+- **API**: GET `/proof/{finding_id}` for retrieval, POST `/proof/evaluate` for triggering evaluation
+- **Graph**: Verdict status can inform Neptune edge weights (proven connections weighted higher)
+- **Multi-tenant**: Each tenant declares its default standard; can be overridden per-finding
+
+### Spec Location
+
+This feature is now fully spec'd at `.kiro/specs/proof-engine/`
+
+---
+
+## TENANT ARCHITECTURE DECISION
+
+### Decision: Evolve Research Analyst repo into multi-tenant backend (do NOT create a new project)
+
+The existing Research Analyst repository becomes the shared backend for all investigation types. No new AWS infrastructure cost — just configuration and new Python files.
+
+### Per-Tenant Isolation
+
+Each tenant gets:
+- **Own S3 prefix**: `data-lake/{tenant_name}/` — raw data, processed outputs, cached summaries
+- **Own Aurora schema**: `{tenant_name}` schema in the shared Aurora PostgreSQL cluster
+- **Own taxonomy content**: Domain-specific taxonomy definitions loaded per tenant
+- **Own frontend**: Tenant-specific UI served from S3/CloudFront with tenant branding
+
+### Shared Infrastructure (no duplication)
+
+- **Neptune**: Single graph instance, tenant data isolated by vertex/edge labels with `tenant_id` property
+- **OpenSearch**: Single cluster, tenant-isolated by index prefix (`{tenant_name}-patterns`, `{tenant_name}-embeddings`)
+- **Bedrock**: Shared Claude Sonnet access, usage tracked per tenant via request metadata
+- **Lambda**: Shared function code, tenant resolved from API request context (header or path)
+- **API Gateway**: Single API, tenant determined by auth token or `X-Tenant-ID` header
+
+### Tenant Configuration
+
+Stored in: `src/config/tenants/{tenant_name}.json`
+
+Each config file contains:
+- `tenant_name`, `display_name`, `description`
+- `default_proof_standard` (one of the 6 registered standards)
+- `s3_prefix`, `aurora_schema`, `opensearch_index_prefix`
+- `taxonomy_domains` (which taxonomy domains are active for this tenant)
+- `agent_chain_config` (which agents run and in what order)
+
+### Current Tenants
+
+| Tenant | Status | Proof Standard | Primary Data |
+|--------|--------|---------------|-------------|
+| `ancient_mysteries` | Existing (active) | `scientific` | 62 nodes, 18 signatures, grid analysis |
+| `conspiracy_theories` | New (in development) | `intelligence` | 10 theory datasets, universal taxonomy |
+| `crime` | Future (planned) | `criminal_legal` | Network analysis, entity resolution |
+
+### Cost Impact
+
+**Zero additional AWS infrastructure cost.** All tenants share:
+- Same Aurora cluster (different schemas)
+- Same Neptune instance (different labels)
+- Same OpenSearch cluster (different indices)
+- Same Lambda functions (tenant-aware code)
+- Same API Gateway (tenant routing)
+
+New tenants require only:
+- A new JSON config file in `src/config/tenants/`
+- New Python modules for tenant-specific taxonomy content
+- S3 prefix creation (free)
+- Aurora schema creation (free)
+- OpenSearch index creation (free)
