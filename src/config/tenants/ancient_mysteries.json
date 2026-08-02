@@ -1,0 +1,24 @@
+{
+  "tenant_name": "ancient_mysteries",
+  "display_name": "Ancient Mysteries",
+  "description": "UVG Grid investigation — archaeological, astronomical, and geological patterns at 62 planetary vertices",
+  "default_proof_standard": "scientific",
+  "s3_prefix": "data-lake/ancient-mysteries/",
+  "aurora_schema": "public",
+  "opensearch_index_prefix": "typology",
+  "taxonomy_domains": ["am-gge"],
+  "agent_chain_config": {
+    "agents": [
+      "broad_scanner",
+      "taxonomy_scanner",
+      "cross_pattern_agent",
+      "cultural_memory_agent",
+      "geological_agent",
+      "lidar_agent",
+      "auto_query_agent",
+      "production_brief_agent"
+    ],
+    "trigger_mode": "sequential"
+  },
+  "frontend_entry": "src/frontend/grid-globe-3d.html"
+}
