@@ -1,0 +1,21 @@
+{
+  "tenant_name": "crime",
+  "display_name": "Criminal Investigation",
+  "description": "Network analysis, entity resolution, and prosecution support for criminal cases",
+  "default_proof_standard": "criminal_legal",
+  "s3_prefix": "data-lake/crime/",
+  "aurora_schema": "crime",
+  "opensearch_index_prefix": "crime",
+  "taxonomy_domains": [],
+  "agent_chain_config": {
+    "agents": [
+      "entity_extractor",
+      "network_builder",
+      "financial_tracer",
+      "case_assembler"
+    ],
+    "trigger_mode": "sequential"
+  },
+  "frontend_entry": null,
+  "status": "planned"
+}
