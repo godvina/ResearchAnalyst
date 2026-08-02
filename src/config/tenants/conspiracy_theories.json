@@ -1,0 +1,44 @@
+{
+  "tenant_name": "conspiracy_theories",
+  "display_name": "Conspiracy Theory Research",
+  "description": "Universal taxonomy for cross-cutting investigative patterns across 10 conspiracy theories",
+  "default_proof_standard": "intelligence",
+  "s3_prefix": "data-lake/conspiracy-theories/",
+  "aurora_schema": "conspiracy",
+  "opensearch_index_prefix": "conspiracy",
+  "taxonomy_domains": [
+    "evidence_suppression",
+    "institutional_behavior",
+    "witness_reliability",
+    "timeline_anomalies",
+    "geographic_clustering",
+    "information_asymmetry",
+    "counter_narrative_emergence",
+    "narrative_coherence",
+    "expert_divergence",
+    "methodological_red_flags"
+  ],
+  "agent_chain_config": {
+    "agents": [
+      "conspiracy_broad_scanner",
+      "conspiracy_taxonomy_scanner",
+      "conspiracy_cross_pattern_agent"
+    ],
+    "trigger_mode": "sequential"
+  },
+  "frontend_entry": null,
+  "processing_order": [
+    "bermuda_triangle",
+    "princess_diana",
+    "flat_earth",
+    "ufos_uaps",
+    "jfk_assassination"
+  ],
+  "ungated_theories": [
+    "nine_eleven",
+    "covid_lab_leak",
+    "moon_landing",
+    "vaccine_conspiracies",
+    "new_world_order"
+  ]
+}
