@@ -1,0 +1,528 @@
+{
+  "restored_at": "2026-08-03T08:37:30Z",
+  "total_restored": 6588,
+  "errors": 20,
+  "type_counts": {
+    "product": 934,
+    "identifier": 1421,
+    "number": 558,
+    "other": 3068,
+    "classification": 5,
+    "device": 126,
+    "object": 353,
+    "rule": 40,
+    "attribute": 23,
+    "standard": 24,
+    "abbreviation": 2,
+    "measurement": 19,
+    "abstract": 9,
+    "thing": 6,
+    "mechanism": 4,
+    "miscellaneous": 11,
+    "policy": 1,
+    "medical": 1,
+    "information": 3
+  },
+  "sample_entities": [
+    {
+      "name": "IPHONE8",
+      "type": "product",
+      "count": 418
+    },
+    {
+      "name": "Samsung Galaxy",
+      "type": "product",
+      "count": 150
+    },
+    {
+      "name": "Apple Watch",
+      "type": "product",
+      "count": 95
+    },
+    {
+      "name": "Apple Watch Series 4",
+      "type": "product",
+      "count": 85
+    },
+    {
+      "name": "iPhone",
+      "type": "product",
+      "count": 61
+    },
+    {
+      "name": "Seashell Sport Loop",
+      "type": "product",
+      "count": 35
+    },
+    {
+      "name": "N722JE",
+      "type": "identifier",
+      "count": 33
+    },
+    {
+      "name": "Antracite/Blak Nike Sport Band",
+      "type": "product",
+      "count": 27
+    },
+    {
+      "name": "3475901",
+      "type": "number",
+      "count": 24
+    },
+    {
+      "name": "ims",
+      "type": "product",
+      "count": 23
+    },
+    {
+      "name": "Apple Watches",
+      "type": "product",
+      "count": 21
+    },
+    {
+      "name": "3536038",
+      "type": "number",
+      "count": 21
+    },
+    {
+      "name": "nxtgenpho ne",
+      "type": "product",
+      "count": 20
+    },
+    {
+      "name": "2008 KEYSTONE (SIKORSKY) S-76C++",
+      "type": "product",
+      "count": 19
+    },
+    {
+      "name": "ARRIEL 2S2",
+      "type": "product",
+      "count": 18
+    },
+    {
+      "name": "(b) (7) (E)",
+      "type": "other",
+      "count": 18
+    },
+    {
+      "name": "UNCLASSIFIED//FOUO",
+      "type": "classification",
+      "count": 17
+    },
+    {
+      "name": "Arriel 2S2",
+      "type": "product",
+      "count": 16
+    },
+    {
+      "name": "3536039",
+      "type": "number",
+      "count": 16
+    },
+    {
+      "name": "N722JE",
+      "type": "product",
+      "count": 15
+    },
+    {
+      "name": "Groupwise 12.0.3",
+      "type": "product",
+      "count": 15
+    },
+    {
+      "name": "#76318-054",
+      "type": "identifier",
+      "count": 13
+    },
+    {
+      "name": "3068530",
+      "type": "number",
+      "count": 13
+    },
+    {
+      "name": "42285TE",
+      "type": "product",
+      "count": 13
+    },
+    {
+      "name": "42286TEC",
+      "type": "product",
+      "count": 13
+    },
+    {
+      "name": "KEYSTONE (SIKORSKY) S-76C++",
+      "type": "product",
+      "count": 12
+    },
+    {
+      "name": "NYC024323",
+      "type": "identifier",
+      "count": 12
+    },
+    {
+      "name": "NYC024337",
+      "type": "identifier",
+      "count": 12
+    },
+    {
+      "name": "NYC024336",
+      "type": "identifier",
+      "count": 12
+    },
+    {
+      "name": "NYC024324",
+      "type": "identifier",
+      "count": 12
+    },
+    {
+      "name": "ROUND BRILLIANT",
+      "type": "other",
+      "count": 11
+    },
+    {
+      "name": "NONE",
+      "type": "other",
+      "count": 11
+    },
+    {
+      "name": "42286TEC",
+      "type": "identifier",
+      "count": 11
+    },
+    {
+      "name": "42285TE",
+      "type": "identifier",
+      "count": 11
+    },
+    {
+      "name": "Juror ID: 50",
+      "type": "identifier",
+      "count": 11
+    },
+    {
+      "name": "NYC024340",
+      "type": "identifier",
+      "count": 10
+    },
+    {
+      "name": "NYC024339",
+      "type": "identifier",
+      "count": 10
+    },
+    {
+      "name": "N212JE",
+      "type": "other",
+      "count": 10
+    },
+    {
+      "name": "Public Records Request No.: 17-295",
+      "type": "other",
+      "count": 10
+    },
+    {
+      "name": "Turbomeca S.A. model Arriel 2S2",
+      "type": "product",
+      "count": 10
+    },
+    {
+      "name": "NYC024340",
+      "type": "identifier",
+      "count": 10
+    },
+    {
+      "name": "NYC024339",
+      "type": "identifier",
+      "count": 10
+    },
+    {
+      "name": "001",
+      "type": "number",
+      "count": 9
+    },
+    {
+      "name": "Micro SD card",
+      "type": "device",
+      "count": 9
+    },
+    {
+      "name": "NYC024347",
+      "type": "identifier",
+      "count": 9
+    },
+    {
+      "name": "S-76C++",
+      "type": "product",
+      "count": 9
+    },
+    {
+      "name": "NYC024346",
+      "type": "identifier",
+      "count": 9
+    },
+    {
+      "name": "NYC024342",
+      "type": "identifier",
+      "count": 9
+    },
+    {
+      "name": "NYC024344",
+      "type": "identifier",
+      "count": 9
+    },
+    {
+      "name": "NYC024341",
+      "type": "identifier",
+      "count": 9
+    },
+    {
+      "name": "NYC024343",
+      "type": "identifier",
+      "count": 9
+    },
+    {
+      "name": "NYC024345",
+      "type": "identifier",
+      "count": 9
+    },
+    {
+      "name": "GOOD",
+      "type": "other",
+      "count": 8
+    },
+    {
+      "name": "ProportionScope\u00ae",
+      "type": "other",
+      "count": 8
+    },
+    {
+      "name": "(b)(7)(E)",
+      "type": "other",
+      "count": 8
+    },
+    {
+      "name": "NYC024351",
+      "type": "identifier",
+      "count": 8
+    },
+    {
+      "name": "NYC024350",
+      "type": "identifier",
+      "count": 8
+    },
+    {
+      "name": "camera SD card",
+      "type": "device",
+      "count": 8
+    },
+    {
+      "name": "Apple Watch Hermes",
+      "type": "product",
+      "count": 8
+    },
+    {
+      "name": "NYC024349",
+      "type": "identifier",
+      "count": 8
+    },
+    {
+      "name": "NYC024348",
+      "type": "identifier",
+      "count": 8
+    },
+    {
+      "name": "76318-054",
+      "type": "other",
+      "count": 8
+    },
+    {
+      "name": "Flash Drive",
+      "type": "product",
+      "count": 7
+    },
+    {
+      "name": "Sony Vaio",
+      "type": "device",
+      "count": 7
+    },
+    {
+      "name": "Series 4",
+      "type": "product",
+      "count": 7
+    },
+    {
+      "name": "S-76C",
+      "type": "product",
+      "count": 7
+    },
+    {
+      "name": "and",
+      "type": "other",
+      "count": 7
+    },
+    {
+      "name": "76318-054",
+      "type": "identifier",
+      "count": 7
+    },
+    {
+      "name": "#76318-054",
+      "type": "other",
+      "count": 7
+    },
+    {
+      "name": "Keystone (Sikorsky) model S-76C++",
+      "type": "product",
+      "count": 7
+    },
+    {
+      "name": "iPhone",
+      "type": "object",
+      "count": 7
+    },
+    {
+      "name": "Sony Vaio",
+      "type": "product",
+      "count": 7
+    },
+    {
+      "name": "Flash Drive",
+      "type": "device",
+      "count": 7
+    },
+    {
+      "name": "S-76",
+      "type": "product",
+      "count": 7
+    },
+    {
+      "name": "Dell power edge T310",
+      "type": "device",
+      "count": 7
+    },
+    {
+      "name": "Thumbdrive",
+      "type": "device",
+      "count": 6
+    },
+    {
+      "name": "Bell 407",
+      "type": "product",
+      "count": 6
+    },
+    {
+      "name": "1:20-cr-330-1",
+      "type": "identifier",
+      "count": 6
+    },
+    {
+      "name": "Juror ID: 119",
+      "type": "identifier",
+      "count": 6
+    },
+    {
+      "name": "UNCLASSIFIED",
+      "type": "classification",
+      "count": 6
+    },
+    {
+      "name": "Seagate IDE hard drives",
+      "type": "device",
+      "count": 6
+    },
+    {
+      "name": "CPAP",
+      "type": "device",
+      "count": 6
+    },
+    {
+      "name": "Apple Watch Series 4 GPS + Cellular",
+      "type": "product",
+      "count": 6
+    },
+    {
+      "name": "Juror ID: 2",
+      "type": "identifier",
+      "count": 6
+    },
+    {
+      "name": "Thumbdrive",
+      "type": "device",
+      "count": 6
+    },
+    {
+      "name": "Bell 407",
+      "type": "product",
+      "count": 6
+    },
+    {
+      "name": "Apple Watch Series 4 GPS + Cellular, 44mm Stainless Steel Case with Milanese Loop",
+      "type": "product",
+      "count": 6
+    },
+    {
+      "name": "hard drive",
+      "type": "device",
+      "count": 6
+    },
+    {
+      "name": "Juror ID: 70",
+      "type": "identifier",
+      "count": 6
+    },
+    {
+      "name": "6317",
+      "type": "number",
+      "count": 6
+    },
+    {
+      "name": "Attachment A",
+      "type": "other",
+      "count": 6
+    },
+    {
+      "name": "1:20-cr-330-1",
+      "type": "identifier",
+      "count": 6
+    },
+    {
+      "name": "iPad",
+      "type": "product",
+      "count": 5
+    },
+    {
+      "name": "2008 Keystone (Sikorsky) model S-76C++",
+      "type": "product",
+      "count": 5
+    },
+    {
+      "name": "Section 130.55",
+      "type": "other",
+      "count": 5
+    },
+    {
+      "name": "Range Rover",
+      "type": "product",
+      "count": 5
+    },
+    {
+      "name": "Accutane",
+      "type": "product",
+      "count": 5
+    },
+    {
+      "name": "53375",
+      "type": "identifier",
+      "count": 5
+    },
+    {
+      "name": "Dell power edge T310",
+      "type": "product",
+      "count": 5
+    },
+    {
+      "name": "iPhone8",
+      "type": "product",
+      "count": 5
+    }
+  ]
+}
