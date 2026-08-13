@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Archon Library — Cross-Cultural Mythology Intelligence</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="archon-data.js"></script>
+<script src="archon-crosswalk.js"></script>
+<script src="archon-scores.js"></script>
+<script src="archon-dialogues.js"></script>
+<script src="archon-audio.js"></script>
+<link rel="stylesheet" href="common.css">
+<style>
+/* Archon-specific overrides — scholarly dark theme with gold/bronze accents */
+body { background: #0a0e14; }
+.archon-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 18px 40px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 3px solid #c9a227;
+}
+.archon-header h1 { font-size: 1.2rem; color: #fff; font-weight: 600; }
+.archon-header h1 span { color: #c9a227; }
+.archon-nav { background: #0f1520; border-bottom: 1px solid #1e293b; display: flex; padding: 0 40px; }
+.archon-nav a { padding: 12px 20px; font-size: 0.78rem; font-weight: 600; color: #64748b; text-decoration: none; border-bottom: 2px solid transparent; }
+.archon-nav a:hover { color: #e2e8f0; }
+.archon-nav a.active { color: #c9a227; border-bottom-color: #c9a227; }
+.archon-content { max-width: 1400px; margin: 0 auto; padding: 32px 40px; }
+.archon-stat-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 32px; }
+.archon-stat { background: rgba(201,162,39,0.05); border: 1px solid #1e293b; border-radius: 12px; padding: 20px; text-align: center; }
+.archon-stat .val { font-size: 2rem; font-weight: 700; color: #c9a227; }
+.archon-stat .lbl { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+.pattern-card { background: #111827; border: 1px solid #1e293b; border-left: 4px solid #c9a227; border-radius: 10px; padding: 18px; margin-bottom: 12px; }
+.pattern-card h3 { font-size: 0.85rem; font-weight: 700; color: #e2e8f0; margin-bottom: 6px; }
+.pattern-card p { font-size: 0.75rem; color: #94a3b8; line-height: 1.6; }
+.pattern-card .cultures { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+.pattern-card .culture-tag { font-size: 0.62rem; background: rgba(201,162,39,0.1); border: 1px solid rgba(201,162,39,0.3); color: #c9a227; padding: 2px 8px; border-radius: 10px; cursor:pointer; transition: all 0.15s; }
+.pattern-card .culture-tag:hover { background: rgba(201,162,39,0.25); border-color: #c9a227; transform: scale(1.05); }
+.entity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap: 12px; margin-bottom: 32px; }
+.entity-card { background: #111827; border: 1px solid #1e293b; border-radius: 10px; padding: 14px; transition: all 0.2s; cursor: pointer; }
+.entity-card:hover { border-color: #c9a227; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(201,162,39,0.1); }
+.entity-card .ename { font-size: 0.82rem; font-weight: 700; color: #e2e8f0; }
+.entity-card .etype { font-size: 0.65rem; color: #c9a227; text-transform: uppercase; margin-top: 2px; }
+.entity-card .edesc { font-size: 0.72rem; color: #94a3b8; margin-top: 6px; line-height: 1.5; }
+.graph-container { background: #0a0e14; border: 1px solid #1e293b; border-radius: 12px; min-height: 400px; margin-bottom: 32px; }
+.section-title { font-size: 0.92rem; font-weight: 700; color: #e2e8f0; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+.section-title::before { content: ''; width: 4px; height: 18px; background: #c9a227; border-radius: 2px; }
+
+/* === DRILL-DOWN PATTERNS === */
+.card-detail-panel { margin-top:10px;padding:16px;background:#0d1520;border:1px solid #2d3748;border-radius:8px;animation:slideDown 0.2s ease; }
+@keyframes slideDown { from{opacity:0;max-height:0} to{opacity:1;max-height:800px} }
+.detail-section { margin-bottom:12px; }
+.detail-section-title { font-size:0.7rem;font-weight:700;color:#c9a227;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px; }
+.ai-insight { background:rgba(201,162,39,0.06);border:1px solid rgba(201,162,39,0.2);border-radius:8px;padding:12px;margin-top:10px; }
+.ai-insight-label { font-size:0.62rem;font-weight:700;color:#c9a227;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px; }
+.ai-insight p { font-size:0.72rem;color:#e2e8f0;line-height:1.6;margin:0; }
+.btn-drill { font-size:0.65rem;background:rgba(201,162,39,0.1);border:1px solid rgba(201,162,39,0.3);color:#c9a227;padding:5px 12px;border-radius:6px;cursor:pointer;margin-top:8px;transition:all 0.2s; }
+.btn-drill:hover { background:rgba(201,162,39,0.2);border-color:#c9a227; }
+
+/* === MODAL (Level 2) === */
+.modal-overlay { display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:100;justify-content:center;align-items:center;padding:40px; }
+.modal-overlay.active { display:flex; }
+.modal { background:#111827;border:1px solid #c9a227;border-radius:14px;padding:28px;width:700px;max-width:95%;max-height:80vh;overflow-y:auto; }
+.modal h3 { color:#c9a227;margin-bottom:16px;font-size:1rem; }
+.modal-close { position:absolute;top:16px;right:20px;font-size:1.2rem;color:#64748b;cursor:pointer;background:none;border:none; }
+.modal-close:hover { color:#e2e8f0; }
+</style>
+</head>
+<body>
+
+<div class="archon-header">
+    <h1>📜 Archon Library — <span>Cross-Cultural Mythology Intelligence</span></h1>
+    <div style="display:flex;gap:10px;">
+        <span style="background:rgba(201,162,39,0.15);border:1px solid rgba(201,162,39,0.4);color:#c9a227;padding:4px 14px;border-radius:20px;font-size:0.7rem;font-weight:600;">Anunnaki Dossier</span>
+    </div>
+</div>
+
+<div class="archon-nav">
+    <a href="#" class="active" onclick="showTab('overview')">🏛️ Overview</a>
+    <a href="#entities" onclick="showTab('entities')">👤 Entities</a>
+    <a href="#patterns" onclick="showTab('patterns')">🔄 Patterns</a>
+    <a href="#scores" onclick="showTab('scores')">📊 Pattern Scores</a>
+    <a href="#dialogues" onclick="showTab('dialogues')">💬 Deity Dialogues</a>
+    <a href="#crosswalk" onclick="showTab('crosswalk')">🔀 Crosswalk</a>
+    <a href="#graph" onclick="showTab('graph')">🕸️ Graph</a>
+    <a href="ancient-mysteries.html">🏛️ Ancient Mysteries</a>
+    <a href="geographic-explorer.html">🗺️ Explorer</a>
+    <a href="index.html">← Home</a>
+</div>
+
+<div class="archon-content">
+
+<!-- Stats -->
+<div class="archon-stat-row" id="stats"></div>
+
+<!-- Cross-Cultural Patterns -->
+<div class="section-title" id="patterns">Cross-Cultural Patterns</div>
+<div id="patternCards"></div>
+
+<!-- Entities -->
+<div class="section-title" id="entities">Entities Extracted</div>
+<div class="entity-grid" id="entityGrid"></div>
+
+<!-- Relationship Graph -->
+<div class="section-title" id="graph">Mythology Relationship Graph</div>
+<div class="graph-container" id="graphContainer"></div>
+
+<!-- Pattern Scoring Results -->
+<div class="section-title" id="scores">Pattern Detection Scores (k-NN Cosine Similarity)</div>
+<div id="patternScoresPanel" style="margin-bottom:32px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:24px;" id="verdictCards"></div>
+    <div class="section-title" style="font-size:0.82rem;">Top Cross-Cutting Entities (match 3+ patterns)</div>
+    <div id="crossCuttingList" style="margin-bottom:24px;"></div>
+</div>
+
+<!-- Deity Dialogues & Top Questions -->
+<div class="section-title" id="dialogues">Cross-Cultural Interrogation Room</div>
+<div id="topQuestionsPanel" style="margin-bottom:24px;"></div>
+<div id="dialoguesPanel" style="margin-bottom:32px;"></div>
+
+<!-- Entity Crosswalk -->
+<div class="section-title" id="crosswalk">Tuatha Dé Danann ↔ Irish Sites ↔ Anunnaki</div>
+<div id="crosswalkTable" style="overflow-x:auto;margin-bottom:32px;">
+<table style="width:100%;border-collapse:collapse;font-size:0.75rem;color:#e2e8f0;">
+<thead>
+<tr style="border-bottom:2px solid #c9a227;text-align:left;">
+    <th style="padding:10px;color:#c9a227;">Irish Deity</th>
+    <th style="padding:10px;">Role</th>
+    <th style="padding:10px;">Sacred Site(s)</th>
+    <th style="padding:10px;color:#c9a227;">Sumerian Parallel</th>
+    <th style="padding:10px;">Evidence</th>
+</tr>
+</thead>
+<tbody id="crosswalkBody"></tbody>
+</table>
+</div>
+
+<!-- Cross-Cultural Equivalence Table -->
+<div class="section-title">Universal Deity Crosswalk</div>
+<div id="universalCrosswalk" style="overflow-x:auto;margin-bottom:32px;">
+<table style="width:100%;border-collapse:collapse;font-size:0.72rem;color:#e2e8f0;">
+<thead>
+<tr style="border-bottom:2px solid #c9a227;text-align:left;">
+    <th style="padding:8px;color:#c9a227;">Sumerian</th>
+    <th style="padding:8px;color:#10b981;">Irish</th>
+    <th style="padding:8px;color:#3b82f6;">Greek</th>
+    <th style="padding:8px;color:#f59e0b;">Hebrew</th>
+    <th style="padding:8px;color:#8b5cf6;">Hindu</th>
+    <th style="padding:8px;">Role</th>
+</tr>
+</thead>
+<tbody id="universalBody"></tbody>
+</table>
+</div>
+
+</div>
+
+<!-- Level 2 Modal -->
+<div class="modal-overlay" id="archonModal" onclick="if(event.target===this)closeModal()">
+    <div class="modal" style="position:relative;">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <div id="modalContent"></div>
+    </div>
+</div>
+
+<script>
+// Load data
+const data = typeof ARCHON_DATA !== 'undefined' ? ARCHON_DATA : { entities: [], relationships: [], cross_cultural_patterns: [], stats: {} };
+
+// Render stats
+document.getElementById('stats').innerHTML = `
+    <div class="archon-stat"><div class="val">${data.stats.total_entities || 0}</div><div class="lbl">Entities</div></div>
+    <div class="archon-stat"><div class="val">${data.stats.total_relationships || 0}</div><div class="lbl">Relationships</div></div>
+    <div class="archon-stat"><div class="val">${data.stats.total_patterns || 0}</div><div class="lbl">Cross-Cultural Patterns</div></div>
+    <div class="archon-stat"><div class="val">${data.stats.sources_processed || 0}</div><div class="lbl">Sources Processed</div></div>
+`;
+
+// Render patterns with Level 1 drill-down
+document.getElementById('patternCards').innerHTML = (data.cross_cultural_patterns || []).map((p, i) => `
+    <div class="pattern-card" onclick="togglePatternDetail(${i}, this)" style="cursor:pointer;">
+        <h3>${p.name}</h3>
+        <p>${p.description}</p>
+        <div class="cultures">${(p.appears_in || []).map(c => `<span class="culture-tag" onclick="event.stopPropagation();openSourceModal('${c.replace(/'/g,'\\&#39;')}', '${p.name.replace(/'/g,'\\&#39;')}')">${c}</span>`).join('')}</div>
+    </div>
+`).join('');
+
+// Level 1: Pattern detail panel
+function togglePatternDetail(idx, cardEl) {
+    const existing = cardEl.querySelector('.card-detail-panel');
+    if (existing) { existing.remove(); return; }
+    document.querySelectorAll('.pattern-card .card-detail-panel').forEach(el => el.remove());
+
+    const p = data.cross_cultural_patterns[idx];
+    const scores = typeof ARCHON_SCORES !== 'undefined' ? ARCHON_SCORES : null;
+    const patStat = scores ? scores.pattern_stats[p.pattern_id] : null;
+
+    let panel = document.createElement('div');
+    panel.className = 'card-detail-panel';
+    panel.innerHTML = `
+        <div class="detail-section">
+            <div class="detail-section-title">Detection Indicators</div>
+            <div style="font-size:0.7rem;color:#94a3b8;">${(p.indicators || []).map(ind => '• ' + ind).join('<br>')}</div>
+        </div>
+        ${patStat ? `<div class="detail-section">
+            <div class="detail-section-title">Scoring Results</div>
+            <div style="font-size:0.72rem;color:#e2e8f0;">Verdict: <b style="color:${patStat.verdict === 'UNIVERSAL' ? '#10b981' : '#f59e0b'}">${patStat.verdict}</b> · ${patStat.matching_entities} entities · ${patStat.cultures_represented} cultures</div>
+            <div style="font-size:0.68rem;color:#94a3b8;margin-top:6px;">Top matches: ${(patStat.top_5 || []).slice(0,3).map(t => t.name + ' (' + t.culture.split('/')[0] + ', ' + t.score.toFixed(3) + ')').join(' · ')}</div>
+        </div>` : ''}
+        <div class="ai-insight">
+            <div class="ai-insight-label">🔍 Investigative Significance</div>
+            <p>${generatePatternInsight(p, patStat)}</p>
+        </div>
+        <button class="btn-drill" onclick="event.stopPropagation();openPatternModal(${idx})">Full Evidence →</button>
+    `;
+    cardEl.appendChild(panel);
+}
+
+function generatePatternInsight(pattern, stats) {
+    if (!stats) return 'Pattern defined but not yet scored against entity library.';
+    if (stats.verdict === 'UNIVERSAL') return 'This pattern appears in ' + stats.cultures_represented + ' independent cultural traditions with NO known contact between them. Statistical probability of coincidence at this scale approaches zero. This constitutes strong evidence for either: (a) shared human cognitive architecture producing identical myths, (b) diffusion from a common proto-culture, or (c) shared observation of actual events.';
+    if (stats.verdict === 'WIDESPREAD') return 'Pattern confirmed across ' + stats.cultures_represented + ' traditions. Widespread but not universal — may indicate regional diffusion rather than independent invention. Investigate: do non-matching traditions have analogous but structurally different myths for the same function?';
+    return 'Limited cultural representation. This may be a regional pattern rather than a universal one, OR the entity library may lack the right source texts to detect it more broadly.';
+}
+
+// Level 2: Pattern modal
+function openPatternModal(idx) {
+    const p = data.cross_cultural_patterns[idx];
+    const scores = typeof ARCHON_SCORES !== 'undefined' ? ARCHON_SCORES : null;
+    const patStat = scores ? scores.pattern_stats[p.pattern_id] : null;
+
+    document.getElementById('modalContent').innerHTML = `
+        <h3>${p.name}</h3>
+        <div style="font-size:0.8rem;color:#94a3b8;margin-bottom:20px;">${p.description}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+            <div>
+                <div class="detail-section-title">Detection Indicators</div>
+                ${(p.indicators || []).map(ind => `<div style="font-size:0.72rem;color:#e2e8f0;margin-bottom:4px;">✓ ${ind}</div>`).join('')}
+            </div>
+            <div>
+                <div class="detail-section-title">Appears In (${(p.appears_in || []).length} traditions)</div>
+                ${(p.appears_in || []).map(c => `<div style="font-size:0.72rem;color:#94a3b8;margin-bottom:4px;">• ${c}</div>`).join('')}
+            </div>
+        </div>
+        ${patStat ? `<div style="background:#0d1520;border:1px solid #1e293b;border-radius:8px;padding:16px;margin-bottom:16px;">
+            <div class="detail-section-title">k-NN Scoring Results</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px;">
+                <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:#c9a227;">${patStat.matching_entities}</div><div style="font-size:0.6rem;color:#64748b;">Matching Entities</div></div>
+                <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:#10b981;">${patStat.cultures_represented}</div><div style="font-size:0.6rem;color:#64748b;">Cultures</div></div>
+                <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:#3b82f6;">${patStat.avg_score}</div><div style="font-size:0.6rem;color:#64748b;">Avg Similarity</div></div>
+            </div>
+            <div style="margin-top:12px;">
+                <div class="detail-section-title">Top Matching Entities</div>
+                ${(patStat.top_5 || []).map(t => `<div style="display:flex;justify-content:space-between;font-size:0.72rem;padding:4px 0;border-bottom:1px solid #1e293b;"><span style="color:#e2e8f0;">${t.name}</span><span style="color:#64748b;">${t.culture}</span><span style="color:#c9a227;font-weight:600;">${t.score.toFixed(3)}</span></div>`).join('')}
+            </div>
+            <div style="margin-top:12px;">
+                <div class="detail-section-title">Cultures Confirmed</div>
+                <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">${(patStat.culture_list || []).map(c => `<span style="font-size:0.62rem;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:2px 8px;border-radius:10px;">${c}</span>`).join('')}</div>
+            </div>
+        </div>` : ''}
+        <div class="ai-insight">
+            <div class="ai-insight-label">🧠 Analytical Assessment</div>
+            <p>${patStat && patStat.verdict === 'UNIVERSAL' ?
+                'UNIVERSAL PATTERN CONFIRMED across ' + patStat.cultures_represented + ' independent traditions. This pattern represents a fundamental element of human mythological thinking — appearing in civilizations separated by oceans, millennia, and language families. The convergence cannot be explained by cultural diffusion alone (e.g., Mayan and Sumerian traditions had zero contact). Possible explanations: (1) hardwired human cognitive pattern, (2) shared ancestral memory from pre-dispersal period, (3) independent observation of actual natural phenomena interpreted through mythological framework.'
+                : 'Pattern detected but with limited cultural breadth. Further source material from underrepresented traditions may increase coverage.'}</p>
+        </div>
+    `;
+    document.getElementById('archonModal').classList.add('active');
+}
+
+// Render entities with Level 1 drill-down
+document.getElementById('entityGrid').innerHTML = (data.entities || []).slice(0, 60).map((e, i) => `
+    <div class="entity-card" onclick="toggleEntityDetail(${i}, this)">
+        <div class="ename">${e.name}</div>
+        <div class="etype">${e.type || 'unknown'} · ${e.culture || ''}</div>
+        <div class="edesc">${e.description || ''}</div>
+    </div>
+`).join('');
+
+// Level 1: Entity detail panel
+function toggleEntityDetail(idx, cardEl) {
+    const existing = cardEl.querySelector('.card-detail-panel');
+    if (existing) { existing.remove(); return; }
+    document.querySelectorAll('.entity-card .card-detail-panel').forEach(el => el.remove());
+
+    const e = data.entities[idx];
+    const scores = typeof ARCHON_SCORES !== 'undefined' ? ARCHON_SCORES : null;
+    const entityScore = scores ? (scores.top_cross_cutting || []).find(s => s.name === e.name) : null;
+
+    // Find relationships for this entity
+    const rels = (data.relationships || []).filter(r => r.source === e.name || r.target === e.name);
+
+    let panel = document.createElement('div');
+    panel.className = 'card-detail-panel';
+    panel.innerHTML = `
+        <div class="detail-section">
+            <div class="detail-section-title">Identity</div>
+            <div style="font-size:0.72rem;color:#e2e8f0;"><b>${e.name}</b> ${e.aliases && e.aliases.length ? '(' + e.aliases.join(', ') + ')' : ''}</div>
+            <div style="font-size:0.68rem;color:#94a3b8;margin-top:4px;">${e.culture || ''} · ${e.type || ''}</div>
+        </div>
+        ${rels.length ? `<div class="detail-section">
+            <div class="detail-section-title">Relationships (${rels.length})</div>
+            ${rels.slice(0,5).map(r => `<div style="font-size:0.68rem;color:#94a3b8;margin-bottom:2px;">→ ${r.source === e.name ? r.target : r.source} <span style="color:#c9a227;">(${r.type})</span></div>`).join('')}
+        </div>` : ''}
+        ${entityScore ? `<div class="detail-section">
+            <div class="detail-section-title">Pattern Match</div>
+            <div style="font-size:0.68rem;color:#94a3b8;">Top: ${entityScore.top_pattern} @ ${entityScore.top_score.toFixed(3)} · Cross-cutting: ${entityScore.cross_cutting} patterns</div>
+        </div>` : ''}
+        <div class="ai-insight">
+            <div class="ai-insight-label">🔍 Investigative Insight</div>
+            <p>${generateEntityInsight(e, rels)}</p>
+        </div>
+        <button class="btn-drill" onclick="event.stopPropagation();openEntityModal(${idx})">Deep Dive →</button>
+    `;
+    cardEl.appendChild(panel);
+}
+
+function generateEntityInsight(entity, rels) {
+    const type = entity.type || '';
+    const culture = entity.culture || '';
+    if (type === 'deity' && rels.length > 2) return 'High-connectivity deity — central node in the mythology graph. Cross-reference with parallel traditions to identify structural role (creator, destroyer, trickster, judge).';
+    if (type === 'angel' || type === 'archangel') return 'Intermediary being between divine and human realms. In Enochic tradition, angels who descend = Watchers who bring forbidden knowledge. Pattern: divine agents who break protocol.';
+    if (type === 'hero') return 'Semi-divine figure — typically one divine parent, one human. The existence of heroes across all traditions confirms Pattern #3 (Divine/Human Interbreeding) as universal.';
+    if (type === 'location') return 'Sacred geography — physical sites where mythology anchors to the real world. Cross-reference with Geographic Explorer for archaeological evidence.';
+    if (type === 'group') return 'Collective entity — often represents an entire class of beings (gods, giants, demons). The GROUP entity often carries the most cross-cultural signal.';
+    return 'Entity participates in ' + rels.length + ' known relationships. ' + (culture ? 'Part of the ' + culture + ' tradition.' : '') + ' Evaluate for cross-cultural parallels.';
+}
+
+// Level 2: Entity modal (deep dive)
+function openEntityModal(idx) {
+    const e = data.entities[idx];
+    const rels = (data.relationships || []).filter(r => r.source === e.name || r.target === e.name);
+    const cw = typeof ARCHON_CROSSWALK !== 'undefined' ? ARCHON_CROSSWALK : null;
+    const crosswalkMatch = cw ? (cw.cross_cultural_entity_crosswalk?.mappings || []).find(m =>
+        m.sumerian === e.name || m.irish === e.name || m.greek === e.name || m.hebrew === e.name || m.hindu === e.name
+    ) : null;
+
+    document.getElementById('modalContent').innerHTML = `
+        <h3>${e.name} ${e.aliases && e.aliases.length ? '<span style="font-size:0.75rem;color:#64748b;">(' + e.aliases.join(', ') + ')</span>' : ''}</h3>
+        <div style="display:flex;gap:20px;margin-bottom:20px;">
+            <div style="flex:1;">
+                <div class="detail-section-title">Classification</div>
+                <div style="font-size:0.8rem;color:#e2e8f0;">${e.type || 'unknown'} · ${e.culture || 'unknown'}</div>
+                <div style="font-size:0.75rem;color:#94a3b8;margin-top:8px;">${e.description || 'No description available.'}</div>
+            </div>
+            <div style="flex:1;">
+                <div class="detail-section-title">Relationships (${rels.length})</div>
+                ${rels.map(r => `<div style="font-size:0.72rem;color:#94a3b8;margin-bottom:4px;"><span style="color:#c9a227;">${r.type}</span> → ${r.source === e.name ? r.target : r.source}${r.context ? ' <span style="color:#64748b;">(' + r.context + ')</span>' : ''}</div>`).join('') || '<div style="font-size:0.72rem;color:#64748b;">No relationships recorded</div>'}
+            </div>
+        </div>
+        ${crosswalkMatch ? `<div style="background:rgba(201,162,39,0.06);border:1px solid rgba(201,162,39,0.2);border-radius:8px;padding:14px;margin-bottom:16px;">
+            <div class="detail-section-title">Cross-Cultural Equivalences</div>
+            <div style="font-size:0.72rem;color:#e2e8f0;display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px;">
+                <div><span style="color:#c9a227;">Sumerian:</span> ${crosswalkMatch.sumerian || '—'}</div>
+                <div><span style="color:#10b981;">Irish:</span> ${crosswalkMatch.irish || '—'}</div>
+                <div><span style="color:#3b82f6;">Greek:</span> ${crosswalkMatch.greek || '—'}</div>
+                <div><span style="color:#f59e0b;">Hebrew:</span> ${crosswalkMatch.hebrew || '—'}</div>
+                <div><span style="color:#8b5cf6;">Hindu:</span> ${crosswalkMatch.hindu || '—'}</div>
+            </div>
+            <div style="font-size:0.7rem;color:#94a3b8;margin-top:6px;">Role: ${crosswalkMatch.role}</div>
+        </div>` : ''}
+        <div class="ai-insight">
+            <div class="ai-insight-label">🧠 Deep Analysis</div>
+            <p>${generateDeepInsight(e, rels, crosswalkMatch)}</p>
+        </div>
+    `;
+    document.getElementById('archonModal').classList.add('active');
+}
+
+function generateDeepInsight(entity, rels, crosswalk) {
+    if (crosswalk) return 'This entity has verified parallels across ' + [crosswalk.sumerian, crosswalk.irish, crosswalk.greek, crosswalk.hebrew, crosswalk.hindu].filter(Boolean).length + ' independent traditions — suggesting a structural archetype rather than cultural borrowing. The role "' + crosswalk.role + '" appears in civilizations with NO known contact, strengthening the case for independent convergence on this divine function.';
+    if (rels.length > 3) return 'High-connectivity node (' + rels.length + ' relationships) indicates a central narrative role. Entities with 3+ connections typically represent archetypal functions that recur across traditions. Investigate: does this entity fill the same structural role as a parallel in another culture?';
+    return 'Limited data for cross-cultural comparison. This entity may be culture-specific or may have parallels not yet identified. Recommended: search for entities in other traditions that share the same TYPE (' + (entity.type || 'unknown') + ') and similar relationships.';
+}
+
+function closeModal() { document.getElementById('archonModal').classList.remove('active'); }
+
+// Source text drill-down (clicking culture tags on pattern cards)
+function openSourceModal(sourceName, patternName) {
+    // Find entities from this source/culture
+    const sourceEntities = (data.entities || []).filter(e => {
+        const desc = (e.description || '').toLowerCase() + ' ' + (e.culture || '').toLowerCase();
+        const src = sourceName.toLowerCase();
+        return desc.includes(src.split(' ')[0]) || (e.culture || '').toLowerCase().includes(src.split('(')[0].trim().toLowerCase());
+    });
+
+    // Find source file that matches
+    const sourceFiles = data.sources_processed || [];
+    const matchingFile = sourceFiles.find(f => {
+        const fl = f.toLowerCase();
+        const sl = sourceName.toLowerCase();
+        return fl.includes(sl.split(' ')[0]) || sl.includes(fl.split('_')[0]);
+    });
+
+    // Generate source-specific insight
+    const sourceInsights = {
+        'Gilgamesh Tablet XI': 'Utnapishtim tells Gilgamesh the flood story: divine council decides, Ea warns via wall, builds boat, 7-day storm, lands on Mount Nisir, sends dove/raven, gods regret.',
+        'Atra-Hasis': 'OLDEST flood narrative. Humans created to do gods\' labor. Enlil sends flood because humans are too noisy. Enki warns Atrahasis through a reed wall. Ark built, animals saved.',
+        'Genesis 6-9': 'God sees wickedness, regrets creating man. Instructs Noah to build ark (300×50×30 cubits). 40 days rain. Waters prevail 150 days. Ark on Ararat. Rainbow covenant.',
+        'Eridu Genesis': 'Sumerian version — oldest known. Ziusudra warned by god, builds boat. After flood, granted eternal life. Foundation text for all later versions.',
+        'Matsya Purana (Hindu)': 'Vishnu as fish warns King Manu. Build a ship, gather seven sages, seeds of all life. Tied to fish horn with serpent Vasuki. Waters recede, Manu repopulates.',
+        'Popol Vuh': 'Gods destroy wooden mannikins with flood because they lacked reverence. Flood of resin and water. Later, Hero Twins defeat underworld lords — death/rebirth cycle.',
+        'Deucalion (Greek)': 'Zeus decides to destroy humanity. Prometheus warns son Deucalion. He and wife Pyrrha build chest, survive flood. Throw stones → new humans.',
+        'Nu Wa (Chinese)': 'Gong Gong breaks sky pillar in rage. Sky cracks, floods earth. Nüwa patches sky with 5-colored stones, replaces pillar with turtle legs, dams waters with reed ash.',
+        'Enuma Elish (Babylonian)': 'Tiamat (primeval sea) is slain by Marduk. Her body split to form heaven and earth. Humans created from blood of Kingu to serve the gods.',
+        'Book of Enoch (Watchers)': '200 Watchers descend on Mount Hermon. Take human wives. Offspring are Nephilim giants. Teach forbidden arts (metallurgy, cosmetics, astrology). God sends flood as judgment.',
+    };
+
+    const insight = sourceInsights[sourceName] || 'This tradition contains independent evidence for the pattern "' + patternName + '". The presence of this motif in ' + sourceName + ' strengthens the cross-cultural signal.';
+
+    document.getElementById('modalContent').innerHTML = `
+        <h3 style="font-size:0.95rem;">${sourceName}</h3>
+        <div style="font-size:0.72rem;color:#64748b;margin-bottom:16px;">Evidence for pattern: <span style="color:#c9a227;">${patternName}</span></div>
+
+        <div style="background:#0d1520;border:1px solid #1e293b;border-radius:8px;padding:16px;margin-bottom:16px;">
+            <div class="detail-section-title">Source Narrative</div>
+            <div style="font-size:0.75rem;color:#e2e8f0;line-height:1.7;">${insight}</div>
+        </div>
+
+        ${sourceEntities.length ? `<div style="margin-bottom:16px;">
+            <div class="detail-section-title">Related Entities in Library (${sourceEntities.length})</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
+                ${sourceEntities.slice(0, 15).map(e => `<span style="font-size:0.68rem;background:#111827;border:1px solid #1e293b;padding:4px 10px;border-radius:6px;color:#e2e8f0;">${e.name} <span style="color:#c9a227;font-size:0.6rem;">${e.type || ''}</span></span>`).join('')}
+            </div>
+        </div>` : ''}
+
+        ${matchingFile ? `<div style="font-size:0.68rem;color:#64748b;margin-bottom:12px;">📄 Source file: ${matchingFile}</div>` : ''}
+
+        <div class="ai-insight">
+            <div class="ai-insight-label">🔍 Evidentiary Weight</div>
+            <p>This source constitutes <b>independent corroboration</b> of the "${patternName}" pattern. When the same narrative structure appears in traditions with no cultural contact, it moves from "interesting coincidence" to "statistically significant convergence." Each additional independent source multiplies confidence exponentially — not linearly.</p>
+        </div>
+    `;
+    document.getElementById('archonModal').classList.add('active');
+}
+
+// Render D3 relationship graph
+function renderGraph() {
+    const container = document.getElementById('graphContainer');
+    const w = container.offsetWidth || 900;
+    const h = 400;
+
+    const entities = data.entities || [];
+    const rels = data.relationships || [];
+
+    // Build nodes and links
+    const nodeMap = {};
+    entities.forEach((e, i) => { nodeMap[e.name] = i; });
+
+    const nodes = entities.map(e => ({ id: e.name, type: e.type, culture: e.culture }));
+    const links = rels.filter(r => r.source in nodeMap && r.target in nodeMap)
+        .map(r => ({ source: r.source, target: r.target, type: r.type }));
+
+    if (nodes.length === 0) return;
+
+    const svg = d3.select(container).append('svg').attr('width', w).attr('height', h);
+
+    const sim = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(links).id(d => d.id).distance(80))
+        .force('charge', d3.forceManyBody().strength(-200))
+        .force('center', d3.forceCenter(w/2, h/2));
+
+    const typeColors = { deity: '#c9a227', hero: '#3b82f6', location: '#10b981', artifact: '#f59e0b', creature: '#ef4444', concept: '#8b5cf6' };
+
+    const link = svg.selectAll('line').data(links).enter().append('line')
+        .attr('stroke', '#334155').attr('stroke-width', 1);
+
+    const node = svg.selectAll('circle').data(nodes).enter().append('circle')
+        .attr('r', 8)
+        .attr('fill', d => typeColors[d.type] || '#64748b')
+        .attr('stroke', '#0a0e14').attr('stroke-width', 2)
+        .call(d3.drag().on('start', dragStart).on('drag', dragging).on('end', dragEnd));
+
+    const label = svg.selectAll('text').data(nodes).enter().append('text')
+        .text(d => d.id)
+        .attr('font-size', '0.6rem').attr('fill', '#94a3b8')
+        .attr('dx', 12).attr('dy', 4);
+
+    sim.on('tick', () => {
+        link.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+        node.attr('cx', d => d.x).attr('cy', d => d.y);
+        label.attr('x', d => d.x).attr('y', d => d.y);
+    });
+
+    function dragStart(event, d) { if (!event.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; }
+    function dragging(event, d) { d.fx = event.x; d.fy = event.y; }
+    function dragEnd(event, d) { if (!event.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }
+}
+
+renderGraph();
+
+// Render Pattern Scores
+function renderScores() {
+    const scores = typeof ARCHON_SCORES !== 'undefined' ? ARCHON_SCORES : null;
+    if (!scores || !scores.pattern_stats) return;
+
+    const verdictColors = { UNIVERSAL: '#10b981', WIDESPREAD: '#3b82f6', REGIONAL: '#f59e0b', ISOLATED: '#ef4444' };
+    const stats = Object.values(scores.pattern_stats);
+
+    document.getElementById('verdictCards').innerHTML = stats.map(s => `
+        <div style="background:#111827;border:1px solid #1e293b;border-left:4px solid ${verdictColors[s.verdict] || '#64748b'};border-radius:10px;padding:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span style="font-size:0.78rem;font-weight:700;color:#e2e8f0;">${s.name}</span>
+                <span style="font-size:0.62rem;font-weight:700;padding:2px 10px;border-radius:10px;background:${verdictColors[s.verdict]}22;color:${verdictColors[s.verdict]};border:1px solid ${verdictColors[s.verdict]}44;">${s.verdict}</span>
+            </div>
+            <div style="display:flex;gap:16px;margin-bottom:10px;">
+                <div style="text-align:center;"><div style="font-size:1.2rem;font-weight:700;color:#c9a227;">${s.matching_entities}</div><div style="font-size:0.6rem;color:#64748b;">Entities</div></div>
+                <div style="text-align:center;"><div style="font-size:1.2rem;font-weight:700;color:#c9a227;">${s.cultures_represented}</div><div style="font-size:0.6rem;color:#64748b;">Cultures</div></div>
+                <div style="text-align:center;"><div style="font-size:1.2rem;font-weight:700;color:#c9a227;">${s.avg_score}</div><div style="font-size:0.6rem;color:#64748b;">Avg Score</div></div>
+            </div>
+            <div style="font-size:0.65rem;color:#94a3b8;">Top: ${(s.top_5 || []).slice(0,3).map(t => t.name + ' (' + t.culture.split('/')[0] + ')').join(', ')}</div>
+            <div style="font-size:0.6rem;color:#64748b;margin-top:4px;">Cultures: ${(s.culture_list || []).slice(0,6).join(', ')}</div>
+        </div>
+    `).join('');
+
+    const cc = scores.top_cross_cutting || [];
+    document.getElementById('crossCuttingList').innerHTML = cc.filter(e => e.cross_cutting >= 2).map(e => `
+        <div style="display:flex;align-items:center;gap:12px;padding:8px 14px;background:#111827;border:1px solid #1e293b;border-radius:8px;margin-bottom:6px;">
+            <div style="min-width:28px;height:28px;border-radius:50%;background:rgba(201,162,39,0.15);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:#c9a227;">${e.cross_cutting}</div>
+            <div><span style="font-size:0.78rem;font-weight:600;color:#e2e8f0;">${e.name}</span><span style="font-size:0.65rem;color:#64748b;margin-left:8px;">${e.culture} · ${e.type}</span></div>
+            <div style="margin-left:auto;font-size:0.62rem;color:#c9a227;">${e.top_pattern.replace('arch-00','#')} @ ${e.top_score.toFixed(3)}</div>
+        </div>
+    `).join('');
+}
+renderScores();
+
+// Render Deity Dialogues
+function renderDialogues() {
+    const dlg = typeof ARCHON_DIALOGUES !== 'undefined' ? ARCHON_DIALOGUES : null;
+    if (!dlg) return;
+
+    // Top 3 questions - clickable with drill-down
+    if (dlg.top_questions && dlg.top_questions.questions) {
+        document.getElementById('topQuestionsPanel').innerHTML = `
+            <div style="background:rgba(201,162,39,0.04);border:1px solid rgba(201,162,39,0.2);border-radius:12px;padding:20px;margin-bottom:20px;">
+                <div style="font-size:0.75rem;font-weight:700;color:#c9a227;margin-bottom:12px;">🎯 TOP 3 INVESTIGATIVE QUESTIONS (AI-Generated from Pattern Scores)</div>
+                ${dlg.top_questions.questions.map((q, i) => `
+                    <div style="margin-bottom:14px;padding:12px 16px;border-left:3px solid ${['#c9a227','#10b981','#3b82f6'][i]};background:rgba(0,0,0,0.2);border-radius:0 8px 8px 0;cursor:pointer;" onclick="drillIntoQuestion(${i}, this)">
+                        <div style="font-size:0.8rem;font-weight:600;color:#e2e8f0;">${i+1}. ${q.question}</div>
+                        <div style="font-size:0.7rem;color:#94a3b8;margin-top:4px;">${q.why_it_matters}</div>
+                        ${q.evidence_basis ? `<div style="font-size:0.65rem;color:#64748b;margin-top:2px;">Evidence: ${q.evidence_basis}</div>` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    // Dialogue cards
+    const dialogues = dlg.dialogues || [];
+    document.getElementById('dialoguesPanel').innerHTML = dialogues.map((d, i) => `
+        <div style="background:#111827;border:1px solid #1e293b;border-radius:12px;padding:18px;margin-bottom:12px;cursor:pointer;" onclick="toggleDialogueDetail(${i}, this)">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <span style="font-size:0.82rem;font-weight:700;color:#c9a227;">${d.entity_a.name}</span>
+                    <span style="font-size:0.72rem;color:#64748b;"> (${d.entity_a.culture})</span>
+                    <span style="font-size:0.82rem;color:#e2e8f0;margin:0 8px;">⟷</span>
+                    <span style="font-size:0.82rem;font-weight:700;color:#10b981;">${d.entity_b.name}</span>
+                    <span style="font-size:0.72rem;color:#64748b;"> (${d.entity_b.culture})</span>
+                </div>
+                <span style="font-size:0.62rem;color:#64748b;">${(d.dialogue || []).length} exchanges</span>
+            </div>
+            <div style="font-size:0.68rem;color:#94a3b8;margin-top:6px;">${d.shared_pattern || ''}</div>
+        </div>
+    `).join('');
+}
+
+function toggleDialogueDetail(idx, cardEl) {
+    const existing = cardEl.querySelector('.card-detail-panel');
+    if (existing) { existing.remove(); return; }
+    document.querySelectorAll('#dialoguesPanel .card-detail-panel').forEach(el => el.remove());
+
+    const dlg = ARCHON_DIALOGUES.dialogues[idx];
+    let panel = document.createElement('div');
+    panel.className = 'card-detail-panel';
+
+    const cultureColors = {'Irish': '#10b981', 'Greek': '#3b82f6', 'Norse/Scandinavian': '#8b5cf6', 'Sumerian': '#f59e0b', 'Jewish Aramaic': '#ef4444', 'Chinese': '#ec4899'};
+    const colorA = cultureColors[dlg.entity_a.culture] || '#c9a227';
+    const colorB = cultureColors[dlg.entity_b.culture] || '#10b981';
+
+    panel.innerHTML = `
+        <div style="max-height:400px;overflow-y:auto;margin-bottom:12px;padding-right:8px;">
+            ${(dlg.dialogue || []).map(line => `
+                <div style="margin-bottom:10px;padding-left:${line.speaker === dlg.entity_a.name ? '0' : '40'}px;">
+                    <span style="font-size:0.68rem;font-weight:700;color:${line.speaker === dlg.entity_a.name ? colorA : colorB};">${line.speaker}:</span>
+                    <span style="font-size:0.72rem;color:#e2e8f0;margin-left:6px;">${line.text}</span>
+                </div>
+            `).join('')}
+        </div>
+        <div class="ai-insight">
+            <div class="ai-insight-label">🔍 Investigative Insight</div>
+            <p>${dlg.insight || ''}</p>
+        </div>
+        ${dlg.questions && dlg.questions.length ? `
+            <div style="margin-top:10px;">
+                <div class="detail-section-title">Research Questions Raised</div>
+                ${dlg.questions.map(q => `<div style="font-size:0.7rem;color:#94a3b8;margin-bottom:4px;">• ${q}</div>`).join('')}
+            </div>
+        ` : ''}
+        <button class="btn-drill" onclick="event.stopPropagation();openDialogueModal(${idx})">Full Analysis →</button>
+    `;
+    cardEl.appendChild(panel);
+}
+
+// Drill into investigative question
+function drillIntoQuestion(idx, el) {
+    const existing = el.querySelector('.card-detail-panel');
+    if (existing) { existing.remove(); return; }
+    document.querySelectorAll('#topQuestionsPanel .card-detail-panel').forEach(p => p.remove());
+
+    const dlg = ARCHON_DIALOGUES;
+    const q = dlg.top_questions.questions[idx];
+    const scores = typeof ARCHON_SCORES !== 'undefined' ? ARCHON_SCORES : null;
+
+    // Find relevant pattern
+    const patternKeywords = {
+        0: 'arch-003', // Divine/Human Interbreeding
+        1: 'arch-005', // Pre-Flood Civilization
+        2: 'arch-004', // Underground Retreat
+    };
+    const patternId = patternKeywords[idx] || 'arch-001';
+    const patStat = scores ? scores.pattern_stats[patternId] : null;
+
+    // Find supporting entities
+    const allScored = scores ? scores.top_cross_cutting || [] : [];
+    const relevant = allScored.filter(e => e.cross_cutting >= 2).slice(0, 8);
+
+    let panel = document.createElement('div');
+    panel.className = 'card-detail-panel';
+    panel.innerHTML = `
+        <div class="detail-section">
+            <div class="detail-section-title">Strength of Evidence</div>
+            <div style="display:flex;gap:20px;margin-top:8px;">
+                <div style="text-align:center;"><div style="font-size:1.4rem;font-weight:700;color:#c9a227;">${patStat ? patStat.matching_entities : '?'}</div><div style="font-size:0.6rem;color:#64748b;">Matching Entities</div></div>
+                <div style="text-align:center;"><div style="font-size:1.4rem;font-weight:700;color:#10b981;">${patStat ? patStat.cultures_represented : '?'}</div><div style="font-size:0.6rem;color:#64748b;">Independent Cultures</div></div>
+                <div style="text-align:center;"><div style="font-size:1.4rem;font-weight:700;color:#3b82f6;">${patStat ? patStat.verdict : '?'}</div><div style="font-size:0.6rem;color:#64748b;">Verdict</div></div>
+            </div>
+        </div>
+        <div class="detail-section">
+            <div class="detail-section-title">Key Supporting Entities</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">
+                ${relevant.map(e => `<span style="font-size:0.68rem;background:#0d1520;border:1px solid #1e293b;padding:3px 10px;border-radius:6px;color:#e2e8f0;">${e.name} <span style="color:#64748b;">(${e.culture})</span></span>`).join('')}
+            </div>
+        </div>
+        <div class="detail-section">
+            <div class="detail-section-title">Suggested Next Steps</div>
+            <div style="font-size:0.72rem;color:#94a3b8;line-height:1.7;">
+                ${idx === 0 ? '• Visit Newgrange (Dagda\'s dwelling) and compare with Göbekli Tepe construction<br>• Cross-reference Nephilim accounts with Tuatha Dé Danann "arrival from northern islands"<br>• Analyze DNA studies of ancient populations near megalithic sites' :
+                  idx === 1 ? '• Investigate Göbekli Tepe (9600 BCE) — predates agriculture, implies advanced civilization<br>• Cross-reference Sumerian King List pre-flood lifespans with other longevity traditions<br>• Examine submerged sites: Dwarka (India), Yonaguni (Japan), Doggerland (North Sea)' :
+                  '• Map all "underground retreat" sites: Irish sídhe, Hopi ant-people tunnels, Zoroastrian vara<br>• Investigate passage tomb acoustics (110Hz resonance at Newgrange = altered consciousness)<br>• Compare "hollow earth" traditions across cultures with no known contact'}
+            </div>
+        </div>
+        <div class="ai-insight">
+            <div class="ai-insight-label">🧠 Why This Question Matters for Your Ireland Trip</div>
+            <p>${idx === 0 ? 'At Newgrange, Knowth, and Dowth you\'ll be standing inside the "dwellings" where the Tuatha Dé Danann retreated after their defeat. The Lebor Gabála says they went underground — these ARE the underground places. The question is: did the mythology arise to explain existing ancient structures, or were the structures built BY the beings the mythology describes?' :
+              idx === 1 ? 'The passage tombs at Brú na Bóinne (Newgrange complex) are 500 years OLDER than the Egyptian pyramids and 1000 years older than Stonehenge. They demonstrate astronomical precision (winter solstice alignment) that shouldn\'t exist in "primitive" societies. You\'ll be inside a structure that challenges conventional timelines.' :
+              'Every passage tomb you\'ll visit in Ireland is literally an "underground retreat" — a mound with a hidden chamber inside. The Tuatha retreated INTO these. Globally, from Cappadocia to the Hopi mesas, ancient peoples built underground. The question is whether this represents a shared survival strategy, a shared memory, or a shared instruction.'}</p>
+        </div>
+        <button class="btn-drill" onclick="event.stopPropagation();openQuestionModal(${idx})">Full Research Brief →</button>
+    `;
+    el.appendChild(panel);
+}
+
+function openQuestionModal(idx) {
+    const dlg = ARCHON_DIALOGUES;
+    const q = dlg.top_questions.questions[idx];
+    document.getElementById('modalContent').innerHTML = `
+        <h3>Research Question ${idx + 1}</h3>
+        <div style="font-size:0.9rem;color:#e2e8f0;margin-bottom:16px;font-weight:600;">${q.question}</div>
+        <div style="font-size:0.78rem;color:#94a3b8;margin-bottom:20px;">${q.why_it_matters}</div>
+        <div style="background:#0d1520;border:1px solid #1e293b;border-radius:8px;padding:16px;margin-bottom:16px;">
+            <div class="detail-section-title">Evidence Basis</div>
+            <div style="font-size:0.75rem;color:#e2e8f0;line-height:1.7;">${q.evidence_basis || 'Based on cross-cultural pattern analysis across 266 entities from 13 independent traditions.'}</div>
+        </div>
+        <div class="ai-insight">
+            <div class="ai-insight-label">🔍 Investigator's Playbook</div>
+            <p>To pursue this question rigorously: (1) Identify the physical sites where this pattern manifests — you can VISIT them. (2) Cross-reference archaeological dating with mythological claims. (3) Look for the things that DON'T fit the conventional narrative — those are your leads. (4) Talk to local archaeologists at each site and ask: "What's the one thing about this place that doesn't make sense to you?"</p>
+        </div>
+    `;
+    document.getElementById('archonModal').classList.add('active');
+}
+
+function openDialogueModal(idx) {
+    const dlg = ARCHON_DIALOGUES.dialogues[idx];
+    const cultureColors = {'Irish': '#10b981', 'Greek': '#3b82f6', 'Norse/Scandinavian': '#8b5cf6', 'Sumerian': '#f59e0b', 'Jewish Aramaic': '#ef4444', 'Chinese': '#ec4899'};
+    const colorA = cultureColors[dlg.entity_a.culture] || '#c9a227';
+    const colorB = cultureColors[dlg.entity_b.culture] || '#10b981';
+
+    document.getElementById('modalContent').innerHTML = `
+        <h3>${dlg.entity_a.name} <span style="color:#64748b;font-weight:400;">meets</span> ${dlg.entity_b.name}</h3>
+        <div style="font-size:0.72rem;color:#94a3b8;margin-bottom:20px;">${dlg.shared_pattern || ''}</div>
+
+        <div style="background:#0a0e14;border:1px solid #1e293b;border-radius:10px;padding:20px;max-height:50vh;overflow-y:auto;margin-bottom:20px;">
+            ${(dlg.dialogue || []).map(line => `
+                <div style="margin-bottom:14px;padding-left:${line.speaker === dlg.entity_a.name ? '0' : '50'}px;">
+                    <div style="font-size:0.68rem;font-weight:700;color:${line.speaker === dlg.entity_a.name ? colorA : colorB};margin-bottom:2px;">${line.speaker}</div>
+                    <div style="font-size:0.78rem;color:#e2e8f0;line-height:1.6;">"${line.text}"</div>
+                </div>
+            `).join('')}
+        </div>
+
+        <div class="ai-insight">
+            <div class="ai-insight-label">🧠 Pattern Analysis</div>
+            <p>${dlg.insight || 'No insight generated.'}</p>
+        </div>
+
+        ${dlg.questions && dlg.questions.length ? `
+            <div style="margin-top:16px;">
+                <div class="detail-section-title">Research Agenda (Questions for Investigation)</div>
+                ${dlg.questions.map((q, i) => `
+                    <div style="font-size:0.75rem;color:#e2e8f0;margin-bottom:8px;padding:8px 12px;background:#0d1520;border-radius:6px;border-left:3px solid #c9a227;">
+                        ${i+1}. ${q}
+                    </div>
+                `).join('')}
+            </div>
+        ` : ''}
+    `;
+    document.getElementById('archonModal').classList.add('active');
+}
+
+renderDialogues();
+
+// Render crosswalk tables
+function renderCrosswalk() {
+    const cw = typeof ARCHON_CROSSWALK !== 'undefined' ? ARCHON_CROSSWALK : null;
+    if (!cw) return;
+    const audio = typeof ARCHON_AUDIO !== 'undefined' ? ARCHON_AUDIO : {};
+
+    // Tuatha ↔ Sites table — clickable rows
+    const tuatha = cw.tuatha_de_danann_to_irish_sites?.mappings || [];
+    document.getElementById('crosswalkBody').innerHTML = tuatha.map((m, i) => `
+        <tr style="border-bottom:1px solid #1e293b;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='rgba(201,162,39,0.05)'" onmouseout="this.style.background=''" onclick="toggleCrosswalkDetail(${i}, this)">
+            <td style="padding:8px;font-weight:700;">
+                ${audio[m.entity] ? '<span style="color:#c9a227;margin-right:4px;">🔊</span>' : ''}${m.entity}
+            </td>
+            <td style="padding:8px;color:#94a3b8;">${m.role}</td>
+            <td style="padding:8px;color:#10b981;">${(m.site_names || []).join(', ')}</td>
+            <td style="padding:8px;color:#c9a227;">${m.anunnaki_parallel || '—'}</td>
+            <td style="padding:8px;color:#64748b;font-size:0.68rem;">${m.evidence.substring(0, 80)}...</td>
+        </tr>
+    `).join('');
+
+    // Universal crosswalk
+    const universal = cw.cross_cultural_entity_crosswalk?.mappings || [];
+    document.getElementById('universalBody').innerHTML = universal.map(m => `
+        <tr style="border-bottom:1px solid #1e293b;">
+            <td style="padding:6px;color:#c9a227;">${m.sumerian || '—'}</td>
+            <td style="padding:6px;color:#10b981;">${m.irish || '—'}</td>
+            <td style="padding:6px;color:#3b82f6;">${m.greek || '—'}</td>
+            <td style="padding:6px;color:#f59e0b;">${m.hebrew || '—'}</td>
+            <td style="padding:6px;color:#8b5cf6;">${m.hindu || '—'}</td>
+            <td style="padding:6px;color:#94a3b8;">${m.role}</td>
+        </tr>
+    `).join('');
+}
+
+// Crosswalk row drill-down
+function toggleCrosswalkDetail(idx, rowEl) {
+    const existing = rowEl.nextElementSibling;
+    if (existing && existing.classList.contains('crosswalk-detail-row')) {
+        existing.remove();
+        return;
+    }
+    document.querySelectorAll('.crosswalk-detail-row').forEach(el => el.remove());
+
+    const cw = ARCHON_CROSSWALK;
+    const m = cw.tuatha_de_danann_to_irish_sites.mappings[idx];
+    const audio = typeof ARCHON_AUDIO !== 'undefined' ? ARCHON_AUDIO : {};
+    const audioFile = audio[m.entity];
+
+    const detailRow = document.createElement('tr');
+    detailRow.className = 'crosswalk-detail-row';
+    detailRow.innerHTML = `<td colspan="5" style="padding:0;">
+        <div class="card-detail-panel" style="margin:0;border-radius:0;border-left:4px solid #c9a227;">
+            ${audioFile ? `<div style="margin-bottom:12px;">
+                <button onclick="event.stopPropagation();playBrief('${audioFile}')" style="background:rgba(201,162,39,0.15);border:1px solid rgba(201,162,39,0.4);color:#c9a227;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.72rem;font-weight:600;">
+                    ▶ Play Intelligence Brief (60s)
+                </button>
+                <audio id="audioPlayer" style="display:none;"></audio>
+            </div>` : ''}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div>
+                    <div class="detail-section-title">${m.entity} (${m.aliases ? m.aliases.join(', ') : 'Irish'})</div>
+                    <div style="font-size:0.72rem;color:#e2e8f0;">${m.role}</div>
+                    <div style="font-size:0.7rem;color:#94a3b8;margin-top:6px;">${m.evidence}</div>
+                </div>
+                <div>
+                    <div class="detail-section-title">Sumerian Parallel</div>
+                    <div style="font-size:0.72rem;color:#c9a227;">${m.anunnaki_parallel || 'None identified'}</div>
+                    <div style="font-size:0.7rem;color:#94a3b8;margin-top:6px;">Both share structural role in their respective pantheons. The parallel is functional (same divine job) not etymological (different names, different languages).</div>
+                </div>
+            </div>
+            <div style="margin-top:12px;">
+                <div class="detail-section-title">Sacred Site(s)</div>
+                <div style="font-size:0.72rem;color:#10b981;">${(m.site_names || []).join(' · ')}</div>
+            </div>
+            <div class="ai-insight">
+                <div class="ai-insight-label">🔍 Why This Parallel Matters</div>
+                <p>${generateParallelInsight(m)}</p>
+            </div>
+            <button class="btn-drill" onclick="event.stopPropagation();openCrosswalkModal(${idx})">Full Dossier →</button>
+        </div>
+    </td>`;
+    rowEl.after(detailRow);
+}
+
+function generateParallelInsight(mapping) {
+    const entity = mapping.entity;
+    if (entity === 'Dagda') return 'The Dagda at Newgrange and Enki at Eridu occupy identical structural positions: father-wisdom-trickster gods whose dwelling is the most sacred site in their respective lands. Newgrange (3200 BCE) and Eridu (5400 BCE) are both the oldest ceremonial structures in their regions.';
+    if (entity === 'Lugh' || entity === 'Lug') return 'Lugh arrives at Tara and proves mastery of ALL arts. Marduk arrives in Babylon and proves superiority through combat. Both represent the "new god" pattern — a younger deity who supersedes the old order through demonstrated excellence rather than inheritance.';
+    if (entity === 'Nuada') return 'A king disqualified by physical imperfection (lost hand), then restored by divine medicine (silver prosthetic). This motif — the wounded king whose land suffers until he is healed — appears in Arthurian legend (Fisher King) and may represent seasonal/agricultural cycles.';
+    if (entity === 'Morrigan') return 'War goddess who mates with the father god before battle (Morrigan + Dagda) mirrors Inanna who descends/ascends bringing fertility and destruction. Both embody the terrifying feminine: sovereignty is theirs to grant or withhold.';
+    if (entity === 'Tuatha Dé Danann') return 'A divine race arrives from elsewhere with advanced knowledge, rules for a time, then retreats underground into the very passage tombs you can visit today. The Anunnaki similarly "came from heaven" and retreated to the Abzu (underground ocean). The structural parallel is exact.';
+    return 'Cross-cultural structural parallel identified through k-NN cosine similarity scoring. The match is based on functional role within the pantheon, not surface-level name similarity.';
+}
+
+function playBrief(audioFile) {
+    let player = document.getElementById('audioPlayer');
+    if (!player) {
+        player = document.createElement('audio');
+        player.id = 'audioPlayer';
+        document.body.appendChild(player);
+    }
+    if (player.src && player.src.includes(audioFile) && !player.paused) {
+        player.pause();
+        return;
+    }
+    player.src = audioFile;
+    player.play();
+}
+
+function openCrosswalkModal(idx) {
+    const cw = ARCHON_CROSSWALK;
+    const m = cw.tuatha_de_danann_to_irish_sites.mappings[idx];
+    const audio = typeof ARCHON_AUDIO !== 'undefined' ? ARCHON_AUDIO : {};
+    const audioFile = audio[m.entity];
+
+    document.getElementById('modalContent').innerHTML = `
+        <h3>${m.entity} ${m.aliases ? '<span style="font-size:0.75rem;color:#64748b;">(' + m.aliases.join(', ') + ')</span>' : ''}</h3>
+        ${audioFile ? `<button onclick="playBrief('${audioFile}')" style="background:rgba(201,162,39,0.15);border:1px solid rgba(201,162,39,0.4);color:#c9a227;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:0.78rem;font-weight:600;margin-bottom:16px;">▶ Play Full Intelligence Brief</button>` : ''}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+            <div style="background:#0d1520;border-radius:8px;padding:14px;border:1px solid #1e293b;">
+                <div class="detail-section-title" style="color:#10b981;">Irish Tradition</div>
+                <div style="font-size:0.82rem;font-weight:600;color:#e2e8f0;margin-bottom:6px;">${m.entity}</div>
+                <div style="font-size:0.72rem;color:#94a3b8;">${m.role}</div>
+                <div style="font-size:0.72rem;color:#10b981;margin-top:8px;">📍 ${(m.site_names || []).join(', ')}</div>
+            </div>
+            <div style="background:#0d1520;border-radius:8px;padding:14px;border:1px solid #1e293b;">
+                <div class="detail-section-title" style="color:#c9a227;">Sumerian Parallel</div>
+                <div style="font-size:0.82rem;font-weight:600;color:#e2e8f0;margin-bottom:6px;">${(m.anunnaki_parallel || '—').split('—')[0].trim()}</div>
+                <div style="font-size:0.72rem;color:#94a3b8;">${(m.anunnaki_parallel || '').includes('—') ? m.anunnaki_parallel.split('—')[1] : ''}</div>
+            </div>
+        </div>
+        <div style="background:#0d1520;border-radius:8px;padding:14px;border:1px solid #1e293b;margin-bottom:16px;">
+            <div class="detail-section-title">Full Evidence</div>
+            <div style="font-size:0.75rem;color:#e2e8f0;line-height:1.7;">${m.evidence}</div>
+        </div>
+        <div class="ai-insight">
+            <div class="ai-insight-label">🧠 Investigator's Assessment</div>
+            <p>${generateParallelInsight(m)}</p>
+        </div>
+    `;
+    document.getElementById('archonModal').classList.add('active');
+}
+
+renderCrosswalk();
+
+// Tab navigation
+function showTab(tab) {
+    document.querySelectorAll('.archon-nav a').forEach(a => a.classList.remove('active'));
+    event.target.classList.add('active');
+    const el = document.getElementById(tab === 'overview' ? 'stats' : tab);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
