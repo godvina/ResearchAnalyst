@@ -1,0 +1,8 @@
+{
+  "task": "Process full HuggingFace Epstein corpus (1.38M docs) via tiered pipeline",
+  "estimated_cost": "$50-70",
+  "approach": "Download parquet \u2192 Tier 1 keyword filter \u2192 Tier 2 embed filtered \u2192 Tier 3 Haiku on top matches",
+  "source": "huggingface.co/datasets/ishumilin/epstein-files-ocr-complete",
+  "status": "PARKED \u2014 awaiting user decision",
+  "notes": "Would give complete coverage of all 12 DOJ datasets vs current 3,804 file subset"
+}
