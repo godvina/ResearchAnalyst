@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ancient Mysteries — Investigation Hub</title>
+<link rel="stylesheet" href="common.css">
+<script src="config.js"></script>
+<script src="geographic-explorer-data.js"></script>
+<style>
+.hero { padding: 40px 32px; max-width: 1400px; margin: 0 auto; }
+.hero-title { font-size: 2rem; font-weight: 700; color: #e2e8f0; margin-bottom: 8px; }
+.hero-subtitle { font-size: 0.9rem; color: #718096; line-height: 1.6; max-width: 700px; }
+.stats-row { display: flex; gap: 24px; margin: 24px 0; flex-wrap: wrap; }
+.stat-pill { background: rgba(255,255,255,0.03); border: 1px solid #2d3748; border-radius: 10px; padding: 12px 20px; }
+.stat-pill .val { font-size: 1.4rem; font-weight: 700; color: #48bb78; }
+.stat-pill .lbl { font-size: 0.68rem; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+.country-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; margin: 32px 0; }
+.country-card { background: linear-gradient(135deg, #1a2332, #243447); border: 1px solid #2d3748; border-radius: 14px; padding: 24px; cursor: pointer; transition: all 0.25s; text-decoration: none; color: inherit; display: block; position: relative; border-top: 3px solid #48bb78; }
+.country-card:hover { border-color: #63b3ed; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(99,179,237,0.15); }
+.country-card .card-flag { font-size: 2.4rem; margin-bottom: 12px; }
+.country-card .card-title { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; margin-bottom: 6px; }
+.country-card .card-desc { font-size: 0.78rem; color: #a0aec0; line-height: 1.5; margin-bottom: 12px; }
+.country-card .card-stats { font-size: 0.7rem; color: #63b3ed; }
+.country-card.coming-soon { opacity: 0.5; border-top-color: #4a5568; cursor: default; }
+.country-card.coming-soon:hover { transform: none; box-shadow: none; border-color: #2d3748; }
+.country-card .coming-badge { position: absolute; top: 12px; right: 12px; font-size: 0.6rem; background: rgba(246,173,85,0.15); border: 1px solid rgba(246,173,85,0.3); color: #f6ad55; padding: 2px 8px; border-radius: 10px; }
+
+.patterns-section { margin: 40px 0; }
+.patterns-section h2 { font-size: 1rem; color: #b794f4; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.pattern-item { background: rgba(183,148,244,0.04); border: 1px solid rgba(183,148,244,0.15); border-radius: 10px; padding: 14px 18px; margin-bottom: 10px; }
+.pattern-item .p-name { font-size: 0.75rem; font-weight: 700; color: #b794f4; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.pattern-item .p-desc { font-size: 0.78rem; color: #cbd5e0; line-height: 1.5; }
+
+.global-section { margin: 40px 0; }
+.global-section h2 { font-size: 1rem; color: #f6ad55; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.global-tag { display: inline-block; background: rgba(246,173,85,0.1); border: 1px solid rgba(246,173,85,0.25); color: #f6ad55; border-radius: 8px; padding: 6px 12px; margin: 4px; font-size: 0.7rem; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🏛️ Ancient Mysteries — <span>Investigation Hub</span></h1>
+    <div class="header-right">
+        <div class="header-badge">AI Investigation Platform</div>
+    </div>
+</div>
+
+<div class="nav-bar">
+    <a href="index.html" class="nav-link">🏠 Home</a>
+    <a href="ancient-mysteries.html" class="nav-link active">🏛️ Ancient Mysteries</a>
+    <a href="geographic-explorer.html" class="nav-link">🗺️ Explorer</a>
+    <a href="grid-globe.html" class="nav-link">🌐 Globe</a>
+    <a href="pattern-library.html" class="nav-link">📚 Pattern Library</a>
+    <a href="theory-investigation.html" class="nav-link">🔬 Theory Investigation</a>
+</div>
+
+<div class="hero">
+    <div class="hero-title">Ancient Mysteries Investigation</div>
+    <div class="hero-subtitle">AI-driven investigation of archaeological anomalies, astronomical alignments, construction mysteries, and cross-cultural patterns. Each site scored against taxonomy signatures, with research missions to advance the case.</div>
+    
+    <div class="stats-row" id="statsRow"></div>
+</div>
+
+<div style="max-width:1400px;margin:0 auto;padding:0 32px;">
+    
+    <!-- Country cards -->
+    <div class="country-grid" id="countryGrid"></div>
+
+    <!-- Cross-Site Patterns -->
+    <div class="patterns-section" id="patternsSection"></div>
+
+    <!-- Global Connections -->
+    <div class="global-section" id="globalSection"></div>
+
+</div>
+
+<script>
+function init() {
+    renderStats();
+    renderCountryCards();
+    renderPatterns();
+    renderGlobalConnections();
+}
+
+function renderStats() {
+    const totalSites = GEO_SITES.length;
+    const countries = Object.keys(GEO_REGIONS).length;
+    const allScores = GEO_SITES.flatMap(s => Object.values(s.taxonomy_matches || {}));
+    const proven = allScores.filter(s => s >= 0.80).length;
+    const active = allScores.filter(s => s >= 0.40 && s < 0.80).length;
+    const crossDomain = GEO_SITES.filter(s => s.cross_domain_connections && s.cross_domain_connections.length >= 2).length;
+
+    document.getElementById('statsRow').innerHTML = `
+        <div class="stat-pill"><div class="val">${totalSites}</div><div class="lbl">Sites Under Investigation</div></div>
+        <div class="stat-pill"><div class="val">${countries}</div><div class="lbl">Countries</div></div>
+        <div class="stat-pill"><div class="val" style="color:#48bb78;">${proven}</div><div class="lbl">Proven Theories</div></div>
+        <div class="stat-pill"><div class="val" style="color:#ecc94b;">${active}</div><div class="lbl">Active Investigations</div></div>
+        <div class="stat-pill"><div class="val" style="color:#f6ad55;">${crossDomain}</div><div class="lbl">Cross-Domain Sites</div></div>
+    `;
+}
+
+function renderCountryCards() {
+    const grid = document.getElementById('countryGrid');
+    let html = '';
+
+    // Ireland card (live)
+    const irelandRegions = Object.keys(GEO_REGIONS['Ireland'] || {});
+    const irelandSites = GEO_SITES.filter(s => s.region);
+    const irelandProven = irelandSites.flatMap(s => Object.values(s.taxonomy_matches || {})).filter(s => s >= 0.80).length;
+    
+    html += `<a href="geographic-explorer.html" class="country-card">
+        <div class="card-flag">🇮🇪</div>
+        <div class="card-title">Ireland</div>
+        <div class="card-desc">Passage tombs, acoustic chambers, hilltop signal networks, and astronomical alignments spanning 5,800 years. The Boyne Valley complex alone predates the Giza pyramids by 500 years.</div>
+        <div class="card-stats">${irelandSites.length} sites · ${irelandRegions.length} regions · ${irelandProven} proven theories · 4 UNESCO sites</div>
+    </a>`;
+
+    // Coming soon cards
+    const future = [
+        { flag: '🇪🇬', name: 'Egypt', desc: 'Giza complex, Karnak Temple, Luxor — precision alignment, acoustic resonance, astronomical encoding.', status: 'Coming Soon' },
+        { flag: '🇵🇪', name: 'Peru', desc: 'Machu Picchu, Nazca Lines, Chavín de Huántar — acoustic chambers, astronomical alignments, impossible construction.', status: 'Coming Soon' },
+        { flag: '🇲🇹', name: 'Malta', desc: 'Hal Saflieni Hypogeum, Ħaġar Qim — 110Hz acoustic resonance, astronomical temple alignment, 7000-year-old complexes.', status: 'Coming Soon' },
+        { flag: '🇰🇭', name: 'Cambodia', desc: 'Angkor Wat, Angkor Thom — dual equinox alignment system, geographic precision, astronomical encoding in temple layout.', status: 'Coming Soon' },
+        { flag: '🇬🇧', name: 'England', desc: 'Stonehenge, Avebury, Wayland Smithy — megalithic yard, ley lines, 110Hz resonance, solstice alignment network.', status: 'Coming Soon' },
+    ];
+
+    for (const f of future) {
+        html += `<div class="country-card coming-soon">
+            <span class="coming-badge">${f.status}</span>
+            <div class="card-flag">${f.flag}</div>
+            <div class="card-title">${f.name}</div>
+            <div class="card-desc">${f.desc}</div>
+            <div class="card-stats">Pending data load</div>
+        </div>`;
+    }
+
+    grid.innerHTML = html;
+}
+
+function renderPatterns() {
+    const section = document.getElementById('patternsSection');
+    const patterns = GEO_CROSS_PATTERNS.cross_site_patterns;
+    
+    let html = '<h2>🔗 Cross-Site Patterns</h2>';
+    for (const [name, desc] of Object.entries(patterns)) {
+        html += `<div class="pattern-item">
+            <div class="p-name">${name.replace(/_/g, ' ')}</div>
+            <div class="p-desc">${desc}</div>
+        </div>`;
+    }
+    section.innerHTML = html;
+}
+
+function renderGlobalConnections() {
+    const section = document.getElementById('globalSection');
+    const connections = GEO_CROSS_PATTERNS.global_connections;
+    
+    let html = '<h2>🌍 Global Connection Network</h2>';
+    html += '<p style="font-size:0.78rem;color:#a0aec0;margin-bottom:16px;">Sites worldwide that share patterns with Irish sacred sites — evidence of shared knowledge or independent convergence:</p>';
+    
+    for (const [connType, sites] of Object.entries(connections)) {
+        html += `<div style="margin-bottom:12px;"><div style="font-size:0.7rem;color:#f6ad55;font-weight:600;margin-bottom:6px;">${connType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</div>`;
+        for (const site of sites) {
+            html += `<span class="global-tag">${site}</span>`;
+        }
+        html += '</div>';
+    }
+    section.innerHTML = html;
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
