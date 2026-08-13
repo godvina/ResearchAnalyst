@@ -111,6 +111,23 @@ This gives you ~6,000 pre-processed Epstein case documents ready to go.
 
 Upload PDFs to `s3://YOUR-BUCKET/cases/YOUR-CASE-ID/raw/` and use the batch loader UI.
 
+**IMPORTANT: Always use tiered processing for large datasets.** Never bulk-load raw documents
+directly into Aurora/Neptune/OpenSearch. See `docs/lessons-learned-tiered-data-processing.md`.
+
+```bash
+# Tier 1: Keyword filter (free, 23 seconds for 3,804 files)
+python scripts/epstein_tiered_scan.py --tier 1
+
+# Tier 2: Embed only filtered files ($0.02 for 225 files)
+python scripts/epstein_tiered_scan.py --tier 2
+
+# Tier 3: Claude Haiku on top matches ($0.25 for 195 files)
+python scripts/epstein_tiered_scan.py --tier 3
+```
+
+This eliminates 94% of junk (blank pages, forms, cover sheets) before it reaches
+the knowledge graph, keeping Neptune/OpenSearch clean and k-NN searches accurate.
+
 ---
 
 ## Step 6: Open the Frontend
@@ -208,6 +225,7 @@ When passing to ProServe for customer deployment:
 
 - Full deployment guide: `docs/deployment-guide.md`
 - Lessons learned (52+ issues): `docs/lessons-learned.md`
+- **Tiered data processing (MUST READ):** `docs/lessons-learned-tiered-data-processing.md`
 - Data sharing guide: `docs/data-sharing-guide.md`
 - Environment setup (detailed): `docs/environment-setup-guide.md`
 - 500TB ingestion architecture: `docs/500tb-ingestion-architecture.md`
