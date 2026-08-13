@@ -1,0 +1,320 @@
+{
+  "evaluation_run": {
+    "timestamp": "2026-08-02T15:38:04.943614+00:00",
+    "standard": "scientific",
+    "model": "us.anthropic.claude-3-haiku-20240307-v1:0",
+    "theories_evaluated": 8
+  },
+  "summary": {
+    "proven": 0,
+    "unproven": 8,
+    "insufficient": 0,
+    "average_score": 0.425
+  },
+  "results": [
+    {
+      "theory_id": "fe-001",
+      "title": "Earth is a Flat Disc",
+      "claim": "The Earth is a flat circular disc with the Arctic at the center and Antarctica as a 150-foot ice wall around the circumference",
+      "verdict": "UNPROVEN",
+      "overall_score": 0.4,
+      "checklist_items": [
+        {
+          "item": "Falsifiable hypothesis stated",
+          "score": 1.0,
+          "justification": "The finding states a specific, testable prediction that traveling south should eventually reach an ice wall, rather than circling to the opposite hemisphere, which would contradict the spherical Earth"
+        },
+        {
+          "item": "Statistical significance demonstrated (p<0.05)",
+          "score": 0.0,
+          "justification": "The available evidence does not demonstrate statistical significance or any rigorous statistical analysis to support the claim of a flat, circular Earth. The evidence consists of anecdotal observation"
+        },
+        {
+          "item": "Independent replication achieved or achievable",
+          "score": 1.0,
+          "justification": "The available evidence clearly shows that the flat Earth model has been disproven through numerous independent observations and experiments, including circumnavigation, satellite imagery, and the exis"
+        },
+        {
+          "item": "Peer critique addressed",
+          "score": 0.0,
+          "justification": "The available evidence strongly contradicts the flat Earth model. The observations of ships disappearing hull-first over the horizon, different stars visible at different latitudes, and successful cir"
+        },
+        {
+          "item": "Alternative explanations systematically eliminated",
+          "score": 0.0,
+          "justification": "The available evidence does not eliminate alternative explanations for the findings, and in fact actively contradicts the flat Earth model in multiple ways."
+        }
+      ],
+      "research_directions": [
+        "Evidence actively contradicts this finding.",
+        "To rehabilitate: provide evidence addressing the contradiction directly."
+      ]
+    },
+    {
+      "theory_id": "fe-002",
+      "title": "No Curvature Measurable",
+      "claim": "Earth's curvature of 8 inches per mile squared is never observed or measured in real-world conditions",
+      "verdict": "UNPROVEN",
+      "overall_score": 0.65,
+      "checklist_items": [
+        {
+          "item": "Falsifiable hypothesis stated",
+          "score": 1.0,
+          "justification": "The available evidence includes a clear, falsifiable hypothesis stating that a laser or telescope should be able to see objects at any distance over water with no drop-off, which would contradict the "
+        },
+        {
+          "item": "Statistical significance demonstrated (p<0.05)",
+          "score": 0.0,
+          "justification": "The available evidence does not provide any statistical analysis or quantitative measurements demonstrating a significant deviation from the expected curvature of the Earth. The qualitative observatio"
+        },
+        {
+          "item": "Independent replication achieved or achievable",
+          "score": 1.0,
+          "justification": "The Bedford Level experiment and other surveying methods have repeatedly and independently demonstrated the Earth's curvature, contradicting the claim that it is never observed or measured."
+        },
+        {
+          "item": "Peer critique addressed",
+          "score": 1.0,
+          "justification": "The available evidence comprehensively contradicts the claim that Earth's curvature is never observed or measured in real-world conditions. Multiple lines of evidence, including surveying, engineering"
+        },
+        {
+          "item": "Alternative explanations systematically eliminated",
+          "score": 0.5,
+          "justification": "The available evidence demonstrates that alternative explanations like atmospheric refraction can account for some apparent violations of the predicted curvature, but does not systematically eliminate"
+        }
+      ],
+      "research_directions": [
+        "Evidence actively contradicts this finding.",
+        "To rehabilitate: provide evidence addressing the contradiction directly."
+      ]
+    },
+    {
+      "theory_id": "fe-003",
+      "title": "NASA Fakes All Space Imagery",
+      "claim": "All photographs of Earth from space are computer-generated composites, and no genuine photograph of the whole Earth exists",
+      "verdict": "UNPROVEN",
+      "overall_score": 0.4,
+      "checklist_items": [
+        {
+          "item": "Falsifiable hypothesis stated",
+          "score": 0.0,
+          "justification": "The claim that 'all photographs of Earth from space are computer-generated composites' is not falsifiable, as it does not provide a clear, testable prediction that could be used to verify or refute th"
+        },
+        {
+          "item": "Statistical significance demonstrated (p<0.05)",
+          "score": 0.0,
+          "justification": "The available evidence does not provide any statistical analysis or quantitative data to demonstrate statistical significance at the p<0.05 level. The evidence consists of qualitative observations and"
+        },
+        {
+          "item": "Independent replication achieved or achievable",
+          "score": 1.0,
+          "justification": "The available evidence clearly shows that Earth imagery is independently produced and verified by multiple space agencies, private companies, amateur astronomers, and other non-NASA sources, contradic"
+        },
+        {
+          "item": "Peer critique addressed",
+          "score": 1.0,
+          "justification": "The available evidence from multiple independent space agencies, private companies, and amateur observations contradicts the claim that all photographs of Earth from space are computer-generated compo"
+        },
+        {
+          "item": "Alternative explanations systematically eliminated",
+          "score": 0.0,
+          "justification": "The available evidence does not systematically eliminate alternative explanations for the existence of Earth imagery. There is ample evidence from independent space agencies, private companies, and am"
+        }
+      ],
+      "research_directions": [
+        "Evidence actively contradicts this finding.",
+        "To rehabilitate: provide evidence addressing the contradiction directly."
+      ]
+    },
+    {
+      "theory_id": "fe-004",
+      "title": "Gravity Does Not Exist",
+      "claim": "Gravity is not a force; objects fall because of density and buoyancy alone, and the flat earth accelerates upward at 9.8 m/s²",
+      "verdict": "UNPROVEN",
+      "overall_score": 0.15,
+      "checklist_items": [
+        {
+          "item": "Falsifiable hypothesis stated",
+          "score": 1.0,
+          "justification": "The proposed hypothesis that objects of different densities should fall at different rates in a vacuum is a clear, falsifiable prediction that could be used to test the claim that gravity is not a for"
+        },
+        {
+          "item": "Statistical significance demonstrated (p<0.05)",
+          "score": 0.0,
+          "justification": "The available evidence does not demonstrate statistical significance for the claim that objects fall due to density and buoyancy alone, rather than gravity. The Cavendish experiment, lunar feather dro"
+        },
+        {
+          "item": "Independent replication achieved or achievable",
+          "score": 0.0,
+          "justification": "The available evidence actively contradicts the claim that objects fall due to density and buoyancy alone, as demonstrated by experiments in vacuum and satellites maintaining orbits due to gravitation"
+        },
+        {
+          "item": "Peer critique addressed",
+          "score": 0.0,
+          "justification": "The available evidence strongly contradicts the claim that gravity is not a force and that objects fall due to density and buoyancy alone. Several well-established experimental results, such as the Ca"
+        },
+        {
+          "item": "Alternative explanations systematically eliminated",
+          "score": 0.0,
+          "justification": "The available evidence does not systematically eliminate the force of gravity as an explanation for objects falling. Several key pieces of evidence, such as the Cavendish experiment, Moon-based feathe"
+        }
+      ],
+      "research_directions": [
+        "Evidence actively contradicts this finding.",
+        "To rehabilitate: provide evidence addressing the contradiction directly."
+      ]
+    },
+    {
+      "theory_id": "fe-005",
+      "title": "Antarctica Treaty Hides the Ice Wall",
+      "claim": "The Antarctic Treaty System exists to prevent civilians from independently exploring Antarctica and discovering the ice wall edge of the flat earth",
+      "verdict": "UNPROVEN",
+      "overall_score": 0.25,
+      "checklist_items": [
+        {
+          "item": "Falsifiable hypothesis stated",
+          "score": 0.0,
+          "justification": "The available evidence directly contradicts the hypothesis, as it shows that thousands of civilians regularly visit and travel across Antarctica, which is the opposite of what the finding claims."
+        },
+        {
+          "item": "Statistical significance demonstrated (p<0.05)",
+          "score": 0.0,
+          "justification": "The available evidence strongly contradicts the claim that the Antarctic Treaty System exists to prevent civilians from independently exploring Antarctica. The evidence shows that thousands of tourist"
+        },
+        {
+          "item": "Independent replication achieved or achievable",
+          "score": 1.0,
+          "justification": "The available evidence clearly shows that independent civilian expeditions have been able to travel to and across Antarctica, contradicting the claim that the Antarctic Treaty System prevents such exp"
+        },
+        {
+          "item": "Peer critique addressed",
+          "score": 0.0,
+          "justification": "The available evidence strongly contradicts the claim that the Antarctic Treaty System exists to prevent civilians from independently exploring Antarctica. The evidence shows that thousands of civilia"
+        },
+        {
+          "item": "Alternative explanations systematically eliminated",
+          "score": 0.0,
+          "justification": "The available evidence clearly contradicts the claim, as it shows that thousands of civilians regularly visit and cross Antarctica through tourism, expeditions, and research activities. The claim that"
+        }
+      ],
+      "research_directions": [
+        "Evidence actively contradicts this finding.",
+        "To rehabilitate: provide evidence addressing the contradiction directly."
+      ]
+    },
+    {
+      "theory_id": "fe-006",
+      "title": "Sun is Local and Small",
+      "claim": "The sun is not 93 million miles away but approximately 3,000 miles above the flat earth disc, circling above like a spotlight",
+      "verdict": "UNPROVEN",
+      "overall_score": 0.15,
+      "checklist_items": [
+        {
+          "item": "Falsifiable hypothesis stated",
+          "score": 1.0,
+          "justification": "The finding includes a specific, falsifiable prediction about the sun's angular size changing throughout the day, which can be tested empirically."
+        },
+        {
+          "item": "Statistical significance demonstrated (p<0.05)",
+          "score": 0.0,
+          "justification": "The available evidence does not demonstrate any statistically significant change in the sun's angular diameter throughout the day, which contradicts the prediction of the flat earth model."
+        },
+        {
+          "item": "Independent replication achieved or achievable",
+          "score": 0.0,
+          "justification": "The flat earth model of the sun being 3,000 miles away makes testable predictions that are contradicted by many independent, well-established observations. The sun's angular size being constant throug"
+        },
+        {
+          "item": "Peer critique addressed",
+          "score": 0.0,
+          "justification": "The available evidence contradicts the claim that the sun is approximately 3,000 miles above a flat earth disc. Multiple independent lines of evidence confirm the sun's distance to be around 93 millio"
+        },
+        {
+          "item": "Alternative explanations systematically eliminated",
+          "score": 0.0,
+          "justification": "The available evidence does not systematically eliminate alternative explanations for the sun's motion and distance. Several observations contradict the flat earth model, including the constant angula"
+        }
+      ],
+      "research_directions": [
+        "Evidence actively contradicts this finding.",
+        "To rehabilitate: provide evidence addressing the contradiction directly."
+      ]
+    },
+    {
+      "theory_id": "fe-007",
+      "title": "Stars Are Not Distant Suns",
+      "claim": "Stars are small luminaries embedded in a firmament dome above the flat earth, not distant suns trillions of miles away",
+      "verdict": "UNPROVEN",
+      "overall_score": 0.65,
+      "checklist_items": [
+        {
+          "item": "Falsifiable hypothesis stated",
+          "score": 0.0,
+          "justification": "The claim that 'stars are small luminaries embedded in a firmament dome above the flat earth' does not provide a falsifiable hypothesis. It is an assertion that cannot be empirically tested or disprov"
+        },
+        {
+          "item": "Statistical significance demonstrated (p<0.05)",
+          "score": 1.0,
+          "justification": "The available evidence clearly demonstrates statistically significant stellar parallax, measured to a high degree of precision by multiple space-based telescopes over decades. This directly contradict"
+        },
+        {
+          "item": "Independent replication achieved or achievable",
+          "score": 1.0,
+          "justification": "The extensive measurements of stellar parallax by multiple independent missions (Hipparcos, Gaia) over decades provide overwhelming evidence that stars are distant objects, not fixed lights on a firma"
+        },
+        {
+          "item": "Peer critique addressed",
+          "score": 1.0,
+          "justification": "The available evidence, including stellar parallax measurements, spectra analysis, observation of binary star systems, and detection of neutrinos from stellar fusion, clearly contradicts the claim tha"
+        },
+        {
+          "item": "Alternative explanations systematically eliminated",
+          "score": 0.0,
+          "justification": "The available evidence clearly contradicts the claim that stars are embedded in a firmament dome above a flat earth. Extensive observations of stellar parallax, binary star systems, galaxy structure, "
+        }
+      ],
+      "research_directions": [
+        "Evidence actively contradicts this finding.",
+        "To rehabilitate: provide evidence addressing the contradiction directly."
+      ]
+    },
+    {
+      "theory_id": "fe-008",
+      "title": "Flights in Southern Hemisphere Prove Flat Earth",
+      "claim": "Direct flights in the southern hemisphere take longer than expected because the distances are greater on a flat disc than on a sphere",
+      "verdict": "UNPROVEN",
+      "overall_score": 0.75,
+      "checklist_items": [
+        {
+          "item": "Falsifiable hypothesis stated",
+          "score": 1.0,
+          "justification": "The finding presents a falsifiable hypothesis - that direct flights in the southern hemisphere take longer than expected on a spherical earth. This hypothesis can be tested by comparing actual flight "
+        },
+        {
+          "item": "Statistical significance demonstrated (p<0.05)",
+          "score": 0.0,
+          "justification": "The available evidence clearly contradicts the claim that direct flights in the southern hemisphere take longer than expected due to a flat Earth. The actual flight times on major routes match the pre"
+        },
+        {
+          "item": "Independent replication achieved or achievable",
+          "score": 1.0,
+          "justification": "The available evidence, including real-world flight data and airline operations, clearly shows that flight times match expectations based on a spherical earth model, actively contradicting the claim o"
+        },
+        {
+          "item": "Peer critique addressed",
+          "score": 1.0,
+          "justification": "The available evidence clearly contradicts the claim that southern hemisphere flights take longer than expected on a flat earth, as multiple examples demonstrate that actual flight times match the gre"
+        },
+        {
+          "item": "Alternative explanations systematically eliminated",
+          "score": 1.0,
+          "justification": "The available evidence clearly contradicts the finding and systematically eliminates alternative explanations. Actual flight times and paths match spherical geometry predictions, while the flat earth "
+        }
+      ],
+      "research_directions": [
+        "Evidence actively contradicts this finding.",
+        "To rehabilitate: provide evidence addressing the contradiction directly."
+      ]
+    }
+  ]
+}
