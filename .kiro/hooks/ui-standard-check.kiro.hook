@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "UI Standard Compliance Check",
+  "description": "When creating or editing HTML files in src/frontend/, verify the file includes: common.css import, design token usage (no ad-hoc colors), AI Intelligence Brief panel, Theory Verdict Cards, and follows one of the 3 layout templates (two-column, card-grid, detail-panel). Flag any missing components.",
+  "version": "1",
+  "when": {
+    "type": "fileCreated",
+    "patterns": [
+      "src/frontend/*.html"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A new frontend HTML file was created. Check it against the AI Investigation UI Standard (.kiro/steering/ai-investigation-ui-standard.md). Verify it includes: 1) common.css import, 2) design tokens (no ad-hoc hex colors), 3) AI Intelligence Brief panel (blue-bordered, 🤖 header), 4) Theory Verdict Cards section, 5) Research Missions panel, 6) Documentary View toggle, 7) Uses one of 3 layout templates (two-column, card-grid, detail-panel), 8) Leaflet + D3 CDN links, 9) narratives.js script tag. Report any missing components and add them."
+  }
+}
