@@ -211,7 +211,7 @@ Respond in JSON:
 }}"""
 
         response = self.bedrock.invoke_model(
-            modelId="anthropic.claude-sonnet-4-20250514-v1:0",
+            modelId="us.anthropic.claude-sonnet-4-20250514-v1:0",
             body=json.dumps({
                 "anthropic_version": "bedrock-2023-05-31",
                 "max_tokens": 500,
