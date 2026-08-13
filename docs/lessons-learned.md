@@ -1740,3 +1740,62 @@ aws opensearchserverless batch-get-collection --names research-analyst-search --
 - Endpoint: `https://hzrvvva3hodw069v9442.us-east-1.aoss.amazonaws.com`
 
 **Remaining for next session**: The Score Lambda's Aurora INSERT/UPSERT columns don't match the actual schema. Need to verify column names match between `_store_results()` in `score_typology.py` and the actual `typology_precomputed_results` table schema. The fix made earlier in this session may not have been deployed correctly (multiple deploys).
+
+
+## Issue 34: Typology Pattern Lens Drill-Down Broke — Lambda Deploy Packaging Error + API Gateway Timeout
+
+**Problem**: The Pattern Recognition Lens drill-down (the best demo feature — incident cards with network graphs, AI analyst briefs, and needle analysis) stopped working. Clicking a method card showed "Failed to load findings: Failed to fetch." This was broken for multiple days.
+
+**Root Cause (TWO ISSUES compounded)**:
+
+### Issue 34a: Lambda Deploy Zip Included `src/` Prefix
+When deploying via `Compress-Archive -Path src\* -DestinationPath lambda-update.zip`, the resulting zip contained files at path `src/lambdas/api/case_files.py`. But the Lambda handler is `lambdas.api.case_files.dispatch_handler` — no `src/` prefix. Python couldn't find the module → `Runtime.ImportModuleError: No module named 'lambdas'`.
+
+**CORRECT deploy command** (strip the `src/` prefix):
+```python
+import zipfile, os
+with zipfile.ZipFile('lambda-update.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
+    for root, dirs, files in os.walk('src'):
+        dirs[:] = [d for d in dirs if d not in {'data', 'frontend', '__pycache__', '.pytest_cache'}]
+        for f in files:
+            if f.endswith('.pyc'): continue
+            filepath = os.path.join(root, f)
+            arcname = os.path.relpath(filepath, 'src')  # STRIP src/ PREFIX
+            zf.write(filepath, arcname)
+```
+
+**WRONG (what broke it)**:
+```powershell
+Compress-Archive -Path src\* -DestinationPath lambda-update.zip
+# This creates src/lambdas/... inside the zip — WRONG
+```
+
+### Issue 34b: API Gateway 29-Second Timeout on AI Brief Generation
+The typology findings endpoint generates Bedrock AI briefs for each detected situation. With 6+ situations × ~8 seconds each = ~48 seconds → exceeds API Gateway's 29-second hard limit. Browser gets "Failed to fetch" (timeout, not CORS).
+
+**Fix**: Reduced AI brief generation from 6 situations to 3 (top 3 highest-confidence):
+```python
+# In src/services/sex_trafficking_typology.py, TypologyFindingsEngine.get_findings()
+for situation in situations[:3]:  # Was [:6] — causes API Gateway timeout
+    situation.ai_brief = self._generate_brief(category, situation)
+```
+
+### Issue 34c: Misleading Debugging (Entity Count Red Herring)
+During investigation, entity counts showed 0 for all cases when queried through the Lambda API, but 248K existed when queried via RDS Data API. This led to 2+ hours of wrong-path debugging (checking schemas, clusters, proxy targets). The ACTUAL problem was 34a (broken Lambda module imports) — the Lambda was crashing before reaching any DB code.
+
+**Lessons**:
+1. ALWAYS verify `FunctionError` field in Lambda invoke response FIRST — if it says `Unhandled`, the Lambda is crashing, not returning empty data
+2. ALWAYS check CloudWatch logs with `LogType='Tail'` when debugging Lambda issues
+3. The `Compress-Archive` PowerShell cmdlet does NOT strip directory prefixes — use Python zipfile with `os.path.relpath(filepath, 'src')` instead
+4. API Gateway REST API has a HARD 29-second integration timeout — any Bedrock operation that might exceed this MUST be capped
+
+**Prevention**:
+- Deploy script MUST use the Python zipfile method (added to `kiro-builder-playbook.md` Phase 3.5)
+- Typology findings AI briefs capped at 3 situations maximum
+- After ANY Lambda deploy, immediately test with `python scripts/_test_deploy.py` which checks `FunctionError` field
+- NEVER deploy a Lambda zip > 250MB unzipped (data/ and frontend/ directories MUST be excluded)
+
+**Files**: `src/lambdas/api/case_files.py`, `src/services/sex_trafficking_typology.py`
+**Severity**: CRITICAL — broke the primary demo feature for multiple days
+**Time to diagnose**: ~3 hours (much of it on the wrong track due to 34c)
+**Time to fix**: 15 minutes once root cause identified
