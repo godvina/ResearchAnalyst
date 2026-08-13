@@ -1,0 +1,2141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geographic Explorer — Irish Sacred Sites · AI Investigation Platform</title>
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="config.js"></script>
+<script src="geographic-explorer-data.js"></script>
+<script src="geographic-explorer-narratives.js"></script>
+<style>
+/* === Geographic Explorer — Module-Specific Styles === */
+
+/* Two-column layout */
+.main-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    height: calc(100vh - 92px);
+    overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+    background: rgba(16, 24, 40, 0.98);
+    border-right: 1px solid rgba(255,255,255,0.08);
+    overflow-y: auto;
+    padding: 16px;
+}
+.sidebar-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #63b3ed;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.site-item {
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    color: #a0aec0;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+.site-item:hover {
+    background: rgba(99,179,237,0.08);
+    color: #e2e8f0;
+}
+.site-item.active {
+    background: rgba(99,179,237,0.12);
+    color: #63b3ed;
+    border-left: 3px solid #63b3ed;
+}
+.site-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.site-dot.high { background: #48bb78; }
+.site-dot.moderate { background: #ecc94b; }
+.site-dot.low { background: #f56565; }
+.region-header {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 12px 4px;
+    margin-top: 8px;
+}
+.country-item {
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+.country-item:hover {
+    background: rgba(99,179,237,0.08);
+    border-color: rgba(99,179,237,0.2);
+}
+.country-item .count {
+    font-size: 0.65rem;
+    color: #718096;
+    background: rgba(255,255,255,0.05);
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+/* Main area */
+.main-area {
+    overflow-y: auto;
+    padding: 20px 24px;
+    background: #0a0f19;
+}
+
+/* Mode toggle */
+.mode-toggle {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 4px;
+    width: fit-content;
+}
+.mode-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: #718096;
+    transition: all 0.2s;
+}
+.mode-btn.active {
+    background: rgba(99,179,237,0.15);
+    color: #63b3ed;
+    border: 1px solid rgba(99,179,237,0.3);
+}
+.mode-btn:hover:not(.active) {
+    color: #a0aec0;
+    background: rgba(255,255,255,0.03);
+}
+
+/* View tabs */
+.view-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.view-tab {
+    padding: 10px 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #718096;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+.view-tab:hover { color: #a0aec0; }
+.view-tab.active {
+    color: #63b3ed;
+    border-bottom-color: #63b3ed;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 16px;
+    font-size: 0.75rem;
+    flex-wrap: wrap;
+}
+.breadcrumb a {
+    color: #63b3ed;
+    text-decoration: none;
+    cursor: pointer;
+}
+.breadcrumb a:hover { text-decoration: underline; }
+.breadcrumb .sep { color: #4a5568; }
+.breadcrumb .current { color: #e2e8f0; font-weight: 600; }
+
+/* Map container */
+.map-container {
+    width: 100%;
+    height: 400px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 20px;
+}
+#map { width: 100%; height: 100%; }
+
+/* Cards container */
+.cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+.site-card {
+    background: rgba(26,35,50,0.9);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-top: 3px solid #4a5568;
+}
+.site-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    border-color: rgba(99,179,237,0.3);
+}
+.site-card .card-name { font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+.site-card .card-category { font-size: 0.68rem; color: #718096; margin-bottom: 10px; }
+
+/* Timeline container */
+.timeline-container {
+    position: relative;
+    padding: 20px 0;
+    overflow-x: auto;
+}
+.timeline-bar {
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    margin: 40px 0;
+    position: relative;
+}
+.timeline-dot {
+    position: absolute;
+    top: -6px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #0a0f19;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.timeline-dot:hover { transform: scale(1.4); }
+
+/* Site detail panel */
+.site-detail {
+    background: rgba(26,35,50,0.6);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 20px;
+    animation: fadeIn 0.3s;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* AI Brief panel */
+.ai-brief {
+    border-left: 3px solid #63b3ed;
+    background: rgba(99,179,237,0.04);
+    padding: 16px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+}
+.ai-brief-header {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #63b3ed;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.ai-brief p {
+    font-size: 0.78rem;
+    color: #cbd5e0;
+    line-height: 1.7;
+    margin-bottom: 8px;
+}
+
+/* Loading skeleton */
+.skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
+    background-size: 200% 100%;
+    animation: pulse 1.5s infinite;
+    border-radius: 4px;
+    height: 14px;
+    margin-bottom: 8px;
+}
+.skeleton.wide { width: 100%; }
+.skeleton.medium { width: 75%; }
+.skeleton.short { width: 50%; }
+@keyframes pulse {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Theory verdict cards */
+.verdict-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.verdict-card {
+    background: rgba(26,35,50,0.9);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 14px;
+    border-top: 3px solid #4a5568;
+}
+.verdict-card.proven { border-top-color: #48bb78; }
+.verdict-card.insufficient { border-top-color: #ecc94b; }
+.verdict-card.unproven { border-top-color: #f56565; }
+.verdict-card.active { border-top-color: #63b3ed; }
+.verdict-card .verdict-title { font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; }
+.verdict-card .verdict-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+.verdict-card .verdict-label.proven { color: #48bb78; }
+.verdict-card .verdict-label.insufficient { color: #ecc94b; }
+.verdict-card .verdict-label.unproven { color: #f56565; }
+.verdict-card .verdict-label.active { color: #63b3ed; }
+
+/* Score bars */
+.score-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+}
+.score-label {
+    font-size: 0.68rem;
+    color: #a0aec0;
+    min-width: 100px;
+}
+.score-bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.score-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s;
+}
+.score-fill.high { background: linear-gradient(90deg, #48bb78, #38a169); }
+.score-fill.moderate { background: linear-gradient(90deg, #ecc94b, #d69e2e); }
+.score-fill.low { background: linear-gradient(90deg, #f56565, #e53e3e); }
+.score-val {
+    font-size: 0.72rem;
+    font-weight: 700;
+    min-width: 35px;
+    text-align: right;
+}
+
+/* Research missions */
+.research-missions {
+    border-left: 3px solid #ed8936;
+    background: rgba(237,137,54,0.04);
+    padding: 16px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+}
+.research-missions h3 {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #ed8936;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.mission-item {
+    font-size: 0.75rem;
+    color: #cbd5e0;
+    padding: 6px 0;
+    padding-left: 16px;
+    position: relative;
+}
+.mission-item::before {
+    content: '□';
+    position: absolute;
+    left: 0;
+    color: #ed8936;
+}
+
+/* Deep research tabs */
+.deep-research-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 12px;
+}
+.deep-tab {
+    padding: 8px 14px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #718096;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+.deep-tab:hover { color: #a0aec0; }
+.deep-tab.active { color: #b794f4; border-bottom-color: #b794f4; }
+.deep-content {
+    font-size: 0.78rem;
+    color: #cbd5e0;
+    line-height: 1.6;
+    padding: 12px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+}
+
+/* Network graph */
+.network-graph-panel {
+    background: rgba(10, 15, 25, 0.95);
+    border: 1px solid rgba(99,179,237,0.2);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+    min-height: 300px;
+}
+.network-graph-panel h3 {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #63b3ed;
+    margin-bottom: 12px;
+}
+#networkGraphSvg {
+    width: 100%;
+    height: 300px;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.3);
+}
+
+/* Cross-domain badge */
+.cross-domain-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(246,173,85,0.15);
+    border: 1px solid rgba(246,173,85,0.3);
+    color: #f6ad55;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.62rem;
+    font-weight: 700;
+}
+
+/* Cross-domain panel */
+.cross-domain-panel {
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: rgba(183,148,244,0.06);
+    border: 1px solid rgba(183,148,244,0.2);
+    border-radius: 10px;
+}
+.cross-domain-panel h4 {
+    font-size: 0.72rem;
+    color: #b794f4;
+    margin-bottom: 8px;
+}
+.cross-domain-panel .tag {
+    display: inline-block;
+    font-size: 0.62rem;
+    padding: 2px 8px;
+    margin: 2px;
+    border-radius: 10px;
+    background: rgba(183,148,244,0.1);
+    border: 1px solid rgba(183,148,244,0.3);
+    color: #d6bcfa;
+}
+
+/* Documentary view */
+.documentary-view {
+    font-family: Georgia, 'Times New Roman', serif;
+    line-height: 1.8;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+.documentary-view h1 {
+    font-size: 1.8rem;
+    color: #e2e8f0;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.documentary-view .chapter-subtitle {
+    font-size: 1rem;
+    color: #718096;
+    font-style: italic;
+    margin-bottom: 32px;
+}
+.documentary-view p {
+    font-size: 0.95rem;
+    color: #cbd5e0;
+    margin-bottom: 20px;
+}
+.documentary-view h2 {
+    font-size: 1.3rem;
+    color: #63b3ed;
+    margin-top: 40px;
+    margin-bottom: 16px;
+}
+
+/* Show network button */
+.show-network-btn {
+    background: rgba(99,179,237,0.1);
+    border: 1px solid rgba(99,179,237,0.3);
+    color: #63b3ed;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 12px;
+}
+.show-network-btn:hover {
+    background: rgba(99,179,237,0.2);
+    transform: translateY(-1px);
+}
+
+/* Section dividers */
+.detail-section {
+    margin-bottom: 20px;
+}
+.detail-section h3 {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    color: #a0aec0;
+}
+
+/* Field notes callout */
+.field-notes {
+    border-left: 3px solid #ed8936;
+    background: rgba(237,137,54,0.04);
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+}
+.field-notes h4 {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #ed8936;
+    margin-bottom: 6px;
+}
+.field-notes p {
+    font-size: 0.75rem;
+    color: #cbd5e0;
+    line-height: 1.6;
+}
+
+/* Sort buttons (cards view) */
+.sort-btn { background:rgba(255,255,255,0.05); border:1px solid #4a5568; border-radius:6px; padding:4px 10px; font-size:0.68rem; color:#a0aec0; cursor:pointer; transition: all 0.2s; }
+.sort-btn:hover { border-color:#63b3ed; color:#63b3ed; }
+.sort-btn.active { border-color:#63b3ed; color:#63b3ed; background:rgba(99,179,237,0.1); }
+
+/* Hidden utility */
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <h1>🗺️ Geographic Explorer <span class="sub">Irish Sacred Sites · AI Investigation Platform</span></h1>
+    <div style="display:flex;gap:8px">
+        <a class="nav-link" href="grid-globe.html">🌐 Globe</a>
+        <a class="nav-link" href="theory-investigation.html">🔬 Theories</a>
+        <a class="nav-link" href="pattern-library.html">📚 Patterns</a>
+        <a class="nav-link" href="index.html">🏠 Home</a>
+    </div>
+</div>
+
+<!-- Nav bar -->
+<div class="nav-bar">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="cases.html" class="nav-link">Cases</a>
+    <a href="geographic-explorer.html" class="nav-link active">Explorer</a>
+    <a href="grid-globe.html" class="nav-link">Globe</a>
+    <a href="pattern-library.html" class="nav-link">Pattern Library</a>
+    <a href="theory-investigation.html" class="nav-link">Theory Investigation</a>
+</div>
+
+<!-- Main two-column layout -->
+<div class="main-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-title">📍 Site Navigator</div>
+
+        <!-- Country list -->
+        <div id="countryList"></div>
+
+        <!-- Region list (hidden initially) -->
+        <div id="regionList" class="hidden"></div>
+
+        <!-- Site list (hidden initially) -->
+        <div id="siteList" class="hidden"></div>
+    </aside>
+
+    <!-- Main content area -->
+    <main class="main-area">
+
+        <!-- Mode toggle -->
+        <div class="mode-toggle" id="modeToggle">
+            <button class="mode-btn active" id="dataViewBtn" onclick="showDataView()">📊 Data View</button>
+            <button class="mode-btn" id="docViewBtn" onclick="showDocumentaryView()">🎬 Documentary View</button>
+        </div>
+
+        <!-- View tabs (Data View only) -->
+        <div class="view-tabs" id="viewTabs">
+            <button class="view-tab active" data-tab="map" onclick="switchTab('map')">🗺️ Map</button>
+            <button class="view-tab" data-tab="cards" onclick="switchTab('cards')">📇 Cards</button>
+            <button class="view-tab" data-tab="timeline" onclick="switchTab('timeline')">📅 Timeline</button>
+        </div>
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb" id="breadcrumb">
+            <span class="current">All Sites</span>
+        </div>
+
+        <!-- Map container -->
+        <div class="map-container" id="mapContainer">
+            <div id="map"></div>
+        </div>
+
+        <!-- Cards container (hidden initially) -->
+        <div class="cards-container hidden" id="cardsContainer"></div>
+
+        <!-- Timeline container (hidden initially) -->
+        <div class="timeline-container hidden" id="timelineContainer">
+            <div class="timeline-bar" id="timelineBar"></div>
+        </div>
+
+        <!-- Site Detail Panel (hidden initially) -->
+        <div class="site-detail hidden" id="siteDetail">
+
+            <!-- AI Intelligence Brief -->
+            <div class="ai-brief" id="aiBrief">
+                <div class="ai-brief-header">🤖 Intelligence Brief</div>
+                <div class="skeleton wide"></div>
+                <div class="skeleton medium"></div>
+                <div class="skeleton short"></div>
+            </div>
+
+            <!-- Theory Verdicts -->
+            <div class="detail-section">
+                <h3>⚖️ Theory Verdicts</h3>
+                <div class="verdict-grid" id="theoryVerdicts"></div>
+            </div>
+
+            <!-- Research Missions -->
+            <div class="research-missions" id="researchMissions">
+                <h3>🎯 Research Missions</h3>
+                <div class="mission-item">Loading missions...</div>
+            </div>
+
+            <!-- Deep Research -->
+            <div class="detail-section" id="deepResearch">
+                <h3>🔬 Deep Research</h3>
+                <div class="deep-research-tabs">
+                    <button class="deep-tab active" data-section="acoustic" onclick="switchDeepTab('acoustic')">Acoustic</button>
+                    <button class="deep-tab" data-section="construction" onclick="switchDeepTab('construction')">Construction</button>
+                    <button class="deep-tab" data-section="dating" onclick="switchDeepTab('dating')">Dating</button>
+                    <button class="deep-tab" data-section="suppression" onclick="switchDeepTab('suppression')">Suppression</button>
+                </div>
+                <div class="deep-content" id="deepContent">
+                    Select a site to view deep research data.
+                </div>
+            </div>
+
+            <!-- Show Network Graph button -->
+            <button class="show-network-btn" onclick="showNetworkGraph()">🕸️ Show Connection Network</button>
+
+            <!-- Network Graph (hidden, show on button click) -->
+            <div class="network-graph-panel hidden" id="networkGraph">
+                <h3>🕸️ Narrated Connection Network</h3>
+                <div id="networkGraphSvg"></div>
+            </div>
+        </div>
+
+        <!-- Documentary View (hidden initially) -->
+        <div class="documentary-view hidden" id="documentaryView">
+            <h1 id="docChapterTitle">Select a region to begin</h1>
+            <p class="chapter-subtitle" id="docChapterSubtitle">Choose a region from the sidebar to explore its story</p>
+            <div id="docChapterContent"></div>
+        </div>
+
+    </main>
+
+</div><!-- end .main-layout -->
+
+<script>
+// ======================================================================
+// Geographic Explorer — Core Logic
+// ======================================================================
+// Data references (loaded from geographic-explorer-data.js):
+//   GEO_SITES, GEO_DEEP_RESEARCH, GEO_CROSS_PATTERNS, GEO_REGIONS
+// Narrative references (loaded from geographic-explorer-narratives.js):
+//   GEO_INTELLIGENCE_BRIEFS, GEO_DOCUMENTARY_CHAPTERS, GEO_CONNECTION_NARRATIVES
+
+let map = null;
+let siteMarkers = {};  // keyed by site id
+let currentView = 'map';       // 'map' | 'cards' | 'timeline'
+let currentMode = 'data';      // 'data' | 'documentary'
+let selectedSiteId = null;
+let selectedCountry = null;
+let selectedRegion = null;
+let timelineTooltip = null;
+
+// ------------------------------------------------------------------
+// Initialization
+// ------------------------------------------------------------------
+function init() {
+    // Task 3: Initialize Leaflet map
+    initMap();
+
+    // Task 4: Populate sidebar with country/region/site hierarchy
+    populateSidebar();
+
+    // Check URL params for pre-selected site
+    const params = new URLSearchParams(window.location.search);
+    const siteParam = params.get('site');
+    if (siteParam) {
+        selectSite(siteParam);
+    }
+
+    // Support ?mode=documentary
+    const modeParam = params.get('mode');
+    if (modeParam === 'documentary') {
+        showDocumentaryView();
+    }
+
+    // Support ?lat=X&lng=Y&zoom=Z for map centering
+    const latParam = params.get('lat');
+    const lngParam = params.get('lng');
+    const zoomParam = params.get('zoom');
+    if (latParam && lngParam && map) {
+        const lat = parseFloat(latParam);
+        const lng = parseFloat(lngParam);
+        const zoom = zoomParam ? parseInt(zoomParam) : 14;
+        map.setView([lat, lng], zoom);
+    }
+}
+
+// ------------------------------------------------------------------
+// Map Initialization
+// ------------------------------------------------------------------
+function initMap() {
+    map = L.map('map').setView([53.5, -7.5], 7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18
+    }).addTo(map);
+
+    // Add markers for all sites
+    addSiteMarkers();
+}
+
+// ------------------------------------------------------------------
+// Add Site Markers — Colored circle markers with popups
+// ------------------------------------------------------------------
+function addSiteMarkers() {
+    for (const site of GEO_SITES) {
+        if (!site.coordinates) continue;
+
+        const color = getMarkerColor(site);
+        const maxScore = getMaxScore(site);
+        const categoryDisplay = site.category.replace(/_/g, ' ');
+        const hasCrossDomain = site.cross_domain_connections && site.cross_domain_connections.length >= 2;
+
+        const crossDomainBadge = hasCrossDomain
+            ? `<div style="font-size:0.65rem;background:#f6ad5520;border:1px solid #f6ad55;color:#f6ad55;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:4px;">⚡ Cross-Domain</div>`
+            : '';
+
+        const popupContent = `
+            <div style="min-width:200px;font-family:'Segoe UI',sans-serif;">
+                <div style="font-weight:700;font-size:0.85rem;margin-bottom:4px;">${site.name}</div>
+                <div style="font-size:0.7rem;color:#666;margin-bottom:6px;">${categoryDisplay} · ${site.date_built}</div>
+                <div style="font-size:0.7rem;margin-bottom:4px;">Top score: <strong>${maxScore.toFixed(2)}</strong></div>
+                ${crossDomainBadge}
+                <button onclick="selectSite('${site.id}')" style="margin-top:8px;background:#63b3ed;color:#fff;border:none;padding:5px 12px;border-radius:5px;font-size:0.7rem;cursor:pointer;font-weight:600;">Select</button>
+            </div>
+        `;
+
+        const marker = L.circleMarker([site.coordinates.lat, site.coordinates.lon], {
+            radius: 8,
+            fillColor: color,
+            color: color,
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.7
+        }).addTo(map);
+
+        marker.bindPopup(popupContent);
+        siteMarkers[site.id] = marker;
+    }
+}
+
+// ------------------------------------------------------------------
+// Get Marker Color — Gold (cross-domain+multi-score), Green (high), Blue (default)
+// ------------------------------------------------------------------
+function getMarkerColor(site) {
+    const scores = site.taxonomy_matches ? Object.values(site.taxonomy_matches) : [];
+    const hasCrossDomain = site.cross_domain_connections && site.cross_domain_connections.length >= 2;
+    const highScores = scores.filter(s => s >= 0.70);
+
+    // Gold: cross-domain connections AND at least 2 taxonomy scores >= 0.70
+    if (hasCrossDomain && highScores.length >= 2) {
+        return '#f6ad55';
+    }
+
+    // Green: max score >= 0.80
+    const maxScore = scores.length > 0 ? Math.max(...scores) : 0;
+    if (maxScore >= 0.80) {
+        return '#48bb78';
+    }
+
+    // Blue: everything else
+    return '#63b3ed';
+}
+
+// ------------------------------------------------------------------
+// Sidebar Population — Hierarchical Country → Region → Site
+// ------------------------------------------------------------------
+function populateSidebar() {
+    const countryList = document.getElementById('countryList');
+    const countryFlags = { 'Ireland': '🇮🇪' };
+
+    let html = '';
+    for (const country of Object.keys(GEO_REGIONS)) {
+        // Count total sites across all regions in this country
+        const regions = GEO_REGIONS[country];
+        const totalSites = Object.values(regions).reduce((sum, ids) => sum + ids.length, 0);
+        const flag = countryFlags[country] || '🌍';
+
+        html += `<div class="country-item" onclick="expandCountry('${country}')">
+            <span>${flag} ${country}</span>
+            <span class="count">${totalSites} sites</span>
+        </div>`;
+    }
+    countryList.innerHTML = html;
+}
+
+// ------------------------------------------------------------------
+// Expand Country — Show regions and sites for a country
+// ------------------------------------------------------------------
+function expandCountry(country) {
+    selectedCountry = country;
+    selectedRegion = null;
+    selectedSiteId = null;
+
+    document.getElementById('countryList').classList.add('hidden');
+    document.getElementById('regionList').classList.remove('hidden');
+    document.getElementById('siteDetail').classList.add('hidden');
+
+    const regions = GEO_REGIONS[country];
+    let html = '';
+
+    for (const [regionName, siteIds] of Object.entries(regions)) {
+        // Region header with site count — clickable to zoom map
+        html += `<div class="region-header" onclick="zoomToRegion('${regionName}')">${regionName} (${siteIds.length})</div>`;
+
+        // Each site in the region
+        for (const siteId of siteIds) {
+            const site = GEO_SITES.find(s => s.id === siteId);
+            if (!site) continue;
+
+            const maxScore = getMaxScore(site);
+            const scoreClass = getScoreClass(maxScore);
+            const displayName = site.name.length > 30 ? site.name.substring(0, 28) + '…' : site.name;
+
+            html += `<div class="site-item" id="sidebar-${siteId}" onclick="selectSite('${siteId}')">
+                <span class="site-dot ${scoreClass}"></span>
+                <span>${displayName}</span>
+            </div>`;
+        }
+    }
+
+    document.getElementById('regionList').innerHTML = html;
+
+    // Update breadcrumb
+    document.getElementById('breadcrumb').innerHTML = `
+        <a onclick="showAllCountries()">All</a>
+        <span class="sep">›</span>
+        <span class="current">${country}</span>
+    `;
+}
+
+// ------------------------------------------------------------------
+// Show All Countries — Reset to initial state
+// ------------------------------------------------------------------
+function showAllCountries() {
+    selectedCountry = null;
+    selectedRegion = null;
+    selectedSiteId = null;
+
+    document.getElementById('countryList').classList.remove('hidden');
+    document.getElementById('regionList').classList.add('hidden');
+    document.getElementById('siteList').classList.add('hidden');
+    document.getElementById('siteDetail').classList.add('hidden');
+    document.getElementById('networkGraph').classList.add('hidden');
+
+    // Reset breadcrumb
+    document.getElementById('breadcrumb').innerHTML = '<span class="current">All Sites</span>';
+
+    // Reset map view to Ireland center
+    if (map) {
+        map.setView([53.5, -7.5], 7);
+    }
+}
+
+// ------------------------------------------------------------------
+// Zoom to Region — Fit map bounds to all sites in a region
+// ------------------------------------------------------------------
+function zoomToRegion(regionName) {
+    // If in documentary mode, load the chapter for this region
+    if (currentMode === 'documentary') {
+        loadDocumentaryChapter(regionName);
+        return;
+    }
+
+    if (!map || !selectedCountry) return;
+
+    const siteIds = GEO_REGIONS[selectedCountry][regionName];
+    if (!siteIds || siteIds.length === 0) return;
+
+    const coords = siteIds
+        .map(id => GEO_SITES.find(s => s.id === id))
+        .filter(s => s && s.coordinates)
+        .map(s => [s.coordinates.lat, s.coordinates.lon]);
+
+    if (coords.length === 0) return;
+
+    if (coords.length === 1) {
+        map.setView(coords[0], 12);
+    } else {
+        map.fitBounds(coords, { padding: [40, 40] });
+    }
+}
+
+// ------------------------------------------------------------------
+// Helper: Get max taxonomy score for a site
+// ------------------------------------------------------------------
+function getMaxScore(site) {
+    if (!site.taxonomy_matches) return 0;
+    const scores = Object.values(site.taxonomy_matches);
+    return scores.length > 0 ? Math.max(...scores) : 0;
+}
+
+// ------------------------------------------------------------------
+// Helper: Get CSS class based on score threshold
+// ------------------------------------------------------------------
+function getScoreClass(score) {
+    if (score >= 0.80) return 'high';
+    if (score >= 0.50) return 'moderate';
+    return 'low';
+}
+
+// ------------------------------------------------------------------
+// Mode Switching
+// ------------------------------------------------------------------
+function showDataView() {
+    currentMode = 'data';
+    document.getElementById('dataViewBtn').classList.add('active');
+    document.getElementById('docViewBtn').classList.remove('active');
+    document.getElementById('viewTabs').classList.remove('hidden');
+    document.getElementById('documentaryView').classList.add('hidden');
+
+    // Show the active data tab content
+    switchTab(currentView);
+}
+
+function showDocumentaryView() {
+    currentMode = 'documentary';
+    document.getElementById('docViewBtn').classList.add('active');
+    document.getElementById('dataViewBtn').classList.remove('active');
+    document.getElementById('viewTabs').classList.add('hidden');
+    document.getElementById('mapContainer').classList.add('hidden');
+    document.getElementById('cardsContainer').classList.add('hidden');
+    document.getElementById('timelineContainer').classList.add('hidden');
+    document.getElementById('siteDetail').classList.add('hidden');
+    document.getElementById('documentaryView').classList.remove('hidden');
+
+    // Load chapter for selected region, or default to first region
+    const region = selectedCountry ? Object.keys(GEO_REGIONS[selectedCountry])[0] : 'Boyne Valley';
+    loadDocumentaryChapter(region);
+}
+
+function loadDocumentaryChapter(regionName) {
+    const titleEl = document.getElementById('docChapterTitle');
+    const subtitleEl = document.getElementById('docChapterSubtitle');
+    const contentEl = document.getElementById('docChapterContent');
+
+    // Check for pre-generated chapter
+    if (typeof GEO_DOCUMENTARY_CHAPTERS !== 'undefined' && GEO_DOCUMENTARY_CHAPTERS[regionName]) {
+        const chapter = GEO_DOCUMENTARY_CHAPTERS[regionName];
+        titleEl.textContent = chapter.title || regionName;
+        subtitleEl.textContent = chapter.subtitle || '';
+        contentEl.innerHTML = chapter.content || '';
+        return;
+    }
+
+    // Fallback: Generate from site data
+    const country = selectedCountry || 'Ireland';
+    const regionSiteIds = GEO_REGIONS[country] ? GEO_REGIONS[country][regionName] : null;
+    
+    if (!regionSiteIds) {
+        titleEl.textContent = regionName;
+        subtitleEl.textContent = 'Select a region from the sidebar';
+        contentEl.innerHTML = '<p>Choose a region to explore its story.</p>';
+        return;
+    }
+
+    const sites = regionSiteIds.map(id => GEO_SITES.find(s => s.id === id)).filter(Boolean);
+    const sortedSites = [...sites].sort((a, b) => (b.age_years || 0) - (a.age_years || 0));
+
+    // Build a documentary-style narrative from the data
+    titleEl.textContent = `Chapter: ${regionName}`;
+    subtitleEl.textContent = generateSubtitle(sortedSites);
+
+    let html = '';
+
+    // Opening hook
+    const oldestSite = sortedSites[0];
+    const totalAge = oldestSite ? oldestSite.age_years : 5000;
+    html += `<p>${totalAge ? totalAge.toLocaleString() : 'Thousands of'} years ago, in what is now County ${oldestSite ? oldestSite.county : 'Meath'}, someone began building. Not houses. Not forts. Precision astronomical instruments — encoded in stone and aligned to celestial events with accuracy that would not be matched for millennia.</p>`;
+
+    // Each site as a section
+    for (const site of sortedSites) {
+        const maxScore = getMaxScore(site);
+        const scoreClass = getScoreClass(maxScore);
+        const scoreColor = maxScore >= 0.80 ? '#48bb78' : maxScore >= 0.50 ? '#ecc94b' : '#f56565';
+        const deepResearch = GEO_DEEP_RESEARCH[site.id];
+
+        html += `<h2>${site.name}</h2>`;
+        html += `<p style="color:#718096;font-size:0.85rem;margin-bottom:16px;"><em>${site.date_built} · ${site.category.replace(/_/g, ' ')} · Score: <span style="color:${scoreColor}">${maxScore.toFixed(2)}</span></em></p>`;
+        
+        // Site description
+        html += `<p>${site.description}</p>`;
+
+        // The key mystery
+        if (site.mysteries && site.mysteries.length > 0) {
+            html += `<p style="color:#ecc94b;font-style:italic;">"${site.mysteries[0]}"</p>`;
+        }
+
+        // Deep research highlight if available
+        if (deepResearch) {
+            const sections = Object.entries(deepResearch).filter(([k, v]) => k !== 'name' && typeof v === 'object');
+            if (sections.length > 0) {
+                const [sectionName, sectionData] = sections[0];
+                const finding = sectionData.finding || sectionData.implication || '';
+                if (finding) {
+                    html += `<blockquote style="border-left:3px solid #b794f4;padding-left:16px;margin:16px 0;color:#d6bcfa;font-style:italic;">${finding}</blockquote>`;
+                }
+            }
+        }
+
+        // Cross-domain connections
+        if (site.cross_domain_connections && site.cross_domain_connections.length > 0) {
+            html += `<p style="color:#b794f4;">Connections: ${site.cross_domain_connections[0]}</p>`;
+        }
+
+        // Field notes as a callout
+        if (site.field_notes) {
+            html += `<div style="background:rgba(237,137,54,0.06);border:1px solid rgba(237,137,54,0.2);border-radius:8px;padding:12px 16px;margin:16px 0;"><span style="color:#ed8936;font-size:0.8rem;font-weight:600;">📝 Field Note:</span> <span style="color:#cbd5e0;font-size:0.85rem;">${site.field_notes}</span></div>`;
+        }
+    }
+
+    // Cross-site patterns section
+    const patterns = GEO_CROSS_PATTERNS.cross_site_patterns;
+    const relevantPatterns = Object.entries(patterns).filter(([name, desc]) => {
+        return sites.some(s => desc.toLowerCase().includes(s.name.split('(')[0].trim().split(' ')[0].toLowerCase()));
+    });
+
+    if (relevantPatterns.length > 0) {
+        html += `<h2>The Patterns</h2>`;
+        html += `<p>When we step back and look at these sites together, something remarkable emerges:</p>`;
+        for (const [name, desc] of relevantPatterns) {
+            html += `<div style="background:rgba(183,148,244,0.06);border:1px solid rgba(183,148,244,0.15);border-radius:8px;padding:12px 16px;margin:12px 0;">
+                <div style="color:#b794f4;font-size:0.75rem;font-weight:600;text-transform:uppercase;margin-bottom:4px;">${name.replace(/_/g, ' ')}</div>
+                <div style="color:#cbd5e0;font-size:0.85rem;line-height:1.6;">${desc}</div>
+            </div>`;
+        }
+    }
+
+    // Closing
+    html += `<h2>What Comes Next</h2>`;
+    html += `<p>The ${regionName} holds ${sites.length} sites spanning ${sortedSites.length > 1 ? Math.abs((sortedSites[0].age_years || 0) - (sortedSites[sortedSites.length-1].age_years || 0)) : 0} years of continuous construction. Each site answered one question and raised ten more. The research missions are clear. The field work awaits.</p>`;
+
+    contentEl.innerHTML = html;
+}
+
+function generateSubtitle(sites) {
+    if (sites.length === 0) return '';
+    const oldest = sites[0];
+    const categories = [...new Set(sites.map(s => s.category.replace(/_/g, ' ')))];
+    return `${sites.length} sites · ${oldest.date_built} to present · ${categories.join(', ')}`;
+}
+
+// ------------------------------------------------------------------
+// View Tab Switching
+// ------------------------------------------------------------------
+function switchTab(tab) {
+    currentView = tab;
+
+    // Update tab active states
+    document.querySelectorAll('.view-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tab);
+    });
+
+    // Show/hide containers
+    document.getElementById('mapContainer').classList.toggle('hidden', tab !== 'map');
+    document.getElementById('cardsContainer').classList.toggle('hidden', tab !== 'cards');
+    document.getElementById('timelineContainer').classList.toggle('hidden', tab !== 'timeline');
+
+    // Task 5: Populate cards grid when switching to cards
+    if (tab === 'cards') {
+        populateCards('score');
+    }
+    // Task 6: Populate timeline when switching to timeline
+    if (tab === 'timeline') {
+        populateTimeline();
+    }
+    // Task 3: Invalidate map size when switching to map
+    if (tab === 'map' && map) {
+        setTimeout(() => map.invalidateSize(), 100);
+    }
+}
+
+// ------------------------------------------------------------------
+// Cards View — Populate site cards with sort controls
+// ------------------------------------------------------------------
+function populateCards(sortBy) {
+    sortBy = sortBy || 'score';
+    const container = document.getElementById('cardsContainer');
+
+    // Get a copy of sites and sort
+    let sites = [...GEO_SITES];
+    switch (sortBy) {
+        case 'name':
+            sites.sort((a, b) => a.name.localeCompare(b.name));
+            break;
+        case 'score':
+            sites.sort((a, b) => getMaxScore(b) - getMaxScore(a));
+            break;
+        case 'age':
+            sites.sort((a, b) => (b.age_years || 0) - (a.age_years || 0));
+            break;
+        case 'connections':
+            sites.sort((a, b) => (b.cross_domain_connections ? b.cross_domain_connections.length : 0) - (a.cross_domain_connections ? a.cross_domain_connections.length : 0));
+            break;
+    }
+
+    // Sort controls bar
+    let html = `<div style="display:flex;gap:8px;margin-bottom:12px;grid-column:1/-1;">
+        <span style="font-size:0.7rem;color:#718096;padding:6px 0;">Sort:</span>
+        <button class="sort-btn ${sortBy === 'score' ? 'active' : ''}" onclick="populateCards('score')">Score ↓</button>
+        <button class="sort-btn ${sortBy === 'name' ? 'active' : ''}" onclick="populateCards('name')">Name</button>
+        <button class="sort-btn ${sortBy === 'age' ? 'active' : ''}" onclick="populateCards('age')">Age</button>
+        <button class="sort-btn ${sortBy === 'connections' ? 'active' : ''}" onclick="populateCards('connections')">Connections</button>
+    </div>`;
+
+    // Build cards
+    for (const site of sites) {
+        // Border color
+        const scores = site.taxonomy_matches ? Object.values(site.taxonomy_matches) : [];
+        const hasCrossDomain = site.cross_domain_connections && site.cross_domain_connections.length >= 2;
+        const highScores = scores.filter(s => s >= 0.70);
+        let borderColor = '#4a5568';
+        if (hasCrossDomain && highScores.length >= 2) {
+            borderColor = '#f6ad55';
+        } else if (scores.length > 0 && Math.max(...scores) >= 0.80) {
+            borderColor = '#48bb78';
+        }
+
+        // Category display
+        const categoryDisplay = site.category ? site.category.replace(/_/g, ' ') : '';
+
+        // Cross-domain badge
+        const crossDomainBadge = hasCrossDomain
+            ? `<span class="cross-domain-badge">⚡ Cross-Domain</span>`
+            : '';
+
+        // Top 3 score bars
+        let scoreBarRows = '';
+        if (site.taxonomy_matches) {
+            const sortedScores = Object.entries(site.taxonomy_matches)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3);
+            for (const [name, score] of sortedScores) {
+                const scoreClass = score >= 0.80 ? 'high' : score >= 0.50 ? 'moderate' : 'low';
+                const scoreColor = score >= 0.80 ? '#48bb78' : score >= 0.50 ? '#ecc94b' : '#f56565';
+                const displayName = name.replace(/_/g, ' ');
+                scoreBarRows += `<div class="score-row">
+                    <span class="score-label">${displayName}</span>
+                    <div class="score-bar">
+                        <div class="score-fill ${scoreClass}" style="width:${score * 100}%"></div>
+                    </div>
+                    <span class="score-val" style="color:${scoreColor}">${score.toFixed(2)}</span>
+                </div>`;
+            }
+        }
+
+        // Connections count
+        const connectionsCount = site.cross_domain_connections ? site.cross_domain_connections.length : 0;
+        const lat = site.coordinates ? site.coordinates.lat : 0;
+        const lon = site.coordinates ? site.coordinates.lon : 0;
+
+        // Verdict mini-summary
+        let verdictSummary = '';
+        if (site.taxonomy_matches) {
+            const allScores = Object.values(site.taxonomy_matches);
+            const proven = allScores.filter(s => s >= 0.80).length;
+            const insufficient = allScores.filter(s => s >= 0.40 && s < 0.80).length;
+            const unproven = allScores.filter(s => s < 0.40).length;
+            const parts = [];
+            if (proven > 0) parts.push(`<span style="color:#48bb78;">${proven} PROVEN</span>`);
+            if (insufficient > 0) parts.push(`<span style="color:#ecc94b;">${insufficient} INSUFFICIENT</span>`);
+            if (unproven > 0) parts.push(`<span style="color:#f56565;">${unproven} UNPROVEN</span>`);
+            verdictSummary = parts.join(' · ');
+        }
+
+        html += `<div class="site-card" onclick="selectSite('${site.id}')" style="border-top-color: ${borderColor}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                <div>
+                    <div class="card-name">${site.name}</div>
+                    <div class="card-category">${categoryDisplay} · ${site.date_built} · ${site.county}</div>
+                </div>
+                ${crossDomainBadge}
+            </div>
+            ${scoreBarRows}
+            <div style="font-size:0.68rem;color:#718096;margin-top:8px;">
+                🔗 ${connectionsCount} connections · 
+                <span style="cursor:pointer;color:#63b3ed;" onclick="event.stopPropagation(); switchTab('map'); if(map) map.setView([${lat},${lon}], 14);">📍 ${lat.toFixed(4)}, ${lon.toFixed(4)}</span>
+            </div>
+            <div style="font-size:0.65rem;margin-top:6px;color:#a0aec0;">
+                ${verdictSummary}
+            </div>
+        </div>`;
+    }
+
+    container.innerHTML = html;
+}
+
+// ------------------------------------------------------------------
+// Timeline View — Parse year helper
+// ------------------------------------------------------------------
+function parseYear(dateBuilt) {
+    if (!dateBuilt) return 0;
+    const str = dateBuilt.toLowerCase();
+    if (str.includes('pre-')) {
+        const num = parseInt(str.replace(/[^0-9]/g, ''));
+        return -(num + 100);
+    }
+    if (str.includes('bc')) {
+        const num = parseInt(str.replace(/[^0-9]/g, ''));
+        return -num;
+    }
+    if (str.includes('century')) {
+        // "6th-8th century AD" → take average
+        const nums = str.match(/\d+/g);
+        if (nums && nums.length >= 1) {
+            const avg = nums.reduce((a, b) => a + parseInt(b), 0) / nums.length;
+            return avg * 100; // 7th century = 700 AD
+        }
+    }
+    const num = parseInt(str.replace(/[^0-9-]/g, ''));
+    return isNaN(num) ? 0 : num;
+}
+
+// ------------------------------------------------------------------
+// Timeline View — Populate horizontal timeline
+// ------------------------------------------------------------------
+function populateTimeline() {
+    const container = document.getElementById('timelineContainer');
+
+    // Category colors
+    const categoryColors = {
+        passage_tombs: '#63b3ed',
+        hilltop_ceremonial: '#48bb78',
+        dolmens_portals: '#ecc94b',
+        monastic_islands: '#b794f4',
+        megalithic_complexes: '#ed8936'
+    };
+
+    // Parse years and sort sites
+    const sitesWithYear = GEO_SITES.map(site => ({
+        ...site,
+        year: parseYear(site.date_built)
+    })).sort((a, b) => a.year - b.year);
+
+    // Compute range
+    const minYear = sitesWithYear[0].year;
+    const maxYear = sitesWithYear[sitesWithYear.length - 1].year;
+    const range = maxYear - minYear || 1;
+
+    // Compute percentage position for each site
+    const sitesWithPct = sitesWithYear.map(site => ({
+        ...site,
+        pct: ((site.year - minYear) / range) * 100
+    }));
+
+    // Era grouping: cluster sites within ±200 years
+    const clusters = [];
+    let currentCluster = [sitesWithPct[0]];
+    for (let i = 1; i < sitesWithPct.length; i++) {
+        if (sitesWithPct[i].year - currentCluster[currentCluster.length - 1].year <= 200) {
+            currentCluster.push(sitesWithPct[i]);
+        } else {
+            if (currentCluster.length > 1) clusters.push([...currentCluster]);
+            currentCluster = [sitesWithPct[i]];
+        }
+    }
+    if (currentCluster.length > 1) clusters.push(currentCluster);
+
+    // Build cluster backgrounds
+    let clusterHtml = '';
+    for (const cluster of clusters) {
+        const startPct = cluster[0].pct;
+        const endPct = cluster[cluster.length - 1].pct;
+        clusterHtml += `<div style="position:absolute;top:-12px;left:${startPct}%;width:${endPct - startPct}%;height:28px;background:rgba(99,179,237,0.05);border:1px solid rgba(99,179,237,0.1);border-radius:6px;"></div>`;
+    }
+
+    // Sequential building arrow: Loughcrew → Newgrange → Tara
+    let arrowHtml = '';
+    const loughcrew = sitesWithPct.find(s => s.id && s.id.includes('loughcrew'));
+    const tara = sitesWithPct.find(s => s.id && s.id.includes('tara'));
+    if (loughcrew && tara) {
+        const loughcrewPct = loughcrew.pct;
+        const taraPct = tara.pct;
+        const midPct = (loughcrewPct + taraPct) / 2;
+        arrowHtml = `
+            <div style="position:absolute;top:-30px;left:${loughcrewPct}%;width:${taraPct - loughcrewPct}%;height:20px;border-bottom:2px dashed #b794f4;border-left:2px dashed #b794f4;border-right:2px dashed #b794f4;border-radius:0 0 8px 8px;opacity:0.5;"></div>
+            <div style="position:absolute;top:-38px;left:${midPct}%;transform:translateX(-50%);font-size:0.58rem;color:#b794f4;">500-year building program →</div>
+        `;
+    }
+
+    // Build site dots
+    let dotsHtml = '';
+    for (const site of sitesWithPct) {
+        const color = categoryColors[site.category] || '#63b3ed';
+        const displayName = site.name.split('(')[0].trim();
+        dotsHtml += `
+            <div class="timeline-node" style="position:absolute;left:${site.pct}%;top:-7px;transform:translateX(-50%);"
+                 onclick="selectSite('${site.id}')"
+                 onmouseenter="showTimelineTooltip(this, '${site.id}')"
+                 onmouseleave="hideTimelineTooltip()">
+                <div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid #0a0f19;cursor:pointer;transition:transform 0.2s;"></div>
+                <div style="position:absolute;top:18px;left:50%;transform:translateX(-50%);font-size:0.58rem;color:#a0aec0;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis;">
+                    ${displayName}
+                </div>
+            </div>
+        `;
+    }
+
+    // Assemble full timeline HTML
+    container.innerHTML = `
+        <div style="padding:20px 0 60px;position:relative;min-width:900px;">
+            <!-- Era labels at top -->
+            <div style="display:flex;justify-content:space-between;font-size:0.6rem;color:#718096;margin-bottom:20px;padding:0 40px;">
+                <span>4000 BC</span>
+                <span>3000 BC</span>
+                <span>2000 BC</span>
+                <span>1000 BC</span>
+                <span>1 AD</span>
+                <span>1000 AD</span>
+            </div>
+
+            <!-- Timeline bar -->
+            <div style="height:3px;background:rgba(255,255,255,0.1);border-radius:2px;position:relative;margin:0 40px;">
+                ${arrowHtml}
+                ${clusterHtml}
+                ${dotsHtml}
+            </div>
+        </div>
+    `;
+}
+
+// ------------------------------------------------------------------
+// Timeline Tooltip — Show/hide on hover
+// ------------------------------------------------------------------
+function showTimelineTooltip(el, siteId) {
+    const site = GEO_SITES.find(s => s.id === siteId);
+    if (!site) return;
+
+    const maxScore = getMaxScore(site);
+    const topMystery = site.mysteries && site.mysteries.length > 0 ? site.mysteries[0] : '';
+
+    // Compute verdict summary
+    const scores = site.taxonomy_matches ? Object.values(site.taxonomy_matches) : [];
+    const proven = scores.filter(s => s >= 0.80).length;
+    const insufficient = scores.filter(s => s >= 0.40 && s < 0.80).length;
+
+    if (timelineTooltip) timelineTooltip.remove();
+    timelineTooltip = document.createElement('div');
+    timelineTooltip.style.cssText = 'position:absolute;bottom:45px;left:50%;transform:translateX(-50%);background:rgba(26,35,50,0.95);border:1px solid rgba(99,179,237,0.3);border-radius:8px;padding:10px 14px;min-width:220px;z-index:100;font-size:0.72rem;box-shadow:0 4px 16px rgba(0,0,0,0.5);';
+    timelineTooltip.innerHTML = `
+        <div style="font-weight:700;margin-bottom:4px;">${site.name}</div>
+        <div style="color:#718096;margin-bottom:4px;">${site.date_built} · ${site.category.replace(/_/g,' ')}</div>
+        <div style="color:#cbd5e0;font-size:0.68rem;margin-bottom:4px;line-height:1.4;">${topMystery.slice(0,100)}${topMystery.length > 100 ? '...' : ''}</div>
+        <div style="color:#48bb78;font-size:0.62rem;">${proven} proven · ${insufficient} insufficient</div>
+    `;
+    el.style.position = 'relative';
+    el.appendChild(timelineTooltip);
+}
+
+function hideTimelineTooltip() {
+    if (timelineTooltip) {
+        timelineTooltip.remove();
+        timelineTooltip = null;
+    }
+}
+
+// ------------------------------------------------------------------
+// Site Selection
+// ------------------------------------------------------------------
+function selectSite(siteId) {
+    selectedSiteId = siteId;
+
+    const site = GEO_SITES.find(s => s.id === siteId);
+    if (!site) return;
+
+    // Highlight active site in sidebar (remove .active from others)
+    document.querySelectorAll('.site-item').forEach(el => el.classList.remove('active'));
+    const activeEl = document.getElementById(`sidebar-${siteId}`);
+    if (activeEl) activeEl.classList.add('active');
+
+    // Show the detail panel
+    document.getElementById('siteDetail').classList.remove('hidden');
+
+    // Auto-scroll to detail panel so it's visible after card click
+    setTimeout(() => {
+        document.getElementById('siteDetail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+
+    // If map view is active, zoom to site coordinates
+    if (map && currentView === 'map') {
+        map.setView([site.coordinates.lat, site.coordinates.lon], 14);
+
+        // Open the marker popup for selected site
+        if (siteMarkers[siteId]) {
+            siteMarkers[siteId].openPopup();
+        }
+    }
+
+    // Update breadcrumb: All › Country › Region › Site
+    const country = selectedCountry || 'Ireland';
+    document.getElementById('breadcrumb').innerHTML = `
+        <a onclick="showAllCountries()">All</a>
+        <span class="sep">›</span>
+        <a onclick="expandCountry('${country}')">${country}</a>
+        <span class="sep">›</span>
+        <a onclick="expandCountry('${country}')">${site.region}</a>
+        <span class="sep">›</span>
+        <span class="current">${site.name}</span>
+    `;
+
+    // Populate AI Intelligence Brief
+    renderAIBrief(site);
+
+    // Populate deep research tabs
+    renderDeepResearch(site);
+
+    // Populate field notes
+    renderFieldNotes(site);
+
+    // Populate theory verdict cards
+    renderTheoryVerdicts(site);
+
+    // Populate research missions
+    renderResearchMissions(site);
+}
+
+// ------------------------------------------------------------------
+// Network Graph — D3 force layout with narrated edges
+// ------------------------------------------------------------------
+function showNetworkGraph() {
+    const panel = document.getElementById('networkGraph');
+    panel.classList.remove('hidden');
+
+    if (!selectedSiteId) return;
+    const site = GEO_SITES.find(s => s.id === selectedSiteId);
+    if (!site) return;
+
+    // Build nodes and edges from cross_site_patterns + global_connections + cross_domain_connections
+    const nodes = [];
+    const links = [];
+    const nodeMap = {};
+
+    // Central node = selected site
+    nodes.push({ id: site.id, label: site.name.split('(')[0].trim(), type: 'irish', radius: 18, color: '#63b3ed' });
+    nodeMap[site.id] = true;
+
+    // Add connected Irish sites from cross_site_patterns
+    const patterns = GEO_CROSS_PATTERNS.cross_site_patterns;
+    for (const [patternName, desc] of Object.entries(patterns)) {
+        // Check if this site is mentioned in the pattern description
+        const siteName = site.name.split('(')[0].trim().toLowerCase();
+        if (desc.toLowerCase().includes(siteName.split(' ')[0].toLowerCase())) {
+            // Find other Irish sites mentioned in this pattern
+            for (const other of GEO_SITES) {
+                if (other.id === site.id) continue;
+                const otherName = other.name.split('(')[0].trim().toLowerCase();
+                if (desc.toLowerCase().includes(otherName.split(' ')[0].toLowerCase())) {
+                    if (!nodeMap[other.id]) {
+                        nodes.push({ id: other.id, label: other.name.split('(')[0].trim(), type: 'irish', radius: 12, color: '#48bb78' });
+                        nodeMap[other.id] = true;
+                    }
+                    links.push({ source: site.id, target: other.id, label: patternName.replace(/_/g, ' '), color: '#48bb78' });
+                }
+            }
+        }
+    }
+
+    // Add global connections from cross_domain_connections
+    const crossConns = site.cross_domain_connections || [];
+    crossConns.forEach((conn, idx) => {
+        // Extract site names from connection strings
+        const globalId = `global-${idx}`;
+        // Try to get a short name from the connection text
+        let label = conn.split(' — ')[0] || conn.slice(0, 30);
+        if (label.includes('found in')) label = conn.split('found in ')[1]?.split(' and ')[0] || label;
+        if (label.length > 35) label = label.slice(0, 32) + '…';
+        
+        nodes.push({ id: globalId, label: label, type: 'global', radius: 10, color: '#b794f4' });
+        links.push({ source: site.id, target: globalId, label: 'cross-domain', color: '#b794f4' });
+    });
+
+    // Add nodes from global_connections arrays
+    const globalConns = GEO_CROSS_PATTERNS.global_connections;
+    for (const [connType, siteList] of Object.entries(globalConns)) {
+        const siteName = site.name.split('(')[0].trim();
+        const isInList = siteList.some(s => s.toLowerCase().includes(siteName.toLowerCase().split(' ')[0]));
+        if (isInList) {
+            for (const globalSite of siteList) {
+                if (globalSite.toLowerCase().includes(siteName.toLowerCase().split(' ')[0])) continue; // skip self
+                const gId = `gc-${connType}-${globalSite.slice(0,10)}`;
+                if (!nodeMap[gId]) {
+                    const gLabel = globalSite.split('(')[0].trim();
+                    nodes.push({ id: gId, label: gLabel.length > 25 ? gLabel.slice(0,22) + '…' : gLabel, type: 'global', radius: 10, color: '#b794f4' });
+                    nodeMap[gId] = true;
+                }
+                links.push({ source: site.id, target: gId, label: connType.replace(/_/g, ' '), color: '#f6ad55' });
+            }
+        }
+    }
+
+    // Render with D3
+    renderNetworkD3(nodes, links);
+    
+    // Scroll to the graph
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderNetworkD3(nodes, links) {
+    const container = document.getElementById('networkGraphSvg');
+    container.innerHTML = ''; // Clear previous
+
+    const width = container.clientWidth || 700;
+    const height = 300;
+
+    const svg = d3.select(container).append('svg')
+        .attr('width', width)
+        .attr('height', height)
+        .style('border-radius', '8px');
+
+    // Force simulation
+    const simulation = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(links).id(d => d.id).distance(100))
+        .force('charge', d3.forceManyBody().strength(-200))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('collision', d3.forceCollide().radius(d => d.radius + 10));
+
+    // Links (edges)
+    const link = svg.append('g')
+        .selectAll('line')
+        .data(links)
+        .join('line')
+        .attr('stroke', d => d.color || '#4a5568')
+        .attr('stroke-width', 1.5)
+        .attr('stroke-opacity', 0.6);
+
+    // Edge labels
+    const linkLabel = svg.append('g')
+        .selectAll('text')
+        .data(links)
+        .join('text')
+        .text(d => d.label)
+        .attr('font-size', '8px')
+        .attr('fill', '#718096')
+        .attr('text-anchor', 'middle')
+        .style('pointer-events', 'none');
+
+    // Nodes (circles)
+    const node = svg.append('g')
+        .selectAll('circle')
+        .data(nodes)
+        .join('circle')
+        .attr('r', d => d.radius)
+        .attr('fill', d => d.color)
+        .attr('stroke', '#0a0f19')
+        .attr('stroke-width', 2)
+        .attr('cursor', 'pointer')
+        .on('click', (event, d) => {
+            if (d.type === 'irish' && d.id !== selectedSiteId) {
+                selectSite(d.id);
+            } else if (d.type === 'global') {
+                // Show tooltip for global sites
+                alert(`${d.label}\nType: International connection\nClick an Irish site to navigate.`);
+            }
+        })
+        .call(d3.drag()
+            .on('start', (event, d) => { if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+            .on('drag', (event, d) => { d.fx = event.x; d.fy = event.y; })
+            .on('end', (event, d) => { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; })
+        );
+
+    // Node labels
+    const nodeLabel = svg.append('g')
+        .selectAll('text')
+        .data(nodes)
+        .join('text')
+        .text(d => d.label)
+        .attr('font-size', d => d.type === 'irish' && d.id === selectedSiteId ? '10px' : '8px')
+        .attr('fill', '#e2e8f0')
+        .attr('text-anchor', 'middle')
+        .attr('dy', d => d.radius + 12)
+        .style('pointer-events', 'none');
+
+    // Tick function
+    simulation.on('tick', () => {
+        link
+            .attr('x1', d => d.source.x)
+            .attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x)
+            .attr('y2', d => d.target.y);
+
+        linkLabel
+            .attr('x', d => (d.source.x + d.target.x) / 2)
+            .attr('y', d => (d.source.y + d.target.y) / 2 - 4);
+
+        node
+            .attr('cx', d => d.x = Math.max(d.radius, Math.min(width - d.radius, d.x)))
+            .attr('cy', d => d.y = Math.max(d.radius, Math.min(height - d.radius, d.y)));
+
+        nodeLabel
+            .attr('x', d => d.x)
+            .attr('y', d => d.y);
+    });
+}
+
+// ------------------------------------------------------------------
+// Deep Research Tab Switching
+// ------------------------------------------------------------------
+function switchDeepTab(section) {
+    document.querySelectorAll('.deep-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.section === section);
+    });
+
+    if (!selectedSiteId) return;
+    const deepResearch = GEO_DEEP_RESEARCH[selectedSiteId];
+    if (!deepResearch || !deepResearch[section]) return;
+
+    renderDeepSection(section, deepResearch[section]);
+}
+
+// ------------------------------------------------------------------
+// AI Intelligence Brief — Generated from site data (or pre-generated)
+// ------------------------------------------------------------------
+function renderAIBrief(site) {
+    const briefEl = document.getElementById('aiBrief');
+    const deepResearch = GEO_DEEP_RESEARCH[site.id];
+
+    // Check if narratives file has pre-generated content
+    if (typeof GEO_INTELLIGENCE_BRIEFS !== 'undefined' && GEO_INTELLIGENCE_BRIEFS[site.id]) {
+        const brief = GEO_INTELLIGENCE_BRIEFS[site.id];
+        briefEl.innerHTML = `
+            <div class="ai-brief-header">🤖 AI Intelligence Brief — ${site.name}</div>
+            <p>${brief.hook || ''}</p>
+            <p>${brief.evidence || ''}</p>
+            <p>${brief.implication || ''}</p>
+        `;
+        return;
+    }
+
+    // Fallback: Generate brief from available data
+    const maxScore = getMaxScore(site);
+    const topDomain = site.taxonomy_matches ? Object.entries(site.taxonomy_matches).sort((a,b) => b[1] - a[1])[0] : null;
+    const connections = site.cross_domain_connections || [];
+    const mysteries = site.mysteries || [];
+
+    // Hook paragraph: The most striking finding
+    let hook = '';
+    if (deepResearch) {
+        // Pull the most interesting "implication" or "finding" from deep research
+        const sections = Object.values(deepResearch).filter(v => typeof v === 'object' && v !== null);
+        const implications = sections.filter(s => s.implication || s.finding).map(s => s.implication || s.finding);
+        hook = implications[0] || mysteries[0] || site.description;
+    } else {
+        hook = mysteries[0] || site.description;
+    }
+
+    // Evidence paragraph: Specific scores and data points
+    let evidence = `This site scores <strong>${maxScore.toFixed(2)}</strong>`;
+    if (topDomain) {
+        evidence += ` in <strong>${topDomain[0].replace(/_/g, ' ')}</strong>`;
+    }
+    evidence += `. ${site.date_built} construction. ${site.age_years ? site.age_years + ' years old' : ''}. `;
+    if (site.unesco) evidence += 'UNESCO World Heritage Site. ';
+    if (connections.length > 0) {
+        evidence += `Connected to ${connections.length} global sites: ${connections[0]}.`;
+    }
+
+    // Implication paragraph: What this means
+    let implication = '';
+    if (connections.length >= 2) {
+        implication = `Cross-domain analysis reveals connections to ${connections.length} sites worldwide. This pattern suggests shared knowledge or independent convergence across cultures separated by thousands of kilometers and centuries.`;
+    } else if (maxScore >= 0.85) {
+        implication = `The high confidence score (${maxScore.toFixed(2)}) indicates strong evidence supporting the core findings. Further field research at this site could elevate remaining theories from INSUFFICIENT to PROVEN status.`;
+    } else {
+        implication = `Current evidence is suggestive but incomplete. Field research at this site should focus on the ${mysteries.length} documented mysteries, particularly those with the strongest cross-cultural parallels.`;
+    }
+
+    briefEl.innerHTML = `
+        <div class="ai-brief-header">
+            🤖 AI Intelligence Brief — ${site.name}
+            <button onclick="event.stopPropagation();" style="margin-left:auto;background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.3);color:#63b3ed;padding:3px 8px;border-radius:5px;font-size:0.6rem;cursor:pointer;">↻ Refresh</button>
+        </div>
+        <p><strong style="color:#f56565;">HOOK:</strong> ${hook}</p>
+        <p><strong style="color:#63b3ed;">EVIDENCE:</strong> ${evidence}</p>
+        <p><strong style="color:#48bb78;">IMPLICATION:</strong> ${implication}</p>
+    `;
+}
+
+// ------------------------------------------------------------------
+// Deep Research — Populate tabbed section from GEO_DEEP_RESEARCH
+// ------------------------------------------------------------------
+function renderDeepResearch(site) {
+    const deepResearch = GEO_DEEP_RESEARCH[site.id];
+    const tabsContainer = document.querySelector('.deep-research-tabs');
+    const contentEl = document.getElementById('deepContent');
+
+    if (!deepResearch) {
+        tabsContainer.innerHTML = '';
+        contentEl.innerHTML = '<p style="color:#718096;">No deep research data available for this site yet.</p>';
+        return;
+    }
+
+    // Determine available sections (skip 'name' key)
+    const sections = Object.entries(deepResearch).filter(([key, val]) => key !== 'name' && typeof val === 'object' && val !== null);
+
+    if (sections.length === 0) {
+        tabsContainer.innerHTML = '';
+        contentEl.innerHTML = '<p style="color:#718096;">No deep research data available for this site yet.</p>';
+        return;
+    }
+
+    // Build tabs
+    const tabLabels = {
+        acoustic_research: '🔊 Acoustic',
+        construction_analysis: '🏗️ Construction',
+        dating_controversy: '📅 Dating',
+        suppression_patterns: '🚫 Suppression',
+        lunar_calendar: '🌙 Lunar Calendar',
+        megalithic_art: '🎨 Megalithic Art',
+        solstice_mechanism: '☀️ Solstice',
+        structure: '🏛️ Structure',
+        mound_of_hostages: '⚱️ Mound',
+        lia_fail: '🗿 Lia Fáil',
+        geophysics: '📡 Geophysics',
+        signal_network: '🔥 Signal Network',
+        pre_christian: '✝️ Pre-Christian',
+        equinox_mechanism: '🌅 Equinox',
+        age_significance: '📜 Age',
+        excavation: '⛏️ Excavation',
+        engineering: '⚙️ Engineering',
+        michael_line: '📐 Michael Line',
+        construction: '🏗️ Construction',
+        orientation_pattern: '🧭 Orientation',
+        oldest_megaliths: '🏛️ Oldest',
+        focal_orientation: '🎯 Orientation',
+        listoghil: '🗿 Listoghil',
+        unopened_mystery: '❓ Unopened',
+        construction_mystery: '🔨 Construction',
+        roofbox: '☀️ Roofbox',
+        village: '🏘️ Village',
+        remoteness: '🏔️ Remoteness',
+        construction_phases: '📊 Phases',
+        mystery_stone: '🗿 Mystery Stone',
+        purpose_debate: '🤔 Purpose'
+    };
+
+    let tabsHtml = '';
+    sections.forEach(([key], idx) => {
+        const label = tabLabels[key] || key.replace(/_/g, ' ');
+        const activeClass = idx === 0 ? ' active' : '';
+        tabsHtml += `<button class="deep-tab${activeClass}" data-section="${key}" onclick="switchDeepTab('${key}')">${label}</button>`;
+    });
+    tabsContainer.innerHTML = tabsHtml;
+
+    // Show first section content
+    renderDeepSection(sections[0][0], sections[0][1]);
+}
+
+// ------------------------------------------------------------------
+// Deep Research Section — Render key-value content
+// ------------------------------------------------------------------
+function renderDeepSection(sectionName, data) {
+    const contentEl = document.getElementById('deepContent');
+    if (!data || typeof data !== 'object') {
+        contentEl.innerHTML = '<p style="color:#718096;">No data available for this section.</p>';
+        return;
+    }
+
+    let html = '';
+    for (const [key, value] of Object.entries(data)) {
+        if (typeof value === 'string') {
+            const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            // Highlight "finding" and "implication" fields
+            const isKey = ['finding', 'implication', 'significance'].includes(key);
+            const style = isKey ? 'color:#e2e8f0;font-weight:600;' : 'color:#cbd5e0;';
+            html += `<div style="margin-bottom:10px;">
+                <div style="font-size:0.65rem;color:#63b3ed;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">${label}</div>
+                <div style="font-size:0.75rem;${style}line-height:1.6;">${value}</div>
+            </div>`;
+        }
+    }
+    contentEl.innerHTML = html || '<p style="color:#718096;">No detailed data for this section.</p>';
+}
+
+// ------------------------------------------------------------------
+// Field Notes — Trip planning notes for a site
+// ------------------------------------------------------------------
+function renderFieldNotes(site) {
+    // Check if field-notes element exists, if not create it
+    let fieldNotesEl = document.getElementById('fieldNotes');
+    if (!fieldNotesEl) {
+        fieldNotesEl = document.createElement('div');
+        fieldNotesEl.id = 'fieldNotes';
+        // Insert before the network graph button
+        const networkBtn = document.querySelector('.show-network-btn');
+        if (networkBtn) {
+            networkBtn.parentNode.insertBefore(fieldNotesEl, networkBtn);
+        }
+    }
+
+    if (!site.field_notes) {
+        fieldNotesEl.innerHTML = '';
+        return;
+    }
+
+    fieldNotesEl.innerHTML = `
+        <div class="field-notes">
+            <h4>📝 Field Notes — Trip Planning</h4>
+            <p>${site.field_notes}</p>
+        </div>
+    `;
+}
+
+// ------------------------------------------------------------------
+// Theory Verdict Cards — Render taxonomy verdicts for a site
+// ------------------------------------------------------------------
+function getDomainKeywords(domainName) {
+    const keywordMap = {
+        astronomical_correlation: ['alignment', 'solstice', 'equinox', 'sunrise', 'sunset', 'astronomical', 'star', 'lunar', 'solar', 'calendar'],
+        advanced_technology: ['ton', 'transport', 'construction', 'waterproof', 'engineering', 'balanced', 'built', 'stone', 'weight'],
+        geographic_alignment: ['line of sight', 'ley', 'oriented', 'intervisibility', 'geographic', 'visible', 'alignment', 'positioned'],
+        anomalous_artifacts: ['carved', 'art', 'spiral', 'decorated', 'carvings', 'motif', 'artifact', 'stone'],
+        lost_knowledge: ['calendar', 'knowledge', 'unknown', 'mystery', 'legend', 'lost', 'ancient', 'predates']
+    };
+    return keywordMap[domainName] || [domainName.replace(/_/g, ' ')];
+}
+
+function renderTheoryVerdicts(site) {
+    const container = document.getElementById('theoryVerdicts');
+    if (!container) return;
+    if (!site.taxonomy_matches) {
+        container.innerHTML = '<p style="color:#718096;font-size:0.75rem;">No taxonomy data available.</p>';
+        return;
+    }
+
+    const crossConnections = site.cross_domain_connections || [];
+    const mysteries = site.mysteries || [];
+
+    // Build verdict entries sorted by score descending
+    const entries = Object.entries(site.taxonomy_matches)
+        .map(([domainName, score]) => {
+            let verdict, verdictClass, scoreColor;
+
+            if (score >= 0.80) {
+                verdict = 'PROVEN';
+                verdictClass = 'proven';
+                scoreColor = '#48bb78';
+            } else if (score >= 0.40) {
+                verdict = 'INSUFFICIENT';
+                verdictClass = 'insufficient';
+                scoreColor = '#ecc94b';
+            } else {
+                verdict = 'UNPROVEN';
+                verdictClass = 'unproven';
+                scoreColor = '#f56565';
+            }
+
+            // Check for ACTIVE INVESTIGATION override (only for insufficient)
+            if (verdictClass === 'insufficient') {
+                const domainKeywords = getDomainKeywords(domainName);
+                const hasActiveConnection = crossConnections.some(conn =>
+                    domainKeywords.some(kw => conn.toLowerCase().includes(kw))
+                );
+                if (hasActiveConnection) {
+                    verdict = 'ACTIVE INVESTIGATION';
+                    verdictClass = 'active';
+                    scoreColor = '#63b3ed';
+                }
+            }
+
+            // Build evidence summary
+            const keywords = getDomainKeywords(domainName);
+            const matchingMystery = mysteries.find(m =>
+                keywords.some(kw => m.toLowerCase().includes(kw))
+            );
+            const evidenceSummary = matchingMystery
+                ? matchingMystery
+                : `Evidence from ${Object.keys(site.taxonomy_matches).length} taxonomy patterns.`;
+
+            // Format title
+            const title = domainName.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+            return { domainName, score, verdict, verdictClass, scoreColor, title, evidenceSummary };
+        })
+        .sort((a, b) => b.score - a.score);
+
+    // Render cards
+    let html = '';
+    entries.forEach(({ domainName, score, verdict, verdictClass, scoreColor, title, evidenceSummary }) => {
+        html += `<div class="verdict-card ${verdictClass}" onclick="expandVerdictCard(this, '${site.id}', '${domainName}')">
+  <div class="verdict-label ${verdictClass}">${verdict}</div>
+  <div class="verdict-title">${title}</div>
+  <div class="score-row">
+    <div class="score-bar">
+      <div class="score-fill ${verdictClass}" style="width:${score * 100}%"></div>
+    </div>
+    <span class="score-val" style="color:${scoreColor}">${score.toFixed(2)}</span>
+  </div>
+  <div style="font-size:0.65rem;color:#a0aec0;margin-top:6px;line-height:1.4;">
+    ${evidenceSummary}
+  </div>
+</div>`;
+    });
+
+    container.innerHTML = html;
+}
+
+function expandVerdictCard(el, siteId, domainName) {
+    const existing = el.querySelector('.verdict-expanded');
+    if (existing) {
+        existing.remove();
+        return;
+    }
+
+    const site = GEO_SITES.find(s => s.id === siteId);
+    if (!site) return;
+
+    const keywords = getDomainKeywords(domainName);
+    const relatedMysteries = (site.mysteries || []).filter(m =>
+        keywords.some(kw => m.toLowerCase().includes(kw))
+    );
+
+    let html = '<div class="verdict-expanded" style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);font-size:0.7rem;">';
+
+    if (relatedMysteries.length > 0) {
+        html += '<div style="color:#63b3ed;font-size:0.62rem;text-transform:uppercase;margin-bottom:4px;">Related Evidence:</div>';
+        relatedMysteries.forEach(m => {
+            html += `<div style="color:#cbd5e0;padding:4px 0;padding-left:12px;border-left:2px solid #4a5568;margin-bottom:4px;line-height:1.4;">• ${m}</div>`;
+        });
+    }
+
+    // Check for cross-domain connections
+    const relatedConnections = (site.cross_domain_connections || []).filter(c =>
+        keywords.some(kw => c.toLowerCase().includes(kw))
+    );
+    if (relatedConnections.length > 0) {
+        html += '<div style="color:#b794f4;font-size:0.62rem;text-transform:uppercase;margin-top:8px;margin-bottom:4px;">Cross-Domain Links:</div>';
+        relatedConnections.forEach(c => {
+            html += `<div style="color:#d6bcfa;padding:4px 0;font-size:0.68rem;line-height:1.4;">↗ ${c}</div>`;
+        });
+    }
+
+    html += '</div>';
+    el.insertAdjacentHTML('beforeend', html);
+}
+
+// ------------------------------------------------------------------
+// Research Missions — Actionable field tasks for gap domains
+// ------------------------------------------------------------------
+function renderResearchMissions(site) {
+    const container = document.getElementById('researchMissions');
+    if (!container) return;
+    
+    if (!site.taxonomy_matches) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    // Find domains that are INSUFFICIENT or would benefit from research
+    const gapDomains = Object.entries(site.taxonomy_matches)
+        .filter(([name, score]) => score >= 0.40 && score < 0.80)
+        .sort((a, b) => b[1] - a[1]); // highest gaps first (closest to proven)
+    
+    if (gapDomains.length === 0) {
+        // All proven or all unproven - show congrats or early-stage message
+        const allProven = Object.values(site.taxonomy_matches).every(s => s >= 0.80);
+        container.innerHTML = `
+            <h3>🎯 Research Missions</h3>
+            <p style="font-size:0.75rem;color:#a0aec0;">${allProven 
+                ? '✅ All theories at this site have reached PROVEN status. Focus on documentation and verification.'
+                : 'Research missions will appear when theories reach INSUFFICIENT status (0.40+).'
+            }</p>
+        `;
+        return;
+    }
+    
+    // Generate missions for each gap domain
+    let missionsHtml = '<h3>🎯 Research Missions — What Would Advance These Scores</h3>';
+    
+    for (const [domainName, score] of gapDomains) {
+        const targetScore = Math.min(score + 0.20, 0.95).toFixed(2);
+        const title = domainName.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const missions = generateMissionsForDomain(site, domainName, score);
+        
+        missionsHtml += `
+            <div style="margin-bottom:14px;">
+                <div style="font-size:0.7rem;font-weight:600;color:#e2e8f0;margin-bottom:6px;">
+                    ${title} <span style="color:#ecc94b;">${score.toFixed(2)}</span> → <span style="color:#48bb78;">${targetScore}</span>
+                </div>
+                ${missions.map((mission, idx) => {
+                    const storageKey = `mission_${site.id}_${domainName}_${idx}`;
+                    const checked = localStorage.getItem(storageKey) === 'true';
+                    return `<div class="mission-item" style="display:flex;align-items:flex-start;gap:8px;padding-left:0;">
+                        <input type="checkbox" ${checked ? 'checked' : ''} 
+                               onchange="toggleMission('${storageKey}', this.checked)"
+                               style="margin-top:2px;accent-color:#ed8936;cursor:pointer;flex-shrink:0;">
+                        <span style="${checked ? 'text-decoration:line-through;color:#718096;' : ''}">${mission}</span>
+                    </div>`;
+                }).join('')}
+            </div>
+        `;
+    }
+    
+    container.innerHTML = missionsHtml;
+}
+
+function generateMissionsForDomain(site, domainName, currentScore) {
+    const deepResearch = GEO_DEEP_RESEARCH[site.id];
+    const missions = [];
+    
+    switch (domainName) {
+        case 'astronomical_correlation':
+            missions.push(`Photograph the ${site.name.split('(')[0].trim()} alignment at the next solstice/equinox event`);
+            missions.push(`Measure passage orientation with a compass — compare to published azimuth data`);
+            if (deepResearch) missions.push(`Verify the specific alignment angle reported in academic sources`);
+            break;
+        case 'advanced_technology':
+            missions.push(`Document construction material sources — photograph stone types, estimate transport distances`);
+            missions.push(`Measure and photograph the most impressive engineering feature at ${site.name.split('(')[0].trim()}`);
+            if (currentScore >= 0.70) missions.push(`Compare construction technique to confirmed examples at other sites`);
+            break;
+        case 'geographic_alignment':
+            missions.push(`Test intervisibility: can you see other known sites from this location?`);
+            missions.push(`Use GPS to record exact coordinates and compare to published alignment claims`);
+            missions.push(`Photograph sightlines to connected sites on a clear day`);
+            break;
+        case 'anomalous_artifacts':
+            missions.push(`Photograph all carved/decorated stones — compare motifs to published catalogs`);
+            missions.push(`Document any symbols that match patterns at other megalithic sites`);
+            if (deepResearch) missions.push(`Look for the specific artifacts described in deep research data`);
+            break;
+        case 'lost_knowledge':
+            missions.push(`Research local folklore and oral traditions about this site`);
+            missions.push(`Document any astronomical or calendar-related features not in published literature`);
+            missions.push(`Interview local guides about less-known aspects of the site`);
+            break;
+        default:
+            missions.push(`Document evidence supporting the ${domainName.replace(/_/g, ' ')} theory`);
+            missions.push(`Photograph key features and compare to published research`);
+            missions.push(`Note any observations not covered in existing academic literature`);
+    }
+    
+    return missions.slice(0, 3); // Max 3 missions per domain
+}
+
+function toggleMission(storageKey, checked) {
+    localStorage.setItem(storageKey, checked.toString());
+    // Update visual style
+    const checkbox = event.target;
+    const label = checkbox.parentElement.querySelector('span');
+    if (label) {
+        label.style.textDecoration = checked ? 'line-through' : 'none';
+        label.style.color = checked ? '#718096' : '#cbd5e0';
+    }
+}
+
+// ------------------------------------------------------------------
+// Utility: Clear selection (delegates to showAllCountries)
+// ------------------------------------------------------------------
+function clearSelection() {
+    showAllCountries();
+}
+
+// ------------------------------------------------------------------
+// DOMContentLoaded
+// ------------------------------------------------------------------
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
