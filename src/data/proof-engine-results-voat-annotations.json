@@ -1,0 +1,514 @@
+{
+  "evaluation_run": {
+    "timestamp": "2026-08-02T15:54:45.977212+00:00",
+    "standard": "intelligence",
+    "model": "us.anthropic.claude-3-haiku-20240307-v1:0",
+    "source_dataset": "voat_annotation.csv (LOCO corpus)",
+    "source_url": "https://zenodo.org/records/3560867",
+    "total_posts_processed": 990,
+    "theories_evaluated": 9,
+    "cross_domain_scoring": true
+  },
+  "summary": {
+    "proven": 6,
+    "unproven": 3,
+    "insufficient": 0,
+    "average_score": 0.706,
+    "cross_cutting_theories": 9
+  },
+  "cross_domain_analysis": {
+    "description": "Matches found across multiple taxonomy domains (highest value findings)",
+    "theories_matching_ancient_mysteries": 7,
+    "theories_matching_crime": 9,
+    "theories_matching_conspiracy": 9
+  },
+  "results": [
+    {
+      "theory_id": "878c3c11-7e46-4fef-a6cf-2e69ad36eceb",
+      "title": "Voat/Conspiracy Conspiracy Narrative Cluster",
+      "subverse": "Conspiracy",
+      "claim": "Posts in v/Conspiracy exhibit coordinated conspiracy thinking with dominant Actor dimension (205 posts, 3.4 avg dimensions)",
+      "total_posts": 205,
+      "dominant_dimension": "Actor",
+      "avg_dimensions": 3.36,
+      "is_cross_cutting": true,
+      "domains_matched": [
+        "ancient_mysteries",
+        "conspiracy_theory",
+        "crime"
+      ],
+      "cross_domain_top_hits": {
+        "conspiracy_theory/coordinated_actors": 6,
+        "conspiracy_theory/pattern_recognition": 4,
+        "conspiracy_theory/threat_narrative": 3,
+        "crime/temporal_clustering": 3,
+        "crime/organizational_hierarchy": 3
+      },
+      "verdict": "UNPROVEN",
+      "overall_score": 0.7,
+      "checklist_items": [
+        {
+          "item": "Minimum source count met (2+)",
+          "score": 1.0,
+          "justification": "The available evidence includes multiple distinct sources, including sample posts, cross-domain taxonomy matches, and aggregate statistics, which together provide sufficient support for the finding."
+        },
+        {
+          "item": "Source independence verified",
+          "score": 0.0,
+          "justification": "The available evidence does not indicate that the source of the posts in v/Conspiracy is independent or verified. The sample posts show coordination, shared narratives, and potential organized activit"
+        },
+        {
+          "item": "Diagnostic evidence identified",
+          "score": 1.0,
+          "justification": "The available evidence clearly identifies diagnostic patterns of coordinated conspiracy thinking, such as the prevalence of posts exhibiting multiple dimensions of conspiracy theory characteristics (a"
+        },
+        {
+          "item": "Alternative hypotheses eliminated via ACH",
+          "score": 0.5,
+          "justification": "The available evidence provides some indication of coordinated conspiracy thinking, such as references to organized groups (e.g. 'antifa', 'Big Pharma'), pattern recognition, and threat narratives. Ho"
+        },
+        {
+          "item": "Confidence level assigned (Low/Mod/High)",
+          "score": 1.0,
+          "justification": "The available evidence clearly shows a high degree of coordinated conspiracy thinking, with a dominant Actor dimension across 205 posts that exhibit an average of 3.36 dimensions per post."
+        }
+      ],
+      "research_directions": [
+        "Evidence actively contradicts this finding.",
+        "To rehabilitate: provide evidence addressing the contradiction directly."
+      ]
+    },
+    {
+      "theory_id": "96fafe78-78e3-4fef-b075-27b068867190",
+      "title": "Voat/pizzagate Conspiracy Narrative Cluster",
+      "subverse": "pizzagate",
+      "claim": "Posts in v/pizzagate exhibit coordinated conspiracy thinking with dominant Actor dimension (188 posts, 3.7 avg dimensions)",
+      "total_posts": 188,
+      "dominant_dimension": "Actor",
+      "avg_dimensions": 3.74,
+      "is_cross_cutting": true,
+      "domains_matched": [
+        "ancient_mysteries",
+        "conspiracy_theory",
+        "crime"
+      ],
+      "cross_domain_top_hits": {
+        "conspiracy_theory/coordinated_actors": 8,
+        "conspiracy_theory/threat_narrative": 5,
+        "crime/organizational_hierarchy": 5,
+        "crime/financial_trail": 2,
+        "conspiracy_theory/information_asymmetry": 1
+      },
+      "verdict": "PROVEN",
+      "overall_score": 0.725,
+      "checklist_items": [
+        {
+          "item": "Minimum source count met (2+)",
+          "score": 1.0,
+          "justification": "The available evidence includes 188 posts from the v/pizzagate subverse, which satisfies the requirement for a minimum of 2 or more sources."
+        },
+        {
+          "item": "Source independence verified",
+          "score": 0.5,
+          "justification": "The available evidence includes discussion of various conspiracy theories and narratives, but does not provide clear verification of the independence or reliability of the data sources used."
+        },
+        {
+          "item": "Diagnostic evidence identified",
+          "score": 1.0,
+          "justification": "The available evidence clearly shows a high degree of coordinated conspiracy thinking and content related to the 'Actor' dimension, indicating the presence of diagnostic evidence for this finding."
+        },
+        {
+          "item": "Alternative hypotheses eliminated via ACH",
+          "score": 0.5,
+          "justification": "The available evidence indicates coordination and dominant actor dimension in the v/pizzagate posts, but does not explicitly discuss whether alternative hypotheses have been eliminated through Analyti"
+        },
+        {
+          "item": "Confidence level assigned (Low/Mod/High)",
+          "score": 0.5,
+          "justification": "The available evidence provides some indications of coordinated conspiracy thinking, such as the high number of posts, the dominant Actor dimension, and the cross-domain taxonomy matches. However, an "
+        }
+      ],
+      "research_directions": [
+        "Finding meets all evidentiary requirements."
+      ]
+    },
+    {
+      "theory_id": "61e28294-e16b-4227-b911-a09c77b4be71",
+      "title": "Voat/GreatAwakening Conspiracy Narrative Cluster",
+      "subverse": "GreatAwakening",
+      "claim": "Posts in v/GreatAwakening exhibit coordinated conspiracy thinking with dominant Actor dimension (175 posts, 3.7 avg dimensions)",
+      "total_posts": 175,
+      "dominant_dimension": "Actor",
+      "avg_dimensions": 3.69,
+      "is_cross_cutting": true,
+      "domains_matched": [
+        "ancient_mysteries",
+        "conspiracy_theory",
+        "crime"
+      ],
+      "cross_domain_top_hits": {
+        "conspiracy_theory/coordinated_actors": 10,
+        "crime/organizational_hierarchy": 6,
+        "conspiracy_theory/threat_narrative": 4,
+        "conspiracy_theory/information_asymmetry": 3,
+        "conspiracy_theory/evidence_suppression": 2
+      },
+      "verdict": "PROVEN",
+      "overall_score": 0.8,
+      "checklist_items": [
+        {
+          "item": "Minimum source count met (2+)",
+          "score": 1.0,
+          "justification": "The available evidence includes multiple sample posts and a detailed cross-domain taxonomy analysis, which collectively provide more than the minimum of 2 sources to support the finding."
+        },
+        {
+          "item": "Source independence verified",
+          "score": 0.5,
+          "justification": "The sample posts show some coordination and linking of different conspiracy narratives, but there is no clear evidence that the sources of these posts are independent or coordinated."
+        },
+        {
+          "item": "Diagnostic evidence identified",
+          "score": 1.0,
+          "justification": "The available evidence clearly identifies several key diagnostic elements of coordinated conspiracy thinking, including patterns of actor-focused narratives, information asymmetry, evidence suppressio"
+        },
+        {
+          "item": "Alternative hypotheses eliminated via ACH",
+          "score": 0.5,
+          "justification": "The available evidence partially satisfies this checklist item, as it provides some insight into the dominant dimensions and coordinated nature of posts in v/GreatAwakening, but does not explicitly ru"
+        },
+        {
+          "item": "Confidence level assigned (Low/Mod/High)",
+          "score": 1.0,
+          "justification": "The available evidence provides a high level of detail and quantitative metrics that support the finding of coordinated conspiracy thinking with a dominant Actor dimension, including the total number "
+        }
+      ],
+      "research_directions": [
+        "Finding meets all evidentiary requirements."
+      ]
+    },
+    {
+      "theory_id": "d3675bec-ca0f-4790-980e-f54a2a46a189",
+      "title": "Voat/news Conspiracy Narrative Cluster",
+      "subverse": "news",
+      "claim": "Posts in v/news exhibit coordinated conspiracy thinking with dominant Actor dimension (128 posts, 3.7 avg dimensions)",
+      "total_posts": 128,
+      "dominant_dimension": "Actor",
+      "avg_dimensions": 3.7,
+      "is_cross_cutting": true,
+      "domains_matched": [
+        "conspiracy_theory",
+        "crime"
+      ],
+      "cross_domain_top_hits": {
+        "conspiracy_theory/coordinated_actors": 8,
+        "crime/organizational_hierarchy": 5,
+        "conspiracy_theory/threat_narrative": 3,
+        "crime/witness_intimidation": 2,
+        "crime/temporal_clustering": 1
+      },
+      "verdict": "PROVEN",
+      "overall_score": 0.7,
+      "checklist_items": [
+        {
+          "item": "Minimum source count met (2+)",
+          "score": 1.0,
+          "justification": "The available evidence includes 128 posts from the v/news subverse, which exceeds the minimum source count of 2."
+        },
+        {
+          "item": "Source independence verified",
+          "score": 0.5,
+          "justification": "The available evidence provides some information about the posts in v/news, but does not clearly demonstrate that the sources of the posts are independent. The sample posts suggest potential coordinat"
+        },
+        {
+          "item": "Diagnostic evidence identified",
+          "score": 1.0,
+          "justification": "The available evidence clearly identifies multiple diagnostic patterns associated with coordinated conspiracy thinking, including the dominant Actor dimension, cross-domain taxonomy matches for concep"
+        },
+        {
+          "item": "Alternative hypotheses eliminated via ACH",
+          "score": 0.0,
+          "justification": "The available evidence does not indicate that alternative hypotheses have been systematically eliminated via analysis of competing hypotheses (ACH) or a similar structured analytical method. The evide"
+        },
+        {
+          "item": "Confidence level assigned (Low/Mod/High)",
+          "score": 1.0,
+          "justification": "The available evidence, including the high average number of dimensions per post (3.7) and the numerous cross-domain taxonomy matches related to coordinated conspiracy thinking and organizational crim"
+        }
+      ],
+      "research_directions": [
+        "Finding meets all evidentiary requirements."
+      ]
+    },
+    {
+      "theory_id": "e3e18e9a-ae97-4bde-b403-c516a7d33454",
+      "title": "Voat/anon Conspiracy Narrative Cluster",
+      "subverse": "anon",
+      "claim": "Posts in v/anon exhibit coordinated conspiracy thinking with dominant Actor dimension (74 posts, 3.5 avg dimensions)",
+      "total_posts": 74,
+      "dominant_dimension": "Actor",
+      "avg_dimensions": 3.5,
+      "is_cross_cutting": true,
+      "domains_matched": [
+        "ancient_mysteries",
+        "conspiracy_theory",
+        "crime"
+      ],
+      "cross_domain_top_hits": {
+        "conspiracy_theory/coordinated_actors": 7,
+        "crime/organizational_hierarchy": 5,
+        "conspiracy_theory/threat_narrative": 2,
+        "conspiracy_theory/pattern_recognition": 2,
+        "crime/temporal_clustering": 2
+      },
+      "verdict": "PROVEN",
+      "overall_score": 0.725,
+      "checklist_items": [
+        {
+          "item": "Minimum source count met (2+)",
+          "score": 1.0,
+          "justification": "The available evidence includes multiple distinct sources and perspectives, including sample posts and cross-domain taxonomy matches, providing sufficient evidence to satisfy this checklist item."
+        },
+        {
+          "item": "Source independence verified",
+          "score": 0.5,
+          "justification": "The available evidence does not explicitly confirm or deny the independence of the source. While the posts exhibit coordinated conspiracy thinking, there is no direct information about the independenc"
+        },
+        {
+          "item": "Diagnostic evidence identified",
+          "score": 1.0,
+          "justification": "The available evidence includes several diagnostic indicators of coordinated conspiracy thinking with a dominant Actor dimension, including cross-domain taxonomy matches for 'conspiracy_theory/coordin"
+        },
+        {
+          "item": "Alternative hypotheses eliminated via ACH",
+          "score": 0.5,
+          "justification": "The available evidence shows some indications of coordinated conspiracy thinking, such as the high average number of dimensions per post and the presence of content matching certain conspiracy-related"
+        },
+        {
+          "item": "Confidence level assigned (Low/Mod/High)",
+          "score": 0.5,
+          "justification": "The available evidence provides some indications of coordinated conspiracy thinking, such as the high number of posts, multi-dimensional content, and matching to relevant taxonomy concepts. However, a"
+        }
+      ],
+      "research_directions": [
+        "Finding meets all evidentiary requirements."
+      ]
+    },
+    {
+      "theory_id": "1e8a2e5b-99e7-4858-afbc-f57a20e5262d",
+      "title": "Voat/Science Conspiracy Narrative Cluster",
+      "subverse": "Science",
+      "claim": "Posts in v/Science exhibit coordinated conspiracy thinking with dominant Actor dimension (70 posts, 3.2 avg dimensions)",
+      "total_posts": 70,
+      "dominant_dimension": "Actor",
+      "avg_dimensions": 3.17,
+      "is_cross_cutting": true,
+      "domains_matched": [
+        "ancient_mysteries",
+        "conspiracy_theory",
+        "crime"
+      ],
+      "cross_domain_top_hits": {
+        "conspiracy_theory/coordinated_actors": 7,
+        "crime/organizational_hierarchy": 5,
+        "conspiracy_theory/threat_narrative": 4,
+        "ancient_mysteries/advanced_technology": 2,
+        "conspiracy_theory/information_asymmetry": 1
+      },
+      "verdict": "UNPROVEN",
+      "overall_score": 0.6,
+      "checklist_items": [
+        {
+          "item": "Minimum source count met (2+)",
+          "score": 1.0,
+          "justification": "The available evidence includes multiple distinct sources, including direct quotes from 5 different posts in the v/Science subverse, as well as references to 6 different types of conspiracy theory and"
+        },
+        {
+          "item": "Source independence verified",
+          "score": 0.0,
+          "justification": "The available evidence does not indicate that the posts in v/Science exhibit source independence. The sample posts contain numerous references to coordinated conspiracy theories and narratives, sugges"
+        },
+        {
+          "item": "Diagnostic evidence identified",
+          "score": 1.0,
+          "justification": "The available evidence includes a detailed analysis of the posts in the v/Science subverse, identifying several key patterns that are indicative of coordinated conspiracy thinking, including a dominan"
+        },
+        {
+          "item": "Alternative hypotheses eliminated via ACH",
+          "score": 0.0,
+          "justification": "The available evidence does not show that alternative hypotheses have been systematically eliminated via Analytical Causal Holism (ACH) or any other structured analytical technique. The posts exhibit "
+        },
+        {
+          "item": "Confidence level assigned (Low/Mod/High)",
+          "score": 1.0,
+          "justification": "The available evidence, which includes the high number of posts exhibiting multiple dimensions related to conspiracy theories and coordinated actor narratives, provides a strong basis to assign a high"
+        }
+      ],
+      "research_directions": [
+        "Evidence actively contradicts this finding.",
+        "To rehabilitate: provide evidence addressing the contradiction directly."
+      ]
+    },
+    {
+      "theory_id": "bb83c780-ec80-4f4a-a69e-132bb146a9d6",
+      "title": "Voat/Showerthoughts Conspiracy Narrative Cluster",
+      "subverse": "Showerthoughts",
+      "claim": "Posts in v/Showerthoughts exhibit coordinated conspiracy thinking with dominant Actor dimension (87 posts, 3.6 avg dimensions)",
+      "total_posts": 87,
+      "dominant_dimension": "Actor",
+      "avg_dimensions": 3.55,
+      "is_cross_cutting": true,
+      "domains_matched": [
+        "conspiracy_theory",
+        "crime"
+      ],
+      "cross_domain_top_hits": {
+        "conspiracy_theory/coordinated_actors": 8,
+        "crime/organizational_hierarchy": 4,
+        "conspiracy_theory/threat_narrative": 1,
+        "crime/temporal_clustering": 1,
+        "crime/witness_intimidation": 1
+      },
+      "verdict": "PROVEN",
+      "overall_score": 0.7,
+      "checklist_items": [
+        {
+          "item": "Minimum source count met (2+)",
+          "score": 1.0,
+          "justification": "The available evidence includes 5 sample posts from the v/Showerthoughts subverse, which exceeds the minimum source count of 2."
+        },
+        {
+          "item": "Source independence verified",
+          "score": 0.0,
+          "justification": "The available evidence does not provide any information about the independence of the sources of the posts in v/Showerthoughts. The evidence focuses on the content and themes of the posts, but does no"
+        },
+        {
+          "item": "Diagnostic evidence identified",
+          "score": 1.0,
+          "justification": "The available evidence includes clear diagnostic evidence of coordinated conspiracy thinking, including multiple matches across the provided taxonomy dimensions related to conspiracy theories and orga"
+        },
+        {
+          "item": "Alternative hypotheses eliminated via ACH",
+          "score": 0.5,
+          "justification": "The available evidence provides some information on potential alternative hypotheses related to conspiracy thinking and organizational hierarchy, but does not systematically address or rule out other "
+        },
+        {
+          "item": "Confidence level assigned (Low/Mod/High)",
+          "score": 1.0,
+          "justification": "The available evidence strongly supports the finding that posts in v/Showerthoughts exhibit coordinated conspiracy thinking with a dominant Actor dimension. The large number of posts (87), high averag"
+        }
+      ],
+      "research_directions": [
+        "Finding meets all evidentiary requirements."
+      ]
+    },
+    {
+      "theory_id": "068c2f79-c51d-4733-a234-08036945df6a",
+      "title": "Voat/theredpill Conspiracy Narrative Cluster",
+      "subverse": "theredpill",
+      "claim": "Posts in v/theredpill exhibit coordinated conspiracy thinking with dominant Actor dimension (44 posts, 3.6 avg dimensions)",
+      "total_posts": 44,
+      "dominant_dimension": "Actor",
+      "avg_dimensions": 3.57,
+      "is_cross_cutting": true,
+      "domains_matched": [
+        "ancient_mysteries",
+        "conspiracy_theory",
+        "crime"
+      ],
+      "cross_domain_top_hits": {
+        "conspiracy_theory/coordinated_actors": 14,
+        "crime/organizational_hierarchy": 5,
+        "conspiracy_theory/information_asymmetry": 4,
+        "crime/temporal_clustering": 4,
+        "conspiracy_theory/threat_narrative": 3
+      },
+      "verdict": "UNPROVEN",
+      "overall_score": 0.7,
+      "checklist_items": [
+        {
+          "item": "Minimum source count met (2+)",
+          "score": 1.0,
+          "justification": "The available evidence includes 44 posts from the v/theredpill subreddit, which meets the minimum source count of 2 or more."
+        },
+        {
+          "item": "Source independence verified",
+          "score": 0.0,
+          "justification": "The available evidence does not indicate that the posts in v/theredpill were independently sourced. The posts exhibit coordinated patterns suggestive of a conspiracy, which implies non-independent sou"
+        },
+        {
+          "item": "Diagnostic evidence identified",
+          "score": 1.0,
+          "justification": "The available evidence contains multiple diagnostic indicators of coordinated conspiracy thinking and an actor-dominant narrative, such as references to organizational hierarchies, information asymmet"
+        },
+        {
+          "item": "Alternative hypotheses eliminated via ACH",
+          "score": 0.5,
+          "justification": "The available evidence provides some support for the finding, as it shows coordinated conspiracy thinking and dominant actor dimensions in the v/theredpill subreddit. However, the evidence does not ex"
+        },
+        {
+          "item": "Confidence level assigned (Low/Mod/High)",
+          "score": 1.0,
+          "justification": "The available evidence clearly indicates a high confidence level in the finding, with 44 posts exhibiting coordinated conspiracy thinking with a dominant Actor dimension and an average of 3.57 dimensi"
+        }
+      ],
+      "research_directions": [
+        "Evidence actively contradicts this finding.",
+        "To rehabilitate: provide evidence addressing the contradiction directly."
+      ]
+    },
+    {
+      "theory_id": "e21c339d-9a44-4930-9b5f-39ec0dc34aa0",
+      "title": "Voat/gaming Conspiracy Narrative Cluster",
+      "subverse": "gaming",
+      "claim": "Posts in v/gaming exhibit coordinated conspiracy thinking with dominant Actor dimension (19 posts, 3.7 avg dimensions)",
+      "total_posts": 19,
+      "dominant_dimension": "Actor",
+      "avg_dimensions": 3.68,
+      "is_cross_cutting": true,
+      "domains_matched": [
+        "ancient_mysteries",
+        "conspiracy_theory",
+        "crime"
+      ],
+      "cross_domain_top_hits": {
+        "conspiracy_theory/coordinated_actors": 3,
+        "conspiracy_theory/threat_narrative": 3,
+        "crime/organizational_hierarchy": 2,
+        "ancient_mysteries/lost_knowledge": 1,
+        "crime/financial_trail": 1
+      },
+      "verdict": "PROVEN",
+      "overall_score": 0.7,
+      "checklist_items": [
+        {
+          "item": "Minimum source count met (2+)",
+          "score": 1.0,
+          "justification": "The available evidence includes a total of 19 posts from the v/gaming subreddit, which exceeds the minimum source count of 2."
+        },
+        {
+          "item": "Source independence verified",
+          "score": 0.5,
+          "justification": "The available evidence does not conclusively verify the independence of the sources behind the posts in v/gaming. While the posts exhibit some similarities in terms of dominant dimensions and cross-do"
+        },
+        {
+          "item": "Diagnostic evidence identified",
+          "score": 1.0,
+          "justification": "The available evidence includes multiple hits across several relevant dimensions that are consistent with the finding of coordinated conspiracy thinking, including references to threats, organizationa"
+        },
+        {
+          "item": "Alternative hypotheses eliminated via ACH",
+          "score": 0.0,
+          "justification": "The available evidence does not indicate that alternative hypotheses have been eliminated via Structured Analytic Techniques like Analysis of Competing Hypotheses (ACH). The post analysis does not men"
+        },
+        {
+          "item": "Confidence level assigned (Low/Mod/High)",
+          "score": 1.0,
+          "justification": "The provided evidence strongly supports a high confidence level in the finding, with 19 posts exhibiting coordinated conspiracy thinking with an average of 3.7 dimensions per post, and clear matches t"
+        }
+      ],
+      "research_directions": [
+        "Finding meets all evidentiary requirements."
+      ]
+    }
+  ]
+}
