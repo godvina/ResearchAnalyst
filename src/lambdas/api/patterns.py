@@ -271,8 +271,9 @@ def _get_graph(case_id: str, event: dict) -> dict:
         f".has('entity_type','location')"
         f".order().by(bothE().count(), desc)"
         f".limit(100)"
-        f".project('n','t','c','d')"
+        f".project('n','t','c','d','co','r')"
         f".by('canonical_name').by('entity_type').by('confidence').by(bothE().count())"
+        f".by(coalesce(values('country'),constant(''))).by(coalesce(values('region'),constant('')))"
     )
     raw_locs = _neptune_query(q_locations)
     logger.info("Location query returned %d nodes", len(raw_locs))
@@ -306,6 +307,8 @@ def _get_graph(case_id: str, event: dict) -> dict:
             "type": r.get("t", ""),
             "confidence": r.get("c", 0.5),
             "degree": int(d),
+            "country": r.get("co", ""),
+            "region": r.get("r", ""),
         })
     node_list.sort(key=lambda x: x["degree"], reverse=True)
     # Filter OCR noise from location nodes before sending to frontend
