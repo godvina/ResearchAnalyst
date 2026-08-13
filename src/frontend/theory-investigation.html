@@ -1,0 +1,605 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theory Investigation — Documentary Drill-Down</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",system-ui,sans-serif;background:#0a0f19;color:#e2e8f0;min-height:100vh}
+.header{background:linear-gradient(135deg,#0f1419,#1a1a2e);padding:14px 28px;border-bottom:1px solid rgba(99,179,237,0.2);display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:1.3rem;color:#63b3ed;display:flex;align-items:center;gap:10px}
+.header h1 .sub{font-size:0.7rem;color:#718096;font-weight:400}
+.nav-link{color:#a0aec0;text-decoration:none;font-size:0.72rem;padding:5px 12px;border:1px solid #4a5568;border-radius:6px;transition:all 0.2s}
+.nav-link:hover{color:#63b3ed;border-color:#63b3ed}
+.stats-bar{display:flex;gap:16px;padding:12px 28px;background:rgba(0,0,0,0.3);border-bottom:1px solid rgba(255,255,255,0.05);flex-wrap:wrap;align-items:center}
+.stat{font-size:0.72rem;color:#718096}.stat strong{color:#e2e8f0;margin-right:3px}
+.breadcrumb{display:flex;align-items:center;gap:6px;margin-bottom:16px;font-size:0.78rem;flex-wrap:wrap}
+.breadcrumb a{color:#63b3ed;text-decoration:none;cursor:pointer}.breadcrumb a:hover{text-decoration:underline}
+.breadcrumb .sep{color:#4a5568}.breadcrumb .current{color:#e2e8f0;font-weight:600}
+.container{max-width:1400px;margin:0 auto;padding:20px 28px}
+
+/* Domain tabs (theory groups) */
+.domain-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.domain-tab{padding:8px 16px;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;border:1px solid #4a5568;background:rgba(255,255,255,0.03);color:#a0aec0;transition:all 0.2s;position:relative}
+.domain-tab:hover{transform:translateY(-1px);border-color:#63b3ed;color:#63b3ed}
+.domain-tab.active{border-color:#63b3ed;color:#63b3ed;background:rgba(99,179,237,0.1)}
+.domain-tab .count{font-size:0.6rem;position:absolute;top:-4px;right:-4px;background:#63b3ed;color:#0a0f19;border-radius:8px;padding:1px 5px;font-weight:700}
+
+/* Cards grid */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:16px}
+.card{background:rgba(26,35,50,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:18px;cursor:pointer;transition:all 0.2s;position:relative;border-top:3px solid #4a5568}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.4);border-color:rgba(99,179,237,0.3)}
+.card.proven{border-top-color:#48bb78}
+.card.insufficient{border-top-color:#ecc94b}
+.card.unproven{border-top-color:#f56565}
+.card-title{font-size:0.88rem;font-weight:600;margin-bottom:6px;padding-right:70px}
+.card-meta{font-size:0.68rem;color:#718096;margin-bottom:10px}
+.card-badge{position:absolute;top:14px;right:14px;font-size:0.6rem;padding:3px 8px;border-radius:10px;font-weight:700}
+.card-badge.proven{background:rgba(72,187,120,0.15);color:#48bb78;border:1px solid rgba(72,187,120,0.3)}
+.card-badge.insufficient{background:rgba(236,201,75,0.15);color:#ecc94b;border:1px solid rgba(236,201,75,0.3)}
+.card-badge.unproven{background:rgba(245,101,101,0.15);color:#f56565;border:1px solid rgba(245,101,101,0.3)}
+
+/* Score bar */
+.score-row{display:flex;align-items:center;gap:8px;margin:8px 0}
+.score-bar{flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
+.score-fill{height:100%;border-radius:3px;transition:width 0.4s}
+.score-val{font-size:0.8rem;font-weight:700;min-width:35px}
+.delta{font-size:0.65rem;color:#48bb78;margin-left:4px}
+.delta.neg{color:#f56565}
+
+/* Investigation panel (the drill-down) */
+.investigation{display:none;margin-top:20px;animation:fadeIn 0.3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.inv-section{margin-bottom:16px;padding:16px;border-radius:10px;border-left:3px solid}
+.inv-hook{border-left-color:#f56565;background:rgba(245,101,101,0.04)}
+.inv-facts{border-left-color:#63b3ed;background:rgba(99,179,237,0.04)}
+.inv-anomaly{border-left-color:#ecc94b;background:rgba(236,201,75,0.04)}
+.inv-pattern{border-left-color:#b794f4;background:rgba(183,148,244,0.04)}
+.inv-implication{border-left-color:#48bb78;background:rgba(72,187,120,0.04)}
+.inv-research{border-left-color:#ed8936;background:rgba(237,137,54,0.04)}
+.inv-section h3{font-size:0.78rem;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px}
+.inv-hook h3{color:#f56565}
+.inv-facts h3{color:#63b3ed}
+.inv-anomaly h3{color:#ecc94b}
+.inv-pattern h3{color:#b794f4}
+.inv-implication h3{color:#48bb78}
+.inv-research h3{color:#ed8936}
+.inv-section p{font-size:0.78rem;color:#cbd5e0;line-height:1.6}
+.inv-section .evidence{font-size:0.72rem;color:#a0aec0;margin-top:8px;padding:8px 12px;background:rgba(0,0,0,0.2);border-radius:6px}
+.inv-section .strength{font-size:0.65rem;margin-top:6px;color:#718096}
+.inv-section .strength strong{color:#e2e8f0}
+
+/* Back button */
+.back-btn{background:none;border:1px solid #4a5568;color:#a0aec0;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.75rem;margin-bottom:16px;transition:all 0.2s}
+.back-btn:hover{border-color:#63b3ed;color:#63b3ed}
+
+/* Cross-domain panel */
+.cross-domain{margin-top:12px;padding:10px 12px;background:rgba(159,122,234,0.06);border:1px solid rgba(159,122,234,0.2);border-radius:8px}
+.cross-domain h4{font-size:0.7rem;color:#b794f4;margin-bottom:6px}
+.cross-domain .tag{display:inline-block;font-size:0.6rem;padding:2px 8px;margin:2px;border-radius:10px;background:rgba(159,122,234,0.1);border:1px solid rgba(159,122,234,0.3);color:#d6bcfa}
+</style>
+</head><body>
+<div class="header">
+<h1>🔬 Theory Investigation <span class="sub">Documentary Drill-Down · Hook → Facts → Anomaly → Pattern → Implication</span></h1>
+<div style="display:flex;gap:8px">
+<a class="nav-link" href="theory-registry.html">📊 Scorecard</a>
+<a class="nav-link" href="pattern-library.html">📚 Taxonomy</a>
+<a class="nav-link" href="grid-globe-3d.html">🌍 Globe</a>
+<a class="nav-link" href="geographic-explorer.html">🗺️ Explorer</a>
+</div>
+</div>
+<div class="stats-bar" id="statsBar"></div>
+<div class="container">
+<div id="breadcrumb" class="breadcrumb"></div>
+<div id="domainTabs" class="domain-tabs"></div>
+<div id="content" class="card-grid"></div>
+<div id="investigation" class="investigation"></div>
+</div>
+<script src="theory-registry-data.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</body></html>
+<script>
+// Group theories by dataset
+const GROUPS = {};
+THEORY_DATA.forEach(t => {
+  const ds = t.dataset || 'unknown';
+  if (!GROUPS[ds]) GROUPS[ds] = [];
+  GROUPS[ds].push(t);
+});
+
+const GROUP_META = {
+  'flat_earth_200': {name:'Flat Earth (200 Proofs)', icon:'🌍', color:'#f56565'},
+  'flat_earth': {name:'Flat Earth (Core 8)', icon:'🌍', color:'#f56565'},
+  'ancient_mysteries': {name:'Ancient Mysteries', icon:'🏛️', color:'#b794f4'},
+  'bermuda_triangle': {name:'Bermuda Triangle', icon:'🔺', color:'#63b3ed'},
+  'ufo_sightings': {name:'UFO/UAP', icon:'🛸', color:'#48bb78'},
+  'voat_conspiracy': {name:'Voat Conspiracy', icon:'💬', color:'#ed8936'},
+  'vaers': {name:'VAERS/Vaccines', icon:'💉', color:'#fc8181'},
+  'nine_eleven': {name:'9/11', icon:'🏢', color:'#e2e8f0'},
+  'covid_lab_leak': {name:'COVID Lab Leak', icon:'🦠', color:'#48bb78'},
+  'moon_landing': {name:'Moon Landing', icon:'🌙', color:'#ecc94b'},
+  'princess_diana': {name:'Princess Diana', icon:'👑', color:'#d6bcfa'},
+  'new_world_order': {name:'New World Order', icon:'🔺', color:'#f6ad55'},
+};
+
+let currentGroup = null;
+let currentClaim = null;
+
+function init() {
+  renderStats();
+  renderDomainTabs();
+  showGroup(Object.keys(GROUPS)[0]);
+}
+
+function renderStats() {
+  const total = THEORY_DATA.length;
+  const high = THEORY_DATA.filter(t=>(t.score||0)>=0.70).length;
+  const moderate = THEORY_DATA.filter(t=>(t.score||0)>=0.40 && (t.score||0)<0.70).length;
+  const early = THEORY_DATA.filter(t=>(t.score||0)<0.40).length;
+  const datasets = Object.keys(GROUPS).length;
+  const withMomentum = THEORY_DATA.filter(t=>t.delta && t.delta > 0).length;
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat"><strong>${total}</strong> Claims Under Investigation</div>
+    <div class="stat" style="color:#48bb78"><strong>${high}</strong> High Confidence</div>
+    <div class="stat" style="color:#ecc94b"><strong>${moderate}</strong> Active Investigation</div>
+    <div class="stat" style="color:#ed8936"><strong>${early}</strong> Early Stage</div>
+    <div class="stat"><strong>${withMomentum}</strong> Gaining Momentum</div>
+    <div class="stat" style="margin-left:auto;color:#63b3ed;font-size:0.68rem">Click claim → Research Mission + What Would Change This</div>
+  `;
+}
+
+function renderDomainTabs() {
+  const tabs = document.getElementById('domainTabs');
+  tabs.innerHTML = Object.entries(GROUPS).map(([ds, items]) => {
+    const meta = GROUP_META[ds] || {name:ds, icon:'📄', color:'#718096'};
+    return `<div class="domain-tab" data-ds="${ds}" onclick="showGroup('${ds}')" style="border-color:${meta.color}40">
+      ${meta.icon} ${meta.name} <span class="count">${items.length}</span>
+    </div>`;
+  }).join('');
+}
+
+function showGroup(ds) {
+  currentGroup = ds;
+  currentClaim = null;
+  document.getElementById('investigation').style.display = 'none';
+  document.querySelectorAll('.domain-tab').forEach(t => t.classList.toggle('active', t.dataset.ds === ds));
+  
+  const meta = GROUP_META[ds] || {name:ds};
+  document.getElementById('breadcrumb').innerHTML = `<span class="current">${meta.icon || ''} ${meta.name}</span>`;
+  
+  const items = GROUPS[ds] || [];
+  const grid = document.getElementById('content');
+  grid.style.display = 'grid';
+  
+  // Sort by score descending
+  const sorted = [...items].sort((a,b) => (b.score||0) - (a.score||0));
+  
+  // Group by category if categories exist
+  const categories = {};
+  sorted.forEach(t => {
+    const cat = t.category || 'uncategorized';
+    if (!categories[cat]) categories[cat] = [];
+    categories[cat].push(t);
+  });
+  
+  const hasCats = Object.keys(categories).length > 1 && !categories['uncategorized'] || Object.keys(categories).length > 2;
+  
+  let html = '';
+  if (hasCats) {
+    // Show category headers
+    Object.entries(categories).sort((a,b) => b[1].length - a[1].length).forEach(([cat, claims]) => {
+      if (cat === 'uncategorized' || cat === '') return;
+      const avgScore = claims.reduce((s,c) => s + (c.score||0), 0) / claims.length;
+      const proven = claims.filter(c => c.verdict === 'PROVEN').length;
+      const catColor = avgScore >= 0.5 ? '#48bb78' : avgScore >= 0.3 ? '#ecc94b' : '#f56565';
+      html += `<div style="grid-column:1/-1;padding:10px 16px;background:rgba(99,179,237,0.04);border:1px solid rgba(99,179,237,0.15);border-radius:8px;margin:8px 0 4px">
+        <span style="font-size:0.8rem;font-weight:600;color:#63b3ed">${cat.replace(/_/g,' ').toUpperCase()}</span>
+        <span style="font-size:0.68rem;color:#718096;margin-left:12px">${claims.length} claims · avg ${avgScore.toFixed(2)} · ${proven} proven</span>
+        <span style="float:right;font-size:0.7rem;color:${catColor}">●</span>
+      </div>`;
+      claims.forEach((t, i) => {
+        html += buildCard(t, sorted.indexOf(t), ds);
+      });
+    });
+    // Uncategorized at end
+    (categories['uncategorized'] || categories[''] || []).forEach((t, i) => {
+      html += buildCard(t, sorted.indexOf(t), ds);
+    });
+  } else {
+    sorted.forEach((t, i) => { html += buildCard(t, i, ds); });
+  }
+  grid.innerHTML = html;
+    const vClass = t.verdict === 'PROVEN' ? 'proven' : t.verdict === 'UNPROVEN' ? 'unproven' : 'insufficient';
+    const scoreColor = (t.score||0) >= 0.65 ? '#48bb78' : (t.score||0) >= 0.4 ? '#ecc94b' : '#f56565';
+    const scorePct = Math.min((t.score||0) * 100, 100);
+    const deltaHtml = t.delta ? `<span class="delta ${t.delta<0?'neg':''}">${t.delta>0?'+':''}${t.delta.toFixed(2)}</span>` : '';
+    const title = t.title || t.claim?.slice(0,60) || 'Unknown';
+    
+    return `<div class="card ${vClass}" onclick="investigate(${i},'${ds}')">
+      <span class="card-badge ${vClass}">${formatVerdict(t.verdict)}</span>
+      <div class="card-title">${title}</div>
+      <div class="card-meta">${t.source||ds} · ${t.standard||'intelligence'} standard</div>
+      <div class="score-row">
+        <div class="score-bar"><div class="score-fill" style="width:${scorePct}%;background:${scoreColor}"></div></div>
+        <div class="score-val" style="color:${scoreColor}">${(t.score||0).toFixed(2)}</div>${deltaHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildCard(t, idx, ds) {
+    const conf = getConfidenceLabel(t.score || 0);
+    const momentum = getMomentum(t);
+    const scoreColor = conf.color;
+    const scorePct = Math.min((t.score||0) * 100, 100);
+    const title = t.title || t.claim?.slice(0,60) || 'Unknown';
+    
+    return `<div class="card ${t.verdict==='PROVEN'?'proven':t.score>=0.4?'insufficient':'unproven'}" onclick="investigate(${idx},'${ds}')">
+      <span class="card-badge" style="background:${scoreColor}20;color:${scoreColor};border:1px solid ${scoreColor}50">${conf.icon} ${conf.label}</span>
+      <div class="card-title">${title}</div>
+      <div class="card-meta">${t.category?t.category.replace(/_/g,' ')+' · ':''}${momentum.icon} ${momentum.label}</div>
+      <div class="score-row">
+        <div class="score-bar"><div class="score-fill" style="width:${scorePct}%;background:${scoreColor}"></div></div>
+        <div class="score-val" style="color:${scoreColor}">${Math.round((t.score||0)*100)}%</div>
+      </div>
+    </div>`;
+}
+
+function investigate(idx, ds) {
+  const items = [...(GROUPS[ds]||[])].sort((a,b)=>(b.score||0)-(a.score||0));
+  const t = items[idx];
+  if (!t) return;
+  
+  currentClaim = t;
+  const meta = GROUP_META[ds] || {name:ds, icon:''};
+  
+  // Update breadcrumb
+  document.getElementById('breadcrumb').innerHTML = `
+    <a onclick="showGroup('${ds}')">${meta.icon} ${meta.name}</a>
+    <span class="sep">›</span>
+    <span class="current">${(t.title||t.claim||'').slice(0,50)}</span>
+  `;
+  
+  // Hide grid, show investigation
+  document.getElementById('content').style.display = 'none';
+  const inv = document.getElementById('investigation');
+  inv.style.display = 'block';
+  
+  const scoreColor = (t.score||0) >= 0.65 ? '#48bb78' : (t.score||0) >= 0.4 ? '#ecc94b' : '#f56565';
+  const vClass = t.verdict === 'PROVEN' ? 'proven' : t.verdict === 'UNPROVEN' ? 'unproven' : 'insufficient';
+  
+  inv.innerHTML = `
+    <button class="back-btn" onclick="showGroup('${ds}')">← Back to ${meta.name}</button>
+    
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;padding:16px;background:rgba(26,35,50,0.9);border-radius:12px;border-top:3px solid ${scoreColor}">
+      <div>
+        <span class="card-badge" style="position:static;background:${scoreColor}20;color:${scoreColor};border:1px solid ${scoreColor}50;font-size:0.7rem;padding:4px 10px">${getConfidenceLabel(t.score||0).icon} ${getConfidenceLabel(t.score||0).label}</span>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:1rem;font-weight:600">${t.title||t.claim||''}</div>
+        <div style="font-size:0.72rem;color:#718096;margin-top:4px">${t.source||''} · ${t.category?t.category.replace(/_/g,' '):''}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:1.8rem;font-weight:700;color:${scoreColor}">${Math.round((t.score||0)*100)}%</div>
+        <div style="font-size:0.6rem;color:#718096">confidence</div>
+        ${t.delta?`<div style="font-size:0.7rem;color:${t.delta>0?'#48bb78':'#f56565'}">${getMomentum(t).icon} ${getMomentum(t).label}</div>`:''}
+      </div>
+    </div>
+    
+    <!-- RESEARCH MISSION -->
+    <div style="margin-bottom:16px;padding:14px 16px;background:rgba(237,137,54,0.06);border:1px solid rgba(237,137,54,0.2);border-radius:10px;border-left:3px solid #ed8936">
+      <div style="font-size:0.72rem;font-weight:700;color:#ed8936;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">🎯 Research Mission</div>
+      <div style="font-size:0.82rem;color:#e2e8f0">${getResearchMission(t)}</div>
+      <div style="font-size:0.7rem;color:#a0aec0;margin-top:6px">What would change this: ${generateWhatWouldChange(t)}</div>
+    </div>
+    
+    <!-- Documentary Investigation Layers -->
+    <div class="inv-section inv-hook">
+      <h3>1. THE HOOK — Why investigate this?</h3>
+      <p>${generateHook(t)}</p>
+    </div>
+    
+    <div class="inv-section inv-facts">
+      <h3>2. ESTABLISHED FACTS — What's confirmed?</h3>
+      <p>${generateFacts(t)}</p>
+    </div>
+    
+    <div class="inv-section inv-anomaly">
+      <h3>3. THE ANOMALY — What doesn't fit?</h3>
+      <p>${generateAnomaly(t)}</p>
+    </div>
+    
+    <div class="inv-section inv-pattern">
+      <h3>4. THE PATTERN — Where else does this appear?</h3>
+      <p>${generatePattern(t, ds)}</p>
+    </div>
+    
+    <div class="inv-section inv-implication">
+      <h3>5. THE IMPLICATION — If true, what else must be true?</h3>
+      <p>${generateImplication(t)}</p>
+    </div>
+    
+    <div class="inv-section inv-research">
+      <h3>6. RESEARCH NEEDED — What would close the gap?</h3>
+      <p>${generateResearch(t)}</p>
+    </div>
+    
+    ${generateCrossDomain(t, ds)}
+    
+    <!-- Network Graph -->
+    <div style="margin-top:20px;padding:16px;background:rgba(26,35,50,0.9);border:1px solid rgba(99,179,237,0.2);border-radius:12px">
+      <h3 style="font-size:0.82rem;color:#63b3ed;margin-bottom:12px">🕸️ Connection Network — Related Claims Across Theories</h3>
+      <div id="networkGraph" style="height:300px;border-radius:8px;background:rgba(0,0,0,0.3)"></div>
+    </div>
+    
+    <!-- Geo Map (if geo data available) -->
+    <div style="margin-top:16px;padding:16px;background:rgba(26,35,50,0.9);border:1px solid rgba(72,187,120,0.2);border-radius:12px">
+      <h3 style="font-size:0.82rem;color:#48bb78;margin-bottom:12px">🗺️ Geographic Context</h3>
+      <div id="geoMap" style="height:280px;border-radius:8px"></div>
+    </div>
+  `;
+  
+  // Render network graph
+  setTimeout(() => renderNetworkGraph(t, ds), 100);
+  // Render geo map
+  setTimeout(() => renderGeoMap(t, ds), 200);
+}
+
+// Documentary methodology generators
+function generateHook(t) {
+  const claim = t.claim || t.title || '';
+  if (t.verdict === 'PROVEN') return `This claim has reached PROVEN status (${(t.score||0).toFixed(2)}) — the evidence meets the ${t.standard} standard threshold. The investigation confirmed the underlying observation is real, though interpretation may differ from what proponents claim.`;
+  if ((t.score||0) >= 0.5) return `This claim scores ${(t.score||0).toFixed(2)} — close to the proof threshold. There IS legitimate evidence worth investigating. The gap between current score and threshold (${t.standard==='scientific'?'0.70':'0.65'}) represents specific evidence that, if found, would change the verdict.`;
+  return `"${claim.slice(0,150)}..." — This claim challenges the mainstream narrative. Even at a low score (${(t.score||0).toFixed(2)}), it warrants investigation because understanding WHY people believe it reveals real observations that are being misinterpreted.`;
+}
+
+function generateFacts(t) {
+  const claim = t.claim || '';
+  if (t.baseline_score !== undefined && t.delta !== undefined) {
+    return `<strong>Before research:</strong> Score ${(t.baseline_score||0).toFixed(2)}<br>
+    <strong>After research:</strong> Score ${(t.score||0).toFixed(2)} (${t.delta>0?'+':''}${(t.delta||0).toFixed(2)})<br><br>
+    The research phase ${t.delta>0?'found supporting evidence that improved the score':'found counter-evidence or confirmed the baseline assessment'}. 
+    This claim is evaluated against the <strong>${t.standard}</strong> standard which requires: ${t.standard==='scientific'?'falsifiable hypothesis, statistical significance, replication, peer critique, alternative elimination':'minimum sources, source independence, diagnostic evidence, ACH elimination, confidence level'}.`;
+  }
+  return `Evaluated against <strong>${t.standard}</strong> standard (threshold: ${t.standard==='scientific'?'0.70':'0.65'}). Current score: ${(t.score||0).toFixed(2)}. Verdict: ${t.verdict}.`;
+}
+
+function generateAnomaly(t) {
+  if (t.verdict === 'PROVEN') return `The evidence DOES support this claim meeting the proof standard. This itself is noteworthy — it means there is a genuine anomaly or confirmed observation here that mainstream explanations must account for.`;
+  if (t.verdict === 'UNPROVEN') return `Evidence actively CONTRADICTS this claim. This is not merely "insufficient evidence" — specific data, experiments, or observations directly refute the claim. The anomaly here is that people continue to believe it despite contradictory evidence, which itself is worth understanding.`;
+  return `The claim falls in INSUFFICIENT_EVIDENCE territory — meaning there IS something here worth investigating, but the available evidence doesn't yet meet the standard for proof OR disproof. This is the most interesting category: genuinely open questions.`;
+}
+
+function generatePattern(t, ds) {
+  // Find related claims across other datasets
+  const claim = (t.claim || '').toLowerCase();
+  const keywords = claim.split(/\s+/).filter(w => w.length > 5).slice(0, 5);
+  
+  const related = THEORY_DATA.filter(other => {
+    if (other === t) return false;
+    if (other.dataset === ds) return false;
+    const otherClaim = (other.claim || '').toLowerCase();
+    return keywords.some(kw => otherClaim.includes(kw));
+  }).slice(0, 5);
+  
+  if (related.length > 0) {
+    const relatedHtml = related.map(r => 
+      `<div style="font-size:0.72rem;margin:4px 0;padding:4px 8px;background:rgba(0,0,0,0.2);border-radius:4px">
+        <strong style="color:#b794f4">${GROUP_META[r.dataset]?.icon||''} ${GROUP_META[r.dataset]?.name||r.dataset}</strong>: 
+        ${(r.claim||r.title||'').slice(0,80)}... (${r.verdict}, ${(r.score||0).toFixed(2)})
+      </div>`
+    ).join('');
+    return `<strong>Cross-theory connections found:</strong> ${related.length} claims in other theories share keywords or patterns:<br>${relatedHtml}`;
+  }
+  return `No direct cross-theory pattern matches found for this specific claim. This could mean: (a) it's unique to this theory, or (b) our keyword matching needs enrichment via embedding similarity (requires OpenSearch k-NN which is VPC-only).`;
+}
+
+function generateImplication(t) {
+  if (t.verdict === 'PROVEN') return `Since this claim meets the proof standard, the implications are: (1) The observation is real and must be explained by any model. (2) Related claims in the same theory may also have stronger support than assumed. (3) This should be flagged for further investigation to understand the MECHANISM, not just the observation.`;
+  if (t.verdict === 'UNPROVEN') return `Since evidence contradicts this claim: (1) The observation cited by proponents either doesn't exist or has a known explanation. (2) This claim may be based on misinterpretation of real phenomena. (3) Understanding WHY it persists despite evidence is itself an investigation into misinformation patterns.`;
+  return `Since evidence is INSUFFICIENT: (1) There are specific gaps that, if filled, would change the verdict. (2) The research directions below identify exactly what data/experiments are needed. (3) This is where our platform adds the most value — directing researchers to the highest-impact investigations.`;
+}
+
+function generateResearch(t) {
+  if (t.research_directions && t.research_directions.length > 0) {
+    return t.research_directions.map(rd => `<div style="margin:6px 0;padding:6px 10px;background:rgba(0,0,0,0.2);border-radius:4px;font-size:0.72rem;border-left:2px solid #ed8936">• ${rd}</div>`).join('');
+  }
+  
+  const gap = (t.standard === 'scientific' ? 0.70 : 0.65) - (t.score || 0);
+  if (gap <= 0) return `✓ This claim meets the proof threshold. Research focus should shift to: understanding the mechanism, expanding to related claims, and checking for replication.`;
+  if (gap <= 0.15) return `<strong>CLOSE TO THRESHOLD (gap: ${gap.toFixed(2)})</strong> — This is a high-priority investigation target. One strong piece of evidence could flip the verdict. Focus on: finding independent replication, eliminating the top alternative explanation, or obtaining diagnostic evidence.`;
+  return `Gap to threshold: ${gap.toFixed(2)}. Multiple evidence requirements are unsatisfied. Priority research: (1) Find independent sources confirming the core observation. (2) Identify diagnostic evidence that distinguishes this explanation from alternatives. (3) Eliminate competing hypotheses via structured analysis.`;
+}
+
+function generateCrossDomain(t, ds) {
+  const domains = [];
+  const claim = (t.claim||'').toLowerCase();
+  if (claim.includes('suppress') || claim.includes('classif') || claim.includes('hidden') || claim.includes('withheld')) domains.push('evidence_suppression');
+  if (claim.includes('agency') || claim.includes('government') || claim.includes('nasa') || claim.includes('official')) domains.push('institutional_behavior');
+  if (claim.includes('witness') || claim.includes('testimony') || claim.includes('observer')) domains.push('witness_reliability');
+  if (claim.includes('timing') || claim.includes('before') || claim.includes('sequence')) domains.push('timeline_anomalies');
+  if (claim.includes('pattern') || claim.includes('multiple') || claim.includes('cluster')) domains.push('geographic_clustering');
+  if (claim.includes('known') || claim.includes('disclosed') || claim.includes('censored')) domains.push('information_asymmetry');
+  
+  if (domains.length === 0) return '';
+  return `<div class="cross-domain">
+    <h4>⚡ Cross-Domain Taxonomy Matches</h4>
+    <p style="font-size:0.7rem;color:#a0aec0;margin-bottom:8px">This claim triggers signatures in multiple taxonomy domains (cross-cutting = highest value):</p>
+    ${domains.map(d => `<span class="tag">${d.replace(/_/g,' ')}</span>`).join('')}
+  </div>`;
+}
+
+function formatVerdict(v) {
+  if (v === 'PROVEN') return '✅ Confirmed';
+  if (v === 'UNPROVEN') return '⚡ Contested';
+  return '🔍 Active Investigation';
+}
+
+function getConfidenceLabel(score) {
+  if (score >= 0.70) return {label: 'High Confidence', color: '#48bb78', icon: '✅'};
+  if (score >= 0.40) return {label: 'Moderate Confidence', color: '#ecc94b', icon: '🔍'};
+  if (score >= 0.20) return {label: 'Low Confidence', color: '#ed8936', icon: '⚡'};
+  return {label: 'Early Stage', color: '#f56565', icon: '🔬'};
+}
+
+function getMomentum(t) {
+  if (!t.delta) return {label: 'No change', icon: '—', color: '#718096'};
+  if (t.delta > 0.2) return {label: 'Strong momentum', icon: '🚀', color: '#48bb78'};
+  if (t.delta > 0) return {label: 'Gaining evidence', icon: '↑', color: '#48bb78'};
+  if (t.delta < -0.1) return {label: 'Weakening', icon: '↓', color: '#f56565'};
+  return {label: 'Stable', icon: '→', color: '#718096'};
+}
+
+function getResearchMission(t) {
+  const gap = (t.standard === 'scientific' ? 0.70 : 0.65) - (t.score || 0);
+  if (gap <= 0) return 'MISSION COMPLETE: Claim meets evidence threshold. Verify replication.';
+  if (gap <= 0.15) return 'CLOSE — One strong piece of evidence could confirm. Priority target.';
+  if (gap <= 0.30) return 'ACTIVE — Multiple evidence gaps identified. Research team needed.';
+  return 'EARLY STAGE — Foundational research required. Start with source verification.';
+}
+
+function generateWhatWouldChange(t) {
+  const claim = (t.claim || '').toLowerCase();
+  if (claim.includes('document') || claim.includes('classified') || claim.includes('foia'))
+    return 'FOIA request for specific documents cited. Declassification of referenced materials.';
+  if (claim.includes('witness') || claim.includes('testimony'))
+    return 'Independent witness corroboration. Sworn testimony under oath. Video/audio records.';
+  if (claim.includes('data') || claim.includes('statistic') || claim.includes('rate'))
+    return 'Independent statistical analysis of raw data. Replication by separate research team.';
+  if (claim.includes('experiment') || claim.includes('test') || claim.includes('measure'))
+    return 'Controlled, peer-reviewed replication of the claimed experiment by independent lab.';
+  if (claim.includes('fund') || claim.includes('money') || claim.includes('payment'))
+    return 'Financial records audit. Congressional subpoena of transaction records.';
+  if (claim.includes('suppress') || claim.includes('censor') || claim.includes('silence'))
+    return 'Internal communications (emails, Slack). Whistleblower testimony. FOIA discovery.';
+  if (t.research_directions && t.research_directions.length > 0)
+    return t.research_directions[0].slice(0, 150);
+  return 'Independent source verification. Obtain primary documents cited. Cross-reference with public records.';
+}
+
+function renderNetworkGraph(claim, ds) {
+  const container = document.getElementById('networkGraph');
+  if (!container) return;
+  
+  // Build nodes and links from related claims
+  const claimText = (claim.claim || '').toLowerCase();
+  const keywords = claimText.split(/\s+/).filter(w => w.length > 5).slice(0, 8);
+  
+  // Central node = this claim
+  const nodes = [{id: 'center', label: (claim.title||claim.claim||'').slice(0,30), group: ds, score: claim.score||0, radius: 20}];
+  const links = [];
+  
+  // Find connected claims across all theories
+  const connected = THEORY_DATA.filter(t => {
+    if (t === claim) return false;
+    const other = (t.claim || '').toLowerCase();
+    const matches = keywords.filter(kw => other.includes(kw)).length;
+    return matches >= 2;
+  }).slice(0, 15);
+  
+  connected.forEach((t, i) => {
+    const nodeId = `n${i}`;
+    nodes.push({id: nodeId, label: (t.title||t.claim||'').slice(0,25), group: t.dataset, score: t.score||0, radius: 10 + (t.score||0)*8});
+    links.push({source: 'center', target: nodeId, strength: keywords.filter(kw => (t.claim||'').toLowerCase().includes(kw)).length / keywords.length});
+  });
+  
+  // Also add theory-group nodes
+  const theoryGroups = [...new Set(connected.map(t => t.dataset))];
+  theoryGroups.forEach(tg => {
+    if (tg === ds) return;
+    const gId = `g_${tg}`;
+    nodes.push({id: gId, label: (GROUP_META[tg]?.name||tg).slice(0,15), group: tg, score: 0.5, radius: 14, isGroup: true});
+    connected.filter(t => t.dataset === tg).forEach((t, i) => {
+      links.push({source: gId, target: `n${connected.indexOf(t)}`, strength: 0.3});
+    });
+  });
+  
+  if (nodes.length <= 1) {
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#718096;font-size:0.8rem">No cross-theory connections found for this claim. Try claims with higher scores or broader keywords.</div>';
+    return;
+  }
+  
+  // D3 Force Graph
+  const width = container.clientWidth;
+  const height = 300;
+  container.innerHTML = '';
+  
+  const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
+  
+  const colorScale = d3.scaleOrdinal()
+    .domain(Object.keys(GROUP_META))
+    .range(['#f56565','#63b3ed','#48bb78','#ecc94b','#b794f4','#ed8936','#fc8181','#d6bcfa','#f6ad55','#e2e8f0','#90cdf4','#68d391']);
+  
+  const simulation = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).id(d => d.id).distance(80).strength(d => d.strength || 0.5))
+    .force('charge', d3.forceManyBody().strength(-200))
+    .force('center', d3.forceCenter(width/2, height/2))
+    .force('collision', d3.forceCollide().radius(d => d.radius + 5));
+  
+  const link = svg.append('g').selectAll('line').data(links).join('line')
+    .attr('stroke', '#4a5568').attr('stroke-width', d => (d.strength||0.5) * 3).attr('stroke-opacity', 0.6);
+  
+  const node = svg.append('g').selectAll('circle').data(nodes).join('circle')
+    .attr('r', d => d.radius).attr('fill', d => colorScale(d.group))
+    .attr('stroke', d => d.id === 'center' ? '#fff' : 'none').attr('stroke-width', d => d.id === 'center' ? 2 : 0)
+    .attr('opacity', d => d.isGroup ? 0.5 : 0.85);
+  
+  const label = svg.append('g').selectAll('text').data(nodes).join('text')
+    .text(d => d.label).attr('font-size', d => d.id === 'center' ? '9px' : '7px')
+    .attr('fill', '#e2e8f0').attr('text-anchor', 'middle').attr('dy', d => d.radius + 12);
+  
+  simulation.on('tick', () => {
+    link.attr('x1', d => d.source.x).attr('y1', d => d.source.y).attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+    node.attr('cx', d => d.x = Math.max(d.radius, Math.min(width-d.radius, d.x))).attr('cy', d => d.y = Math.max(d.radius, Math.min(height-d.radius, d.y)));
+    label.attr('x', d => d.x).attr('y', d => d.y);
+  });
+}
+
+function renderGeoMap(claim, ds) {
+  const container = document.getElementById('geoMap');
+  if (!container) return;
+  
+  // Determine geo relevance based on theory
+  const geoData = getGeoForTheory(ds, claim);
+  
+  if (!geoData || geoData.length === 0) {
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#718096;font-size:0.8rem">Geographic data available when claims reference specific locations (Bermuda Triangle, UFO sightings, etc.)</div>';
+    return;
+  }
+  
+  const map = L.map(container).setView(geoData[0].center || [20, 0], geoData[0].zoom || 3);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '©CartoDB', maxZoom: 18
+  }).addTo(map);
+  
+  geoData.forEach(point => {
+    if (point.lat && point.lng) {
+      const color = point.score >= 0.65 ? '#48bb78' : point.score >= 0.4 ? '#ecc94b' : '#f56565';
+      L.circleMarker([point.lat, point.lng], {radius: 8, color: color, fillColor: color, fillOpacity: 0.6})
+        .addTo(map).bindPopup(`<b>${point.label}</b><br>${point.description||''}`);
+    }
+  });
+}
+
+function getGeoForTheory(ds, claim) {
+  // Return geo points relevant to this theory
+  const geoSets = {
+    'bermuda_triangle': [{center:[25,-70], zoom:5, lat:25.5, lng:-71, label:'Bermuda Triangle Zone', description:'218 NTSB accidents analyzed', score:0.8}],
+    'ufo_sightings': [
+      {center:[38,-98], zoom:4, lat:33.9,-100, lng:-118.2, label:'Los Angeles', description:'UFO hotspot cluster', score:0.5},
+      {center:[38,-98], zoom:4, lat:37.7, lng:-122.4, label:'San Francisco Bay', description:'High sighting density', score:0.5},
+      {center:[38,-98], zoom:4, lat:47.6, lng:-122.3, label:'Pacific Northwest', description:'Recurring triangle craft', score:0.6},
+    ],
+    'nine_eleven': [
+      {center:[40.7,-74], zoom:10, lat:40.711, lng:-74.013, label:'World Trade Center', description:'Twin Towers + Building 7', score:0.6},
+      {center:[40.7,-74], zoom:6, lat:38.87, lng:-77.06, label:'Pentagon', description:'Flight 77 impact', score:0.5},
+      {center:[40.7,-74], zoom:6, lat:40.05, lng:-78.9, label:'Shanksville, PA', description:'Flight 93 crash site', score:0.4},
+    ],
+    'princess_diana': [{center:[48.86,2.3], zoom:13, lat:48.864, lng:2.301, label:'Pont de l\'Alma Tunnel', description:'Crash site, Paris', score:0.5}],
+  };
+  return geoSets[ds] || null;
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body></html>
