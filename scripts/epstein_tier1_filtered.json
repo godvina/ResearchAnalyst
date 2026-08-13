@@ -1,0 +1,2426 @@
+{
+  "tier": 1,
+  "timestamp": "2026-08-03T01:22:29.650285+00:00",
+  "source_bucket": "doj-cases-974220725866-us-east-1",
+  "total_scanned": 3804,
+  "total_kept": 225,
+  "total_discarded": 3579,
+  "filter_rate": 5.9,
+  "elapsed_seconds": 22.9,
+  "category_stats": {
+    "legal_procedural": 43,
+    "names_associates": 39,
+    "organizational": 18,
+    "financial": 65,
+    "trafficking_indicators": 20,
+    "locations": 27,
+    "suppression_indicators": 19
+  },
+  "files": [
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000476.json",
+      "size": 4208,
+      "score": 62,
+      "categories": [
+        "financial",
+        "names_associates",
+        "locations",
+        "suppression_indicators",
+        "organizational"
+      ],
+      "regex_matches": {
+        "dollar_amount": 1,
+        "date_range": 44,
+        "account_number": 7
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000535.json",
+      "size": 1341,
+      "score": 18,
+      "categories": [
+        "financial",
+        "suppression_indicators"
+      ],
+      "regex_matches": {
+        "phone_number": 3,
+        "date_range": 1,
+        "account_number": 12
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000019.json",
+      "size": 2643,
+      "score": 16,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {
+        "date_range": 15
+      }
+    },
+    {
+      "key": "textract-output/DataSet4/VOL00004/IMAGES/0001/EFTA00005717.json",
+      "size": 904,
+      "score": 13,
+      "categories": [
+        "names_associates",
+        "suppression_indicators",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 5,
+        "account_number": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet4/VOL00004/IMAGES/0001/EFTA00005716.json",
+      "size": 904,
+      "score": 13,
+      "categories": [
+        "names_associates",
+        "suppression_indicators",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 5,
+        "account_number": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet4/VOL00004/IMAGES/0001/EFTA00007685.json",
+      "size": 1681,
+      "score": 11,
+      "categories": [
+        "financial",
+        "names_associates",
+        "suppression_indicators"
+      ],
+      "regex_matches": {
+        "dollar_amount": 1,
+        "date_range": 3,
+        "email": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002515.json",
+      "size": 940,
+      "score": 10,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 8,
+        "flight_reference": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002514.json",
+      "size": 924,
+      "score": 10,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 8,
+        "flight_reference": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002513.json",
+      "size": 921,
+      "score": 10,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 8,
+        "flight_reference": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002516.json",
+      "size": 952,
+      "score": 10,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 8,
+        "flight_reference": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001710.json",
+      "size": 523,
+      "score": 9,
+      "categories": [],
+      "regex_matches": {
+        "dollar_amount": 1,
+        "account_number": 8
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002012.json",
+      "size": 1499,
+      "score": 9,
+      "categories": [
+        "financial",
+        "names_associates"
+      ],
+      "regex_matches": {
+        "phone_number": 3,
+        "dollar_amount": 1,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003027.json",
+      "size": 699,
+      "score": 9,
+      "categories": [
+        "suppression_indicators"
+      ],
+      "regex_matches": {
+        "phone_number": 1,
+        "date_range": 4,
+        "account_number": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008474.json",
+      "size": 1222,
+      "score": 9,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 5,
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001885.json",
+      "size": 3507,
+      "score": 8,
+      "categories": [
+        "trafficking_indicators",
+        "legal_procedural",
+        "organizational"
+      ],
+      "regex_matches": {
+        "dollar_amount": 2,
+        "date_range": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002066.json",
+      "size": 3093,
+      "score": 8,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 3,
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002537.json",
+      "size": 749,
+      "score": 8,
+      "categories": [],
+      "regex_matches": {
+        "phone_number": 1,
+        "date_range": 1,
+        "account_number": 6
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002536.json",
+      "size": 753,
+      "score": 8,
+      "categories": [],
+      "regex_matches": {
+        "phone_number": 1,
+        "date_range": 1,
+        "account_number": 6
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003115.json",
+      "size": 1572,
+      "score": 8,
+      "categories": [
+        "suppression_indicators",
+        "organizational"
+      ],
+      "regex_matches": {
+        "dollar_amount": 1,
+        "date_range": 3,
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008507.json",
+      "size": 450,
+      "score": 8,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 8
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001886.json",
+      "size": 3720,
+      "score": 7,
+      "categories": [
+        "trafficking_indicators",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "dollar_amount": 4,
+        "date_range": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001951.json",
+      "size": 2327,
+      "score": 7,
+      "categories": [],
+      "regex_matches": {
+        "phone_number": 4,
+        "date_range": 1,
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002548.json",
+      "size": 574,
+      "score": 7,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 6,
+        "flight_reference": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003028.json",
+      "size": 676,
+      "score": 7,
+      "categories": [],
+      "regex_matches": {
+        "dollar_amount": 4,
+        "date_range": 2,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008489.json",
+      "size": 1560,
+      "score": 7,
+      "categories": [
+        "locations",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008487.json",
+      "size": 1502,
+      "score": 7,
+      "categories": [
+        "locations",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008527.json",
+      "size": 699,
+      "score": 7,
+      "categories": [
+        "names_associates",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "account_number": 5
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000473.json",
+      "size": 4086,
+      "score": 6,
+      "categories": [
+        "names_associates",
+        "locations",
+        "suppression_indicators",
+        "trafficking_indicators",
+        "legal_procedural"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001499.json",
+      "size": 3035,
+      "score": 6,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 2,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001884.json",
+      "size": 2367,
+      "score": 6,
+      "categories": [
+        "names_associates",
+        "suppression_indicators",
+        "legal_procedural",
+        "organizational"
+      ],
+      "regex_matches": {
+        "date_range": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001946.json",
+      "size": 700,
+      "score": 6,
+      "categories": [
+        "financial",
+        "names_associates",
+        "locations",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002172.json",
+      "size": 2569,
+      "score": 6,
+      "categories": [
+        "suppression_indicators"
+      ],
+      "regex_matches": {
+        "date_range": 5
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002164.json",
+      "size": 1302,
+      "score": 6,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 6
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002173.json",
+      "size": 1629,
+      "score": 6,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 5,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002550.json",
+      "size": 574,
+      "score": 6,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 5,
+        "flight_reference": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008481.json",
+      "size": 433,
+      "score": 6,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 2,
+        "account_number": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008483.json",
+      "size": 1453,
+      "score": 6,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 3,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008486.json",
+      "size": 1482,
+      "score": 6,
+      "categories": [
+        "locations",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008484.json",
+      "size": 1534,
+      "score": 6,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008488.json",
+      "size": 1549,
+      "score": 6,
+      "categories": [
+        "locations",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008498.json",
+      "size": 704,
+      "score": 6,
+      "categories": [
+        "names_associates",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "dollar_amount": 1,
+        "account_number": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000837.json",
+      "size": 365,
+      "score": 5,
+      "categories": [
+        "locations",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 2,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001911.json",
+      "size": 2046,
+      "score": 5,
+      "categories": [
+        "financial",
+        "names_associates",
+        "organizational"
+      ],
+      "regex_matches": {
+        "date_range": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002204.json",
+      "size": 284,
+      "score": 5,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 2,
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002544.json",
+      "size": 572,
+      "score": 5,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 4,
+        "flight_reference": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002546.json",
+      "size": 538,
+      "score": 5,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 4,
+        "flight_reference": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002545.json",
+      "size": 705,
+      "score": 5,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 3,
+        "flight_reference": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002549.json",
+      "size": 577,
+      "score": 5,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 4,
+        "flight_reference": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002547.json",
+      "size": 573,
+      "score": 5,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 4,
+        "flight_reference": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003069.json",
+      "size": 827,
+      "score": 5,
+      "categories": [
+        "financial",
+        "organizational"
+      ],
+      "regex_matches": {
+        "phone_number": 2,
+        "date_range": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003095.json",
+      "size": 1571,
+      "score": 5,
+      "categories": [
+        "locations"
+      ],
+      "regex_matches": {
+        "date_range": 3,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003097.json",
+      "size": 329,
+      "score": 5,
+      "categories": [
+        "locations",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 2,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003098.json",
+      "size": 365,
+      "score": 5,
+      "categories": [
+        "locations",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 2,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003116.json",
+      "size": 1552,
+      "score": 5,
+      "categories": [
+        "suppression_indicators",
+        "organizational"
+      ],
+      "regex_matches": {
+        "dollar_amount": 1,
+        "date_range": 1,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003148.json",
+      "size": 542,
+      "score": 5,
+      "categories": [
+        "financial",
+        "locations"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet4/VOL00004/IMAGES/0001/EFTA00007086.json",
+      "size": 522,
+      "score": 5,
+      "categories": [
+        "trafficking_indicators",
+        "legal_procedural"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008425.json",
+      "size": 565,
+      "score": 5,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 4
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008426.json",
+      "size": 564,
+      "score": 5,
+      "categories": [
+        "suppression_indicators",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008449.json",
+      "size": 560,
+      "score": 5,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "account_number": 4
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008462.json",
+      "size": 616,
+      "score": 5,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008490.json",
+      "size": 539,
+      "score": 5,
+      "categories": [
+        "financial",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 2,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008491.json",
+      "size": 477,
+      "score": 5,
+      "categories": [
+        "financial",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008492.json",
+      "size": 525,
+      "score": 5,
+      "categories": [
+        "financial",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008520.json",
+      "size": 752,
+      "score": 5,
+      "categories": [
+        "names_associates",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000544.json",
+      "size": 212,
+      "score": 4,
+      "categories": [],
+      "regex_matches": {
+        "phone_number": 1,
+        "account_number": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000830.json",
+      "size": 1254,
+      "score": 4,
+      "categories": [
+        "suppression_indicators",
+        "trafficking_indicators",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001003.json",
+      "size": 282,
+      "score": 4,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 4
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001913.json",
+      "size": 371,
+      "score": 4,
+      "categories": [
+        "names_associates",
+        "locations",
+        "suppression_indicators"
+      ],
+      "regex_matches": {
+        "date_range": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002061.json",
+      "size": 1191,
+      "score": 4,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {
+        "date_range": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002167.json",
+      "size": 230,
+      "score": 4,
+      "categories": [],
+      "regex_matches": {
+        "phone_number": 2,
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002163.json",
+      "size": 266,
+      "score": 4,
+      "categories": [],
+      "regex_matches": {
+        "phone_number": 2,
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002205.json",
+      "size": 325,
+      "score": 4,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 2,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002613.json",
+      "size": 486,
+      "score": 4,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 3,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002696.json",
+      "size": 360,
+      "score": 4,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003038.json",
+      "size": 890,
+      "score": 4,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "date_range": 2,
+        "email": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003049.json",
+      "size": 776,
+      "score": 4,
+      "categories": [
+        "financial",
+        "trafficking_indicators"
+      ],
+      "regex_matches": {
+        "phone_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003052.json",
+      "size": 770,
+      "score": 4,
+      "categories": [
+        "financial",
+        "trafficking_indicators"
+      ],
+      "regex_matches": {
+        "phone_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003096.json",
+      "size": 1078,
+      "score": 4,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 3,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003109.json",
+      "size": 4671,
+      "score": 4,
+      "categories": [
+        "financial",
+        "locations"
+      ],
+      "regex_matches": {
+        "dollar_amount": 1,
+        "date_range": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003117.json",
+      "size": 1449,
+      "score": 4,
+      "categories": [
+        "suppression_indicators",
+        "organizational"
+      ],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003158.json",
+      "size": 853,
+      "score": 4,
+      "categories": [
+        "locations"
+      ],
+      "regex_matches": {
+        "date_range": 2,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008412.json",
+      "size": 565,
+      "score": 4,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 2,
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008409.json",
+      "size": 398,
+      "score": 4,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 2,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008415.json",
+      "size": 664,
+      "score": 4,
+      "categories": [
+        "trafficking_indicators"
+      ],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008448.json",
+      "size": 568,
+      "score": 4,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 2,
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008482.json",
+      "size": 1449,
+      "score": 4,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008479.json",
+      "size": 397,
+      "score": 4,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 4
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008485.json",
+      "size": 1512,
+      "score": 4,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008499.json",
+      "size": 547,
+      "score": 4,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "account_number": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008513.json",
+      "size": 675,
+      "score": 4,
+      "categories": [
+        "names_associates",
+        "trafficking_indicators"
+      ],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008497.json",
+      "size": 382,
+      "score": 4,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "account_number": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008515.json",
+      "size": 1363,
+      "score": 4,
+      "categories": [
+        "organizational"
+      ],
+      "regex_matches": {
+        "account_number": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001315.json",
+      "size": 223,
+      "score": 3,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001338.json",
+      "size": 502,
+      "score": 3,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "dollar_amount": 1,
+        "date_range": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001441.json",
+      "size": 262,
+      "score": 3,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001500.json",
+      "size": 351,
+      "score": 3,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001988.json",
+      "size": 570,
+      "score": 3,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002656.json",
+      "size": 500,
+      "score": 3,
+      "categories": [
+        "organizational"
+      ],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002855.json",
+      "size": 348,
+      "score": 3,
+      "categories": [
+        "locations",
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003032.json",
+      "size": 641,
+      "score": 3,
+      "categories": [
+        "suppression_indicators"
+      ],
+      "regex_matches": {
+        "date_range": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003034.json",
+      "size": 895,
+      "score": 3,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "date_range": 1,
+        "email": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003037.json",
+      "size": 954,
+      "score": 3,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "date_range": 1,
+        "email": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003044.json",
+      "size": 875,
+      "score": 3,
+      "categories": [
+        "financial",
+        "trafficking_indicators"
+      ],
+      "regex_matches": {
+        "email": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003046.json",
+      "size": 797,
+      "score": 3,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "phone_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003047.json",
+      "size": 765,
+      "score": 3,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "phone_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003057.json",
+      "size": 784,
+      "score": 3,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "phone_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003058.json",
+      "size": 794,
+      "score": 3,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "phone_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003063.json",
+      "size": 791,
+      "score": 3,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "phone_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003065.json",
+      "size": 875,
+      "score": 3,
+      "categories": [
+        "financial",
+        "organizational"
+      ],
+      "regex_matches": {
+        "email": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003142.json",
+      "size": 955,
+      "score": 3,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 2,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003149.json",
+      "size": 661,
+      "score": 3,
+      "categories": [
+        "financial",
+        "organizational"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet4/VOL00004/IMAGES/0001/EFTA00007684.json",
+      "size": 806,
+      "score": 3,
+      "categories": [
+        "financial",
+        "organizational"
+      ],
+      "regex_matches": {
+        "date_range": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008423.json",
+      "size": 480,
+      "score": 3,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008410.json",
+      "size": 227,
+      "score": 3,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008417.json",
+      "size": 591,
+      "score": 3,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008419.json",
+      "size": 655,
+      "score": 3,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008460.json",
+      "size": 301,
+      "score": 3,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008452.json",
+      "size": 564,
+      "score": 3,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008472.json",
+      "size": 432,
+      "score": 3,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008496.json",
+      "size": 615,
+      "score": 3,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008502.json",
+      "size": 339,
+      "score": 3,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 3
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000001.json",
+      "size": 309,
+      "score": 2,
+      "categories": [
+        "legal_procedural"
+      ],
+      "regex_matches": {
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000108.json",
+      "size": 227,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "phone_number": 1,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000111.json",
+      "size": 237,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000135.json",
+      "size": 956,
+      "score": 2,
+      "categories": [
+        "names_associates",
+        "organizational"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000158.json",
+      "size": 240,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000466.json",
+      "size": 866,
+      "score": 2,
+      "categories": [
+        "names_associates",
+        "trafficking_indicators"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000467.json",
+      "size": 414,
+      "score": 2,
+      "categories": [
+        "names_associates",
+        "trafficking_indicators"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000470.json",
+      "size": 504,
+      "score": 2,
+      "categories": [
+        "suppression_indicators",
+        "organizational"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000673.json",
+      "size": 211,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000741.json",
+      "size": 211,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000745.json",
+      "size": 415,
+      "score": 2,
+      "categories": [
+        "financial",
+        "locations"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000774.json",
+      "size": 413,
+      "score": 2,
+      "categories": [
+        "locations"
+      ],
+      "regex_matches": {
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000776.json",
+      "size": 445,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000771.json",
+      "size": 567,
+      "score": 2,
+      "categories": [
+        "locations"
+      ],
+      "regex_matches": {
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000826.json",
+      "size": 217,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "phone_number": 1,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001005.json",
+      "size": 223,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001294.json",
+      "size": 365,
+      "score": 2,
+      "categories": [
+        "financial",
+        "locations"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001347.json",
+      "size": 218,
+      "score": 2,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {
+        "date_range": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001488.json",
+      "size": 475,
+      "score": 2,
+      "categories": [
+        "locations"
+      ],
+      "regex_matches": {
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001489.json",
+      "size": 489,
+      "score": 2,
+      "categories": [
+        "locations"
+      ],
+      "regex_matches": {
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001487.json",
+      "size": 513,
+      "score": 2,
+      "categories": [
+        "locations"
+      ],
+      "regex_matches": {
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001491.json",
+      "size": 622,
+      "score": 2,
+      "categories": [
+        "locations"
+      ],
+      "regex_matches": {
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001908.json",
+      "size": 733,
+      "score": 2,
+      "categories": [
+        "financial",
+        "names_associates"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001900.json",
+      "size": 307,
+      "score": 2,
+      "categories": [
+        "suppression_indicators",
+        "trafficking_indicators"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001912.json",
+      "size": 2703,
+      "score": 2,
+      "categories": [
+        "financial",
+        "organizational"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001987.json",
+      "size": 338,
+      "score": 2,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001986.json",
+      "size": 325,
+      "score": 2,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002067.json",
+      "size": 373,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002222.json",
+      "size": 239,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002255.json",
+      "size": 972,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002329.json",
+      "size": 415,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002328.json",
+      "size": 487,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002342.json",
+      "size": 477,
+      "score": 2,
+      "categories": [
+        "suppression_indicators"
+      ],
+      "regex_matches": {
+        "date_range": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002508.json",
+      "size": 343,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002643.json",
+      "size": 317,
+      "score": 2,
+      "categories": [
+        "locations"
+      ],
+      "regex_matches": {
+        "date_range": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002651.json",
+      "size": 238,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002655.json",
+      "size": 592,
+      "score": 2,
+      "categories": [
+        "organizational"
+      ],
+      "regex_matches": {
+        "date_range": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002644.json",
+      "size": 499,
+      "score": 2,
+      "categories": [
+        "organizational"
+      ],
+      "regex_matches": {
+        "date_range": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002697.json",
+      "size": 423,
+      "score": 2,
+      "categories": [
+        "locations"
+      ],
+      "regex_matches": {
+        "date_range": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002698.json",
+      "size": 422,
+      "score": 2,
+      "categories": [
+        "locations"
+      ],
+      "regex_matches": {
+        "date_range": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002863.json",
+      "size": 220,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "phone_number": 1,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003030.json",
+      "size": 549,
+      "score": 2,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {
+        "flight_reference": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003035.json",
+      "size": 902,
+      "score": 2,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "email": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003036.json",
+      "size": 873,
+      "score": 2,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "email": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003031.json",
+      "size": 250,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003039.json",
+      "size": 881,
+      "score": 2,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "email": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003041.json",
+      "size": 901,
+      "score": 2,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "email": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003040.json",
+      "size": 859,
+      "score": 2,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "email": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003042.json",
+      "size": 916,
+      "score": 2,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "email": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003045.json",
+      "size": 913,
+      "score": 2,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "email": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003053.json",
+      "size": 738,
+      "score": 2,
+      "categories": [
+        "financial",
+        "trafficking_indicators"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003050.json",
+      "size": 836,
+      "score": 2,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "email": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003059.json",
+      "size": 835,
+      "score": 2,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "email": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003070.json",
+      "size": 892,
+      "score": 2,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "email": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet2/VOL00002/IMAGES/0001/EFTA00003435.json",
+      "size": 337,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet4/VOL00004/IMAGES/0001/EFTA00007692.json",
+      "size": 220,
+      "score": 2,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {
+        "date_range": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008421.json",
+      "size": 485,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008428.json",
+      "size": 312,
+      "score": 2,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008438.json",
+      "size": 454,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008442.json",
+      "size": 542,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008440.json",
+      "size": 484,
+      "score": 2,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008446.json",
+      "size": 350,
+      "score": 2,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008456.json",
+      "size": 263,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "phone_number": 1,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008466.json",
+      "size": 244,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "date_range": 1,
+        "account_number": 1
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008510.json",
+      "size": 207,
+      "score": 2,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008519.json",
+      "size": 491,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008522.json",
+      "size": 265,
+      "score": 2,
+      "categories": [],
+      "regex_matches": {
+        "account_number": 2
+      }
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000037.json",
+      "size": 481,
+      "score": 1,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000134.json",
+      "size": 600,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000487.json",
+      "size": 241,
+      "score": 1,
+      "categories": [
+        "trafficking_indicators"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000518.json",
+      "size": 210,
+      "score": 1,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000844.json",
+      "size": 279,
+      "score": 1,
+      "categories": [
+        "trafficking_indicators"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0001/EFTA00000925.json",
+      "size": 587,
+      "score": 1,
+      "categories": [
+        "trafficking_indicators"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001357.json",
+      "size": 274,
+      "score": 1,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001898.json",
+      "size": 6958,
+      "score": 1,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001910.json",
+      "size": 333,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001907.json",
+      "size": 381,
+      "score": 1,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001905.json",
+      "size": 250,
+      "score": 1,
+      "categories": [
+        "trafficking_indicators"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001931.json",
+      "size": 278,
+      "score": 1,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001948.json",
+      "size": 797,
+      "score": 1,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001979.json",
+      "size": 247,
+      "score": 1,
+      "categories": [
+        "trafficking_indicators"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0002/EFTA00001978.json",
+      "size": 239,
+      "score": 1,
+      "categories": [
+        "trafficking_indicators"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002195.json",
+      "size": 225,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002526.json",
+      "size": 235,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002907.json",
+      "size": 366,
+      "score": 1,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0003/EFTA00002910.json",
+      "size": 243,
+      "score": 1,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003043.json",
+      "size": 791,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003051.json",
+      "size": 780,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003048.json",
+      "size": 751,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003055.json",
+      "size": 748,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003054.json",
+      "size": 801,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003056.json",
+      "size": 721,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003060.json",
+      "size": 763,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003067.json",
+      "size": 735,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003066.json",
+      "size": 775,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003068.json",
+      "size": 728,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003062.json",
+      "size": 749,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003064.json",
+      "size": 806,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003061.json",
+      "size": 758,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet1/VOL00001/IMAGES/0004/EFTA00003150.json",
+      "size": 1230,
+      "score": 1,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet2/VOL00002/IMAGES/0001/EFTA00003203.json",
+      "size": 243,
+      "score": 1,
+      "categories": [
+        "financial"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet2/VOL00002/IMAGES/0001/EFTA00003632.json",
+      "size": 307,
+      "score": 1,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet4/VOL00004/IMAGES/0001/EFTA00007616.json",
+      "size": 211,
+      "score": 1,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {}
+    },
+    {
+      "key": "textract-output/DataSet5/VOL00005/IMAGES/0001/EFTA00008512.json",
+      "size": 246,
+      "score": 1,
+      "categories": [
+        "names_associates"
+      ],
+      "regex_matches": {}
+    }
+  ]
+}
