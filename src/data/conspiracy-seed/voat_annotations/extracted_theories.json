@@ -1,0 +1,363 @@
+{
+  "source": "Voat LOCO conspiracy annotations",
+  "source_url": "https://zenodo.org/records/3560867",
+  "download_date": "2026-08-02",
+  "extraction_timestamp": "2026-08-02T15:53:39.904183+00:00",
+  "total_ct_posts": 990,
+  "theories": [
+    {
+      "id": "878c3c11-7e46-4fef-a6cf-2e69ad36eceb",
+      "title": "Voat/Conspiracy Conspiracy Narrative Cluster",
+      "claim": "Posts in v/Conspiracy exhibit coordinated conspiracy thinking with dominant Actor dimension (205 posts, 3.4 avg dimensions)",
+      "subverse": "Conspiracy",
+      "total_posts": 205,
+      "ct_dimension_breakdown": {
+        "Pattern": 167,
+        "Actor": 196,
+        "Action": 138,
+        "Threat": 91,
+        "Secrecy": 97
+      },
+      "dominant_dimension": "Actor",
+      "avg_dimensions_per_post": 3.36,
+      "multi_dimension_posts": 183,
+      "evidence_samples": [
+        "I just found out that there is a subverse SoapBoxBanHammer. Is owned by a bunch of trolls from Reddit who teach subscribed demented teenagers with too much time on their hands to spam subverses and downvote posts of other Voat users. They are using the same system to abuse the deliberately illogical",
+        "It's pretty clear that the riots have been antifa acting as the front line soldiers to make Trump look bad. You have to be a mouth breathing, retarded liberal shill to not figure this out.  However, I think there is a darker goal here that is essentially a continuation of a pattern already happening",
+        "voat's getting cheaper. voat's been slower. the owner's (atko's) usage of voat that is trackable has gone down over 90% (since the admins disappeared at the same time almost 6 months ago and came back different people about 1 month and 2 months later (atko/putt). putt is coding away, but not really ",
+        "I don't see coincidences any more. Someone very early on started pushing the misquotes to make sure she was buried. I see Big Pharmas fingerprints all over this and school shootings. Hopefully it will backfire and Roseanne will go on some talk shows and get forgiven for being addicted to Ambien.",
+        "You are smart enough to do your own research if you are curious.  Building 6 blew up from the inside out, before either of the twin towers fell.  The entire center of the building destyroyed, with some of the exterior walls still standing."
+      ],
+      "cross_domain_matches": {
+        "conspiracy_theory/coordinated_actors": 6,
+        "conspiracy_theory/pattern_recognition": 4,
+        "conspiracy_theory/threat_narrative": 3,
+        "crime/temporal_clustering": 3,
+        "ancient_mysteries/advanced_technology": 1,
+        "crime/document_concealment": 1,
+        "crime/organizational_hierarchy": 3
+      },
+      "domains_matched": [
+        "ancient_mysteries",
+        "conspiracy_theory",
+        "crime"
+      ],
+      "is_cross_cutting": true
+    },
+    {
+      "id": "96fafe78-78e3-4fef-b075-27b068867190",
+      "title": "Voat/pizzagate Conspiracy Narrative Cluster",
+      "claim": "Posts in v/pizzagate exhibit coordinated conspiracy thinking with dominant Actor dimension (188 posts, 3.7 avg dimensions)",
+      "subverse": "pizzagate",
+      "total_posts": 188,
+      "ct_dimension_breakdown": {
+        "Actor": 186,
+        "Pattern": 169,
+        "Action": 135,
+        "Threat": 95,
+        "Secrecy": 118
+      },
+      "dominant_dimension": "Actor",
+      "avg_dimensions_per_post": 3.74,
+      "multi_dimension_posts": 184,
+      "evidence_samples": [
+        "Abel Danger posted this article yesterday about \"Diplomatic Flights\" being used to transport weapons covertly. With no customs and limited only by the carrying capacity of the plane you could certainly carry more than anything an \"Art in Embassies Program\" could move. You could transport practically",
+        "At the end of the day, we are just here trying to save the children. There are agents working for the powers that be who will stop at nothing, and have unlimited resources, to hamper our efforts. When I try to poke holes in a source, it is not personal, it's born of outrage that there are liars out ",
+        "America is directly the cause alongside Qatar, UAE and Saudi, Turkey and of course, Israel. This is about a pipeline through Syria and putting in a puppet regime that would be controlled to relinquish any monetary gain. Qatar was arming the Syrian rebels directly from guess who? There was never a ci",
+        "Once you look at all the pizzagate evidence, it is impossible to see politics the same way ever again. I used to really enjoy politics, but now that I know that the Bush's are as dirty as the Clinton's in all this pedophilia crap, I can now only see policies and political parties in their role in th",
+        "bush Clinton created this rug crisis out of Ark. like Obumer/Rahm in chg. So if there is to be a war on opiates, there will be less organs available no ??? btw giving away my age, I know a few too many vets on opiates who are addicts and selling  there drugs.  They should be cut off."
+      ],
+      "cross_domain_matches": {
+        "conspiracy_theory/coordinated_actors": 8,
+        "conspiracy_theory/threat_narrative": 5,
+        "crime/financial_trail": 2,
+        "crime/organizational_hierarchy": 5,
+        "conspiracy_theory/information_asymmetry": 1,
+        "ancient_mysteries/advanced_technology": 1,
+        "crime/temporal_clustering": 1,
+        "ancient_mysteries/astronomical_correlation": 1,
+        "conspiracy_theory/pattern_recognition": 1,
+        "crime/witness_intimidation": 1
+      },
+      "domains_matched": [
+        "ancient_mysteries",
+        "conspiracy_theory",
+        "crime"
+      ],
+      "is_cross_cutting": true
+    },
+    {
+      "id": "61e28294-e16b-4227-b911-a09c77b4be71",
+      "title": "Voat/GreatAwakening Conspiracy Narrative Cluster",
+      "claim": "Posts in v/GreatAwakening exhibit coordinated conspiracy thinking with dominant Actor dimension (175 posts, 3.7 avg dimensions)",
+      "subverse": "GreatAwakening",
+      "total_posts": 175,
+      "ct_dimension_breakdown": {
+        "Secrecy": 92,
+        "Pattern": 161,
+        "Actor": 171,
+        "Action": 130,
+        "Threat": 91
+      },
+      "dominant_dimension": "Actor",
+      "avg_dimensions_per_post": 3.69,
+      "multi_dimension_posts": 170,
+      "evidence_samples": [
+        "Adam is a problem for America. A big one. After you go through this article, I am sure you will conclude POTUS should remove his security clearance. Read the following tweet very carefully: tweet. This is a rare instance in American politics where the President publicly recommends the resignation of",
+        "His loyalty is to his pocketbook which goes straight to his Mormon cronies.  Bain Capital gutting AMERICA through private equity. Look up all the brands he kills... Or keeps barely alive to suck the blood out of them and cut jobs to bare bones.  UnAmerican never-TRUMP RINO!    PRES TRUMP AND TEAM...",
+        "There is no doubt that the most clear and present danger facing the US today is socialism. Whole new generations are being brainwashed in the education system, are being indoctrinated into the New World Order system of beliefs and are being turned against the very country that has given them so much",
+        "Just last week many headlines were popping up regarding the successful recovery of COVID patients in hard hit areas of the USA, plus other countries, using Hydroxy' + zinc.  NOW- there is nothing but stories about how it has not helped COVID infectees at all and also has dangerous side effects. Ment",
+        "From the article: His business dealings, which continued until his company's assets were seized in 1942 under the Trading with the Enemy Act, has led more than 60 years later to a civil action for damages being brought in Germany against the Bush family by two former slave labourers at Auschwitz and"
+      ],
+      "cross_domain_matches": {
+        "conspiracy_theory/evidence_suppression": 2,
+        "conspiracy_theory/coordinated_actors": 10,
+        "conspiracy_theory/pattern_recognition": 1,
+        "conspiracy_theory/information_asymmetry": 3,
+        "conspiracy_theory/threat_narrative": 4,
+        "ancient_mysteries/advanced_technology": 1,
+        "ancient_mysteries/lost_knowledge": 1,
+        "crime/witness_intimidation": 1,
+        "crime/organizational_hierarchy": 6,
+        "crime/temporal_clustering": 2,
+        "crime/financial_trail": 1
+      },
+      "domains_matched": [
+        "ancient_mysteries",
+        "conspiracy_theory",
+        "crime"
+      ],
+      "is_cross_cutting": true
+    },
+    {
+      "id": "d3675bec-ca0f-4790-980e-f54a2a46a189",
+      "title": "Voat/news Conspiracy Narrative Cluster",
+      "claim": "Posts in v/news exhibit coordinated conspiracy thinking with dominant Actor dimension (128 posts, 3.7 avg dimensions)",
+      "subverse": "news",
+      "total_posts": 128,
+      "ct_dimension_breakdown": {
+        "Actor": 127,
+        "Action": 103,
+        "Threat": 86,
+        "Pattern": 101,
+        "Secrecy": 57
+      },
+      "dominant_dimension": "Actor",
+      "avg_dimensions_per_post": 3.7,
+      "multi_dimension_posts": 119,
+      "evidence_samples": [
+        "Hey FOLKS, GET A LOAD of this Message from \" @ Freedomfreak.” UNREAL @Freedomfreak This was in my INBOX from \" @ Freedomfreak.” “Hi guys. Had a great DAY. I fucked this 3 year old through his DIAPER. I cut a small hole where is asshole is and used his SHIT for lube as I pumped my COCK in his FARTHOL",
+        "Now THIS will be fun to watch people! The insider-word among LE in Atlanta is at some point before the opening or during the spectacle, those ARMED ANTIFA ASS-HATS you saw in Stone Mountain, GA yesterday will try and march at Mercedes-Benz Stadium TODAY at Nigger Bowl LIII. Specifically they expect ",
+        "First off, relax. It's not going to be WW3, anyone saying this is a fucking idiot. Second, there was no sarin gas strike. Assad has been eking out a safe platform for himself for a decade now, why would he go full retard and provoke a devastating response from the US. President Trump knows this and ",
+        "I keep seeing this \"Save My Sweden\" shit on Voat.  Assholes keep posting this crap on our site trying to, I guess, garner support for exterior intervention into Sweden's affairs, because apparently the Swedes are themselves to weak, too spineless, too sackless, and too cucked to save their own fucki",
+        "Be Jewish in UK Relentlessly push unconscionable sexual degeneracy until girls attach zero value to sex Import millions of young pussy-starved males When the teen sex you brought about results in prostitution rackets, relabel it \"pedophilia\"/\"Muslim child-rape gangs\"  Manipulate conservatives by bla"
+      ],
+      "cross_domain_matches": {
+        "conspiracy_theory/coordinated_actors": 8,
+        "crime/organizational_hierarchy": 5,
+        "crime/temporal_clustering": 1,
+        "crime/witness_intimidation": 2,
+        "conspiracy_theory/threat_narrative": 3,
+        "crime/financial_trail": 1,
+        "conspiracy_theory/evidence_suppression": 1
+      },
+      "domains_matched": [
+        "conspiracy_theory",
+        "crime"
+      ],
+      "is_cross_cutting": true
+    },
+    {
+      "id": "e3e18e9a-ae97-4bde-b403-c516a7d33454",
+      "title": "Voat/anon Conspiracy Narrative Cluster",
+      "claim": "Posts in v/anon exhibit coordinated conspiracy thinking with dominant Actor dimension (74 posts, 3.5 avg dimensions)",
+      "subverse": "anon",
+      "total_posts": 74,
+      "ct_dimension_breakdown": {
+        "Pattern": 57,
+        "Actor": 72,
+        "Action": 59,
+        "Secrecy": 29,
+        "Threat": 42
+      },
+      "dominant_dimension": "Actor",
+      "avg_dimensions_per_post": 3.5,
+      "multi_dimension_posts": 70,
+      "evidence_samples": [
+        "What you do here is create enough activities that attracts sociopaths. Every day there are all kinds of people hating and Expressing violent thoughts. Some of it might be agent provocateurs to make the real sociopaths feel emboldened to share their crazy thinking feeling that they are anonymous. Thi",
+        "Balaam answered the donkey, \"You have made a fool of me! If I had a sword in my hand, I would kill you right now.\" The donkey said to Balaam, \"Am I not your own donkey, which you have always ridden, to this day? Have I been in the habit of doing this to you?\" \"No,\" he said. ( this makes me think abo",
+        "TL;DR I'm military and the FBI warned us.  So I work on Travis AFB in California. Towards the end of the day, my shift supervisor gathered us all and told us there is a possible terrorist attack in the Bay Area. He said something along the lines of \"So I wouldn't go down to Concord, Berkley, Oakland",
+        "You are the one who is delusional. There are NO jobs \"WE WON'T DO\" - that's fucking leftist propaganda bullshit. It's a flat out fucking lie. You're a tool of greedy cocksuckers that want people desperate enough to be willing to work for slave wages and terrified of being deported so they'll put up ",
+        "I'm in class fucking disputing against the textbook against the assignment.  I might just fail.  Thank you.  And good day.  Magnum cum lauday or some shit fucking kiss it good by .  Faggots."
+      ],
+      "cross_domain_matches": {
+        "conspiracy_theory/coordinated_actors": 7,
+        "crime/organizational_hierarchy": 5,
+        "crime/financial_trail": 1,
+        "conspiracy_theory/threat_narrative": 2,
+        "ancient_mysteries/lost_knowledge": 1,
+        "conspiracy_theory/pattern_recognition": 2,
+        "crime/temporal_clustering": 2
+      },
+      "domains_matched": [
+        "ancient_mysteries",
+        "conspiracy_theory",
+        "crime"
+      ],
+      "is_cross_cutting": true
+    },
+    {
+      "id": "1e8a2e5b-99e7-4858-afbc-f57a20e5262d",
+      "title": "Voat/Science Conspiracy Narrative Cluster",
+      "claim": "Posts in v/Science exhibit coordinated conspiracy thinking with dominant Actor dimension (70 posts, 3.2 avg dimensions)",
+      "subverse": "Science",
+      "total_posts": 70,
+      "ct_dimension_breakdown": {
+        "Pattern": 59,
+        "Secrecy": 27,
+        "Actor": 62,
+        "Action": 48,
+        "Threat": 26
+      },
+      "dominant_dimension": "Actor",
+      "avg_dimensions_per_post": 3.17,
+      "multi_dimension_posts": 62,
+      "evidence_samples": [
+        "The big surprise is that much of it now comes from China. Which frequently has other soluble solids. When applied to water treatment, in addition to fluoride we are also poisoning ourselves with other heavy metals and toxins, delivered directly from China.Also, the science is very clear that there l",
+        "babes... deep state shit most likely uses nano-particles to change light photons to colors that poison populations like turning most of the light photons to poisonous ultraviolet rays... we have seen instances where skys have been made ultra blue, blue is close to ultra-violet and blinds eyes.... th",
+        "Radio Show March 17, 2015 Amazon Book https:/(remove this space)/www.amazon.com/Under-Ionized-Sky-Chemtrails-Lockdown/dp/1627310533) Elana Freeland - Under an Ionized Sky - From Chemtrails to Space Fence Lockdown (2018) Geoengineering Transhumanism Freeland's Website",
+        "The difference between human brain and AI is quite simple. Human brain is analogical, therefore the logic can be bypassed by emotions related to greed, lust, or any other ways of corruption. AI on the other hand is digital, which means it has stable logic that cannot be bypassed by emotions or any o",
+        "Industrial revolution. The abundance of the material world, and all of the fake bullshit like the news cycle and social media, is more than enough to keep the masses occupied to the point of being overwhelmed. They're thinking about what they're going to consume next, be it mass produced food, kike "
+      ],
+      "cross_domain_matches": {
+        "conspiracy_theory/coordinated_actors": 7,
+        "conspiracy_theory/threat_narrative": 4,
+        "ancient_mysteries/advanced_technology": 2,
+        "conspiracy_theory/information_asymmetry": 1,
+        "crime/organizational_hierarchy": 5,
+        "ancient_mysteries/lost_knowledge": 1
+      },
+      "domains_matched": [
+        "ancient_mysteries",
+        "conspiracy_theory",
+        "crime"
+      ],
+      "is_cross_cutting": true
+    },
+    {
+      "id": "bb83c780-ec80-4f4a-a69e-132bb146a9d6",
+      "title": "Voat/Showerthoughts Conspiracy Narrative Cluster",
+      "claim": "Posts in v/Showerthoughts exhibit coordinated conspiracy thinking with dominant Actor dimension (87 posts, 3.6 avg dimensions)",
+      "subverse": "Showerthoughts",
+      "total_posts": 87,
+      "ct_dimension_breakdown": {
+        "Actor": 87,
+        "Action": 66,
+        "Threat": 54,
+        "Pattern": 70,
+        "Secrecy": 32
+      },
+      "dominant_dimension": "Actor",
+      "avg_dimensions_per_post": 3.55,
+      "multi_dimension_posts": 85,
+      "evidence_samples": [
+        "I don't know why it took so long for me to realize this, but it all makes sense. WWII is coming to an end. The (((financiers))) in Allied nations are furiously hand-rubbing in delight at the fruits of their investment. Suddenly, one of them has a realization: All the jews imprisoned in the camps hav",
+        "\"Allahu Akbar! Allahu Akbar! Allahu Akbar! Allahu Akbar! Ohh, Allahu Akbar! Allahu Akbar! Allahu Akbar!\"",
+        "The closer these BLM/antifa shabbos goys and cucks get to getting what they want, which is the abolishing of all police, the more Kyles we'll see rise up. In other words, they wanted this. It was the inaction and actions of the police that sparked the \"SHOOT ME NIGGA\" confrontation. It was the inact",
+        "That system is our enemy. But when you're inside, you look around, what do you see? Businessmen, teachers, lawyers, carpenters. The very minds of the people we are trying to save. But until we do, these people are still a part of that system and that makes them our enemy. You have to understand, mos",
+        "Foreskin doesn't cause problems with urination and cutting off the foreskin can't fix problems with urination. \"Complications with urinating\" is not a diagnosis of disease. There was no reason to perform surgery on that boy. A child molester pretending to be a doctor lied to your friend so he/she co"
+      ],
+      "cross_domain_matches": {
+        "conspiracy_theory/coordinated_actors": 8,
+        "crime/organizational_hierarchy": 4,
+        "conspiracy_theory/threat_narrative": 1,
+        "crime/temporal_clustering": 1,
+        "crime/witness_intimidation": 1
+      },
+      "domains_matched": [
+        "conspiracy_theory",
+        "crime"
+      ],
+      "is_cross_cutting": true
+    },
+    {
+      "id": "068c2f79-c51d-4733-a234-08036945df6a",
+      "title": "Voat/theredpill Conspiracy Narrative Cluster",
+      "claim": "Posts in v/theredpill exhibit coordinated conspiracy thinking with dominant Actor dimension (44 posts, 3.6 avg dimensions)",
+      "subverse": "theredpill",
+      "total_posts": 44,
+      "ct_dimension_breakdown": {
+        "Actor": 44,
+        "Pattern": 39,
+        "Action": 33,
+        "Threat": 22,
+        "Secrecy": 19
+      },
+      "dominant_dimension": "Actor",
+      "avg_dimensions_per_post": 3.57,
+      "multi_dimension_posts": 44,
+      "evidence_samples": [
+        "I came across a post on v/politics/3017651 here by @ifuckdolphinseverday. I've had @Native in the past say I provide some lengthy replies that are worth reading, so I figured I'd share them with you guys for your consideration. Below I made my response one of those such comments. Thanks for your tim",
+        "The Entitlement of Feminists American feminists are monsters   Of entitlement   Pampered in privilege   Braying for more money and power   Freebasing the American drug of victimhood.   While journalists are beheaded   While animals are skinned alive   Eaten alive, beaten for pleasure   While their g",
+        "You may keep your slander of us to yourself.  That's not how Logos (i.e. engaging in discussion) works.  but he had no basis in Judaism and he later expressed hostility to Judaism when Jews did not convert.  Understanding the concept \"Jew\" is critical here. The Jews are those who rejected Logos (in ",
+        "I have been musing over this for a while. When ever the mainstream attacks a group i take sympathy and start researching. Whenever the mainstream praises a group, i start stoking the ovens...  Summary: **I do not believe that the term \"incel\" is organic, or from normal Internet sub culture. My suspi",
+        "Margaret Sanger, founder of Planned Parenthood , was a believer in eugenics. She thought that blacks should be sterilized. 100 years later Uncle Stupid prepares The idiocracy by paying imbeciles to shit out criminals. We should pay them to have abortions. After 5-6 they'd be unable to create more lo"
+      ],
+      "cross_domain_matches": {
+        "conspiracy_theory/coordinated_actors": 14,
+        "conspiracy_theory/information_asymmetry": 4,
+        "conspiracy_theory/threat_narrative": 3,
+        "crime/organizational_hierarchy": 5,
+        "crime/temporal_clustering": 4,
+        "crime/financial_trail": 3,
+        "crime/witness_intimidation": 3,
+        "conspiracy_theory/evidence_suppression": 2,
+        "conspiracy_theory/pattern_recognition": 1,
+        "ancient_mysteries/advanced_technology": 1
+      },
+      "domains_matched": [
+        "ancient_mysteries",
+        "conspiracy_theory",
+        "crime"
+      ],
+      "is_cross_cutting": true
+    },
+    {
+      "id": "e21c339d-9a44-4930-9b5f-39ec0dc34aa0",
+      "title": "Voat/gaming Conspiracy Narrative Cluster",
+      "claim": "Posts in v/gaming exhibit coordinated conspiracy thinking with dominant Actor dimension (19 posts, 3.7 avg dimensions)",
+      "subverse": "gaming",
+      "total_posts": 19,
+      "ct_dimension_breakdown": {
+        "Actor": 19,
+        "Action": 17,
+        "Threat": 9,
+        "Pattern": 17,
+        "Secrecy": 8
+      },
+      "dominant_dimension": "Actor",
+      "avg_dimensions_per_post": 3.68,
+      "multi_dimension_posts": 19,
+      "evidence_samples": [
+        "Original Prey game you were a native American living in the middle of no where on some shitty reservation. Aliens abduct your girlfriend so you willingly get abducted to go and try and save her. The game is filled with physics puzzles, gravity puzzles, etc. You had some sort of spirit ability where ",
+        "Honestly,  how the fuck would the CFO be responsible for the poor performance of Activision? His job is to recognize revenue projections and make sure accounts payable  and receivable are operating efficiently. It's  not his fault that they made Blizzard walk out on stage and piss off every fan. He'",
+        "I purchased SWBF3 for Xbox One last night. I got home popped the disk in and wham nothing.  I tried to join a squadron game...nothing couldn't find any player.  Tried the Walker Assault, same thing. Just kept looking for empty games after counting down.  Then I tried the other multiplayer modes, whi",
+        "I'm playing the European version on my hacked XL, and nothing really seems bad about the endings. The first side quest you get is a choice between the Thief and the fucking Red Mage. You choose one asterisk, the holder dies, and a group of people get screwed over. Second side quest is between the Sw",
+        "Last night I was playing a medieval sandbox game and got to witness an autist move in the group I'm playing with. I'm part of a fairly large city with two vassal villages, me and a few others are new recruits to the city, the leaders have been absent for two days. This long time player logs in and i"
+      ],
+      "cross_domain_matches": {
+        "conspiracy_theory/coordinated_actors": 3,
+        "crime/organizational_hierarchy": 2,
+        "conspiracy_theory/threat_narrative": 3,
+        "ancient_mysteries/lost_knowledge": 1,
+        "crime/financial_trail": 1
+      },
+      "domains_matched": [
+        "ancient_mysteries",
+        "conspiracy_theory",
+        "crime"
+      ],
+      "is_cross_cutting": true
+    }
+  ]
+}
