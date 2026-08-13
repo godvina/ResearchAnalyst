@@ -3466,7 +3466,19 @@ def _get_typology_findings(event, context):
             pass
 
         engine = TypologyFindingsEngine(aurora_conn=cm, bedrock_client=bedrock)
+
+        # Debug: check entity count before running findings
+        _entity_count = 0
+        try:
+            with cm.cursor() as _cur:
+                _cur.execute("SELECT COUNT(*) FROM entities WHERE case_file_id = %s::uuid", (case_id,))
+                _row = _cur.fetchone()
+                _entity_count = _row[0] if _row else 0
+        except Exception as _e:
+            logger.warning("Debug entity count check failed: %s", _e)
+
         result = engine.get_findings(case_id, category_id)
+        result["_debug_entity_count"] = _entity_count
         return success_response(result, 200, event)
     except Exception as e:
         logger.exception("Typology findings failed for case %s category %s", case_id, category_id)
