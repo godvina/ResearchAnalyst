@@ -240,7 +240,7 @@ Does the evidence ACTIVELY CONTRADICT the finding (not just fail to support it)?
 
         try:
             response = self.bedrock.invoke_model(
-                modelId="anthropic.claude-sonnet-4-20250514-v1:0",
+                modelId="us.anthropic.claude-3-haiku-20240307-v1:0",
                 body=json.dumps({
                     "anthropic_version": "bedrock-2023-05-31",
                     "max_tokens": 200,
@@ -363,6 +363,57 @@ Does the evidence ACTIVELY CONTRADICT the finding (not just fail to support it)?
                     "No credible alternative explanation remaining"
                 ],
                 "proof_threshold": 0.85,
+            },
+            "journalistic": {
+                "name": "journalistic",
+                "description": "Documentary/investigative journalism standard (Hook→Facts→Anomaly→Pattern→Implication)",
+                "checklist_items": [
+                    "Hook identified (provocative anomaly that challenges assumptions)",
+                    "Established facts documented (peer-reviewed or institutional sources)",
+                    "Anomaly is measurable, reproducible, and not yet debunked",
+                    "Pattern demonstrated across geography, time, or culture",
+                    "Implication stated as testable question (not conclusion)",
+                    "Three-source rule satisfied (measurement + researcher + control)",
+                    "Strongest counter-argument addressed (skeptic paragraph)",
+                    "Expert sources identified on both sides"
+                ],
+                "item_weights": [0.10, 0.15, 0.20, 0.20, 0.10, 0.10, 0.10, 0.05],
+                "critical_items": [
+                    "Anomaly is measurable, reproducible, and not yet debunked",
+                    "Pattern demonstrated across geography, time, or culture"
+                ],
+                "proof_threshold": 0.60,
+            },
+            "civil_legal": {
+                "name": "civil_legal",
+                "description": "Balance of probabilities standard",
+                "checklist_items": [
+                    "Positive evidence presented (not just absence of disproof)",
+                    "More likely than not (>50% probability)",
+                    "Evidence is credible and internally consistent",
+                    "Reasonable inference drawn from established facts"
+                ],
+                "item_weights": [0.30, 0.30, 0.20, 0.20],
+                "critical_items": [
+                    "More likely than not (>50% probability)"
+                ],
+                "proof_threshold": 0.55,
+            },
+            "financial_audit": {
+                "name": "financial_audit",
+                "description": "Material accuracy and substantive testing standard",
+                "checklist_items": [
+                    "Materiality threshold defined and tested",
+                    "Substantive testing performed on sample",
+                    "Sampling methodology is adequate for population",
+                    "Management representations are consistent with evidence",
+                    "Analytical procedures confirm reasonableness"
+                ],
+                "item_weights": [0.20, 0.25, 0.20, 0.20, 0.15],
+                "critical_items": [
+                    "Substantive testing performed on sample"
+                ],
+                "proof_threshold": 0.70,
             },
         }
         return defaults.get(name)
