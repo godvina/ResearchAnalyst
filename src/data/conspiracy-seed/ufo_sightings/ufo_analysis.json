@@ -1,0 +1,290 @@
+{
+  "source": "NUFORC UFO Sightings via CORGIS",
+  "source_url": "https://corgis-edu.github.io/corgis/csv/ufo_sightings/",
+  "download_date": "2026-08-02",
+  "analysis_timestamp": "2026-08-02T15:58:51.424884+00:00",
+  "analysis": {
+    "total_records": 60632,
+    "geographic": {
+      "total_geo_cells": 277,
+      "hotspots": [
+        {
+          "lat": 34,
+          "lng": -118,
+          "count": 3320
+        },
+        {
+          "lat": 48,
+          "lng": -122,
+          "count": 2316
+        },
+        {
+          "lat": 38,
+          "lng": -122,
+          "count": 2228
+        },
+        {
+          "lat": 42,
+          "lng": -88,
+          "count": 1808
+        },
+        {
+          "lat": 42,
+          "lng": -72,
+          "count": 1707
+        },
+        {
+          "lat": 40,
+          "lng": -74,
+          "count": 1702
+        },
+        {
+          "lat": 40,
+          "lng": -76,
+          "count": 1641
+        },
+        {
+          "lat": 34,
+          "lng": -112,
+          "count": 1479
+        },
+        {
+          "lat": 28,
+          "lng": -82,
+          "count": 1312
+        },
+        {
+          "lat": 42,
+          "lng": -74,
+          "count": 1050
+        },
+        {
+          "lat": 42,
+          "lng": -84,
+          "count": 983
+        },
+        {
+          "lat": 46,
+          "lng": -122,
+          "count": 975
+        },
+        {
+          "lat": 26,
+          "lng": -80,
+          "count": 948
+        },
+        {
+          "lat": 34,
+          "lng": -84,
+          "count": 747
+        },
+        {
+          "lat": 40,
+          "lng": -84,
+          "count": 729
+        }
+      ],
+      "bermuda_triangle_sightings": 92
+    },
+    "temporal": {
+      "year_range": "1910-2014",
+      "average_per_year": 767.5,
+      "spike_years": [
+        {
+          "year": 2012,
+          "count": 6096,
+          "multiplier": 7.9
+        },
+        {
+          "year": 2013,
+          "count": 5862,
+          "multiplier": 7.6
+        },
+        {
+          "year": 2011,
+          "count": 4215,
+          "multiplier": 5.5
+        },
+        {
+          "year": 2008,
+          "count": 3867,
+          "multiplier": 5.0
+        },
+        {
+          "year": 2009,
+          "count": 3502,
+          "multiplier": 4.6
+        },
+        {
+          "year": 2010,
+          "count": 3423,
+          "multiplier": 4.5
+        },
+        {
+          "year": 2007,
+          "count": 3338,
+          "multiplier": 4.3
+        },
+        {
+          "year": 2004,
+          "count": 3067,
+          "multiplier": 4.0
+        },
+        {
+          "year": 2005,
+          "count": 3046,
+          "multiplier": 4.0
+        },
+        {
+          "year": 2003,
+          "count": 2782,
+          "multiplier": 3.6
+        }
+      ],
+      "monthly_distribution": {
+        "5": 3925,
+        "12": 4326,
+        "10": 5841,
+        "3": 4121,
+        "8": 6341,
+        "1": 4272,
+        "6": 5925,
+        "9": 5791,
+        "11": 5265,
+        "4": 4107,
+        "2": 3529,
+        "7": 7189
+      }
+    },
+    "shapes": {
+      "light": 12895,
+      "triangle": 6268,
+      "circle": 5890,
+      "fireball": 4939,
+      "unknown": 4359,
+      "other": 4209,
+      "sphere": 4134,
+      "disk": 3853,
+      "oval": 2881,
+      "formation": 1908,
+      "cigar": 1569,
+      "changing": 1517,
+      "flash": 1025,
+      "rectangle": 1010,
+      "cylinder": 977
+    },
+    "cross_domain_matches": {
+      "ancient_mysteries/anomalous_artifacts": 358,
+      "ancient_mysteries/geographic_alignment": 188,
+      "ancient_mysteries/advanced_technology": 118,
+      "conspiracy_theory/pattern_recognition": 78,
+      "conspiracy_theory/information_asymmetry": 34,
+      "ancient_mysteries/astronomical_correlation": 25,
+      "conspiracy_theory/threat_narrative": 13,
+      "conspiracy_theory/coordinated_actors": 6,
+      "conspiracy_theory/evidence_suppression": 5,
+      "crime/organizational_hierarchy": 5,
+      "crime/temporal_clustering": 2,
+      "crime/witness_intimidation": 1
+    }
+  },
+  "theories": [
+    {
+      "id": "e83d5c4d-7fe7-468c-8901-94705cd99a78",
+      "title": "UFO Geographic Clustering Anomaly",
+      "claim": "UFO sightings are non-randomly distributed, with 15 geographic hotspots containing disproportionate concentrations (3320+ sightings in single grid cells)",
+      "evidence_for": [
+        "Top hotspot: lat 34, lng -118 with 3320 sightings",
+        "15 cells exceed 500 sightings (out of 277 cells)",
+        "Clustering could indicate: (a) real phenomenon, (b) military installations, (c) population density"
+      ],
+      "evidence_against": [
+        "Population density naturally creates clustering in any report-based dataset",
+        "Light pollution near cities makes aerial phenomena more visible",
+        "Reporting bias: urban areas have better internet access for filing reports"
+      ],
+      "cross_domain": [
+        "ancient_mysteries/geographic_alignment",
+        "conspiracy_theory/pattern_recognition"
+      ]
+    },
+    {
+      "id": "0377994f-fe0f-4331-a2a6-c43236206cfd",
+      "title": "UFO Temporal Spike Correlation",
+      "claim": "UFO reports spike dramatically in specific years (2012: 6096 reports, 7.9x average), suggesting social/media influence rather than physical phenomena",
+      "evidence_for": [
+        "Year 2012 had 7.9x the average reporting rate",
+        "10 years exceed 2x the long-term average",
+        "Spikes often coincide with popular UFO media (Independence Day 1996, X-Files 1993-2002)"
+      ],
+      "evidence_against": [
+        "Media attention could FOLLOW increased sightings rather than cause them",
+        "Improved reporting infrastructure in later years naturally increases counts",
+        "Some years with major media have no corresponding spike"
+      ],
+      "cross_domain": [
+        "conspiracy_theory/pattern_recognition",
+        "crime/temporal_clustering"
+      ]
+    },
+    {
+      "id": "eaedd2ed-2189-4658-be41-ca6583c22653",
+      "title": "Triangle Craft Structural Consistency",
+      "claim": "Triangle-shaped sightings (6268/60632, 10.3%) suggest a consistent craft type rather than random misidentification",
+      "evidence_for": [
+        "6268 independent reports describe triangular shape",
+        "Triangle reports span decades (not a single event)",
+        "Multiple witnesses often describe identical characteristics (dark, silent, lights at vertices)"
+      ],
+      "evidence_against": [
+        "B-2 Spirit stealth bomber is triangular and has been operational since 1989",
+        "TR-3B and other military black projects match many triangle descriptions",
+        "Human cognitive bias toward geometric shapes in ambiguous stimuli"
+      ],
+      "cross_domain": [
+        "ancient_mysteries/advanced_technology",
+        "conspiracy_theory/coordinated_actors"
+      ]
+    },
+    {
+      "id": "95e46a95-1e73-4464-bfaa-7539b61292a8",
+      "title": "UFO-Bermuda Triangle Intersection",
+      "claim": "UFO sightings in the Bermuda Triangle region (92 records) suggest a connection between unexplained aerial and maritime phenomena in this area",
+      "evidence_for": [
+        "92 UFO sightings fall within Bermuda Triangle coordinates (18-33N, 64-80W)",
+        "Region has historical reports of electromagnetic anomalies",
+        "Multiple phenomenon types (UFO + missing vessels) in same geographic zone"
+      ],
+      "evidence_against": [
+        "Bermuda Triangle is one of the world's busiest air/sea corridors — high traffic = more reports",
+        "218 NTSB aviation accidents in the same area suggest normal accident rates",
+        "Coast Guard statistics show no anomalous loss rates vs comparable regions"
+      ],
+      "cross_domain": [
+        "ancient_mysteries/geographic_alignment",
+        "conspiracy_theory/pattern_recognition",
+        "crime/temporal_clustering"
+      ]
+    },
+    {
+      "id": "205d6e76-9371-422c-be4f-2fcd3d7ab7ab",
+      "title": "Cross-Domain Narrative Pattern in UFO Reports",
+      "claim": "UFO sighting descriptions contain structural patterns matching both conspiracy (136 hits) and ancient mysteries (689 hits) taxonomy signatures, suggesting shared narrative frameworks",
+      "evidence_for": [
+        "Conspiracy theory signatures found in 136 description samples",
+        "Ancient mysteries signatures found in 689 description samples",
+        "Government/military references appear across decades of reports",
+        "Description language follows recognizable narrative templates"
+      ],
+      "evidence_against": [
+        "Shared vocabulary doesn't prove coordinated narrative — could reflect genuine observations",
+        "Military/government keywords expected when reporting near military airspace",
+        "Keyword matching is imprecise — context determines meaning"
+      ],
+      "cross_domain": [
+        "ancient_mysteries",
+        "conspiracy_theory"
+      ]
+    }
+  ]
+}
