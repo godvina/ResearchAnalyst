@@ -1,0 +1,99 @@
+{
+  "evaluation": {
+    "timestamp": "2026-08-02T15:32:29.805314+00:00",
+    "theory": "Bermuda Triangle is anomalously dangerous",
+    "standard": "scientific",
+    "data_source": "NTSB avall.mdb",
+    "records_analyzed": 218
+  },
+  "statistics": {
+    "total_accidents": 218,
+    "fatal_accidents": 81,
+    "years_covered": "2008-2026",
+    "rate_per_year": 11.5,
+    "good_weather_pct": 63.3
+  },
+  "verdict": {
+    "verdict_id": "6cadc160-e402-49e0-8192-530677fdf457",
+    "finding_id": "bermuda_ntsb_analysis",
+    "standard_used": "scientific",
+    "tenant_id": "conspiracy_theories",
+    "checklist_items": [
+      {
+        "description": "Falsifiable hypothesis stated",
+        "weight": 0.15,
+        "is_critical": false,
+        "score": 0.5,
+        "justification": "The finding presents the claim that the Bermuda Triangle region experiences a statistically anomalous rate of aviation accidents, but it does not provide a specific, falsifiable hypothesis that could be tested against the available evidence."
+      },
+      {
+        "description": "Statistical significance demonstrated (p<0.05)",
+        "weight": 0.25,
+        "is_critical": true,
+        "score": 0.5,
+        "justification": "The available data shows a higher accident rate in the Bermuda Triangle region compared to the national average, but does not provide a formal statistical analysis to demonstrate that this difference is statistically significant at the p<0.05 level."
+      },
+      {
+        "description": "Independent replication achieved or achievable",
+        "weight": 0.25,
+        "is_critical": false,
+        "score": 1.0,
+        "justification": "The available data shows a detailed analysis of the aviation accident rate in the Bermuda Triangle region over a 19-year period, providing clear statistical evidence that can be independently replicated and validated."
+      },
+      {
+        "description": "Peer critique addressed",
+        "weight": 0.15,
+        "is_critical": false,
+        "score": 1.0,
+        "justification": "The available evidence includes official statements from authoritative organizations like the US Coast Guard and Lloyd's of London, as well as analysis from the NTSB, indicating that the Bermuda Triangle region does not experience statistically anomalous rates of aviation accidents or disappearances beyond what would be expected for the level of air traffic in that area."
+      },
+      {
+        "description": "Alternative explanations systematically eliminated",
+        "weight": 0.2,
+        "is_critical": true,
+        "score": 1.0,
+        "justification": "The available evidence systematically examines and eliminates alternative explanations for the observed accident rate in the Bermuda Triangle region, such as weather conditions, pilot error, and mechanical failure. The data shows that the accident rate is within the normal range for the level of aviation activity in the region."
+      }
+    ],
+    "overall_score": 0.8,
+    "verdict": "UNPROVEN",
+    "reasoning": {
+      "verdict": "UNPROVEN",
+      "overall_score": 0.8,
+      "threshold": 0.7,
+      "satisfied_items": [
+        {
+          "item": "Independent replication achieved or achievable",
+          "justification": "The available data shows a detailed analysis of the aviation accident rate in the Bermuda Triangle region over a 19-year period, providing clear statistical evidence that can be independently replicated and validated."
+        },
+        {
+          "item": "Peer critique addressed",
+          "justification": "The available evidence includes official statements from authoritative organizations like the US Coast Guard and Lloyd's of London, as well as analysis from the NTSB, indicating that the Bermuda Triangle region does not experience statistically anomalous rates of aviation accidents or disappearances beyond what would be expected for the level of air traffic in that area."
+        },
+        {
+          "item": "Alternative explanations systematically eliminated",
+          "justification": "The available evidence systematically examines and eliminates alternative explanations for the observed accident rate in the Bermuda Triangle region, such as weather conditions, pilot error, and mechanical failure. The data shows that the accident rate is within the normal range for the level of aviation activity in the region."
+        }
+      ],
+      "unsatisfied_items": [
+        {
+          "item": "Falsifiable hypothesis stated",
+          "justification": "The finding presents the claim that the Bermuda Triangle region experiences a statistically anomalous rate of aviation accidents, but it does not provide a specific, falsifiable hypothesis that could be tested against the available evidence."
+        },
+        {
+          "item": "Statistical significance demonstrated (p<0.05)",
+          "justification": "The available data shows a higher accident rate in the Bermuda Triangle region compared to the national average, but does not provide a formal statistical analysis to demonstrate that this difference is statistically significant at the p<0.05 level."
+        }
+      ],
+      "critical_items_failed": [
+        "Statistical significance demonstrated (p<0.05)"
+      ],
+      "contradicts_finding": true
+    },
+    "research_directions": [
+      "Evidence actively contradicts this finding.",
+      "To rehabilitate: provide evidence addressing the contradiction directly."
+    ],
+    "evaluated_at": ""
+  }
+}
