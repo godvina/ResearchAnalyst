@@ -1,0 +1,339 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theory Registry — Proof Engine Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",system-ui,sans-serif;background:#0a0f19;color:#e2e8f0;min-height:100vh}
+.header{background:linear-gradient(135deg,#0f1419,#1a1a2e);padding:14px 28px;border-bottom:1px solid rgba(99,179,237,0.2);display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:1.3rem;color:#63b3ed;display:flex;align-items:center;gap:10px}
+.header h1 .subtitle{font-size:0.7rem;color:#718096;font-weight:400}
+.header-right{display:flex;gap:10px;align-items:center}
+.nav-link{color:#a0aec0;text-decoration:none;font-size:0.72rem;padding:5px 12px;border:1px solid #4a5568;border-radius:6px;transition:all 0.2s}
+.nav-link:hover{color:#63b3ed;border-color:#63b3ed;background:rgba(99,179,237,0.08)}
+
+/* Stats bar */
+.stats-bar{display:flex;gap:20px;padding:14px 28px;background:rgba(0,0,0,0.3);border-bottom:1px solid rgba(255,255,255,0.05);flex-wrap:wrap}
+.stat-card{background:rgba(26,35,50,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 18px;min-width:140px}
+.stat-card .label{font-size:0.65rem;color:#718096;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.stat-card .value{font-size:1.4rem;font-weight:700;color:#e2e8f0}
+.stat-card .value.proven{color:#48bb78}
+.stat-card .value.unproven{color:#f56565}
+.stat-card .value.insufficient{color:#ecc94b}
+
+/* Filters */
+.filter-bar{display:flex;gap:10px;padding:16px 28px;align-items:center;flex-wrap:wrap}
+.filter-btn{padding:6px 14px;border-radius:20px;font-size:0.75rem;font-weight:600;cursor:pointer;transition:all 0.2s;border:1px solid #4a5568;background:rgba(255,255,255,0.03);color:#a0aec0}
+.filter-btn:hover{border-color:#63b3ed;color:#63b3ed}
+.filter-btn.active{background:rgba(99,179,237,0.15);border-color:#63b3ed;color:#63b3ed}
+.filter-btn.proven.active{background:rgba(72,187,120,0.15);border-color:#48bb78;color:#48bb78}
+.filter-btn.unproven.active{background:rgba(245,101,101,0.15);border-color:#f56565;color:#f56565}
+.filter-btn.insufficient.active{background:rgba(236,201,75,0.15);border-color:#ecc94b;color:#ecc94b}
+.sort-select{background:#1a2332;border:1px solid #4a5568;color:#e2e8f0;padding:6px 12px;border-radius:6px;font-size:0.75rem;margin-left:auto}
+
+/* Theory list */
+.container{max-width:1400px;margin:0 auto;padding:20px 28px}
+.theory-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:16px}
+
+.theory-card{background:rgba(26,35,50,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:18px;transition:all 0.2s;cursor:pointer;position:relative;overflow:hidden}
+.theory-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.4);border-color:rgba(99,179,237,0.3)}
+.theory-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.theory-card.verdict-PROVEN::before{background:#48bb78}
+.theory-card.verdict-UNPROVEN::before{background:#f56565}
+.theory-card.verdict-INSUFFICIENT_EVIDENCE::before{background:#ecc94b}
+
+.theory-title{font-size:0.92rem;font-weight:600;color:#e2e8f0;margin-bottom:6px;padding-right:80px}
+.theory-source{font-size:0.68rem;color:#718096;margin-bottom:10px}
+
+.verdict-badge{position:absolute;top:14px;right:14px;font-size:0.62rem;padding:3px 10px;border-radius:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px}
+.verdict-PROVEN{background:rgba(72,187,120,0.15);color:#48bb78;border:1px solid rgba(72,187,120,0.3)}
+.verdict-UNPROVEN{background:rgba(245,101,101,0.15);color:#f56565;border:1px solid rgba(245,101,101,0.3)}
+.verdict-INSUFFICIENT_EVIDENCE{background:rgba(236,201,75,0.15);color:#ecc94b;border:1px solid rgba(236,201,75,0.3)}
+
+/* Score bar */
+.score-bar-container{margin:10px 0;display:flex;align-items:center;gap:10px}
+.score-bar-bg{flex:1;height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;position:relative}
+.score-bar-fill{height:100%;border-radius:4px;transition:width 0.5s ease}
+.score-bar-threshold{position:absolute;top:-2px;bottom:-2px;width:2px;background:rgba(255,255,255,0.4)}
+.score-value{font-size:0.85rem;font-weight:700;min-width:40px;text-align:right}
+
+/* Checklist */
+.checklist{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05)}
+.checklist-item{display:flex;align-items:center;gap:8px;font-size:0.72rem;color:#a0aec0;padding:4px 0}
+.check-icon{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:700;flex-shrink:0}
+.check-full{background:rgba(72,187,120,0.2);color:#48bb78;border:1px solid rgba(72,187,120,0.4)}
+.check-partial{background:rgba(236,201,75,0.2);color:#ecc94b;border:1px solid rgba(236,201,75,0.4)}
+.check-empty{background:rgba(245,101,101,0.1);color:#f56565;border:1px solid rgba(245,101,101,0.3)}
+.check-critical{font-weight:700;color:#e2e8f0}
+
+/* Research directions */
+.research-directions{margin-top:10px;padding:10px 12px;background:rgba(0,0,0,0.2);border-radius:8px;border-left:2px solid #63b3ed}
+.research-directions .rd-title{font-size:0.68rem;color:#63b3ed;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.3px}
+.research-directions li{font-size:0.7rem;color:#a0aec0;margin-left:12px;margin-bottom:4px;line-height:1.4}
+
+/* Cross-domain badge */
+.domain-badges{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.domain-badge{font-size:0.6rem;padding:2px 8px;border-radius:10px;background:rgba(99,179,237,0.08);border:1px solid rgba(99,179,237,0.2);color:#90cdf4}
+.domain-badge.cross{background:rgba(159,122,234,0.12);border-color:rgba(159,122,234,0.3);color:#b794f4}
+
+/* Detail modal */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.visible{display:flex}
+.modal{background:#1a2332;border:1px solid rgba(99,179,237,0.2);border-radius:16px;max-width:700px;width:100%;max-height:85vh;overflow-y:auto;padding:28px;position:relative}
+.modal-close{position:absolute;top:14px;right:14px;background:none;border:none;color:#718096;font-size:1.4rem;cursor:pointer}
+.modal-close:hover{color:#f56565}
+.modal h2{font-size:1.1rem;color:#63b3ed;margin-bottom:6px}
+.modal .claim{font-size:0.82rem;color:#cbd5e0;line-height:1.6;margin:12px 0;padding:12px;background:rgba(0,0,0,0.2);border-radius:8px;border-left:3px solid #63b3ed}
+.modal .prediction{font-size:0.78rem;color:#a0aec0;font-style:italic;margin:8px 0}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🔬 Theory Registry <span class="subtitle">Proof Engine Dashboard — Cross-Domain Analysis</span></h1>
+  <div class="header-right">
+    <a class="nav-link" href="grid-globe-3d.html">🌍 Grid Globe</a>
+    <a class="nav-link" href="orion-correlation.html">⭐ Sky Mirror</a>
+    <a class="nav-link" href="pattern-library.html">📚 Taxonomy</a>
+  </div>
+</div>
+
+<div class="stats-bar" id="statsBar"></div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn proven" data-filter="PROVEN">Proven</button>
+  <button class="filter-btn insufficient" data-filter="INSUFFICIENT_EVIDENCE">Insufficient</button>
+  <button class="filter-btn unproven" data-filter="UNPROVEN">Unproven</button>
+  <select class="sort-select" id="sortSelect">
+    <option value="score-desc">Score (highest first)</option>
+    <option value="score-asc">Score (lowest first)</option>
+    <option value="alpha">Alphabetical</option>
+    <option value="dataset">By Dataset</option>
+  </select>
+</div>
+
+<div class="container">
+  <div class="theory-grid" id="theoryGrid"></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script src="theory-registry-data.js"></script>
+<script>
+// ============================================================
+// THEORY REGISTRY DASHBOARD
+// ============================================================
+
+let currentFilter = 'all';
+let currentSort = 'score-desc';
+let filteredTheories = [];
+
+function init() {
+  filteredTheories = [...THEORY_DATA];
+  renderStats();
+  renderTheories();
+  setupFilters();
+  setupSort();
+  setupModal();
+}
+
+function renderStats() {
+  const bar = document.getElementById('statsBar');
+  const total = THEORY_DATA.length;
+  const proven = THEORY_DATA.filter(t => t.verdict === 'PROVEN').length;
+  const unproven = THEORY_DATA.filter(t => t.verdict === 'UNPROVEN').length;
+  const insufficient = THEORY_DATA.filter(t => t.verdict === 'INSUFFICIENT_EVIDENCE').length;
+  const avgScore = (THEORY_DATA.reduce((s, t) => s + t.score, 0) / total).toFixed(2);
+  const datasets = [...new Set(THEORY_DATA.map(t => t.dataset))].length;
+  const crossCutting = THEORY_DATA.filter(t => t.is_cross_cutting).length;
+
+  bar.innerHTML = `
+    <div class="stat-card"><div class="label">Total Theories</div><div class="value">${total}</div></div>
+    <div class="stat-card"><div class="label">Proven</div><div class="value proven">${proven}</div></div>
+    <div class="stat-card"><div class="label">Unproven</div><div class="value unproven">${unproven}</div></div>
+    <div class="stat-card"><div class="label">Insufficient Evidence</div><div class="value insufficient">${insufficient}</div></div>
+    <div class="stat-card"><div class="label">Avg Score</div><div class="value">${avgScore}</div></div>
+    <div class="stat-card"><div class="label">Datasets</div><div class="value">${datasets}</div></div>
+    ${crossCutting ? `<div class="stat-card"><div class="label">Cross-Domain</div><div class="value" style="color:#b794f4">${crossCutting}</div></div>` : ''}
+  `;
+}
+
+function renderTheories() {
+  const grid = document.getElementById('theoryGrid');
+  
+  // Apply filter
+  let theories = [...THEORY_DATA];
+  if (currentFilter !== 'all') {
+    theories = theories.filter(t => t.verdict === currentFilter);
+  }
+
+  // Apply sort
+  switch (currentSort) {
+    case 'score-desc': theories.sort((a, b) => b.score - a.score); break;
+    case 'score-asc': theories.sort((a, b) => a.score - b.score); break;
+    case 'alpha': theories.sort((a, b) => a.title.localeCompare(b.title)); break;
+    case 'dataset': theories.sort((a, b) => a.dataset.localeCompare(b.dataset) || b.score - a.score); break;
+  }
+
+  filteredTheories = theories;
+
+  grid.innerHTML = theories.map((t, idx) => {
+    const scoreColor = t.score >= 0.65 ? '#48bb78' : t.score >= 0.40 ? '#ecc94b' : '#f56565';
+    const threshold = t.standard === 'scientific' ? 0.70 : 0.65;
+    const thresholdPct = threshold * 100;
+    const scorePct = Math.min(t.score * 100, 100);
+    
+    const checklistHtml = (t.checklist || []).slice(0, 5).map(c => {
+      const icon = c.score >= 1.0 ? 'check-full' : c.score >= 0.5 ? 'check-partial' : 'check-empty';
+      const symbol = c.score >= 1.0 ? '✓' : c.score >= 0.5 ? '½' : '✗';
+      const critClass = c.is_critical ? ' check-critical' : '';
+      const label = c.item || c.description || '';
+      return `<div class="checklist-item${critClass}">
+        <span class="check-icon ${icon}">${symbol}</span>
+        <span>${label.length > 50 ? label.slice(0, 50) + '...' : label}</span>
+      </div>`;
+    }).join('');
+
+    const datasetLabel = t.dataset.replace(/_/g, ' ');
+    const domainBadges = (t.domains_matched || []).map(d => 
+      `<span class="domain-badge cross">${d}</span>`
+    ).join('');
+
+    return `
+      <div class="theory-card verdict-${t.verdict}" data-idx="${idx}" onclick="showDetail(${idx})">
+        <span class="verdict-badge verdict-${t.verdict}">${formatVerdict(t.verdict)}</span>
+        <div class="theory-title">${t.title}</div>
+        <div class="theory-source">${t.source || datasetLabel} · ${t.standard} standard</div>
+        
+        <div class="score-bar-container">
+          <div class="score-bar-bg">
+            <div class="score-bar-fill" style="width:${scorePct}%;background:${scoreColor}"></div>
+            <div class="score-bar-threshold" style="left:${thresholdPct}%"></div>
+          </div>
+          <div class="score-value" style="color:${scoreColor}">${t.score.toFixed(2)}</div>
+        </div>
+
+        <div class="checklist">${checklistHtml}</div>
+        ${domainBadges ? `<div class="domain-badges">${domainBadges}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function formatVerdict(v) {
+  switch (v) {
+    case 'PROVEN': return 'Proven';
+    case 'UNPROVEN': return 'Unproven';
+    case 'INSUFFICIENT_EVIDENCE': return 'Insufficient';
+    default: return v;
+  }
+}
+
+function showDetail(idx) {
+  const t = filteredTheories[idx];
+  const modal = document.getElementById('modalContent');
+  const overlay = document.getElementById('modalOverlay');
+
+  const threshold = t.standard === 'scientific' ? 0.70 : 0.65;
+  const scoreColor = t.score >= threshold ? '#48bb78' : t.score >= 0.40 ? '#ecc94b' : '#f56565';
+
+  const checklistHtml = (t.checklist || []).map(c => {
+    const icon = c.score >= 1.0 ? 'check-full' : c.score >= 0.5 ? 'check-partial' : 'check-empty';
+    const symbol = c.score >= 1.0 ? '✓' : c.score >= 0.5 ? '½' : '✗';
+    const critBadge = c.is_critical ? ' <span style="color:#f56565;font-size:0.6rem">[CRITICAL]</span>' : '';
+    const label = c.item || c.description || '';
+    return `<div class="checklist-item" style="margin-bottom:8px">
+      <span class="check-icon ${icon}">${symbol}</span>
+      <div style="flex:1">
+        <span>${label}${critBadge}</span>
+        ${c.justification ? `<div style="font-size:0.66rem;color:#718096;margin-top:3px;line-height:1.4">${c.justification}</div>` : ''}
+      </div>
+      <span style="font-size:0.75rem;font-weight:700;color:${c.score >= 1.0 ? '#48bb78' : c.score >= 0.5 ? '#ecc94b' : '#f56565'}">${c.score.toFixed(1)}</span>
+    </div>`;
+  }).join('');
+
+  const rdHtml = (t.research_directions || []).map(rd => `<li>${rd}</li>`).join('');
+
+  modal.innerHTML = `
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h2>${t.title}</h2>
+    <div style="font-size:0.72rem;color:#718096;margin-bottom:12px">${t.source || ''} · ${t.standard} standard · ${t.dataset.replace(/_/g,' ')}</div>
+    
+    <div class="claim">${t.claim || 'No claim description available'}</div>
+    ${t.prediction ? `<div class="prediction">Testable prediction: ${t.prediction}</div>` : ''}
+    
+    <div style="display:flex;align-items:center;gap:16px;margin:16px 0;padding:12px;background:rgba(0,0,0,0.2);border-radius:8px">
+      <div>
+        <div style="font-size:0.65rem;color:#718096;text-transform:uppercase">Verdict</div>
+        <div class="verdict-badge verdict-${t.verdict}" style="position:static;margin-top:4px">${formatVerdict(t.verdict)}</div>
+      </div>
+      <div>
+        <div style="font-size:0.65rem;color:#718096;text-transform:uppercase">Score</div>
+        <div style="font-size:1.5rem;font-weight:700;color:${scoreColor}">${t.score.toFixed(2)}</div>
+      </div>
+      <div>
+        <div style="font-size:0.65rem;color:#718096;text-transform:uppercase">Threshold</div>
+        <div style="font-size:1.1rem;color:#a0aec0">${threshold.toFixed(2)}</div>
+      </div>
+      <div>
+        <div style="font-size:0.65rem;color:#718096;text-transform:uppercase">Gap</div>
+        <div style="font-size:1.1rem;color:${t.score >= threshold ? '#48bb78' : '#ecc94b'}">${(threshold - t.score).toFixed(2)}</div>
+      </div>
+    </div>
+
+    <h3 style="font-size:0.85rem;color:#63b3ed;margin:16px 0 10px">Evidence Checklist</h3>
+    <div class="checklist" style="border-top:none;padding-top:0">${checklistHtml}</div>
+
+    ${rdHtml ? `
+    <div class="research-directions" style="margin-top:16px">
+      <div class="rd-title">Research Directions (what would change the verdict)</div>
+      <ul style="list-style:none;padding:0">${rdHtml}</ul>
+    </div>` : ''}
+
+    ${t.is_cross_cutting ? `
+    <div style="margin-top:16px;padding:10px 12px;background:rgba(159,122,234,0.08);border:1px solid rgba(159,122,234,0.2);border-radius:8px">
+      <div style="font-size:0.72rem;color:#b794f4;font-weight:600">⚡ Cross-Domain Finding</div>
+      <div style="font-size:0.7rem;color:#a0aec0;margin-top:4px">Matches domains: ${(t.domains_matched || []).join(', ')}</div>
+    </div>` : ''}
+  `;
+
+  overlay.classList.add('visible');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('visible');
+}
+
+function setupFilters() {
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      renderTheories();
+    });
+  });
+}
+
+function setupSort() {
+  document.getElementById('sortSelect').addEventListener('change', e => {
+    currentSort = e.target.value;
+    renderTheories();
+  });
+}
+
+function setupModal() {
+  document.getElementById('modalOverlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body></html>
