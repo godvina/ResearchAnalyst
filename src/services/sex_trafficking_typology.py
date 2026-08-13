@@ -707,8 +707,8 @@ class TypologyFindingsEngine:
         # Cluster entities into situations
         situations = self._detect_situations(category, entities, relationships)
 
-        # Generate AI briefs for top situations
-        for situation in situations[:6]:  # Cap at 6 situations
+        # Generate AI briefs for top situations (cap at 3 to stay under API Gateway 29s timeout)
+        for situation in situations[:3]:
             situation.ai_brief = self._generate_brief(category, situation)
 
         return {
