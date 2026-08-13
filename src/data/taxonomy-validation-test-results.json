@@ -1,0 +1,131 @@
+{
+  "test_run": {
+    "timestamp": "2026-08-02T16:05:11.645082+00:00",
+    "records_per_source": 50,
+    "total_records": 218,
+    "sources_tested": 6
+  },
+  "overall": {
+    "match_rate": 54.6,
+    "cross_cutting_rate": 11.5,
+    "health": "fair"
+  },
+  "per_source": {
+    "bermuda_ntsb": {
+      "total": 50,
+      "matched": 50,
+      "match_rate": 100.0,
+      "cross_cutting": 0,
+      "top_domains": {
+        "crime": 50
+      },
+      "top_signatures": {
+        "crime/witness_intimidation": 50
+      }
+    },
+    "ufo_nuforc": {
+      "total": 50,
+      "matched": 8,
+      "match_rate": 16.0,
+      "cross_cutting": 1,
+      "top_domains": {
+        "crime": 7,
+        "conspiracy_theory": 1,
+        "ancient_mysteries": 1
+      },
+      "top_signatures": {
+        "crime/organizational_hierarchy": 7,
+        "conspiracy_theory/timeline_anomalies": 1,
+        "ancient_mysteries/astronomical_correlation": 1
+      }
+    },
+    "voat_conspiracy": {
+      "total": 50,
+      "matched": 31,
+      "match_rate": 62.0,
+      "cross_cutting": 16,
+      "top_domains": {
+        "conspiracy_theory": 46,
+        "crime": 31,
+        "ancient_mysteries": 7
+      },
+      "top_signatures": {
+        "crime/organizational_hierarchy": 13,
+        "conspiracy_theory/timeline_anomalies": 11,
+        "crime/temporal_clustering": 8,
+        "conspiracy_theory/information_asymmetry": 7,
+        "conspiracy_theory/counter_narrative": 6,
+        "conspiracy_theory/institutional_behavior": 5,
+        "conspiracy_theory/methodological_red_flags": 5,
+        "crime/financial_trail": 4,
+        "conspiracy_theory/narrative_coherence": 4,
+        "conspiracy_theory/evidence_suppression": 3
+      }
+    },
+    "flat_earth": {
+      "total": 8,
+      "matched": 5,
+      "match_rate": 62.5,
+      "cross_cutting": 2,
+      "top_domains": {
+        "ancient_mysteries": 4,
+        "conspiracy_theory": 2,
+        "crime": 2
+      },
+      "top_signatures": {
+        "ancient_mysteries/astronomical_correlation": 2,
+        "conspiracy_theory/evidence_suppression": 1,
+        "conspiracy_theory/geographic_clustering": 1,
+        "ancient_mysteries/anomalous_artifacts": 1,
+        "crime/organizational_hierarchy": 1,
+        "ancient_mysteries/lost_knowledge": 1,
+        "crime/financial_trail": 1
+      }
+    },
+    "ancient_mysteries": {
+      "total": 10,
+      "matched": 10,
+      "match_rate": 100.0,
+      "cross_cutting": 5,
+      "top_domains": {
+        "ancient_mysteries": 10,
+        "conspiracy_theory": 8,
+        "crime": 7
+      },
+      "top_signatures": {
+        "crime/organizational_hierarchy": 5,
+        "conspiracy_theory/counter_narrative": 3,
+        "ancient_mysteries/advanced_technology": 2,
+        "ancient_mysteries/anomalous_artifacts": 2,
+        "conspiracy_theory/geographic_clustering": 2,
+        "ancient_mysteries/geographic_alignment": 2,
+        "ancient_mysteries/astronomical_correlation": 2,
+        "conspiracy_theory/timeline_anomalies": 2,
+        "ancient_mysteries/lost_knowledge": 2,
+        "crime/temporal_clustering": 2
+      }
+    },
+    "vaers": {
+      "total": 50,
+      "matched": 15,
+      "match_rate": 30.0,
+      "cross_cutting": 1,
+      "top_domains": {
+        "conspiracy_theory": 8,
+        "crime": 7,
+        "ancient_mysteries": 1
+      },
+      "top_signatures": {
+        "conspiracy_theory/information_asymmetry": 4,
+        "crime/temporal_clustering": 4,
+        "conspiracy_theory/timeline_anomalies": 4,
+        "crime/organizational_hierarchy": 3,
+        "ancient_mysteries/lost_knowledge": 1
+      }
+    }
+  },
+  "gaps": [
+    "ufo_nuforc",
+    "vaers"
+  ]
+}
