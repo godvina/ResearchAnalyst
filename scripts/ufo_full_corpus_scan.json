@@ -1,0 +1,506 @@
+{
+  "generated_at": "2026-08-22T21:08:14.274077+00:00",
+  "source": "src/data/conspiracy-seed/ufo_sightings/ufo_sightings.csv",
+  "taxonomy": "src/data/ufo-uap-taxonomy.json",
+  "min_needles_to_fire": 2,
+  "total_reports_scanned": 60632,
+  "reports_with_any_signature": 8764,
+  "coverage_pct": 14.45,
+  "signatures_confirmed_10plus": 16,
+  "signatures_never_fired": [
+    "uap-em-phys-001",
+    "uap-em-phys-002",
+    "uap-wr-cred-002",
+    "uap-ir-sup-001"
+  ],
+  "per_typology_reports": {
+    "craft_morphology": 5835,
+    "flight_kinematics": 2702,
+    "encounter_typology": 502,
+    "sensor_em_signatures": 436,
+    "witness_reliability": 28,
+    "institutional_response": 11
+  },
+  "per_signature": [
+    {
+      "signature_id": "uap-cm-disc-002",
+      "typology": "craft_morphology",
+      "severity": "moderate",
+      "reports_fired": 3410,
+      "confirmation_rate_pct": 5.624,
+      "top_shapes": {
+        "triangle": 889,
+        "disk": 348,
+        "light": 333,
+        "other": 299,
+        "oval": 179
+      }
+    },
+    {
+      "signature_id": "uap-cm-tri-001",
+      "typology": "craft_morphology",
+      "severity": "high",
+      "reports_fired": 2082,
+      "confirmation_rate_pct": 3.434,
+      "top_shapes": {
+        "triangle": 1103,
+        "light": 326,
+        "unknown": 98,
+        "other": 77,
+        "circle": 76
+      }
+    },
+    {
+      "signature_id": "uap-fk-slow-002",
+      "typology": "flight_kinematics",
+      "severity": "high",
+      "reports_fired": 1918,
+      "confirmation_rate_pct": 3.163,
+      "top_shapes": {
+        "light": 885,
+        "triangle": 150,
+        "circle": 136,
+        "unknown": 122,
+        "disk": 90
+      }
+    },
+    {
+      "signature_id": "uap-cm-tri-002",
+      "typology": "craft_morphology",
+      "severity": "moderate",
+      "reports_fired": 1166,
+      "confirmation_rate_pct": 1.923,
+      "top_shapes": {
+        "light": 344,
+        "triangle": 193,
+        "unknown": 94,
+        "circle": 91,
+        "formation": 71
+      }
+    },
+    {
+      "signature_id": "uap-cm-disc-001",
+      "typology": "craft_morphology",
+      "severity": "high",
+      "reports_fired": 726,
+      "confirmation_rate_pct": 1.197,
+      "top_shapes": {
+        "disk": 176,
+        "triangle": 86,
+        "cigar": 82,
+        "other": 76,
+        "oval": 44
+      }
+    },
+    {
+      "signature_id": "uap-fk-slow-001",
+      "typology": "flight_kinematics",
+      "severity": "high",
+      "reports_fired": 654,
+      "confirmation_rate_pct": 1.079,
+      "top_shapes": {
+        "triangle": 150,
+        "light": 100,
+        "other": 55,
+        "circle": 55,
+        "unknown": 46
+      }
+    },
+    {
+      "signature_id": "uap-et-ce-001",
+      "typology": "encounter_typology",
+      "severity": "moderate",
+      "reports_fired": 493,
+      "confirmation_rate_pct": 0.813,
+      "top_shapes": {
+        "light": 67,
+        "circle": 53,
+        "other": 45,
+        "unknown": 44,
+        "sphere": 43
+      }
+    },
+    {
+      "signature_id": "uap-em-int-001",
+      "typology": "sensor_em_signatures",
+      "severity": "high",
+      "reports_fired": 422,
+      "confirmation_rate_pct": 0.696,
+      "top_shapes": {
+        "light": 49,
+        "circle": 48,
+        "sphere": 36,
+        "other": 33,
+        "disk": 31
+      }
+    },
+    {
+      "signature_id": "uap-cm-orb-001",
+      "typology": "craft_morphology",
+      "severity": "high",
+      "reports_fired": 380,
+      "confirmation_rate_pct": 0.627,
+      "top_shapes": {
+        "cigar": 70,
+        "disk": 47,
+        "other": 40,
+        "sphere": 33,
+        "triangle": 28
+      }
+    },
+    {
+      "signature_id": "uap-fk-hov-001",
+      "typology": "flight_kinematics",
+      "severity": "high",
+      "reports_fired": 136,
+      "confirmation_rate_pct": 0.224,
+      "top_shapes": {
+        "light": 23,
+        "sphere": 19,
+        "oval": 16,
+        "disk": 16,
+        "triangle": 11
+      }
+    },
+    {
+      "signature_id": "uap-fk-tm-001",
+      "typology": "flight_kinematics",
+      "severity": "critical",
+      "reports_fired": 53,
+      "confirmation_rate_pct": 0.087,
+      "top_shapes": {
+        "circle": 7,
+        "sphere": 7,
+        "unknown": 5,
+        "light": 5,
+        "other": 4
+      }
+    },
+    {
+      "signature_id": "uap-fk-acc-002",
+      "typology": "flight_kinematics",
+      "severity": "critical",
+      "reports_fired": 42,
+      "confirmation_rate_pct": 0.069,
+      "top_shapes": {
+        "triangle": 10,
+        "light": 8,
+        "rectangle": 6,
+        "oval": 4,
+        "sphere": 3
+      }
+    },
+    {
+      "signature_id": "uap-wr-cred-001",
+      "typology": "witness_reliability",
+      "severity": "high",
+      "reports_fired": 22,
+      "confirmation_rate_pct": 0.036,
+      "top_shapes": {
+        "unknown": 4,
+        "oval": 4,
+        "disk": 3,
+        "cigar": 2,
+        "light": 2
+      }
+    },
+    {
+      "signature_id": "uap-et-ce-002",
+      "typology": "encounter_typology",
+      "severity": "high",
+      "reports_fired": 17,
+      "confirmation_rate_pct": 0.028,
+      "top_shapes": {
+        "oval": 4,
+        "circle": 4,
+        "disk": 2,
+        "changing": 1,
+        "flash": 1
+      }
+    },
+    {
+      "signature_id": "uap-fk-acc-001",
+      "typology": "flight_kinematics",
+      "severity": "critical",
+      "reports_fired": 11,
+      "confirmation_rate_pct": 0.018,
+      "top_shapes": {
+        "light": 5,
+        "triangle": 3,
+        "rectangle": 1,
+        "circle": 1,
+        "fireball": 1
+      }
+    },
+    {
+      "signature_id": "uap-ir-off-001",
+      "typology": "institutional_response",
+      "severity": "high",
+      "reports_fired": 11,
+      "confirmation_rate_pct": 0.018,
+      "top_shapes": {
+        "light": 3,
+        "unknown": 3,
+        "disk": 1,
+        "cigar": 1,
+        "oval": 1
+      }
+    },
+    {
+      "signature_id": "uap-em-rv-001",
+      "typology": "sensor_em_signatures",
+      "severity": "critical",
+      "reports_fired": 9,
+      "confirmation_rate_pct": 0.015,
+      "top_shapes": {
+        "light": 2,
+        "triangle": 2,
+        "cigar": 1,
+        "changing": 1,
+        "other": 1
+      }
+    },
+    {
+      "signature_id": "uap-em-int-002",
+      "typology": "sensor_em_signatures",
+      "severity": "high",
+      "reports_fired": 5,
+      "confirmation_rate_pct": 0.008,
+      "top_shapes": {
+        "other": 2,
+        "light": 1,
+        "cigar": 1,
+        "changing": 1
+      }
+    },
+    {
+      "signature_id": "uap-wr-hoax-002",
+      "typology": "witness_reliability",
+      "severity": "low",
+      "reports_fired": 5,
+      "confirmation_rate_pct": 0.008,
+      "top_shapes": {
+        "changing": 1,
+        "light": 1,
+        "triangle": 1,
+        "other": 1,
+        "fireball": 1
+      }
+    },
+    {
+      "signature_id": "uap-et-mass-001",
+      "typology": "encounter_typology",
+      "severity": "high",
+      "reports_fired": 2,
+      "confirmation_rate_pct": 0.003,
+      "top_shapes": {
+        "triangle": 1,
+        "light": 1
+      }
+    },
+    {
+      "signature_id": "uap-wr-hoax-001",
+      "typology": "witness_reliability",
+      "severity": "low",
+      "reports_fired": 1,
+      "confirmation_rate_pct": 0.002,
+      "top_shapes": {
+        "unknown": 1
+      }
+    },
+    {
+      "signature_id": "uap-em-phys-001",
+      "typology": "sensor_em_signatures",
+      "severity": "high",
+      "reports_fired": 0,
+      "confirmation_rate_pct": 0.0,
+      "top_shapes": {}
+    },
+    {
+      "signature_id": "uap-em-phys-002",
+      "typology": "sensor_em_signatures",
+      "severity": "high",
+      "reports_fired": 0,
+      "confirmation_rate_pct": 0.0,
+      "top_shapes": {}
+    },
+    {
+      "signature_id": "uap-wr-cred-002",
+      "typology": "witness_reliability",
+      "severity": "moderate",
+      "reports_fired": 0,
+      "confirmation_rate_pct": 0.0,
+      "top_shapes": {}
+    },
+    {
+      "signature_id": "uap-ir-sup-001",
+      "typology": "institutional_response",
+      "severity": "high",
+      "reports_fired": 0,
+      "confirmation_rate_pct": 0.0,
+      "top_shapes": {}
+    }
+  ],
+  "top_needles": [
+    {
+      "needle": "uap-cm-disc-002::Rotating light sequence",
+      "count": 3410
+    },
+    {
+      "needle": "uap-cm-disc-002::Disc shape",
+      "count": 3318
+    },
+    {
+      "needle": "uap-cm-tri-001::Light at each vertex (3 lights)",
+      "count": 2009
+    },
+    {
+      "needle": "uap-fk-slow-002::Structured (non-light) body",
+      "count": 1889
+    },
+    {
+      "needle": "uap-fk-slow-002::Sustained low-speed control",
+      "count": 1331
+    },
+    {
+      "needle": "uap-cm-tri-002::No standard red/green nav lights",
+      "count": 1156
+    },
+    {
+      "needle": "uap-cm-tri-002::Night sighting",
+      "count": 1105
+    },
+    {
+      "needle": "uap-cm-tri-001::Triangle or delta shape reported",
+      "count": 1029
+    },
+    {
+      "needle": "uap-cm-tri-001::Silent or near-silent",
+      "count": 994
+    },
+    {
+      "needle": "uap-cm-disc-001::Disc/saucer shape",
+      "count": 674
+    },
+    {
+      "needle": "uap-fk-slow-002::Moves against the wind",
+      "count": 547
+    },
+    {
+      "needle": "uap-fk-slow-001::Slow steady traversal",
+      "count": 490
+    },
+    {
+      "needle": "uap-et-ce-001::Object within ~150 meters",
+      "count": 487
+    },
+    {
+      "needle": "uap-et-ce-001::Extended observation time",
+      "count": 427
+    },
+    {
+      "needle": "uap-em-int-001::Car engine stalls near object",
+      "count": 422
+    },
+    {
+      "needle": "uap-fk-slow-001::Completely silent",
+      "count": 407
+    },
+    {
+      "needle": "uap-cm-orb-001::Spherical shape",
+      "count": 354
+    },
+    {
+      "needle": "uap-em-int-001::Function restored after object leaves",
+      "count": 297
+    },
+    {
+      "needle": "uap-cm-orb-001::Daylight metallic sheen",
+      "count": 235
+    },
+    {
+      "needle": "uap-cm-disc-001::Raised dome on top or bottom",
+      "count": 234
+    },
+    {
+      "needle": "uap-fk-slow-001::Low altitude",
+      "count": 211
+    },
+    {
+      "needle": "uap-cm-disc-001::Daylight sighting (rules out light artifact)",
+      "count": 209
+    },
+    {
+      "needle": "uap-cm-disc-001::Metallic or reflective surface",
+      "count": 202
+    },
+    {
+      "needle": "uap-cm-tri-001::Slow movement or dead hover",
+      "count": 197
+    },
+    {
+      "needle": "uap-fk-slow-001::Passes directly overhead",
+      "count": 191
+    },
+    {
+      "needle": "uap-cm-disc-001::No wings, tail, or rotor",
+      "count": 156
+    },
+    {
+      "needle": "uap-fk-hov-001::Motionless hover > 60 seconds",
+      "count": 123
+    },
+    {
+      "needle": "uap-cm-disc-002::Visible rotation of body or rim lights",
+      "count": 106
+    },
+    {
+      "needle": "uap-cm-orb-001::No visible exhaust or contrail",
+      "count": 99
+    },
+    {
+      "needle": "uap-em-int-001::Effect correlates with distance to object",
+      "count": 95
+    },
+    {
+      "needle": "uap-fk-slow-002::Silent hover then smooth departure",
+      "count": 92
+    },
+    {
+      "needle": "uap-cm-orb-001::No wings or control surfaces",
+      "count": 83
+    },
+    {
+      "needle": "uap-fk-hov-001::Holds position in wind",
+      "count": 81
+    },
+    {
+      "needle": "uap-cm-tri-002::Black or matte triangular body",
+      "count": 67
+    },
+    {
+      "needle": "uap-fk-tm-001::Near coastline or over open water",
+      "count": 51
+    },
+    {
+      "needle": "uap-fk-tm-001::Object enters/exits water",
+      "count": 45
+    },
+    {
+      "needle": "uap-fk-acc-002::Sharp/right-angle turns",
+      "count": 42
+    },
+    {
+      "needle": "uap-fk-acc-002::Sustained high speed through turn",
+      "count": 41
+    },
+    {
+      "needle": "uap-fk-slow-001::No exhaust or contrail",
+      "count": 34
+    },
+    {
+      "needle": "uap-cm-tri-001::Estimated size larger than a commercial aircraft",
+      "count": 32
+    }
+  ]
+}
