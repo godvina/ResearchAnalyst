@@ -1,0 +1,44 @@
+{
+  "source": "Project Hessdalen (Norway) — Ostfold University College / Erling Strand",
+  "licence": "public (hessdalen.org, published field studies)",
+  "note": "NGO/academic instrumented field station; canonical recurring hotspot at a geophysical anomaly. Validates uap-et-hotspot-001. KNOWN documented facts; interpretation left open.",
+  "count": 3,
+  "reports": [
+    {
+      "id": "NO-HESSDALEN-wave-1984",
+      "source": "NO-HESSDALEN",
+      "date": "1984-02-01",
+      "description": "Project Hessdalen 1984 instrumented field campaign in the Hessdalen valley, Norway. Over an 18-day observation window researchers documented about 53 luminous events using cameras, radar, magnetometers, lasers and spectrometers. Witnesses and instruments recorded self-luminous orbs that hover for minutes, dart across the sky at high speed, and change colour. Recurring since the 1930s and peaking 1981-1984 at up to 15-20 sightings per week, this is a fixed-location recurring hotspot studied scientifically with military support — not a one-off sighting.",
+      "city": "Hessdalen valley",
+      "district": "Sor-Trondelag",
+      "country": "NO",
+      "lat": 62.783,
+      "lng": 11.2,
+      "source_url": "https://www.hessdalen.org/"
+    },
+    {
+      "id": "NO-HESSDALEN-ams-station",
+      "source": "NO-HESSDALEN",
+      "date": "1998-08-01",
+      "description": "The Hessdalen Automatic Measurement Station (AMS, the 'Blue Box'), operated by Ostfold University College, has continuously monitored the valley since 1998 with automated cameras and a magnetometer, correlating light events with local geomagnetic activity. The station repeatedly records luminous phenomena over the same valley, some coinciding with magnetic-field disturbances — an instrument-based recurring hotspot at a geophysical anomaly, the reference case for the recurring-hotspot pattern.",
+      "city": "Hessdalen valley",
+      "district": "Sor-Trondelag",
+      "country": "NO",
+      "lat": 62.783,
+      "lng": 11.2,
+      "source_url": "https://www.hessdalen.org/"
+    },
+    {
+      "id": "NO-HESSDALEN-eml-hypothesis",
+      "source": "NO-HESSDALEN",
+      "date": "2007-01-01",
+      "description": "Scientific field studies of the Hessdalen lights (Teodorani; Strand; Italian CNR collaboration) report luminous objects of varying size that pulsate, change colour, and occasionally split or move at high angular velocity, sometimes detected on radar without a corresponding visual and vice versa. The phenomenon recurs at the same valley over decades and remains only partly explained, making it a rigorously documented recurring hotspot with colour-change and high-speed characteristics.",
+      "city": "Hessdalen valley",
+      "district": "Sor-Trondelag",
+      "country": "NO",
+      "lat": 62.783,
+      "lng": 11.2,
+      "source_url": "https://www.hessdalen.org/"
+    }
+  ]
+}
