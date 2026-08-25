@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "AOSS / Lambda-deploy / ingest preflight guard",
+      "trigger": "PreToolUse",
+      "matcher": "execute_pwsh",
+      "action": {
+        "type": "agent",
+        "prompt": "PREFLIGHT GATE: If this command touches OpenSearch/AOSS (aoss, _bulk, _doc, _search, index), a Lambda code deploy (_deploy_via_s3, update_function_code), or a pipeline ingest (case-files, /ingest), you MUST FIRST have read docs/lessons-learned.md and .kiro/steering/preflight-checklists.md and stated in your response which specific known issue(s) apply and the correct approach. If you have not done that this turn for this operation type, STOP and do it before running the command. Known recurring gotchas: AOSS rejects caller-supplied _id (use POST /_doc or _bulk auto-id); AOSS _delete_by_query 404s (search+delete by _id instead); enterprise embed to OpenSearch needs the Lambda IAM role to have aoss:APIAccessAll on the data access policy (Issue 26); AOSS index create needs knn:true + dim 1024; deploy zip must exclude src/data (else >250MB)."
+      }
+    }
+  ]
+}
