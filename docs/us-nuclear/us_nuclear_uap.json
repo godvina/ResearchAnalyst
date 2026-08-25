@@ -1,0 +1,43 @@
+{
+  "source": "US nuclear-UAP documented anchor cases (declassified USAF / FOIA / testimony)",
+  "licence": "summaries of public/declassified events with source links",
+  "count": 3,
+  "reports": [
+    {
+      "id": "US-NUKE-malmstrom-1967",
+      "source": "US-NUKE-DOCUMENTED",
+      "date": "1967-03-16",
+      "description": "On 16 March 1967 at Malmstrom Air Force Base, Montana, a Minuteman ICBM flight (Echo Flight) reportedly lost up to ten missiles to a 'no-go' fault in rapid succession while security personnel above ground reported an unidentified glowing object hovering over the facility; a similar event was described at Oscar Flight. Former missile-launch officers (notably Robert Salas) later testified publicly and the events are documented in declassified USAF records. The objects loitered over a nuclear weapons site and coincided with missiles going off alert.",
+      "city": "Malmstrom AFB (Echo/Oscar Flights)",
+      "district": "",
+      "country": "US",
+      "lat": 47.505,
+      "lng": -111.183,
+      "source_url": "https://www.archives.gov/research/military/air-force/ufos"
+    },
+    {
+      "id": "US-NUKE-sac-wave-1975",
+      "source": "US-NUKE-DOCUMENTED",
+      "date": "1975-10-27",
+      "description": "In late October and November 1975 a wave of unidentified craft and lights was reported over Strategic Air Command bases including Loring AFB (Maine), Wurtsmith AFB (Michigan), and Malmstrom AFB (Montana), several of which stored nuclear weapons. Security teams and aircrews reported objects hovering over weapons-storage and alert areas; the events were logged in USAF message traffic later released under FOIA. Interceptors were launched in some instances without achieving identification.",
+      "city": "Loring / Wurtsmith / Malmstrom (SAC bases)",
+      "district": "",
+      "country": "US",
+      "lat": 46.95,
+      "lng": -67.88,
+      "source_url": "https://www.archives.gov/research/military/air-force/ufos"
+    },
+    {
+      "id": "US-NUKE-rendlesham-bentwaters-1980",
+      "source": "US-NUKE-DOCUMENTED",
+      "date": "1980-12-26",
+      "description": "Over several nights in late December 1980, US Air Force personnel stationed at the twin NATO bases RAF Bentwaters and Woodbridge in England — bases reported to store nuclear weapons — observed an unidentified structured craft in Rendlesham Forest. Deputy base commander Lt Col Charles Halt recorded a real-time audio log and filed an official memorandum describing lights maneuvering near the weapons-storage area and beams directed toward the base. One of the most documented military nuclear-adjacent cases.",
+      "city": "RAF Bentwaters / Woodbridge (Rendlesham)",
+      "district": "",
+      "country": "GB",
+      "lat": 52.095,
+      "lng": 1.435,
+      "source_url": "https://www.archives.gov/research/military/air-force/ufos"
+    }
+  ]
+}
