@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UAP Command Center — TALOS</title>
+<link rel="stylesheet" href="vendor/leaflet.css?v=31"/>
+<script src="vendor/leaflet.js?v=31"></script>
+<script src="vendor/leaflet.markercluster.js?v=31"></script>
+<link rel="stylesheet" href="vendor/MarkerCluster.css?v=31"/>
+<link rel="stylesheet" href="vendor/MarkerCluster.Default.css?v=31"/>
+<script src="vendor/d3.v7.min.js?v=31"></script>
+<link rel="stylesheet" href="common.css">
+<script src="config.js"></script>
+<script src="uts-integrity.js?v=31"></script>
+<script src="uap-command-data.js?v=31"></script>
+<script src="uap-case-store.js?v=31"></script>
+<script src="uap-geo.js?v=31"></script>
+<script src="uap-convergence.js?v=31"></script>
+<script src="uap-leyline-convergence.js?v=31"></script>
+<script src="uap-dossiers.js?v=31"></script>
+<script src="uap-investigator.js?v=31"></script>
+<style>
+  :root{
+    --bg-primary:#0a0f19;--bg-card:rgba(26,35,50,0.9);--bg-card-hover:rgba(26,35,50,1);
+    --border-default:rgba(255,255,255,0.08);--border-hover:rgba(99,179,237,0.3);
+    --accent-primary:#63b3ed;--accent-success:#48bb78;--accent-warning:#ecc94b;
+    --accent-danger:#f56565;--accent-purple:#b794f4;--accent-amber:#ed8936;--accent-gold:#f6ad55;
+    --text-primary:#e2e8f0;--text-secondary:#a0aec0;--text-muted:#718096;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg-primary);color:var(--text-primary)}
+  .stat-strip{display:flex;gap:20px;padding:8px 20px;background:var(--bg-card);border-bottom:1px solid var(--border-default);flex-wrap:wrap;align-items:center}
+  .stat-strip .st{text-align:center}.stat-strip b{display:block;font-size:17px;color:var(--accent-success)}
+  .stat-strip span{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+  .right-tools{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .right-tools .lib{background:rgba(26,35,50,1);color:var(--text-secondary);border:1px solid var(--border-default);border-radius:16px;padding:6px 12px;font-size:11px;cursor:pointer}
+  .pill{font-size:9px;padding:2px 7px;border-radius:12px;font-weight:700;text-transform:uppercase;white-space:nowrap}
+  .pill.critical{background:rgba(245,101,101,.15);color:var(--accent-danger)}
+  .pill.high{background:rgba(246,173,85,.15);color:var(--accent-gold)}
+  .pill.moderate{background:rgba(99,179,237,.15);color:var(--accent-primary)}
+  .pill.low{background:rgba(113,128,150,.15);color:var(--text-muted)}
+  .uts-badge{font-size:9px;padding:2px 6px;border-radius:10px;border:1px solid;margin-right:4px;white-space:nowrap}
+  .uts-coverage{font-size:13px;letter-spacing:2px}.uts-dot{font-size:13px}
+  .uts-coverage-count{font-size:10px;color:var(--text-muted);letter-spacing:0;margin-left:6px}
+  .ev-known{background:rgba(226,232,240,.14);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:9px}
+  .ev-assessed{background:rgba(183,148,244,.18);color:var(--accent-purple);font-size:9px;font-weight:700;padding:2px 7px;border-radius:9px}
+  .verdict{font-size:11px;font-weight:800;padding:3px 10px;border-radius:12px;letter-spacing:.3px}
+  .verdict.prove{background:rgba(72,187,120,.16);color:var(--accent-success);border:1px solid rgba(72,187,120,.4)}
+  .verdict.disprove{background:rgba(237,137,54,.16);color:var(--accent-amber);border:1px solid rgba(237,137,54,.4)}
+  .verdict.insufficient{background:rgba(113,128,150,.16);color:var(--text-muted);border:1px solid rgba(113,128,150,.35)}
+
+  /* ============ DISCOVER (map) ============ */
+  #discover{display:none}#discover.on{display:block}
+  .dv-wrap{display:grid;grid-template-columns:1fr 380px;height:calc(100vh - 150px)}
+  .dv-mapcol{display:flex;flex-direction:column;min-width:0}
+  .dv-cap{padding:10px 16px;background:var(--bg-card);border-bottom:1px solid var(--border-default)}
+  .dv-cap h2{margin:0 0 3px;font-size:15px}.dv-cap p{margin:0;font-size:12px;color:var(--text-secondary);line-height:1.5}
+  #map{flex:1;min-height:400px}
+  .dv-mapcol{position:relative}
+  #briefPanel{position:absolute;top:64px;left:14px;width:340px;max-height:calc(100% - 90px);overflow:auto;background:rgba(13,20,32,.97);border:1px solid var(--border-hover);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.5);padding:16px;z-index:600;display:none}
+  #briefPanel.on{display:block}
+  #briefPanel .bp-close{position:absolute;top:8px;right:10px;background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer}
+  .bp-lvl{font-size:9px;font-weight:800;letter-spacing:.6px;color:var(--accent-primary);text-transform:uppercase}
+  #briefBody h3{font-size:16px;margin:2px 0 6px}
+  .bp-lead{font-size:12px;line-height:1.6;color:var(--text-primary);margin:0 0 10px}
+  .bp-stat{display:flex;justify-content:space-between;font-size:11.5px;padding:3px 0;border-bottom:1px solid var(--border-default);color:var(--text-secondary)}
+  .bp-stat b{color:var(--text-primary)}
+  .bp-sig{font-size:11px;padding:4px 0;border-bottom:1px solid var(--border-default);cursor:pointer;display:flex;justify-content:space-between;gap:8px}
+  .bp-sig:hover{color:var(--accent-primary)}
+  .bp-sig .bn{color:var(--accent-success);font-weight:700}
+  .bp-chip{display:inline-block;font-size:10px;background:rgba(99,179,237,.12);color:var(--accent-primary);border:1px solid rgba(99,179,237,.3);border-radius:10px;padding:2px 8px;margin:3px 4px 0 0;cursor:pointer}
+  .bp-chip:hover{background:rgba(99,179,237,.2)}
+  .bp-sec{margin-top:10px}.bp-sec h4{font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin:0 0 5px}
+  .bp-hint{font-size:10px;color:var(--text-muted);margin-top:8px;line-height:1.4}
+  .dv-legend{display:flex;gap:14px;padding:7px 16px;background:var(--bg-card);border-top:1px solid var(--border-default);font-size:11px;color:var(--text-secondary);flex-wrap:wrap;align-items:center}
+  .lg{display:inline-flex;align-items:center;gap:5px}.lg .dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+  .dv-side{border-left:1px solid var(--border-default);overflow:auto;padding:14px}
+  .dv-side h3{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-secondary);margin:0 0 10px}
+  .patrow{background:var(--bg-card);border:1px solid var(--border-default);border-left:3px solid var(--text-muted);border-radius:8px;padding:9px 11px;margin-bottom:8px;cursor:pointer}
+  .patrow:hover{background:var(--bg-card-hover);border-color:var(--border-hover)}
+  .patrow.critical{border-left-color:var(--accent-danger)}.patrow.high{border-left-color:var(--accent-gold)}
+  .patrow.moderate{border-left-color:var(--accent-primary)}.patrow.low{border-left-color:var(--text-muted)}
+  .patrow .d{font-size:11.5px;line-height:1.35}
+  .patrow .m{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+  .cnt{color:var(--accent-success);font-weight:700;font-size:11px}
+  .board-toggle{display:flex;gap:6px;margin-bottom:12px}
+  .board-toggle button{flex:1;background:rgba(26,35,50,1);color:var(--text-secondary);border:1px solid var(--border-default);border-radius:14px;padding:5px;font-size:11px;cursor:pointer}
+  .board-toggle button.on{background:var(--accent-primary);color:var(--bg-primary);font-weight:700}
+  .lane .verdict{font-size:9px;padding:2px 7px}
+  .lane .matbar{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;margin:6px 0 2px}
+  .lane .matbar>div{height:100%}
+
+  /* ============ INVESTIGATE (full-screen workspace) ============ */
+  #investigate{display:none}#investigate.on{display:block}
+  .iv-top{display:flex;align-items:center;gap:14px;padding:12px 20px;background:var(--bg-card);border-bottom:1px solid var(--border-default)}
+  .iv-top .back{background:rgba(99,179,237,.12);color:var(--accent-primary);border:1px solid var(--accent-primary);border-radius:14px;padding:6px 13px;font-size:12px;cursor:pointer;white-space:nowrap}
+  .iv-top .ttl{font-size:15px;font-weight:700;line-height:1.3;flex:1}
+  .iv-grid{display:grid;grid-template-columns:340px 1fr 380px;height:calc(100vh - 205px)}
+  .iv-col{overflow:auto;padding:16px}
+  .iv-col.dossier{border-right:1px solid var(--border-default)}
+  .iv-col.stage{background:rgba(10,15,25,.35)}
+  .iv-col.support{border-left:1px solid var(--border-default)}
+  .sec{background:var(--bg-card);border:1px solid var(--border-default);border-radius:10px;padding:13px;margin-bottom:12px}
+  .sec h4{margin:0 0 9px;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-secondary)}
+  .sec.assess{border-left:3px solid var(--accent-purple)}.sec.known{border-left:3px solid var(--accent-primary)}
+  .sec.gaps{border-left:3px solid var(--accent-amber)}.sec.counter{border-left:3px solid var(--accent-danger)}
+  .sec.precedent{border-left:3px solid var(--accent-gold)}.sec.cases{border-left:3px solid var(--accent-success)}
+  .sec p{font-size:12px;line-height:1.55;margin:0 0 7px}
+  .matbar{height:7px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;margin:6px 0 8px}.matbar>div{height:100%;border-radius:4px}
+  .elem-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-default);font-size:11.5px}
+  .elem-row .st{font-size:8.5px;font-weight:800;padding:2px 6px;border-radius:7px;min-width:46px;text-align:center}
+  .elem-row .st.known{background:rgba(72,187,120,.16);color:var(--accent-success)}
+  .elem-row .st.gap{background:rgba(237,137,54,.16);color:var(--accent-amber)}
+  .elem-row .lbl{flex:1}
+  .needle{font-size:11px;color:var(--text-secondary);padding:3px 0;border-bottom:1px solid var(--border-default)}
+  .caserow{font-size:11px;padding:5px 0;border-bottom:1px solid var(--border-default);display:flex;justify-content:space-between;gap:8px}
+  .caserow .w{color:var(--text-primary)}.caserow .y{color:var(--text-muted)}
+  .caserow .ap{color:var(--accent-amber);font-size:8px}
+  .prec-txt{font-size:11.5px;color:var(--text-primary);line-height:1.55}
+  .kv{display:flex;justify-content:space-between;font-size:11px;padding:2px 0;color:var(--text-secondary)}.kv b{color:var(--text-primary)}
+  .disclaimer{font-size:10px;color:var(--text-muted);margin-top:6px;line-height:1.45}
+
+  /* Stage: AI investigator = the main event */
+  .stage-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+  .stage-head h3{margin:0;font-size:16px;color:var(--accent-success)}
+  .modetog{display:flex;gap:5px;font-size:10px}
+  .modetog button{background:rgba(26,35,50,1);color:var(--text-muted);border:1px solid var(--border-default);border-radius:12px;padding:3px 9px;cursor:pointer}
+  .modetog button.on{background:var(--accent-primary);color:var(--bg-primary);font-weight:700}
+  .hypo{font-size:13px;color:var(--text-secondary);font-style:italic;line-height:1.6;background:rgba(183,148,244,.06);border-left:3px solid var(--accent-purple);padding:11px 13px;border-radius:7px;margin-bottom:12px}
+  .runbtn{background:var(--accent-success);color:#04120a;border:none;border-radius:7px;padding:9px 18px;font-weight:700;font-size:13px;cursor:pointer}
+  .runbtn.secondary{background:rgba(99,179,237,.15);color:var(--accent-primary);border:1px solid var(--accent-primary)}
+  .progress{height:6px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;margin:12px 0}.progress>div{height:100%;background:var(--accent-success);width:0;transition:width .4s}
+  .step{border-left:2px solid var(--border-default);padding:10px 0 12px 14px;margin-left:5px;position:relative}
+  .step .icon{position:absolute;left:-10px;top:10px;width:18px;height:18px;border-radius:50%;background:var(--bg-primary);border:2px solid var(--text-muted);font-size:10px;text-align:center;line-height:14px}
+  .step.done{border-left-color:var(--accent-success)}.step.done .icon{border-color:var(--accent-success);color:var(--accent-success)}
+  .step.running .icon{border-color:var(--accent-primary);color:var(--accent-primary);animation:spin 1s linear infinite}
+  .step .title{font-size:13.5px;font-weight:700}.step .verb{font-size:9px;color:var(--text-muted);font-weight:700;letter-spacing:.5px}
+  .srcbadges{display:flex;gap:4px;flex-wrap:wrap;margin:5px 0}
+  .srcbadge{font-size:8px;padding:2px 6px;border-radius:8px;background:rgba(99,179,237,.12);color:var(--accent-primary);border:1px solid rgba(99,179,237,.3)}
+  .srcbadge.roadmap{background:rgba(237,137,54,.12);color:var(--accent-amber);border-color:rgba(237,137,54,.3)}
+  .beat{font-size:12.5px;line-height:1.6;margin-top:7px}
+  .beat .bl{font-size:8.5px;font-weight:800;letter-spacing:.6px;padding:1px 6px;border-radius:7px;margin-right:6px;vertical-align:middle}
+  .beat.why{color:var(--text-secondary)}.beat.why .bl{background:rgba(99,179,237,.15);color:var(--accent-primary)}
+  .beat.found{color:var(--text-primary)}.beat.found .bl{background:rgba(226,232,240,.14);color:#fff}
+  .beat.found.assessed{color:var(--accent-purple)}
+  .beat.sowhat{color:var(--text-secondary)}.beat.sowhat .bl{background:rgba(237,137,54,.15);color:var(--accent-amber)}
+  .impact{font-size:8px;font-weight:800;padding:2px 7px;border-radius:8px;letter-spacing:.4px;white-space:nowrap}
+  .impact.PROVES{background:rgba(72,187,120,.18);color:var(--accent-success)}
+  .impact.GAP{background:rgba(237,137,54,.18);color:var(--accent-amber)}
+  .impact.EDUCATES{background:rgba(99,179,237,.18);color:var(--accent-primary)}
+  .impact.RULES-OUT{background:rgba(245,101,101,.18);color:var(--accent-danger)}
+  .impact.ASSESSED{background:rgba(183,148,244,.18);color:var(--accent-purple)}
+  .propose{background:rgba(99,179,237,.06);border:1px dashed var(--border-hover);border-radius:8px;padding:11px;margin-top:10px}
+  .propose .pt{font-size:12px;color:var(--text-secondary);margin-bottom:7px}.propose .pt b{color:var(--accent-primary)}
+  .propose .altbtns{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+  .propose .altbtns button{background:rgba(26,35,50,1);color:var(--text-secondary);border:1px solid var(--border-default);border-radius:12px;padding:3px 9px;font-size:10px;cursor:pointer}
+  .injectbar{display:flex;gap:6px;margin-top:12px}
+  .injectbar input{flex:1;background:#0d1520;border:1px solid var(--border-default);border-radius:7px;padding:8px 11px;color:var(--text-primary);font-size:12px}
+  .injectbar button{background:rgba(237,137,54,.15);color:var(--accent-amber);border:1px solid var(--accent-amber);border-radius:7px;padding:8px 14px;font-size:12px;cursor:pointer;font-weight:700}
+  .verdictbox{border-radius:9px;padding:14px;margin-top:12px}
+  .verdictbox.strong{background:rgba(72,187,120,.1);border:1px solid var(--accent-success)}
+  .verdictbox.anomalous{background:rgba(236,201,75,.1);border:1px solid var(--accent-warning)}
+  .verdictbox.explained{background:rgba(99,179,237,.1);border:1px solid var(--accent-primary)}
+  .verdictbox.insufficient{background:rgba(113,128,150,.1);border:1px solid var(--text-muted)}
+  /* Competing hypotheses */
+  .hyp{padding:9px 0;border-bottom:1px solid var(--border-default)}
+  .hyp .hh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .hyp .hn{font-size:12px;font-weight:700}.hyp .hf{font-size:10px;color:var(--text-muted)}
+  .hyp .hbar{height:6px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;margin:5px 0}
+  .hyp .hbar>div{height:100%;border-radius:4px}
+  .hyp .hd{font-size:10.5px;line-height:1.45;margin-top:4px}
+  .hyp .hd .sp{color:var(--accent-success)}.hyp .hd .uc{color:var(--accent-danger)}.hyp .hd .sh{color:var(--accent-primary)}
+  .verdictbox .vt{font-size:15px;font-weight:800;margin-bottom:5px}.verdictbox .vr{font-size:12px;line-height:1.55;color:var(--text-secondary)}
+  .ai-list{list-style:none;padding:0;margin:9px 0 0}.ai-list li{font-size:11.5px;padding:6px 0;border-bottom:1px solid var(--border-default);line-height:1.4}
+  .ai-list li .tm{color:var(--accent-amber);font-weight:700;font-size:9px;margin-right:5px}
+  #ivMap{height:230px;border-radius:8px;overflow:hidden;margin-bottom:12px}
+  #ivGraph{height:240px;background:rgba(10,15,25,.6);border-radius:8px;position:relative}
+  #ivGraphSvg{width:100%;height:100%}#ivGraphSvg line{stroke:var(--border-hover)}#ivGraphSvg text{fill:var(--text-secondary);font-size:9px;pointer-events:none}
+  .glabel{position:absolute;top:6px;left:10px;font-size:10px;color:var(--accent-purple);font-weight:700}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .caserow.crclick{cursor:pointer}.caserow.crclick:hover{color:var(--accent-primary)}
+  .casecard{background:rgba(72,187,120,.05);border:1px solid var(--border-default);border-left:3px solid var(--accent-success);border-radius:8px;padding:9px 11px;margin-bottom:8px;cursor:pointer;transition:.15s}
+  .casecard:hover{background:rgba(72,187,120,.1);border-color:var(--accent-success)}
+  .casecard .cc-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .casecard .cc-where{font-size:12px;font-weight:700;color:var(--text-primary)}
+  .casecard .cc-snip{font-size:10.5px;color:var(--text-secondary);line-height:1.45;margin:5px 0;font-style:italic}
+  .casecard .cc-foot{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text-muted)}
+  .casecard .cc-read{color:var(--accent-success);font-weight:700}
+  .srctag{font-size:8px;font-weight:700;color:var(--accent-primary);background:rgba(99,179,237,.12);padding:1px 5px;border-radius:6px;margin-left:4px}
+  .ap{color:var(--accent-amber);font-size:9px}
+  .casebtn{background:var(--accent-success);color:#04120a;border:none;border-radius:14px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer}
+  .casebtn:hover{filter:brightness(1.1)}
+  #caseList,#caseFile{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1350;display:none;overflow:auto;padding:36px 20px}
+  #caseList.on,#caseFile.on{display:block}#caseFile{z-index:1360}
+  #caseFile .lib-card,#caseList .lib-card{max-width:760px}
+  #caseFileBody .dh{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px}
+  #caseFileBody h2{font-size:18px;margin:2px 0 2px}
+  .chain{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-default)}
+  .chain .ci{font-size:15px;width:22px;text-align:center}
+  .chain .cs{font-size:9px;font-weight:800;letter-spacing:.5px;color:var(--text-secondary)}
+  .chain .ct{font-size:11.5px;line-height:1.5;color:var(--text-primary)}
+  .chain.known .cs{color:var(--accent-primary)}.chain.assessed .cs{color:var(--accent-purple)}.chain.pending .cs{color:var(--accent-amber)}
+  .srclink{display:inline-block;margin-top:8px;font-size:12px;color:var(--accent-primary);text-decoration:none;border:1px solid var(--accent-primary);border-radius:7px;padding:6px 12px}
+  .srclink:hover{background:rgba(99,179,237,.1)}
+  #convLab{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1300;display:none;overflow:auto;padding:36px 20px}#convLab.on{display:block}
+  #convLab .lib-card{max-width:1000px}
+  .conv-intro{font-size:12.5px;line-height:1.65;color:var(--text-secondary);margin:0 0 14px}
+  .conv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+  .conv-tabs{display:flex;gap:8px;margin:0 0 16px;border-bottom:1px solid var(--border,#2a2f3a);padding-bottom:0}
+  .conv-tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--text-secondary);font-size:13px;font-weight:600;padding:8px 14px;cursor:pointer}
+  .conv-tab:hover{color:var(--text-primary)}
+  .conv-tab.on{color:var(--accent-primary);border-bottom-color:var(--accent-primary)}
+  /* ---- Pattern Dossiers ---- */
+  #dossierLab{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1320;display:none;overflow:auto;padding:36px 20px}#dossierLab.on{display:block}
+  #dossierLab .lib-card{max-width:1040px}
+  .dos-lib{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-top:10px}
+  .dos-libsection{margin-top:22px}
+  .dos-libsection:first-of-type{margin-top:8px}
+  .dos-libhead{margin:0;font-size:15px;letter-spacing:.3px;border-bottom:1px solid var(--border,#2a2f3a);padding-bottom:6px}
+  .dos-libsub{margin:6px 0 0;font-size:12px;color:var(--text-muted);line-height:1.5}
+  .dos-deep{margin-top:16px;border-top:1px dashed var(--border,#2a2f3a);padding-top:12px}
+  .dos-deephd{font-size:12px;color:var(--accent-primary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+  .dos-deepitem{border:1px solid var(--border,#2a2f3a);border-radius:8px;margin-bottom:8px;overflow:hidden}
+  .dos-deeptog{width:100%;text-align:left;background:rgba(99,179,237,.06);border:0;color:var(--text-primary,#e6e6e6);padding:10px 12px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px}
+  .dos-deeptog:hover{background:rgba(99,179,237,.12)}
+  .dos-deeptog .tw{color:var(--accent-primary);font-size:11px}
+  .dos-deeptog .sec{margin-left:auto;color:var(--text-muted);font-size:11px;text-transform:none;letter-spacing:0}
+  .dos-deepbody{padding:10px 14px 14px}
+  .dos-backlink{display:inline-block;margin:2px 0 10px;font-size:12px;color:var(--accent-primary);text-decoration:none;border:1px solid var(--border,#2a2f3a);border-radius:6px;padding:4px 10px}
+  .dos-backlink:hover{background:rgba(99,179,237,.12)}
+  .dos-libcard{display:flex;gap:14px;align-items:flex-start;background:linear-gradient(135deg,rgba(99,179,237,.08),rgba(180,120,255,.06));border:1px solid var(--border,#2a2f3a);border-radius:12px;padding:16px 18px;cursor:pointer;transition:border-color .15s}
+  .dos-libcard:hover{border-color:var(--accent-primary)}
+  .dos-libcard .ic{font-size:32px;line-height:1}
+  .dos-libcard h3{margin:0 0 3px;font-size:16px}
+  .dos-libcard p{margin:0 0 6px;font-size:12px;color:var(--text-secondary);line-height:1.5}
+  .dos-libcard .meta{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+  .dos-hero{background:linear-gradient(135deg,rgba(99,179,237,.12),rgba(180,120,255,.10));border:1px solid var(--border,#2a2f3a);border-radius:12px;padding:20px 22px;margin:0 0 18px}
+  .dos-hero h1{margin:0 0 4px;font-size:24px}
+  .dos-hero .sub{color:var(--text-secondary);font-size:14px;margin:0 0 12px}
+  .dos-hero .metrics{display:flex;gap:22px;flex-wrap:wrap}
+  .dos-hero .metrics b{display:block;font-size:22px;color:var(--accent-primary)}
+  .dos-hero .metrics span{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+  .dos-toc{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 18px}
+  .dos-toc button{background:rgba(255,255,255,.04);border:1px solid var(--border,#2a2f3a);color:var(--text-secondary);border-radius:20px;font-size:11px;padding:5px 11px;cursor:pointer}
+  .dos-toc button:hover{color:var(--text-primary)}
+  .dos-toc button.on{background:var(--accent-primary);color:#08131f;border-color:var(--accent-primary);font-weight:600}
+  .dos-chapter{border:1px solid var(--border,#2a2f3a);border-radius:12px;padding:18px 20px;margin:0 0 14px;background:rgba(255,255,255,.02)}
+  .dos-chapter h3{margin:0 0 4px;font-size:17px}
+  .dos-chnum{font-size:10px;color:var(--accent-primary);text-transform:uppercase;letter-spacing:1px}
+  .dos-narr{font-size:13px;line-height:1.7;color:var(--text-secondary);margin:8px 0 14px}
+  .dos-narr .k{color:var(--accent-success,#4ade80);font-weight:600}
+  .dos-narr .a{color:var(--accent-primary);font-weight:600}
+  .dos-statgrid{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end}
+  .dos-bigstat b{font-size:40px;color:var(--accent-primary);line-height:1}
+  .dos-bigstat span{display:block;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+  .dos-substat{display:flex;gap:18px;flex-wrap:wrap}
+  .dos-substat b{font-size:20px;color:var(--text-primary)}
+  .dos-substat span{display:block;font-size:10px;color:var(--text-muted)}
+  .dos-flow{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
+  .dos-flow .step{flex:1;min-width:150px;background:rgba(99,179,237,.06);border:1px solid var(--border,#2a2f3a);border-radius:8px;padding:10px 12px}
+  .dos-flow .step .lab{font-size:12px;font-weight:700;color:var(--accent-primary)}
+  .dos-flow .step .det{font-size:11px;color:var(--text-secondary);margin-top:3px}
+  .dos-flow .arrow{align-self:center;color:var(--text-muted)}
+  .dos-corr{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .dos-corr .src{background:rgba(255,255,255,.03);border:1px solid var(--border,#2a2f3a);border-radius:8px;padding:9px 11px}
+  .dos-corr .src b{font-size:18px;color:var(--accent-primary)}
+  .dos-corr .src span{display:block;font-size:11px;color:var(--text-secondary)}
+  .dos-barchart{display:flex;flex-direction:column;gap:6px}
+  .dos-bar{display:flex;align-items:center;gap:10px}
+  .dos-bar-lab{width:120px;font-size:12px;color:var(--text-secondary);text-align:right;flex-shrink:0}
+  .dos-bar-track{flex:1;background:rgba(255,255,255,.05);border-radius:5px;height:18px;overflow:hidden}
+  .dos-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent-primary),#b794f4);border-radius:5px}
+  .dos-bar-val{width:64px;font-size:12px;font-weight:700;color:var(--accent-primary);flex-shrink:0}
+  .dos-anchor{background:rgba(255,180,80,.06);border-left:3px solid var(--accent-amber,#fbbf24);border-radius:0 8px 8px 0;padding:12px 14px;font-size:12.5px;line-height:1.6;color:var(--text-secondary)}
+  .dos-anchor .hd{color:var(--text-primary);font-weight:600;margin-bottom:4px}
+  .dos-tl{display:flex;gap:0;flex-wrap:wrap;margin-top:10px}
+  .dos-tl .ev{flex:1;min-width:90px;text-align:center;position:relative;padding-top:16px}
+  .dos-tl .ev:before{content:'';position:absolute;top:6px;left:0;right:0;height:2px;background:var(--border,#2a2f3a)}
+  .dos-tl .ev .dot{position:absolute;top:2px;left:50%;transform:translateX(-50%);width:9px;height:9px;border-radius:50%;background:var(--accent-primary)}
+  .dos-tl .ev .yr{font-size:13px;font-weight:700;color:var(--accent-primary)}
+  .dos-tl .ev .lb{font-size:10px;color:var(--text-secondary)}
+  .dos-check{list-style:none;padding:0;margin:0}
+  .dos-check li{padding:7px 0 7px 26px;position:relative;font-size:12.5px;color:var(--text-secondary);border-bottom:1px solid rgba(255,255,255,.05)}
+  .dos-check li:before{content:'▢';position:absolute;left:4px;color:var(--accent-primary)}
+  .dos-ladder{margin-top:10px}
+  .dos-ladder .rung{display:flex;gap:10px;align-items:baseline;padding:5px 0}
+  .dos-ladder .wep{min-width:150px;font-weight:700;font-size:12px;color:var(--accent-primary)}
+  .dos-ladder .when{font-size:12px;color:var(--text-secondary)}
+  .dos-ex{background:rgba(255,255,255,.03);border:1px solid var(--border,#2a2f3a);border-radius:8px;padding:9px 11px;margin:6px 0;font-size:12px;color:var(--text-secondary);cursor:pointer}
+  .dos-ex:hover{border-color:var(--accent-primary)}
+  .dos-ex .meta{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+  .conv-card{background:var(--bg-card);border:1px solid var(--border-default);border-top:3px solid var(--text-muted);border-radius:10px;padding:14px}
+  .conv-card.sig{border-top-color:var(--accent-success)}.conv-card.null{border-top-color:var(--accent-primary)}.conv-card.sparse{border-top-color:var(--text-muted);opacity:.75}
+  .conv-card h4{margin:0 0 3px;font-size:14px}
+  .conv-card .cc-sub{font-size:10px;color:var(--text-muted);margin-bottom:8px}
+  .conv-lift{font-size:22px;font-weight:800}
+  .conv-lift.hi{color:var(--accent-success)}.conv-lift.mid{color:var(--accent-warning)}.conv-lift.lo{color:var(--text-muted)}
+  .conv-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border-default);color:var(--text-secondary)}
+  .conv-row b{color:var(--text-primary)}
+  .conv-badge{display:inline-block;font-size:8.5px;font-weight:800;padding:2px 7px;border-radius:8px;margin-top:6px;letter-spacing:.3px}
+  .conv-badge.sig{background:rgba(72,187,120,.16);color:var(--accent-success)}
+  .conv-badge.null{background:rgba(99,179,237,.16);color:var(--accent-primary)}
+  .conv-badge.sparse{background:rgba(237,137,54,.16);color:var(--accent-amber)}
+  .conv-myth{font-size:10.5px;color:var(--accent-purple);line-height:1.4;margin-top:6px}
+  .conv-note{font-size:10.5px;color:var(--text-muted);line-height:1.5;margin-top:4px}
+  .conv-hl{background:rgba(72,187,120,.08);border:1px solid var(--accent-success);border-radius:10px;padding:14px;margin-bottom:16px}
+  .conv-hl h3{margin:0 0 6px;color:var(--accent-success);font-size:15px}
+  .conv-hl p{font-size:12.5px;line-height:1.6;margin:0}
+  #agentLib{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1300;display:none;overflow:auto;padding:40px 20px}#agentLib.on{display:block}
+  .lib-card{max-width:900px;margin:0 auto;background:#0d1420;border:1px solid var(--border-hover);border-radius:12px;padding:22px;position:relative}
+  .lib-card .close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--text-muted);font-size:22px;cursor:pointer}
+  .agent-row{display:grid;grid-template-columns:170px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--border-default)}
+  .agent-row .an{font-weight:700;font-size:12.5px}.agent-row .av{font-size:9px;color:var(--text-muted);letter-spacing:.5px}
+  .agent-row .ad{font-size:11.5px;color:var(--text-secondary);line-height:1.5}.agent-row .meta{font-size:10px;color:var(--text-muted);margin-top:5px}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🛸 UAP <span>Command Center</span></h1>
+  <div class="header-right">
+    <span class="header-badge" id="hb-corpus">–</span>
+    <span class="header-badge" id="hb-countries">–</span>
+    <span class="header-badge">TALOS · UTS-aligned</span>
+  </div>
+</div>
+<div class="nav-bar">
+  <a class="nav-link" href="index.html">Home</a>
+  <a class="nav-link" href="theory-registry.html">Scorecard</a>
+  <a class="nav-link" href="geographic-explorer.html">Geographic</a>
+  <a class="nav-link active" href="uap-command-center.html">UAP Command Center</a>
+</div>
+
+<div id="dossierLab"><div class="lib-card"><button class="close" onclick="closeDossiers()">×</button><div id="dossierBody"></div></div></div>
+<div id="convLab"><div class="lib-card"><button class="close" onclick="closeConvergence()">×</button><div id="convBody"></div></div></div>
+<div id="caseList"><div class="lib-card"><button class="close" onclick="closeCaseList()">×</button><div id="caseListBody"></div></div></div>
+<div id="caseFile"><div class="lib-card"><button class="close" onclick="closeCaseFile()">×</button><div id="caseFileBody"></div></div></div>
+
+<div id="agentLib"><div class="lib-card"><button class="close" onclick="closeAgentLib()">×</button>
+  <h2 style="margin:0 0 4px">🤖 Agent Library</h2>
+  <p style="font-size:12px;color:var(--text-secondary);margin:0 0 12px;line-height:1.6">Reusable, planner-selectable investigative capabilities. The Smart Investigator's hybrid planner composes these on the fly — picking the highest-value next agent based on what each step finds. Each declares a contract: what it needs, what it produces (KNOWN/ASSESSED + UTS vector), its data source, and whether that feed is LIVE or ROADMAP.</p>
+  <div id="agentLibBody"></div></div></div>
+
+<div class="stat-strip">
+  <div class="st"><b id="s-corpus">–</b><span>reports scanned</span></div>
+  <div class="st"><b id="s-firing">–</b><span>signature-firing</span></div>
+  <div class="st"><b id="s-sigs">–</b><span>patterns</span></div>
+  <div class="st"><b id="s-countries">–</b><span>countries</span></div>
+  <div class="right-tools"><button class="lib" onclick="openDossiers()">📕 Pattern Dossiers</button><button class="lib" onclick="openConvergence()">🔺 Convergence Lab</button><button class="lib" onclick="openAgentLib()">🤖 Agent Library</button></div>
+</div>
+
+<!-- ============ DISCOVER ============ -->
+<div id="discover" class="on">
+  <div class="dv-wrap">
+    <div class="dv-mapcol">
+      <div class="dv-cap">
+        <h2 id="cap-title">Discover — global UAP signal</h2>
+        <p id="cap-text">Every dot is a report matching an anomaly pattern, from 296,600 reports across 195 countries. Use the map to spot where a pattern clusters, then click it (right) to open a full investigation.</p>
+      </div>
+      <div id="map"></div>
+      <div id="briefPanel"><button class="bp-close" onclick="closeBrief()">×</button><div id="briefBody"></div></div>
+      <div class="dv-legend">
+        <span class="lg"><span class="dot" style="background:#f56565"></span>Critical</span>
+        <span class="lg"><span class="dot" style="background:#f6ad55"></span>High</span>
+        <span class="lg"><span class="dot" style="background:#63b3ed"></span>Moderate</span>
+        <span class="lg"><span class="dot" style="background:#48bb78"></span>All-signal</span>
+        <span class="lg" style="margin-left:auto;color:var(--text-muted)">Country-centroid dots marked "(country-approx)".</span>
+      </div>
+    </div>
+    <div class="dv-side">
+      <div class="board-toggle"><button id="sortMat" class="on" onclick="setSort('maturity')">By case maturity</button><button id="sortVol" onclick="setSort('volume')">By volume</button></div>
+      <h3 id="listHead">Patterns — click to investigate</h3>
+      <div id="patternList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ INVESTIGATE ============ -->
+<div id="investigate">
+  <div class="iv-top">
+    <button class="back" onclick="backToDiscover()">← Discover</button>
+    <div class="ttl" id="iv-title"></div>
+    <span id="iv-verdict"></span>
+  </div>
+  <div class="iv-grid">
+    <div class="iv-col dossier" id="iv-dossier"></div>
+    <div class="iv-col stage" id="iv-stage"></div>
+    <div class="iv-col support" id="iv-support"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+window.addEventListener('error',function(ev){let b=document.getElementById('errbanner');if(!b){b=document.createElement('div');b.id='errbanner';b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#f56565;color:#0a0f19;font:12px monospace;padding:8px 14px;z-index:9999;white-space:pre-wrap';document.body.appendChild(b);}b.textContent='JS error: '+ev.message+'  ('+(ev.filename||'').split('/').pop()+':'+ev.lineno+')';});
+const D=window.UAP_DATA||{}, U=window.UTS||{}, INV=window.UAPInvestigator||{};
+const fmt=n=>(n||0).toLocaleString();
+const SEVRANK={critical:0,high:1,moderate:2,low:3};
+function sevColor(s){return s==='critical'?'#f56565':s==='high'?'#f6ad55':s==='moderate'?'#63b3ed':'#718096';}
+function txt(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+
+// ---- Case Maturity (6 elements) ----
+function elementsOf(sid){
+  const m=D.sig_meta[sid],fired=m.fired||0;
+  const t=(m.description+' '+(m.needles||[]).join(' ')).toLowerCase();
+  const has=ks=>ks.some(k=>t.includes(k));
+  const instrument=has(['radar','flir','sensor','instrument','photograph','sonar','magnet','trace','scorched','landing marks']);
+  const credible=has(['pilot','police','military','controller','trained','officer','scientist','engineer']);
+  const multi=has(['witness','multiple','crowd','several','mass'])||fired>=5000;
+  const physics=m.severity==='critical'||has(['instant','right angle','hover','accelerat','against the wind','no observable radius']);
+  const prosaicResistant=m.severity==='critical'||m.severity==='high';
+  const corroborated=(coocFor(sid).length>0)||fired>=5000;
+  return [
+    {key:'Multiplicity',known:multi,need:'Independent multi-witness reports of the same event'},
+    {key:'Instrumentation',known:instrument,need:'Radar / FLIR / photographic / physical-trace capture'},
+    {key:'Credibility',known:credible,need:'Trained observer (pilot / police / military / radar operator)'},
+    {key:'Physics',known:physics,need:'Measured trajectory/kinematics, not eyeball estimate'},
+    {key:'Prosaic-resist',known:prosaicResistant,need:'Rule out aircraft, astronomical objects, balloons, lanterns'},
+    {key:'Corroboration',known:corroborated,need:'Cross-case / cross-country match confirming recurrence'},
+  ];
+}
+function maturity(sid){
+  const els=elementsOf(sid),known=els.filter(e=>e.known).length,score=Math.round(100*known/els.length),m=D.sig_meta[sid];
+  let verdict,vlabel;
+  if(known>=4){verdict='prove';vlabel='INVESTIGATE → PROVE';}
+  else if((m.severity==='critical'||m.severity==='high')&&known>=2){verdict='prove';vlabel='INVESTIGATE → PROVE';}
+  else if((m.fired||0)>=20000&&known<=2){verdict='disprove';vlabel='INVESTIGATE → DISPROVE';}
+  else if(known>=2){verdict='disprove';vlabel='INVESTIGATE → DISPROVE';}
+  else{verdict='insufficient';vlabel='INSUFFICIENT SIGNAL';}
+  return {els,known,score,verdict,vlabel};
+}
+function coocFor(sid){const nb=[];(D.cooccurrence_edges||[]).forEach(e=>{if(e.a===sid)nb.push([e.b,e.w]);else if(e.b===sid)nb.push([e.a,e.w]);});return nb.sort((a,b)=>b[1]-a[1]);}
+function coverageOf(sid){const m=D.sig_meta[sid];const v=U.deriveVectors(m.description+' '+(m.needles||[]).join(' '));const c={online:true,financial:false,electronic:false,visual:true,travel:false};v.forEach(x=>c[x]=true);return c;}
+
+// ---- Map (discover) ----
+let map,cluster;
+function initMap(){
+  map=L.map('map',{worldCopyJump:true,minZoom:2,maxBounds:[[-85,-200],[85,200]]}).setView([25,5],2);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:10,attribution:'© OpenStreetMap © CARTO'}).addTo(map);
+  cluster=L.markerClusterGroup({chunkedLoading:true,maxClusterRadius:45,zoomToBoundsOnClick:false});map.addLayer(cluster);
+  // Cluster click → briefing for the dominant country in that cluster (Level 1),
+  // then zoom in so the user can drill to a location next.
+  cluster.on('clusterclick',(a)=>{
+    const kids=a.layer.getAllChildMarkers();const cc={};
+    kids.forEach(mk=>{const t=(mk.getTooltip&&mk.getTooltip());});
+    // derive dominant country from the underlying map_points by proximity
+    const c=a.layer.getLatLng();let best=null,bestD=1e9;
+    (D.map_points||[]).forEach(p=>{if(p.lat==null||!p.country)return;const d=(p.lat-c.lat)**2+(p.lng-c.lng)**2;if(d<bestD){bestD=d;best=p.country;}});
+    if(best)briefCountry(best);
+    a.layer._map.fitBounds(a.layer.getBounds(),{maxZoom:6});
+  });
+}
+function plot(clusterObj,points,color){
+  clusterObj.clearLayers();const layers=[];
+  (points||[]).forEach(p=>{if(p.lat==null)return;const mk=L.circleMarker([p.lat,p.lng],{radius:Math.min(3+(p.sigs||p.n||1),11),color:color,fillColor:color,fillOpacity:.55,weight:1});
+    const loc=[p.city,p.country].filter(Boolean).join(', ')||p.country||'?';const prec=p.geo==='country'?' <span style="color:#718096">(country-approx)</span>':'';
+    mk.bindPopup('<b>'+loc+'</b>'+prec+'<br>'+(p.year||'')+' · '+(p.sigs||p.n||1)+' signature(s)');layers.push(mk);});
+  clusterObj.addLayers(layers);
+}
+function discoverMap(){plotDiscover(D.map_points);try{map.fitBounds([[-45,-150],[62,170]]);}catch(e){}}
+
+// ---- Geo drill: briefings ----
+const GEO=window.UAP_GEO||{countries:{},cities:{}};
+function sigName(id){return (D.sig_meta[id]||{}).description||id;}
+function sigSev(id){return (D.sig_meta[id]||{}).severity||'low';}
+function closeBrief(){document.getElementById('briefPanel').classList.remove('on');}
+// LEVEL 1 — country/region hotspot briefing
+function briefCountry(cc){
+  const c=GEO.countries[cc];if(!c){return;}
+  const sigs=(c.top_signatures||[]).map(([id,n])=>`<div class="bp-sig" onclick="investigate('${id}')"><span>${sigName(id).slice(0,52)}…</span><span class="bn">${fmt(n)} ›</span></div>`).join('');
+  const cities=(c.top_cities||[]).map(([city,n])=>`<span class="bp-chip" onclick="briefCity('${cc}','${city.replace(/'/g,"")}')">${city} (${fmt(n)})</span>`).join('');
+  document.getElementById('briefBody').innerHTML=`
+    <div class="bp-lvl">Hotspot briefing · Level 1</div>
+    <h3>${c.name}</h3>
+    <p class="bp-lead"><b>${fmt(c.reports)}</b> signature-firing reports${c.year_min?`, ${c.year_min}–${c.year_max}`:''}. Peak year <b>${c.peak_year||'—'}</b> (${fmt(c.peak_count)} reports — a possible flap/wave). Reported from <b>${c.distinct_cities}</b> distinct locations; <b>${fmt(c.trained_observer_reports)}</b> mention trained observers (pilots/police/military).</p>
+    <div class="bp-sec"><h4>Dominant patterns here — click to investigate</h4>${sigs}</div>
+    <div class="bp-sec"><h4>Top locations — click to drill in</h4>${cities}</div>
+    <p class="bp-hint">Level 1 of 3 · click a location for its dossier, then an individual case file. Counts are from the ${fmt(D.reports_firing)}-report signal set.</p>`;
+  document.getElementById('briefPanel').classList.add('on');
+}
+// LEVEL 2 — location dossier
+function briefCity(cc,city){
+  const key=cc+'|'+city.toLowerCase();
+  const c=GEO.cities[key];
+  if(!c){ // fall back to country if we don't have this city aggregated
+    briefCountry(cc);return;
+  }
+  const sigs=(c.top_signatures||[]).map(([id,n])=>`<div class="bp-sig" onclick="investigate('${id}')"><span>${sigName(id).slice(0,52)}…</span><span class="bn">${fmt(n)} ›</span></div>`).join('');
+  const cases=casesForSigCity(cc,city).slice(0,6);
+  const caseHtml=cases.length?cases.map(cf=>`<div class="bp-sig" onclick="openCaseFile('${cf.id}')"><span>${cf.source} · ${cf.year||'—'}</span><span class="bn">read ›</span></div>`).join(''):'<p class="bp-hint">No individual case files curated for this exact location.</p>';
+  document.getElementById('briefBody').innerHTML=`
+    <div class="bp-lvl">Location dossier · Level 2</div>
+    <h3>${c.city}, ${GEO.countries[cc]?GEO.countries[cc].name:cc}</h3>
+    <p class="bp-lead"><b>${fmt(c.reports)}</b> reports${c.year_min?`, ${c.year_min}–${c.year_max}`:''}. Peak <b>${c.peak_year||'—'}</b> (${fmt(c.peak_count)}). <b>${fmt(c.trained_observer_reports)}</b> trained-observer mentions.${c.reports>=50?' This is a recurring hotspot — a genuine flap zone.':''}</p>
+    <div class="bp-sec"><h4>Patterns firing here — click to investigate</h4>${sigs}</div>
+    <div class="bp-sec"><h4>Individual case files — Level 3</h4>${caseHtml}</div>
+    <p class="bp-hint"><span class="bp-chip" onclick="briefCountry('${cc}')">‹ back to ${GEO.countries[cc]?GEO.countries[cc].name:cc}</span></p>`;
+  document.getElementById('briefPanel').classList.add('on');
+}
+function casesForSigCity(cc,city){
+  return CASES.filter(c=>c.country===cc && (c.city||'').toLowerCase()===city.toLowerCase())
+    .sort((a,b)=>b.signature_count-a.signature_count);
+}
+window.briefCountry=briefCountry;window.briefCity=briefCity;window.closeBrief=closeBrief;
+
+// Discover-map plot with drill clicks: cluster→country, marker→location
+function plotDiscover(points){
+  cluster.clearLayers();const layers=[];
+  (points||[]).forEach(p=>{if(p.lat==null)return;
+    const mk=L.circleMarker([p.lat,p.lng],{radius:Math.min(3+(p.sigs||1),11),color:'#48bb78',fillColor:'#48bb78',fillOpacity:.55,weight:1});
+    const loc=[p.city,p.country].filter(Boolean).join(', ')||p.country||'?';
+    mk.bindTooltip(loc+(p.city?' — click for location dossier':' — click for briefing'),{direction:'top'});
+    mk.on('click',()=>{ if(p.city&&GEO.cities[p.country+'|'+p.city.toLowerCase()])briefCity(p.country,p.city); else briefCountry(p.country); });
+    layers.push(mk);});
+  cluster.addLayers(layers);
+}
+
+// ---- Pattern list / board ----
+let sortMode='maturity';
+function setSort(m){sortMode=m;document.getElementById('sortMat').classList.toggle('on',m==='maturity');document.getElementById('sortVol').classList.toggle('on',m==='volume');renderPatternList();}
+function allSigs(){const out=[];Object.entries(D.typology_rollup||{}).forEach(([tid,t])=>{(t.signatures||[]).forEach(s=>out.push(Object.assign({typ:tid,typname:t.name},s)));});return out;}
+function renderPatternList(){
+  const host=document.getElementById('patternList');
+  let rows=allSigs().map(s=>({s,mat:maturity(s.id)}));
+  if(sortMode==='maturity'){const rank={prove:0,disprove:1,insufficient:2};rows.sort((a,b)=>(rank[a.mat.verdict]-rank[b.mat.verdict])||(b.mat.score-a.mat.score)||(b.s.fired-a.s.fired));}
+  else rows.sort((a,b)=>(SEVRANK[a.s.severity]-SEVRANK[b.s.severity])||(b.s.fired-a.s.fired));
+  host.innerHTML=rows.map(({s,mat})=>{
+    const col=mat.verdict==='prove'?'var(--accent-success)':mat.verdict==='disprove'?'var(--accent-amber)':'var(--text-muted)';
+    return `<div class="patrow ${s.severity} lane" onclick="investigate('${s.id}')">
+      <div class="d">${s.description}</div>
+      <div class="matbar"><div style="width:${mat.score}%;background:${col}"></div></div>
+      <div class="m"><span class="verdict ${mat.verdict}">${mat.vlabel}</span><span class="cnt">${fmt(s.fired)}</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ============ INVESTIGATE WORKSPACE ============
+let ivMap,ivCluster,ivGraphBuilt=false,invState=null,invMode='guided',invStep=0;const INV_MAX=8;
+function investigate(sid){
+  const m=D.sig_meta[sid];if(!m)return;
+  document.getElementById('discover').classList.remove('on');
+  document.getElementById('investigate').classList.add('on');
+  const mat=maturity(sid);
+  document.getElementById('iv-title').textContent=m.description;
+  const nCases=casesForSig(sid,999).length;
+  document.getElementById('iv-verdict').innerHTML=`<button class="casebtn" onclick="openCaseList('${sid}')">📁 Case Files (${nCases})</button> <span class="verdict ${mat.verdict}">${mat.vlabel}</span> <span class="pill ${m.severity}">${m.severity}</span>`;
+  currentSid=sid;
+  renderDossier(sid,mat);
+  renderSupport(sid);
+  renderStageIntro(sid);
+}
+function backToDiscover(){
+  document.getElementById('investigate').classList.remove('on');
+  document.getElementById('discover').classList.add('on');
+  setTimeout(()=>{map.invalidateSize();discoverMap();},60);
+  invState=null;
+}
+
+// ---- LEFT: dossier (maturity, precedent, real corpus cases, KNOWN/ASSESSED, gaps, counter) ----
+function renderDossier(sid,mat){
+  const m=D.sig_meta[sid];
+  const cov=coverageOf(sid);const activeN=U.activeVectorCount(cov);
+  const sources=Object.keys(m.top_countries||{}).length;
+  const level=U.confidenceLevelFrom(activeN,sources);const basis=U.confidenceBasis(activeN,sources,level);
+  const prec=INV.precedentFor(sid);
+  const caseFiles=casesForSig(sid,8);
+  const hyps=INV.hypothesesFor(sid);
+  const gaps=U.UTS_VECTORS.filter(v=>!cov[v]);
+  document.getElementById('iv-dossier').innerHTML=`
+    <div class="sec">
+      <h4>Case Maturity — ${mat.known}/6 elements (${mat.score}%)</h4>
+      <div class="matbar"><div style="width:${mat.score}%;background:${mat.verdict==='prove'?'var(--accent-success)':mat.verdict==='disprove'?'var(--accent-amber)':'var(--text-muted)'}"></div></div>
+      ${mat.els.map(e=>`<div class="elem-row"><span class="st ${e.known?'known':'gap'}">${e.known?'KNOWN':'GAP'}</span><span class="lbl"><b>${e.key}.</b> ${e.need}</span></div>`).join('')}
+    </div>
+    ${prec?`<div class="sec precedent"><h4>✔ Matches a documented case</h4><p class="prec-txt">${prec.text}</p><p class="disclaimer">${prec.label}. This is a published, well-known case the pattern resembles — offered for verification, not a claim that this specific case is in our corpus.</p></div>`:''}
+    <div class="sec"><h4>Competing explanations — what's really going on?</h4>
+      <p class="disclaimer" style="margin:0 0 8px">Weighed seriously and openly. None is dismissed; none is declared the winner. The bar shows how well each explanation fits <em>this</em> pattern's evidence. Absence of proof is not proof of absence.</p>
+      ${hyps.map(h=>`<div class="hyp">
+        <div class="hh"><span class="hn">${h.icon} ${h.key}</span><span class="hf">${h.fit}% fit</span></div>
+        <div class="hbar"><div style="width:${h.fit}%;background:${h.fit>=55?'var(--accent-success)':h.fit>=30?'var(--accent-warning)':'var(--text-muted)'}"></div></div>
+        <div class="hd"><span class="sp">▲ Supports:</span> ${h.supports}</div>
+        <div class="hd"><span class="uc">▼ Undercuts:</span> ${h.undercuts}</div>
+        <div class="hd"><span class="sh">↷ Would shift it:</span> ${h.shift}</div>
+      </div>`).join('')}
+    </div>
+    <div class="sec cases"><h4>📁 Case files — click to read the actual report (${caseFiles.length})</h4>
+      <p class="disclaimer" style="margin:0 0 8px">Real, verbatim records from the corpus. Each opens the source account + chain of custody + a link to the issuing archive.</p>
+      ${caseFiles.length?caseFiles.map(c=>`<div class="casecard" onclick="openCaseFile('${c.id}')">
+        <div class="cc-top"><span class="cc-where">${[c.city,c.country].filter(Boolean).join(', ')||c.country||'Unknown location'}</span><span class="srctag">${c.source}</span></div>
+        <div class="cc-snip">${(c.description||'').replace(/&#44;/g,',').replace(/&amp;/g,'&').replace(/</g,'&lt;').slice(0,90)}…</div>
+        <div class="cc-foot"><span>${c.year||'—'} · ${c.signature_count} signatures</span><span class="cc-read">Read record ›</span></div>
+      </div>`).join(''):'<p class="disclaimer">No inspectable case files for this pattern in the curated store.</p>'}
+      <p class="disclaimer">Primary sources from the UPDB corpus (${fmt(m.fired)} total fired this pattern).</p>
+    </div>
+    <div class="sec known"><h4>${U.classBadge('KNOWN')} Indicators matched (needles)</h4>${(m.needles||[]).map(n=>`<div class="needle">🔎 ${n}</div>`).join('')}</div>
+    <div class="sec"><h4>UTS collection coverage</h4><div style="margin-bottom:8px">${U.coverageDots(cov)}</div>${U.UTS_VECTORS.filter(v=>cov[v]).map(v=>U.vectorBadge(v)).join('')}</div>
+    ${gaps.length?`<div class="sec gaps"><h4>Collection gaps — what would raise confidence</h4>${gaps.map(v=>`<div class="needle"><b style="color:var(--accent-amber)">${U.UTS_META[v].icon} ${U.UTS_META[v].label}:</b> ${U.COLLECTION_RECOMMENDATIONS[v]}</div>`).join('')}</div>`:''}
+    <div class="sec counter"><h4>Counter-indicators (kept honest)</h4>
+      <div class="needle">Witness narratives are self-reported and unverified; prosaic stimuli can mimic descriptions.</div>
+      <div class="needle">Reporting volume tracks population and internet access — concentration shows where people report, not necessarily where events occur.</div>
+      ${!cov.electronic?'<div class="needle">No independent instrument corroboration in-corpus — visual/testimonial only.</div>':''}
+    </div>`;
+}
+
+// ---- RIGHT: supporting focused map + co-occurrence graph ----
+function renderSupport(sid){
+  const m=D.sig_meta[sid];
+  document.getElementById('iv-support').innerHTML=`
+    <div class="sec" style="padding:10px"><h4>Where it's reported — ${(D.sig_points[sid]||[]).length} geolocated</h4><div id="ivMap"></div></div>
+    <div class="sec" style="padding:10px"><h4>Pattern co-occurrence network</h4><div id="ivGraph"><div class="glabel">${sid} + co-firing patterns</div><svg id="ivGraphSvg"></svg></div></div>
+    <div class="sec"><h4>Top countries</h4>${Object.entries(m.top_countries||{}).slice(0,8).map(([c,n])=>`<div class="kv"><span>${c}</span><b>${fmt(n)}</b></div>`).join('')||'<p class="disclaimer">n/a</p>'}</div>`;
+  setTimeout(()=>{
+    if(ivMap){ivMap.remove();ivMap=null;}
+    ivMap=L.map('ivMap',{worldCopyJump:true,minZoom:1,attributionControl:false}).setView([20,0],1);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:10}).addTo(ivMap);
+    ivCluster=L.markerClusterGroup({maxClusterRadius:40});ivMap.addLayer(ivCluster);
+    const pts=D.sig_points[sid]||[];plot(ivCluster,pts,sevColor(m.severity));
+    ivMap.invalidateSize();if(pts.length){try{const b=L.latLngBounds(pts.filter(p=>p.lat!=null).map(p=>[p.lat,p.lng]));if(b.isValid())ivMap.fitBounds(b.pad(0.2));}catch(e){}}
+    drawGraph(sid);
+  },80);
+}
+function drawGraph(sid){
+  const svg=d3.select('#ivGraphSvg');svg.selectAll('*').remove();
+  const wrap=document.getElementById('ivGraph');const W=wrap.clientWidth||360,H=wrap.clientHeight||240;
+  const nb=coocFor(sid).slice(0,7);
+  const nodes=[{id:sid,center:true,sev:D.sig_meta[sid].severity}].concat(nb.map(([id])=>({id,sev:(D.sig_meta[id]||{}).severity||'low'})));
+  const links=nb.map(([id,w])=>({source:sid,target:id,w}));
+  const maxW=Math.max(1,...nb.map(x=>x[1]));
+  const link=svg.append('g').selectAll('line').data(links).enter().append('line').attr('stroke-width',d=>0.5+d.w/maxW*3.5).attr('stroke','#b794f4').attr('stroke-opacity',.4);
+  const g=svg.append('g').selectAll('g').data(nodes).enter().append('g').style('cursor','pointer').on('click',(ev,d)=>{if(!d.center)investigate(d.id);});
+  g.append('circle').attr('r',d=>d.center?11:7).attr('fill',d=>sevColor(d.sev)).attr('stroke',d=>d.center?'#fff':'#0a0f19').attr('stroke-width',d=>d.center?2.5:1);
+  g.append('text').text(d=>d.id.replace('uap-','')).attr('x',9).attr('y',3);
+  const sim=d3.forceSimulation(nodes).force('link',d3.forceLink(links).id(d=>d.id).distance(90)).force('charge',d3.forceManyBody().strength(-140)).force('center',d3.forceCenter(W/2,H/2)).force('collide',d3.forceCollide(16))
+    .on('tick',()=>{link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);g.attr('transform',d=>`translate(${d.x},${d.y})`);});
+}
+
+// ---- CENTER: AI Smart Investigator (the main event) ----
+function renderStageIntro(sid){
+  document.getElementById('iv-stage').innerHTML=`
+    <div class="stage-head"><h3>🤖 AI Smart Investigator</h3>
+      <div class="modetog"><button id="mode-guided" class="on" onclick="setMode('guided')">Guided</button><button id="mode-auto" onclick="setMode('auto')">Auto-run</button></div></div>
+    <div class="hypo">${INV.hypothesisFor(sid)}</div>
+    <div id="invIntro"><button class="runbtn" onclick="startInvestigation('${sid}')">▶ Run Investigation</button>
+      <span style="font-size:11px;color:var(--text-muted);margin-left:10px">F3EAD loop · runs step by step · you approve, override, or redirect each move</span></div>
+    <div id="invBody" style="display:none"><div class="progress"><div id="invProgress"></div></div><div id="invSteps"></div><div id="invPropose"></div>
+      <div class="injectbar"><input id="invInject" placeholder="Direct the investigation — inject a place, witness type, or year…"><button onclick="doInject()">Inject</button></div>
+      <div id="invVerdict"></div></div>`;
+  invMode='guided';invState=null;
+}
+function setMode(m){invMode=m;document.getElementById('mode-guided').classList.toggle('on',m==='guided');document.getElementById('mode-auto').classList.toggle('on',m==='auto');}
+function startInvestigation(sid){invState=INV.newState(sid);invStep=0;document.getElementById('invIntro').style.display='none';document.getElementById('invBody').style.display='';document.getElementById('invSteps').innerHTML='';document.getElementById('invVerdict').innerHTML='';planStep();}
+function planStep(){
+  const plan=INV.planNext(invState);const prop=document.getElementById('invPropose');
+  if(plan.decision==='stop'){prop.innerHTML='';finishInv(plan.stopReason);return;}
+  if(invStep>=INV_MAX){prop.innerHTML='';finishInv('Step budget reached — synthesizing.');return;}
+  if(invMode==='auto'){prop.innerHTML='';execStep(plan.chosen.id);return;}
+  const alts=plan.alternatives.map(a=>`<button onclick="execStep('${a.id}')">${a.label} (gap ${a.gap})</button>`).join('');
+  prop.innerHTML=`<div class="propose"><div class="pt">Planner proposes next: <b>${plan.chosen.label}</b> — ${plan.rationale} <span style="color:var(--text-muted)">(closes gap ${plan.gapClosed})</span></div>
+    <button class="runbtn" onclick="execStep('${plan.chosen.id}')">✓ Approve &amp; Run</button>
+    ${alts?`<div class="altbtns"><span style="font-size:10px;color:var(--text-muted);align-self:center">or override:</span>${alts}</div>`:''}</div>`;
+}
+function execStep(id){
+  document.getElementById('invPropose').innerHTML='';const a=INV.getAgent(id);if(!a)return;invStep++;
+  const stepsEl=document.getElementById('invSteps');const sid='st'+invStep;
+  const src=a.sources.map(x=>`<span class="srcbadge${a.live?'':' roadmap'}">${x}</span>`).join('')+(a.live?'':'<span class="srcbadge roadmap">ROADMAP</span>');
+  stepsEl.insertAdjacentHTML('beforeend',`<div class="step running" id="${sid}"><span class="icon">⟳</span>
+    <div class="verb">${a.verb} · ${a.produces} · ${(U.UTS_META[a.vector]||{}).label||a.vector}</div>
+    <div class="title">R${invStep}. ${a.label}</div><div class="srcbadges">${src}</div>
+    <div class="beat why" id="${sid}-why"></div><div class="beat found" id="${sid}-found"></div><div class="beat sowhat" id="${sid}-sowhat"></div></div>`);
+  document.getElementById('invProgress').style.width=Math.min(invStep/6*100,100)+'%';
+  setTimeout(()=>{
+    const res=INV.runAgent(invState,id);const r=res.raw||{};const stepEl=document.getElementById(sid);
+    stepEl.classList.remove('running');stepEl.classList.add('done');stepEl.querySelector('.icon').textContent='✓';
+    if(r.why)document.getElementById(sid+'-why').innerHTML='<span class="bl">WHY</span> '+r.why;
+    const f=document.getElementById(sid+'-found');f.innerHTML='<span class="bl">'+(a.produces==='ASSESSED'?'ASSESSED':'FOUND')+'</span> '+(r.found||'');if(a.produces==='ASSESSED')f.classList.add('assessed');
+    const tag=r.impact?`<span class="impact ${r.impact}">${r.impact.replace('-',' ')}</span>`:'';
+    if(r.soWhat)document.getElementById(sid+'-sowhat').innerHTML='<span class="bl">SO WHAT</span> '+r.soWhat+' '+tag;
+    planStep();
+  },1500);
+}
+function doInject(){if(!invState)return;const el=document.getElementById('invInject');const v=el.value;if(!v.trim())return;INV.injectHint(invState,v);el.value='';
+  document.getElementById('invSteps').insertAdjacentHTML('beforeend',`<div class="step done"><span class="icon">➤</span><div class="verb">HUMAN-SOURCED · KNOWN</div><div class="title">Analyst directed the investigation</div><div class="beat found"><span class="bl">FOUND</span> You focused the case on "${v}". Logged as human-sourced KNOWN — the analyst, not the AI, owns this lead.</div><div class="beat sowhat"><span class="bl">SO WHAT</span> The planner re-prioritises around your focus. <span class="impact EDUCATES">HUMAN-IN-LOOP</span></div></div>`);
+  planStep();}
+function finishInv(stop){
+  const v=INV.verdictFor(invState);const acts=INV.actionItems(invState);
+  const colorFor={strong:'var(--accent-success)',anomalous:'var(--accent-warning)',explained:'var(--accent-primary)',insufficient:'var(--text-muted)'};
+  const col=colorFor[v.klass]||'var(--text-muted)';
+  const dim=v.done?'✓ AI collection saturated — hand to a human investigator to pursue in the field.':'⟳ The case can still strengthen — a targeted collection (esp. instrumentation) would move it up the anomaly scale.';
+  document.getElementById('invProgress').style.width='100%';
+  document.getElementById('invVerdict').innerHTML=`<div class="verdictbox ${v.klass}">
+    <div class="vt" style="color:${col}">${v.verdict}</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">Confidence in this reading: ${v.conf} · <b>Not a proof claim</b> — a measure of how well-attested and unexplained the pattern is.</div>
+    <div class="vr">${v.reason}</div><div class="vr" style="margin-top:6px">${stop||''}</div>
+    <div class="vr" style="margin-top:8px;color:var(--text-primary)"><b>Next:</b> ${dim}</div>
+    <ul class="ai-list">${acts.map(a=>{const p=a.split(': ');return `<li><span class="tm">${p[0]}</span>${p.slice(1).join(': ')}</li>`;}).join('')}</ul>
+    ${!v.done?`<button class="runbtn secondary" style="margin-top:8px" onclick="secondPass()">⟳ Run Second Pass</button>`:''}</div>`;
+  document.getElementById('invPropose').innerHTML='';
+}
+function secondPass(){if(invState){invState.killed=false;document.getElementById('invVerdict').innerHTML='';planStep();}}
+
+// ---- Case store + static Case File view (UTS audit-compliant) ----
+const CASES=(window.UAP_CASES||{cases:[]}).cases;
+const CASE_BY_ID={};CASES.forEach(c=>CASE_BY_ID[c.id]=c);
+function casesForSig(sid,n){
+  return CASES.filter(c=>(c.fired_signatures||[]).includes(sid))
+    .sort((a,b)=>b.signature_count-a.signature_count||(b.description.length-a.description.length))
+    .slice(0,n||8);
+}
+function assessedTldr(c){
+  // ASSESSED one-liner, grounded strictly in the record's own fields — no invented facts.
+  const loc=[c.city,c.country].filter(Boolean).join(', ')||'an unspecified location';
+  const yr=c.year||'an unrecorded year';
+  const typ=(c.typologies||[]).slice(0,2).join(' + ')||'anomaly';
+  return `A ${c.source}-sourced report from ${loc} (${yr}) matching ${c.signature_count} signature(s) in the ${typ} class. Classification is pattern-based; the account below is the primary record.`;
+}
+let currentSid=null;
+// Dedicated Case Files browser for a pattern — the static-records list.
+function openCaseList(sid){
+  const list=casesForSig(sid,60);const m=D.sig_meta[sid];
+  document.getElementById('caseListBody').innerHTML=`
+    <div class="dh">Case Files · ${sid}</div>
+    <h2>${m.description}</h2>
+    <p style="font-size:12px;color:var(--text-secondary);line-height:1.6;margin:4px 0 14px">${fmt(m.fired)} reports worldwide fired this pattern. Below are the richest inspectable records — each is a <b>static case file</b>: the verbatim source account, chain of custody, and a link to the issuing archive. This is the record <em>as filed</em>, not AI analysis.</p>
+    <div>${list.map(c=>`<div class="casecard" onclick="openCaseFile('${c.id}')">
+      <div class="cc-top"><span class="cc-where">${[c.city,c.country].filter(Boolean).join(', ')||c.country||'Unknown location'}</span><span class="srctag">${c.source}</span></div>
+      <div class="cc-snip">${(c.description||'').replace(/&#44;/g,',').replace(/&amp;/g,'&').replace(/</g,'&lt;').slice(0,140)}…</div>
+      <div class="cc-foot"><span>${c.year||'—'} · ${c.signature_count} signatures · ID ${c.id}</span><span class="cc-read">Open case file ›</span></div>
+    </div>`).join('')}</div>`;
+  document.getElementById('caseList').classList.add('on');
+}
+function closeCaseList(){document.getElementById('caseList').classList.remove('on');}
+function openCaseFile(id){
+  const c=CASE_BY_ID[id];if(!c)return;
+  const sigList=(c.fired_signatures||[]).map(s=>`<span class="pill ${(D.sig_meta[s]||{}).severity||'low'}" title="${(D.sig_meta[s]||{}).description||''}">${s}</span>`).join(' ');
+  const ts=(new Date()).toISOString().slice(0,19)+'Z';
+  const chain=[
+    {step:'SOURCE',icon:'📄',t:`${c.source} record #${c.id} — ${[c.city,c.district,c.country].filter(Boolean).join(', ')}${c.year?' ('+c.year+')':''}.`,cls:'known'},
+    {step:'EXTRACTION',icon:'✨',t:`Ingested into UPDB corpus; narrative text preserved verbatim (no OCR rewrite, no summarization of the record).`,cls:'known'},
+    {step:'PATTERN-MATCH',icon:'🎯',t:`Tier-1 keyword filter passed → matched ${c.signature_count} taxonomy signature(s) by needle presence (local, deterministic — no LLM scoring).`,cls:'known'},
+    {step:'ANALYST-REVIEW',icon:'🧑\u200d💼',t:`Pending human review — this demo does not auto-approve. An analyst would accept/reject here (logged with id + timestamp per the audit-trail spec).`,cls:'pending'},
+    {step:'AI-CONCLUSION',icon:'🧠',t:assessedTldr(c),cls:'assessed'},
+  ];
+  document.getElementById('caseFileBody').innerHTML=`
+    <div class="dh">Case File · ${c.source} #${c.id}</div>
+    <h2>${[c.city,c.country].filter(Boolean).join(', ')||c.country||'Unknown location'}${c.year?` · ${c.year}`:''}</h2>
+    <div style="margin:4px 0 12px">${sigList}</div>
+
+    <div class="sec"><h4>Chain of custody (UTS provenance)</h4>
+      ${chain.map(l=>`<div class="chain ${l.cls}"><span class="ci">${l.icon}</span><div><div class="cs">${l.step}</div><div class="ct">${l.t}</div></div></div>`).join('')}
+    </div>
+
+    <div class="sec assess"><h4>${U.classBadge('ASSESSED')} AI summary (tl;dr)</h4><p class="assessed-txt">${assessedTldr(c)}</p></div>
+
+    <div class="sec known"><h4>${U.classBadge('KNOWN')} Record — verbatim, unaltered</h4>
+      <p style="white-space:pre-wrap;font-size:12.5px;line-height:1.6">${(c.description||'').replace(/&#44;/g,',').replace(/&amp;/g,'&').replace(/</g,'&lt;')}</p>
+    </div>
+
+    <div class="sec"><h4>Provenance &amp; source</h4>
+      <div class="kv"><span>Source database</span><b>${c.source}</b></div>
+      <div class="kv"><span>Record ID</span><b>${c.id}</b></div>
+      <div class="kv"><span>Location</span><b>${[c.city,c.district,c.country].filter(Boolean).join(', ')||'—'} ${c.geo==='country'?'<span class="ap">≈ country-approx</span>':''}</b></div>
+      <div class="kv"><span>Reported</span><b>${c.year||'—'}</b></div>
+      ${c.source_url?`<a class="srclink" href="${c.source_url}" target="_blank" rel="noopener">↗ View original record at ${c.source} (opens issuing archive)</a>`:'<p class="disclaimer">No public source URL on file.</p>'}
+      <p class="disclaimer">Per the UTS audit rules: we link to the issuing body's public archive rather than reproduce or fabricate the source document. Coordinates are reference geodata, not source-provided.</p>
+    </div>`;
+  document.getElementById('caseFile').classList.add('on');
+}
+function closeCaseFile(){document.getElementById('caseFile').classList.remove('on');}
+
+// ---- Convergence Lab (UAP × ancient sites × mythology) ----
+function openConvergence(){
+  document.getElementById('convLab').classList.add('on');
+  renderConvTab('sites');
+}
+function renderConvTab(which){
+  const tabs=`<div class="conv-tabs">
+    <button class="conv-tab ${which==='sites'?'on':''}" onclick="renderConvTab('sites')">🗿 Ancient Sites × Mythology</button>
+    <button class="conv-tab ${which==='ley'?'on':''}" onclick="renderConvTab('ley')">🔗 Ley-Line Vertices</button>
+  </div>`;
+  const body=document.getElementById('convBody');
+  body.innerHTML=tabs+'<div id="convTabBody"></div>';
+  const tb=document.getElementById('convTabBody');
+  if(which==='ley') tb.innerHTML=renderConvLeyline();
+  else tb.innerHTML=renderConvSites();
+}
+function renderConvSites(){
+  const C=window.UAP_CONVERGENCE;
+  if(!C){return '<p>Convergence data not loaded.</p>';}
+  const R=C.radius_km;
+  // A result is only testable if it has enough reports AND a trustworthy baseline.
+  const testable=C.results.filter(r=>r.data_coverage==='rich' && r.baseline_reliable);
+  const untrusted=C.results.filter(r=>r.uap_within_radius>0 && !r.baseline_reliable);
+  const sparse=C.results.filter(r=>r.uap_within_radius===0);
+  const sig=testable.filter(r=>r.lift_ratio>=2.0);
+  const card=r=>{
+    const lv=r.lift_ratio;
+    let klass,badge,liftClass;
+    if(!r.baseline_reliable){
+      klass='sparse';liftClass='lo';
+      badge=`<span class="conv-badge sparse">BASELINE UNRELIABLE — only ${r.baseline_nonzero_controls}/16 controls had data</span>`;
+    } else if(r.uap_within_radius===0){
+      klass='sparse';liftClass='lo';
+      badge='<span class="conv-badge sparse">NO REPORTS IN RANGE — coverage gap, not a finding</span>';
+    } else if(lv>=2){
+      klass='sig';liftClass='hi';
+      badge='<span class="conv-badge sig">OVER-CONCENTRATION vs baseline</span>';
+    } else {
+      klass='null';liftClass=lv>=1.2?'mid':'lo';
+      badge='<span class="conv-badge null">AT / BELOW baseline — no anomaly</span>';
+    }
+    const myth=r.mythology_links&&r.mythology_links.length?`<div class="conv-myth">🗿 Myth link: ${r.mythology_links.map(m=>m.deity).join(', ')}</div>`:(r.mythology?`<div class="conv-note">${r.mythology.slice(0,80)}</div>`:'');
+    const sol=r.solstice?`<div class="conv-row"><span>Solstice timing lift</span><b>${r.solstice.solar_lift}× ${r.solstice.solar_lift>=1.2?'':'(flat)'}</b></div>`:'';
+    return `<div class="conv-card ${klass}">
+      <h4>${r.site} <span style="font-size:10px;color:var(--text-muted)">${r.country}</span></h4>
+      <div class="cc-sub">UAP within ${R}km vs matched baseline</div>
+      <div class="conv-lift ${liftClass}">${r.baseline_reliable?lv+'×':'—'}<span style="font-size:11px;color:var(--text-muted);font-weight:400"> lift</span></div>
+      <div class="conv-row"><span>UAP reports ≤${R}km</span><b>${fmt(r.uap_within_radius)}</b></div>
+      <div class="conv-row"><span>Baseline mean (control)</span><b>${fmt(r.baseline_mean)}</b></div>
+      ${sol}
+      ${badge}
+      ${myth}
+    </div>`;
+  };
+  const headline = sig.length
+    ? `<h3>Result: ${sig.length} site${sig.length>1?'s':''} over-concentrate — but read the fine print</h3>
+       <p>${sig.map(r=>`<b>${r.site}</b> (lift ${r.lift_ratio}×, ${r.uap_within_radius} reports)`).join('; ')} sits above baseline. <span style="color:var(--accent-amber)">Caveat:</span> the ones that clear 2× are in <b>data-sparse regions</b> where the count is small (e.g. Giza: 11 reports) — small samples inflate ratios. <span style="color:var(--accent-primary)">ASSESSED, LOW confidence.</span> Not a robust anomaly.</p>`
+    : `<h3>Result: a null result — and that's the honest finding</h3>
+       <p>At a tightened <b>${R}km radius</b>, <b>no data-rich site with a trustworthy baseline over-concentrates UAP reports.</b> The Boyne Valley (Newgrange, Knowth) and the UK stone circles actually sit <b>at or below</b> their surrounding-region baseline. The earlier "signal" at a 150km radius was an artifact — nearby sites shared one report pool. <span style="color:var(--accent-primary)">ASSESSED:</span> UAP reports track population and reporting culture, <b>not</b> ancient sacred geography. That is the credible outcome, and the tool is designed to surface it rather than hide it.</p>`;
+  return `
+    <h2 style="margin:0 0 4px">🔺 Convergence Lab — UAP × Ancient Sites × Mythology</h2>
+    <p class="conv-intro">Do UAP sightings converge on ancient sacred sites? A raw count would lie — UAP reports track modern population and reporting culture. So we measure a <b>lift ratio</b>: near-site report density ÷ a matched baseline (16 control circles offset ~2–4° from each site). <b>Lift ≈ 1.0 = no signal</b> (fully explained by geography); <b>lift ≥ 2 = over-concentration worth a look.</b> A site is only scored when enough control circles contain data; otherwise its baseline is flagged unreliable. Radius: <b>${R}km</b>. Every figure is KNOWN corpus data; the reading is ASSESSED. Nothing here is "proven."</p>
+
+    <div class="conv-hl">
+      ${headline}
+    </div>
+
+    <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin:0 0 8px">Testable sites — enough reports AND a trustworthy baseline</h4>
+    <div class="conv-grid">${testable.length?testable.map(card).join(''):'<p class="conv-note">No sites currently meet both bars at this radius.</p>'}</div>
+
+    <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin:16px 0 8px">Reports present but baseline unreliable — can't compute honest lift</h4>
+    <p class="conv-note" style="margin:0 0 8px">These sites have reports nearby, but too few of the surrounding control circles contain data to form a fair comparison. We <b>decline to score</b> them rather than publish a divide-by-near-zero number.</p>
+    <div class="conv-grid">${untrusted.length?untrusted.map(card).join(''):'<p class="conv-note">None.</p>'}</div>
+
+    <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin:16px 0 8px">No reports in range — coverage gaps (corpus is English-language-heavy)</h4>
+    <p class="conv-note" style="margin:0 0 8px">A zero here means <b>no data</b>, not "no phenomenon" — an honest coverage gap. Most non-English regions (Peru, Bolivia, Cambodia, Turkey) fall here.</p>
+    <div class="conv-grid">${sparse.map(card).join('')}</div>
+
+    <p class="conv-note" style="margin-top:14px">Method: ${C.note} Reproducible via scripts/uap_convergence_analysis.py.</p>`;
+}
+
+// ---- Convergence Lab tab 2: Ley-Lines (grid vertices + 62 nodes + British St Michael line) ----
+function leyCard(r,W,R){
+  let klass,badge,liftShown;
+  if(r.class==='ocean'){klass='sparse';badge='<span class="conv-badge sparse">OCEAN — no reporters, untestable</span>';liftShown='—';}
+  else if(r.class==='remote'){klass='sparse';badge=`<span class="conv-badge sparse">REMOTE — ${fmt(r.reports_within_300km)} within ${W}km = coverage gap, NOT a null</span>`;liftShown='—';}
+  else if(!r.baseline_reliable){klass='sparse';badge='<span class="conv-badge sparse">BASELINE UNRELIABLE — declined to score</span>';liftShown='—';}
+  else if(r.lift_ratio>=2.0){klass='sig';badge='<span class="conv-badge sig">OVER-CONCENTRATION vs baseline</span>';liftShown=r.lift_ratio+'×';}
+  else {klass='null';badge='<span class="conv-badge null">AT / BELOW baseline — no anomaly</span>';liftShown=r.lift_ratio+'×';}
+  const liftClass=(r.class==='populated'&&r.baseline_reliable&&r.lift_ratio>=2)?'hi':(r.lift_ratio>=1.2?'mid':'lo');
+  const title=(r.name||r.id);
+  const sub=r.name?`${r.id}`:(r.on_land||'ocean');
+  return `<div class="conv-card ${klass}">
+    <h4>${title} <span style="font-size:10px;color:var(--text-muted)">${sub} · ${r.lat.toFixed(1)},${r.lng.toFixed(1)}</span></h4>
+    <div class="cc-sub">UAP within ${R}km vs matched baseline</div>
+    <div class="conv-lift ${liftClass}">${liftShown}<span style="font-size:11px;color:var(--text-muted);font-weight:400"> lift</span></div>
+    <div class="conv-row"><span>UAP reports ≤${R}km</span><b>${fmt(r.uap_within_radius)}</b></div>
+    <div class="conv-row"><span>Reports ≤${W}km (can anyone report?)</span><b>${fmt(r.reports_within_300km)}</b></div>
+    ${badge}
+  </div>`;
+}
+function renderConvLeyline(){
+  const L=window.UAP_LEYLINE;
+  if(!L){return '<p class="conv-note">Ley-line data not loaded.</p>';}
+  const R=L.radius_km, W=L.wide_probe_km;
+  const C=r=>leyCard(r,W,R);
+
+  // --- vertices (grid line crossings) ---
+  const vx=L.vertices||L.results;
+  const vPop=vx.filter(r=>r.class==='populated'), vRem=vx.filter(r=>r.class==='remote'), vOc=vx.filter(r=>r.class==='ocean');
+
+  // --- 62 grid nodes ---
+  const nodes=L.grid_nodes||[];
+  const nPop=nodes.filter(r=>r.class==='populated'), nRem=nodes.filter(r=>r.class==='remote'), nOc=nodes.filter(r=>r.class==='ocean');
+  // the specific nodes the user asked about
+  const byId=id=>nodes.find(r=>r.id==='NODE-'+id)||{};
+  const jp=byId(10),ru2=byId(2),ru3=byId(3),eg=byId(7),bm=byId(14);
+
+  // --- British St Michael line ---
+  const brit=L.british_ley||[];
+  const bSig=brit.filter(r=>r.baseline_reliable&&r.lift_ratio>=2.0);
+
+  return `
+    <h2 style="margin:0 0 4px">🔗 Ley-Lines — UAP × the ley grid, its nodes, and the British St Michael line</h2>
+    <p class="conv-intro">Three tests, one method. The <b>lift ratio</b> (near-point UAP density ÷ matched baseline) is the same as the sites tab. Your reporting-confound insight is enforced everywhere: each point is classed by a <b>${W}km "can anyone even report here?" probe</b> — <b>ocean</b>, <b>remote</b> (a zero = coverage gap, not a null), or <b>populated</b> (testable). Radius <b>${R}km</b>. KNOWN counts, ASSESSED reading, nothing "proven."</p>
+
+    <div class="conv-hl">
+      <h3>The honest bottom line</h3>
+      <p><b>1) The global grid can't be tested.</b> Its vertices and most of its 62 nodes land in ocean or empty land — including the famous <b>Japan / "Devil's Sea" node (offshore, 0 reports)</b> and the <b>Bermuda Triangle node (offshore, 0 reports)</b>. Russia's interior nodes (Volga-Ural, Lake Baikal) have <b>0 reports within ${W}km</b> — a genuine coverage gap, not evidence of absence.</p>
+      <p><b>2) The British St Michael line — a populated, testable alignment — shows ONE real local cluster, not a line-wide effect.</b> <b>Glastonbury Tor (lift ${eg&&brit.find(x=>x.id==='LEY-STM-05')?brit.find(x=>x.id==='LEY-STM-05').lift_ratio:'—'}×)</b> and nearby <b>Burrow Mump (lift ${brit.find(x=>x.id==='LEY-STM-04')?brit.find(x=>x.id==='LEY-STM-04').lift_ratio:'—'}×)</b> over-concentrate — but they sit only <b>17km apart and count the same Somerset reports</b>. The other 7 waypoints along the line are at/below baseline. <span style="color:var(--accent-amber)">ASSESSED:</span> a real UAP cluster over the Somerset Levels (Glastonbury area), <b>not</b> evidence that the alignment itself attracts sightings.</p>
+    </div>
+
+    <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin:0 0 8px">🇬🇧 British St Michael / Apollo line — populated & testable (${brit.length} waypoints)</h4>
+    <p class="conv-note" style="margin:0 0 8px">${bSig.length} waypoint(s) over-concentrate, but Glastonbury Tor + Burrow Mump are 17km apart and share one report pool — treat them as a <b>single Somerset cluster</b>, not two independent hits.</p>
+    <div class="conv-grid">${brit.map(C).join('')}</div>
+
+    <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin:16px 0 8px">🌐 The 62 grid nodes — which nations they actually land on (${nodes.length})</h4>
+    <p class="conv-note" style="margin:0 0 8px"><b>Populated & testable:</b> ${nPop.length} · <b>Remote (coverage gap):</b> ${nRem.length} · <b>Ocean (untestable):</b> ${nOc.length}. The nodes you asked about — <b>Japan (Node 10)</b> and <b>Bermuda (Node 14)</b> are offshore points, so untestable; <b>Russia (Nodes 2, 3, 52, 53)</b> are remote interior with no reports nearby; <b>Giza (Node 7)</b> has only a couple of reports (baseline unreliable).</p>
+    <div class="conv-grid">${nPop.concat(nRem.filter(r=>['NODE-2','NODE-3','NODE-52','NODE-53','NODE-13','NODE-40','NODE-44'].includes(r.id))).concat(nOc.filter(r=>['NODE-10','NODE-14'].includes(r.id))).map(C).join('')}</div>
+    <p class="conv-note" style="margin:8px 0 0">(Remaining ${nRem.length-7>0?nRem.length-7:0} remote + ${nOc.length-2>0?nOc.length-2:0} ocean nodes omitted for space — all 0 reports, all coverage gaps or open sea.)</p>
+
+    <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin:16px 0 8px">✕ The 20 grid VERTICES (line crossings) — pinned to ±43.6°, almost all ocean/remote</h4>
+    <p class="conv-note" style="margin:0 0 8px">Populated ${vPop.length} · Remote ${vRem.length} · Ocean ${vOc.length}. Only INT-0019 (Adriatic off Italy) is populated, and it reads below baseline.</p>
+    <div class="conv-grid">${vPop.concat(vRem.slice(0,3)).map(C).join('')}</div>
+
+    <p class="conv-note" style="margin-top:14px">Method: ${L.note} Reproducible via scripts/uap_leyline_convergence.py.</p>`;
+}
+function closeConvergence(){document.getElementById('convLab').classList.remove('on');}
+
+// ---- Pattern Dossiers (documentary + play + AI investigator) ----
+function openDossiers(targetDid, targetChId){
+  document.getElementById('dossierLab').classList.add('on');
+  const D=(window.UAP_DOSSIERS&&window.UAP_DOSSIERS.dossiers)||[];
+  if(!D.length){document.getElementById('dossierBody').innerHTML='<p>No dossiers loaded.</p>';return;}
+  // Deep-link: open a specific dossier/chapter if asked (from the Explorer hand-off).
+  if(targetDid){
+    const dos=D.find(x=>x.id===targetDid);
+    if(dos){const ch=(targetChId&&dos.chapters.find(c=>c.id===targetChId))?targetChId:dos.chapters[0].id;renderDossier(dos.id,ch);return;}
+  }
+  if(D.length===1){renderDossier(D[0].id, D[0].chapters[0].id);return;}
+  renderDossierList();
+}
+// Read ?dossier=&chapter= and auto-open (works on http and file://). Called from init().
+function dossierDeepLinkFromURL(){
+  try{
+    const q=new URLSearchParams(window.location.search);
+    const did=q.get('dossier'); if(!did) return false;
+    openDossiers(did, q.get('chapter'));
+    return true;
+  }catch(e){return false;}
+}
+function renderDossierList(){
+  if(dosMapInst){try{dosMapInst.remove();}catch(e){}dosMapInst=null;}
+  if(dosSim){try{dosSim.stop();}catch(e){}dosSim=null;}
+  const D=(window.UAP_DOSSIERS&&window.UAP_DOSSIERS.dossiers)||[];
+  const icons={'nuclear-sentinel':'☢️','silent-triangle':'🔺','radar-visual':'📡','recurring-hotspot':'📍','boyne-valley':'🗿'};
+  const icon=id=>icons[id]||'📕';
+  // Ancient Mysteries (Ireland trip) vs UAP-specific — split by the dossier's signature domain.
+  const isAncient=d=>(d.signature==='ancient-mysteries')||d.id==='boyne-valley';
+  const card=d=>`
+    <div class="dos-libcard" onclick="renderDossier('${d.id}','${d.chapters[0].id}')">
+      <div class="ic">${icon(d.id)}</div>
+      <div class="tx">
+        <h3>${esc(d.title)}</h3>
+        <p>${esc(d.subtitle||'')}</p>
+        <div class="meta">${d.chapters.length} chapters · ~${d.est_runtime_min||''} min${d.chapters.some(c=>c.audio)?' · 🔊 audio':''}</div>
+      </div>
+    </div>`;
+  const uap=D.filter(d=>!isAncient(d));
+  const anc=D.filter(isAncient);
+  const section=(label,sub,list)=> list.length? `
+    <div class="dos-libsection">
+      <h3 class="dos-libhead">${label}</h3>
+      <p class="dos-libsub">${sub}</p>
+      <div class="dos-lib">${list.map(card).join('')}</div>
+    </div>`:'';
+  document.getElementById('dossierBody').innerHTML=`
+    <h2 style="margin:0 0 4px">📕 Pattern Dossiers</h2>
+    <p class="conv-intro">Documentary-style investigations grounded in the corpus — each labels KNOWN vs ASSESSED, has narrated audio, and ends with how a real investigator would work it. Two libraries below: the UAP patterns TALOS detects, and a separate Ancient Mysteries field companion.</p>
+    ${section('🛸 UAP Pattern Dossiers','The patterns the platform detects in the 300K-report corpus.',uap)}
+    ${section('🗿 Ancient Mysteries — field companion','A separate track. Not UAP analysis — an on-location documentary for your Ireland trip.',anc)}`;
+}
+function closeDossiers(){var a=document.getElementById('dosAudio');if(a){a.pause();}dosAutoplay=false;document.getElementById('dossierLab').classList.remove('on');}
+var dosAutoplay=false;
+function playEpisode(did){dosAutoplay=true;const D=(window.UAP_DOSSIERS&&window.UAP_DOSSIERS.dossiers||[]).find(x=>x.id===did);if(D)renderDossier(D.id,D.chapters[0].id);}
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function markKA(s){ // highlight KNOWN: / ASSESSED: labels in narration
+  return esc(s).replace(/\bKNOWN\b/g,'<span class="k">KNOWN</span>').replace(/\bASSESSED\b/g,'<span class="a">ASSESSED</span>');
+}
+function dosVisual(ch){
+  const v=ch.visual, dd=ch.visualData||{};
+  if(v==='stats'){
+    const subs=(dd.sub_stats||[]).map(s=>`<div><b>${fmt(s.v)}</b><span>${esc(s.k)}</span></div>`).join('');
+    return `<div class="dos-statgrid"><div class="dos-bigstat"><b>${fmt(dd.headline_stat)}</b><span>${esc(dd.stat_label)}</span></div><div class="dos-substat">${subs}</div></div>`;
+  }
+  if(v==='process'){
+    const steps=(dd.steps||[]).map((s,i)=>`${i?'<div class="arrow">→</div>':''}<div class="step"><div class="lab">${esc(s.label)}</div>${s.detail?`<div class="det">${esc(s.detail)}</div>`:''}</div>`).join('');
+    return `<div class="dos-flow">${steps}</div>`;
+  }
+  if(v==='corroboration'){
+    const src=(dd.sources||[]);const mx=Math.max(1,...src.map(s=>s.count));
+    const bars=src.map(s=>`<div class="dos-bar"><div class="dos-bar-lab">${esc(s.source)}</div><div class="dos-bar-track"><div class="dos-bar-fill" style="width:${Math.max(3,Math.round(s.count/mx*100))}%"></div></div><div class="dos-bar-val">${fmt(s.count)}</div></div>`).join('');
+    return `<div class="dos-barchart">${bars}</div>`;
+  }
+  if(v==='graph'){
+    let out='<svg id="dosGraphSvg-'+ch.id+'" style="width:100%;height:300px;display:block;background:rgba(255,255,255,.02);border:1px solid var(--border,#2a2f3a);border-radius:10px"></svg>';
+    const a=dd.anchor;
+    if(a&&a.text){out+=`<div class="dos-anchor" style="margin-top:10px"><div class="hd">${esc(a.title)} <span style="font-weight:400;color:var(--text-muted)">${esc(a.country||'')} ${esc(String(a.year||''))}</span></div>${esc(a.text)}${a.id?`<div style="margin-top:8px"><button class="dos-ex" style="display:inline-block" onclick="openCaseFile('${a.id}')">📁 Open the KNOWN record</button></div>`:''}</div>`;}
+    return out;
+  }
+  if(v==='map'){
+    // Fully-offline inline SVG map (no tiles). Renders in dosMount().
+    let out='<svg id="dosSvgMap-'+ch.id+'" style="width:100%;height:320px;display:block;background:radial-gradient(circle at 50% 40%,#0f2033,#0a1016);border:1px solid var(--border,#2a2f3a);border-radius:10px"></svg>';
+    ['anchor','anchor_usovo','anchor_sdf'].forEach(k=>{const x=dd[k];if(x&&x.text)out+=`<div class="dos-anchor" style="margin-top:8px"><div class="hd">${esc(x.title)} <span style="font-weight:400;color:var(--text-muted)">${esc(x.country||'')} ${esc(String(x.year||''))}</span></div>${esc(x.text)}${x.id?`<div style="margin-top:6px"><button class="dos-ex" style="display:inline-block" onclick="openCaseFile('${x.id}')">📁 Open the KNOWN record</button></div>`:''}</div>`;});
+    return out;
+  }
+  if(v==='timeline'){
+    let out='';
+    const a=dd.anchor; if(a&&a.text)out+=`<div class="dos-anchor"><div class="hd">${esc(a.title)}</div>${esc(a.text)}</div>`;
+    const tl=(dd.timeline||[]).map(e=>`<div class="ev"><div class="dot"></div><div class="yr">${esc(String(e.year))}</div><div class="lb">${esc(e.label)}</div></div>`).join('');
+    if(tl)out+=`<div class="dos-tl">${tl}</div>`;
+    return out;
+  }
+  if(v==='checklist'){
+    const steps=(dd.play_steps||[]).map(s=>`<li><b style="color:var(--accent-primary)">${esc(s.verb)}</b> — ${esc(s.action)} <span style="color:var(--text-muted);font-size:11px">[${s.produces}]</span></li>`).join('');
+    const ladder=(dd.confidence_ladder||[]).map(r=>`<div class="rung"><div class="wep">${esc(r.wep)}</div><div class="when">${esc(r.when)}</div></div>`).join('');
+    return `<h4 style="font-size:12px;color:var(--text-secondary);margin:0 0 6px">The 5-step field procedure</h4><ul class="dos-check">${steps}</ul><h4 style="font-size:12px;color:var(--text-secondary);margin:14px 0 6px">Confidence you can honestly claim</h4><div class="dos-ladder">${ladder}</div>`;
+  }
+  if(v==='investigator'){
+    const inv=dd.investigator||{};
+    const pros=(inv.prosaic_checklist||[]).map(p=>`<li>${esc(p)}</li>`).join('');
+    const ex=(dd.examples||[]).map(e=>`<div class="dos-ex" onclick="runNuclearInvestigator('${e.id}')"><div class="meta">${esc(e.source)} · ${esc(e.country||'')} ${esc(String(e.year||''))} · ▶ RUN INVESTIGATOR</div>${esc(e.text)}</div>`).join('');
+    return `<p style="font-size:12.5px;color:var(--text-secondary);font-style:italic;margin:0 0 10px">"${esc(inv.opening||'')}"</p>
+      <h4 style="font-size:12px;color:var(--text-secondary);margin:0 0 6px">Prosaic causes it must rule out</h4><ul class="dos-check">${pros}</ul>
+      <h4 style="font-size:12px;color:var(--text-secondary);margin:14px 0 6px">Pick a real firing case — the investigator runs the 5 steps live</h4>${ex}
+      <div id="dosInvResult" style="margin-top:14px"></div>`;
+  }
+  return '';
+}
+// ---- Live Nuclear Sentinel investigator: runs the 5-step play on one real case ----
+function runNuclearInvestigator(caseId){
+  const c=(typeof CASE_BY_ID!=='undefined')?CASE_BY_ID[caseId]:null;
+  const panel=document.getElementById('dosInvResult'); if(!panel) return;
+  if(!c){panel.innerHTML='<p class="conv-note">Case record not in the curated store; open it from Case Files.</p>';return;}
+  const txt=(c.description||'').toLowerCase();
+  const has=list=>list.some(k=>txt.includes(k));
+  const fired=c.fired_signatures||[];
+  // Step 1 SPOT — proximity to a strategic site
+  const prox=has(['nuclear','missile','silo','reactor','warhead','air force base','military base',' base',' afb','power plant','weapons']);
+  // Step 2 CONFIRM — systems effect
+  const sysfx=has(['off alert','launch','shut down','shut off','went out','power','interference','malfunction','systems','activated','disabled','engine']) || fired.includes('uap-em-strat-001');
+  // Step 3 CORROBORATE — credible / multiple / official
+  const corrob=has(['radar','flir','officer','pilot','security','military','gendarme','base','investigation','official','crew','multiple witnesses','several']) || fired.includes('uap-wr-cred-001') || fired.includes('uap-ir-off-001') || (c.signature_count||0)>=4;
+  // Step 4 RULE-OUT — prosaic flags present in the text
+  const prosaic=has(['probably a plane','was a plane','satellite','starlink','chinese lantern','sky lantern','weather balloon','was venus','shooting star','meteor','firework','drone','helicopter','flare','hoax','explanation:']);
+  const steps=[
+    {v:'SPOT', ok:prox,
+     why:'Is the object actually at or beside a nuclear / missile / reactor / strategic-military site? Proximity is the entry condition — no proximity, no Nuclear Sentinel case.',
+     found: prox?'The record places the object at or near a strategic/nuclear/military site.':'The record does not clearly place this at a strategic site.',
+     so: prox?'<b>Proximity: MET.</b>':'<b>Proximity: NOT MET</b> — this may be a general sighting, not a Nuclear Sentinel case.'},
+    {v:'CONFIRM', ok:sysfx,
+     why:'Did any system behave anomalously during the sighting — weapons off alert, a launch sequence, power or comms interference?',
+     found: sysfx?'The account references a systems effect or fires the nuclear-interference signature.':'No clear systems effect is described.',
+     so: sysfx?'<b>Systems effect: PRESENT</b> — the high-severity element of the pattern.':'<b>Systems effect: ABSENT</b> — weakens the case toward "sighting near a base," not "interference."'},
+    {v:'CORROBORATE', ok:corrob,
+     why:'Is there independent weight — credible observers (security, aircrew, officers), radar/FLIR, multiple witnesses, or an official investigation?',
+     found: corrob?'Credible/official/multiple-witness or instrumented corroboration is indicated.':'Corroboration is thin — appears single/uncorroborated.',
+     so: corrob?'<b>Corroboration: PRESENT.</b>':'<b>Corroboration: WEAK.</b>'},
+    {v:'RULE-OUT', ok:!prosaic,
+     why:'Try honestly to kill the case: does a test flight, drone, balloon, planet, or aircraft explain it?',
+     found: prosaic?'The record itself names a likely prosaic cause.':'No explicit prosaic explanation is stated in the record.',
+     so: prosaic?'<b>Prosaic cause indicated — case should CLOSE here.</b> Honesty over drama.':'<b>No stated prosaic cause</b> — but absence of a stated cause is not proof; unrecorded prosaic causes remain possible.'},
+  ];
+  // Step 5 ASSESS — WEP verdict
+  let wep, band, reason;
+  if(prosaic){wep='EXPLAINED / likely prosaic';band='lo';reason='A prosaic cause is named in the record.';}
+  else if(prox&&sysfx&&corrob){wep='ANOMALOUS — HIGH';band='hi';reason='Proximity + systems effect + corroboration all present, no stated prosaic cause.';}
+  else if(prox&&(sysfx||corrob)){wep='ANOMALOUS — MODERATE';band='mid';reason='Proximity plus one of {systems effect, corroboration}; not the full set.';}
+  else {wep='INSUFFICIENT';band='lo';reason='Missing proximity and/or both corroborating elements.';}
+  // collection gaps
+  const gaps=[];
+  if(!sysfx)gaps.push('Pull base maintenance / alert logs for a systems-effect confirmation.');
+  if(!corrob)gaps.push('Seek a second credible witness, radar, or FLIR track.');
+  gaps.push('Cross-check base flight schedules / NOTAMs to exclude a test flight or drone.');
+  const stepHtml=steps.map((s,i)=>`
+    <div class="dos-chapter" style="padding:12px 14px;margin:0 0 8px">
+      <div class="dos-chnum">Step ${i+1} · ${s.v} <span style="color:${s.ok?'var(--accent-success,#4ade80)':'var(--accent-amber,#fbbf24)'}">${s.ok?'✓':'—'}</span></div>
+      <div style="font-size:12px;color:var(--text-secondary);margin:4px 0"><b style="color:var(--accent-primary)">WHY</b> ${esc(s.why)}</div>
+      <div style="font-size:12px;margin:2px 0"><b style="color:var(--accent-primary)">FOUND</b> <span class="k">KNOWN:</span> ${esc(s.found)}</div>
+      <div style="font-size:12px;color:var(--text-secondary)"><b style="color:var(--accent-primary)">SO WHAT</b> ${s.so}</div>
+    </div>`).join('');
+  panel.innerHTML=`
+    <div class="dos-hero" style="margin:0 0 10px">
+      <div class="dos-chnum">Nuclear Sentinel Investigator — live run</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin:4px 0 8px">${esc(c.source)} · ${esc([c.city,c.country].filter(Boolean).join(', '))} · ${esc(String(c.year||''))} · ID ${esc(caseId)}</div>
+      <div class="conv-lift ${band}" style="font-size:22px">${esc(wep)}</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-top:4px"><span class="a">ASSESSED:</span> ${esc(reason)}</div>
+    </div>
+    ${stepHtml}
+    <div class="dos-anchor"><div class="hd">Collection gaps — what would raise confidence</div><ul class="dos-check" style="margin-top:4px">${gaps.map(g=>`<li>${esc(g)}</li>`).join('')}</ul>
+      <div style="margin-top:8px"><button class="dos-ex" style="display:inline-block" onclick="openCaseFile('${caseId}')">📁 Open the full KNOWN record</button></div></div>`;
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+// ---- Collapsible "Go deeper" sub-chapters (deep dives grounded in tier2 research) ----
+function dosDeep(ch){
+  const deep=(ch.visualData&&ch.visualData.deep)||[];
+  if(!deep.length) return '';
+  const items=deep.map((d,i)=>`
+    <div class="dos-deepitem">
+      <button class="dos-deeptog" onclick="toggleDeep('${ch.id}',${i})">
+        <span class="tw" id="dostw-${ch.id}-${i}">▸</span> ${esc(d.title)}
+        <span class="sec">${d.est_seconds?`~${d.est_seconds}s`:''}</span>
+      </button>
+      <div class="dos-deepbody" id="dosdeep-${ch.id}-${i}" style="display:none">
+        ${d.audio?`<audio controls preload="none" src="${d.audio}" style="width:100%;margin:4px 0 10px;height:32px"></audio>`:''}
+        <div class="dos-narr">${markKA(d.narration)}</div>
+      </div>
+    </div>`).join('');
+  const mins=Math.round(deep.reduce((a,d)=>a+(d.est_seconds||0),0)/60);
+  return `<div class="dos-deep">
+    <div class="dos-deephd">🔬 Go deeper — ${deep.length} deep dive${deep.length>1?'s':''}${mins?` · ~${mins} min more`:''}</div>
+    ${items}
+  </div>`;
+}
+function toggleDeep(chId,i){
+  const b=document.getElementById('dosdeep-'+chId+'-'+i);
+  const tw=document.getElementById('dostw-'+chId+'-'+i);
+  if(!b) return;
+  const open=b.style.display!=='none';
+  b.style.display=open?'none':'block';
+  if(tw) tw.textContent=open?'▸':'▾';
+}
+var dosMapInst=null, dosSim=null;
+function dosMount(ch){
+  const dd=ch.visualData||{};
+  // ---- fully-offline inline SVG map for 'map' chapters (no tiles, no network) ----
+  if(ch.visual==='map'){
+    const pts=(dd.points||[]).filter(p=>p.lat!=null&&p.lng!=null);
+    setTimeout(()=>{
+      try{
+        const svg=document.getElementById('dosSvgMap-'+ch.id); if(!svg||!pts.length) return;
+        const r=svg.getBoundingClientRect(); const W=r.width||600, H=r.height||320, pad=46;
+        let lats=pts.map(p=>p.lat), lngs=pts.map(p=>p.lng);
+        let minLa=Math.min(...lats),maxLa=Math.max(...lats),minLo=Math.min(...lngs),maxLo=Math.max(...lngs);
+        // pad the bounding box so single-cluster maps aren't zoomed to a dot
+        const spanLa=Math.max(0.4,(maxLa-minLa)),spanLo=Math.max(0.4,(maxLo-minLo));
+        minLa-=spanLa*0.35;maxLa+=spanLa*0.35;minLo-=spanLo*0.35;maxLo+=spanLo*0.35;
+        const px=lo=>pad+(lo-minLo)/(maxLo-minLo)*(W-2*pad);
+        const py=la=>pad+(maxLa-la)/(maxLa-minLa)*(H-2*pad);
+        const NS='http://www.w3.org/2000/svg'; while(svg.firstChild)svg.removeChild(svg.firstChild);
+        // faint graticule
+        for(let i=1;i<5;i++){const gx=pad+i/5*(W-2*pad);const l=document.createElementNS(NS,'line');l.setAttribute('x1',gx);l.setAttribute('y1',pad);l.setAttribute('x2',gx);l.setAttribute('y2',H-pad);l.setAttribute('stroke','#243244');l.setAttribute('stroke-width','1');svg.appendChild(l);
+          const gy=pad+i/5*(H-2*pad);const l2=document.createElementNS(NS,'line');l2.setAttribute('x1',pad);l2.setAttribute('y1',gy);l2.setAttribute('x2',W-pad);l2.setAttribute('y2',gy);l2.setAttribute('stroke','#243244');l2.setAttribute('stroke-width','1');svg.appendChild(l2);}
+        // connect the dots faintly (shows the "thread" between sites)
+        for(let i=0;i<pts.length-1;i++){const ln=document.createElementNS(NS,'line');ln.setAttribute('x1',px(pts[i].lng));ln.setAttribute('y1',py(pts[i].lat));ln.setAttribute('x2',px(pts[i+1].lng));ln.setAttribute('y2',py(pts[i+1].lat));ln.setAttribute('stroke','#b794f4');ln.setAttribute('stroke-opacity','.35');ln.setAttribute('stroke-dasharray','4 4');ln.setAttribute('stroke-width','1.5');svg.appendChild(ln);}
+        // site markers + labels
+        pts.forEach(p=>{
+          const x=px(p.lng),y=py(p.lat);
+          const c=document.createElementNS(NS,'circle');c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r','7');c.setAttribute('fill','#ed8936');c.setAttribute('stroke','#fbbf24');c.setAttribute('stroke-width','2');svg.appendChild(c);
+          const t=document.createElementNS(NS,'text');t.setAttribute('x',x+11);t.setAttribute('y',y+4);t.setAttribute('fill','#e2e8f0');t.setAttribute('font-size','12px');t.textContent=(p.label||p.country||'');svg.appendChild(t);
+        });
+        const cap=document.createElementNS(NS,'text');cap.setAttribute('x',pad);cap.setAttribute('y',H-14);cap.setAttribute('fill','#64748b');cap.setAttribute('font-size','10px');cap.textContent='offline map · '+pts.length+' site'+(pts.length>1?'s':'')+' plotted by coordinate';svg.appendChild(cap);
+      }catch(e){}
+    },90);
+  }
+  // ---- real D3 force network for 'graph' chapters ----
+  if(ch.visual==='graph' && window.d3 && (dd.nodes||[]).length){
+    setTimeout(()=>{
+      try{
+        const svg=d3.select('#dosGraphSvg-'+ch.id);if(svg.empty())return;svg.selectAll('*').remove();
+        const rect=svg.node().getBoundingClientRect();const W=rect.width||600,H=rect.height||300;
+        const nodes=dd.nodes.map(n=>Object.assign({},n));
+        const links=dd.links.map(l=>Object.assign({},l));
+        const col=n=>n.center?'#fff':(n.kind==='sig'?'#63b3ed':'#ed8936');
+        if(dosSim){dosSim.stop();}
+        const link=svg.append('g').selectAll('line').data(links).enter().append('line')
+          .attr('stroke','#b794f4').attr('stroke-opacity',.45).attr('stroke-width',d=>1+ (d.w||1)*0.7);
+        const g=svg.append('g').selectAll('g').data(nodes).enter().append('g');
+        g.append('circle').attr('r',d=>d.center?14:9).attr('fill',col)
+         .attr('stroke',d=>d.center?'#fbbf24':'#0a0f19').attr('stroke-width',d=>d.center?3:1.5);
+        g.append('text').text(d=>d.id).attr('x',13).attr('y',4)
+         .attr('fill','#cbd5e0').attr('font-size','11px');
+        dosSim=d3.forceSimulation(nodes)
+          .force('link',d3.forceLink(links).id(d=>d.id).distance(110))
+          .force('charge',d3.forceManyBody().strength(-260))
+          .force('center',d3.forceCenter(W/2,H/2))
+          .force('collide',d3.forceCollide(30))
+          .on('tick',()=>{
+            link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+            g.attr('transform',d=>`translate(${Math.max(20,Math.min(W-20,d.x))},${Math.max(16,Math.min(H-16,d.y))})`);
+          });
+      }catch(e){}
+    },110);
+  }
+}
+function renderDossier(did, chId){
+  const D=(window.UAP_DOSSIERS&&window.UAP_DOSSIERS.dossiers||[]).find(x=>x.id===did);
+  if(!D){return;}
+  if(dosMapInst){try{dosMapInst.remove();}catch(e){}dosMapInst=null;}
+  if(dosSim){try{dosSim.stop();}catch(e){}dosSim=null;}
+  const ch=D.chapters.find(c=>c.id===chId)||D.chapters[0];
+  const toc=D.chapters.map((c,i)=>`<button class="${c.id===ch.id?'on':''}" onclick="renderDossier('${D.id}','${c.id}')">${i+1}. ${esc(c.title)}</button>`).join('');
+  const idx=D.chapters.findIndex(c=>c.id===ch.id);
+  document.getElementById('dossierBody').innerHTML=`
+    <div class="dos-hero">
+      ${(window.UAP_DOSSIERS&&window.UAP_DOSSIERS.dossiers||[]).length>1?`<button class="lib" style="font-size:11px;margin-bottom:8px" onclick="renderDossierList()">← All dossiers</button>`:''}
+      <h1>📕 ${esc(D.title)}</h1>
+      <p class="sub">${esc(D.subtitle)} — a Pattern Dossier. Every figure is KNOWN corpus data; every reading is ASSESSED. No claim of proof.</p>
+      <div class="metrics">
+        <div><b>${fmt(D.firing_total)}</b><span>reports fire this pattern</span></div>
+        <div><b>${D.sources}</b><span>independent sources</span></div>
+        <div><b>${D.countries}</b><span>countries</span></div>
+        <div><b>${D.chapters.length}</b><span>chapters</span></div>
+        ${D.est_runtime_min?`<div><b>~${D.est_runtime_min} min</b><span>narration runtime</span></div>`:''}
+      </div>
+      ${D.chapters.some(c=>c.audio)?`<button class="lib" style="margin-top:12px" onclick="playEpisode('${D.id}')">▶ Play episode (auto-advance)</button>`:''}
+    </div>
+    <div class="dos-toc">${toc}</div>
+    <div class="dos-chapter">
+      <div class="dos-chnum">Chapter ${idx+1} of ${D.chapters.length}${ch.est_seconds?` · ~${ch.est_seconds}s narration${ch.words?` · ${ch.words} words`:''}`:''}</div>
+      <h3>${esc(ch.title)}</h3>
+      ${ch.explorer_site?`<a class="dos-backlink" href="geographic-explorer.html?site=${ch.explorer_site}">📍 See this site on the map</a>`:''}
+      ${ch.audio?`<audio id="dosAudio" controls preload="none" src="${ch.audio}" style="width:100%;margin:6px 0 12px;height:34px" ${dosAutoplay?'autoplay':''}></audio>`:''}
+      <div class="dos-narr">${markKA(ch.narration)}</div>
+      ${dosVisual(ch)}
+      ${dosDeep(ch)}
+      <div style="display:flex;justify-content:space-between;margin-top:16px;gap:8px">
+        <button class="lib" style="font-size:12px" onclick="renderDossier('${D.id}','${D.chapters[Math.max(0,idx-1)].id}')" ${idx===0?'disabled':''}>← Previous</button>
+        <button class="lib" style="font-size:12px" onclick="renderDossier('${D.id}','${D.chapters[Math.min(D.chapters.length-1,idx+1)].id}')" ${idx===D.chapters.length-1?'disabled':''}>Next chapter →</button>
+      </div>
+    </div>`;
+  document.getElementById('dossierBody').scrollTop=0;
+  // auto-advance in episode mode: when this chapter's audio ends, go to the next
+  const au=document.getElementById('dosAudio');
+  if(au&&dosAutoplay){
+    au.onended=function(){ if(dosAutoplay&&idx<D.chapters.length-1){ renderDossier(D.id, D.chapters[idx+1].id); } else { dosAutoplay=false; } };
+  }
+  dosMount(ch); // spin up Leaflet/D3 visuals for map/graph chapters after DOM injection
+}
+
+// ---- Agent library ----
+function openAgentLib(){document.getElementById('agentLibBody').innerHTML=INV.AGENTS.map(a=>`<div class="agent-row"><div><div class="an">${a.label}</div><div class="av">${a.verb} · ${a.produces}</div></div><div><div class="ad">${a.capability}</div><div class="meta">UTS: ${(U.UTS_META[a.vector]||{}).label||a.vector} · Data: ${a.dataSource} · <b style="color:${a.live?'var(--accent-success)':'var(--accent-amber)'}">${a.live?'LIVE':'ROADMAP'}</b></div></div></div>`).join('');document.getElementById('agentLib').classList.add('on');}
+function closeAgentLib(){document.getElementById('agentLib').classList.remove('on');}
+
+// ---- init ----
+function init(){
+  txt('s-corpus',fmt(D.corpus_total));txt('s-firing',fmt(D.reports_firing));txt('s-sigs',D.signatures_total||0);txt('s-countries',D.countries_total||0);
+  txt('hb-corpus',fmt(D.corpus_total)+' reports');txt('hb-countries',(D.countries_total||0)+' countries');
+  initMap();renderPatternList();discoverMap();setTimeout(()=>{map.invalidateSize();discoverMap();},300);
+  dossierDeepLinkFromURL(); // if arrived from the Explorer with ?dossier=&chapter=, open it
+}
+window.investigate=investigate;window.backToDiscover=backToDiscover;window.setSort=setSort;window.setMode=setMode;
+window.startInvestigation=startInvestigation;window.execStep=execStep;window.doInject=doInject;window.secondPass=secondPass;
+window.openAgentLib=openAgentLib;window.closeAgentLib=closeAgentLib;
+window.openCaseFile=openCaseFile;window.closeCaseFile=closeCaseFile;
+window.openCaseList=openCaseList;window.closeCaseList=closeCaseList;
+window.openConvergence=openConvergence;window.closeConvergence=closeConvergence;window.renderConvTab=renderConvTab;
+window.openDossiers=openDossiers;window.closeDossiers=closeDossiers;window.renderDossier=renderDossier;window.playEpisode=playEpisode;window.renderDossierList=renderDossierList;window.runNuclearInvestigator=runNuclearInvestigator;window.toggleDeep=toggleDeep;
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+</body>
+</html>
