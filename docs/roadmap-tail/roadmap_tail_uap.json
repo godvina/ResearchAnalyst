@@ -1,0 +1,31 @@
+{
+  "source": "Roadmap-tail documented cases (Mexico SEDENA, Italy CUN)",
+  "licence": "summaries of public events with source links",
+  "count": 2,
+  "reports": [
+    {
+      "id": "MX-SEDENA-campeche-2004",
+      "source": "MX-SEDENA",
+      "date": "2004-03-05",
+      "description": "On 5 March 2004 a Mexican Air Force Merlin C26A surveillance aircraft on an anti-drug patrol over Campeche recorded, on forward-looking infrared (FLIR), multiple unidentified objects that the crew could not see visually and that were not on primary radar. The objects appeared to surround the aircraft. Mexico's Defence Secretariat (SEDENA) released the FLIR footage publicly — a rare official military infrared UAP record.",
+      "city": "Campeche (Gulf of Mexico patrol)",
+      "district": "",
+      "country": "MX",
+      "lat": 18.64,
+      "lng": -91.83,
+      "source_url": "https://en.wikipedia.org/wiki/2004_Mexican_UFO_incident"
+    },
+    {
+      "id": "IT-CUN-national",
+      "source": "IT-CUN",
+      "date": "2000-01-01",
+      "description": "Italy's Centro Ufologico Nazionale (CUN) and the Italian Air Force (Aeronautica Militare, which maintains an official reporting channel) have collected and analysed unidentified-aerial-object reports for decades, including radar-visual military cases and multi-witness civilian sightings of disc and luminous objects across Italy.",
+      "city": "Rome (national reporting)",
+      "district": "",
+      "country": "IT",
+      "lat": 41.902,
+      "lng": 12.496,
+      "source_url": "https://en.wikipedia.org/wiki/Centro_Ufologico_Nazionale"
+    }
+  ]
+}
