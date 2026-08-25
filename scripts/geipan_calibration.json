@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-08-22T22:18:07.354411+00:00",
+  "source": "docs/geipan/export_cas.xlsx (GEIPAN / CNES official)",
+  "total_cases": 3381,
+  "disposition_counts": {
+    "insufficient": 1015,
+    "unexplained": 106,
+    "explained": 2260
+  },
+  "calibration": {
+    "disposition": {
+      "insufficient": {
+        "cases": 1015,
+        "prosaic_hit_pct": 46.1,
+        "anomaly_hit_pct": 42.6
+      },
+      "unexplained": {
+        "cases": 106,
+        "prosaic_hit_pct": 46.2,
+        "anomaly_hit_pct": 72.6
+      },
+      "explained": {
+        "cases": 2260,
+        "prosaic_hit_pct": 74.5,
+        "anomaly_hit_pct": 41.5
+      }
+    }
+  },
+  "interpretation": "If calibrated: prosaic_hit_pct should be HIGHER in explained(A/B) than unexplained(D); anomaly_hit_pct should be HIGHER in unexplained(D) than explained(A/B)."
+}
