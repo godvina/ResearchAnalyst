@@ -1,0 +1,16 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "aoss:APIAccessAll",
+        "aoss:DashboardsAccessAll"
+      ],
+      "Resource": [
+        "arn:aws:aoss:us-east-1:974220725866:collection/hzrvvva3hodw069v9442",
+        "arn:aws:aoss:us-east-1:974220725866:collection/u260nrrtc0q87ji8iu0k"
+      ]
+    }
+  ]
+}
