@@ -12,13 +12,19 @@ FN_NAME = "ResearchAnalystStack-CaseFilesLambda91230A57-gN7wQJqzNlFq"
 
 SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src")
 
+# Directories under src/ that are runtime DATA, not Lambda code. Excluded from the
+# deploy zip — they belong in S3, not the code bundle. Without this, src/data alone
+# is ~3.3GB and blows past Lambda's 250MB unzipped limit. The deployed package is ~43MB.
+EXCLUDE_DIRS = {"__pycache__", "data"}
+EXCLUDE_EXT = (".pyc", ".csv", ".parquet", ".zip")
+
 print("Creating zip...")
 buf = io.BytesIO()
 with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
     for root, dirs, files in os.walk(SRC):
-        dirs[:] = [d for d in dirs if d != "__pycache__"]
+        dirs[:] = [d for d in dirs if d not in EXCLUDE_DIRS]
         for f in files:
-            if f.endswith(".pyc"):
+            if f.endswith(EXCLUDE_EXT):
                 continue
             fp = os.path.join(root, f)
             zf.write(fp, os.path.relpath(fp, SRC))
