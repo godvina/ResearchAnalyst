@@ -1,0 +1,17 @@
+{
+  "tier": 1,
+  "source": "docs/updb/updb_reports.json",
+  "generated_at": "2026-08-23T19:37:27.295172+00:00",
+  "total_scanned": 300302,
+  "total_kept": 212282,
+  "filter_rate_pct": 70.69,
+  "category_stats": {
+    "structured_craft": 146608,
+    "impossible_kinematics": 108864,
+    "encounter_quality": 53802,
+    "em_physical_effects": 17360,
+    "credible_witness": 31577,
+    "institutional": 30955,
+    "radar_visual": 75839
+  }
+}
