@@ -41,6 +41,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TAXONOMY_FILES = [
     os.path.join(BASE_DIR, "src", "data", "pattern-library-taxonomy.json"),
     os.path.join(BASE_DIR, "src", "data", "ancient-mysteries-taxonomy.json"),
+    os.path.join(BASE_DIR, "src", "data", "ufo-uap-taxonomy.json"),
 ]
 
 bedrock = boto3.client("bedrock-runtime", region_name=AWS_REGION)
@@ -200,9 +201,17 @@ def index_signatures(signatures: list[dict], dry_run: bool = False):
             "embedding": embedding,
         }
 
-        # Upsert (use pattern_id as document ID for idempotency)
-        doc_id = pid.replace("/", "_")
-        result = opensearch_request("PUT", f"/{INDEX_NAME}/_doc/{doc_id}", doc)
+        # OpenSearch Serverless (aoss) does NOT support a caller-supplied _id,
+        # and _delete_by_query is not available on this collection. For idempotency
+        # we search for any existing docs with this pattern_id and delete them by
+        # _id, then index a fresh one (auto-generated _id).
+        existing_hits = opensearch_request("POST", f"/{INDEX_NAME}/_search", {
+            "size": 100, "_source": False,
+            "query": {"match": {"pattern_id": pid}},
+        })
+        for h in existing_hits.get("hits", {}).get("hits", []):
+            opensearch_request("DELETE", f"/{INDEX_NAME}/_doc/{h['_id']}")
+        result = opensearch_request("POST", f"/{INDEX_NAME}/_doc", doc)
         if "error" in result:
             stats["failed"] += 1
         else:
