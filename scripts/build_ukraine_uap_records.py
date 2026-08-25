@@ -1,0 +1,134 @@
+"""Build UAP records from the Kyiv Main Astronomical Observatory (NAS of Ukraine)
+scientific study by Zhilyaev, Petukhov, Reshetnyk, Pokhvala — a rare INSTRUMENT-BASED
+(not eyewitness) UAP dataset. Events are measured with synchronized meteor-station
+cameras in Kyiv and Vinarivka, giving altitude, speed, size, and colorimetric distance.
+
+These are KNOWN measured facts transcribed from the published papers (the authors
+explicitly do NOT interpret the objects). Source arXiv IDs cited per record.
+
+Sources (public):
+  arXiv:2208.11215  Unidentified aerial phenomena I. Observations of events
+  arXiv:2211.17085  Unidentified aerial phenomena II. Evaluation of UAP properties
+  arXiv:2503.05627  Unidentified Aerial Phenomena. Characterization of Dark UAPs
+  Main Astronomical Observatory, NAS of Ukraine, Kyiv.
+
+Output: docs/ukraine-uap/ukraine_uap.json  (source=UA-KYIV-OBS, country=UA, real coords)
+"""
+import json
+import os
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT_DIR = os.path.join(ROOT, "docs", "ukraine-uap")
+
+KYIV = (50.4501, 30.5234)
+VINARIVKA = (49.68, 30.83)  # village ~120 km S of Kyiv (approx public coords)
+
+# Measured events transcribed from the papers (KNOWN observational facts).
+EVENTS = [
+    {
+        "id": "UA-KYIV-OBS-cosmic-1", "date": "2022-10-17", "site": VINARIVKA, "city": "Vinarivka",
+        "arxiv": "2211.17085",
+        "desc": ("Kyiv Main Astronomical Observatory (NAS of Ukraine) instrument observation. "
+                 "A bright luminous object ('Cosmic') detected simultaneously by two synchronized "
+                 "meteor-station cameras (Kyiv + Vinarivka, 120 km baseline) on 2022-10-17 08:58 UT. "
+                 "Parallax gives distance 2600 km; estimated altitude 1130 km; linear velocity 78 km/s; "
+                 "brightness variability about 10-20 Hz; colorimetry indicates a very dark object "
+                 "(B-V=1.35). Size estimated over 100 m. The authors present this as an experimental "
+                 "fact and do not interpret the object.")
+    },
+    {
+        "id": "UA-KYIV-OBS-cosmic-2", "date": "2022-10-17", "site": VINARIVKA, "city": "Vinarivka",
+        "arxiv": "2211.17085",
+        "desc": ("Second luminous 'Cosmic' object detected 0.7 s after the first on 2022-10-17 by both "
+                 "synchronized cameras. Parallax gives distance 1400 km; estimated altitude 620 km; "
+                 "linear velocity 256 km/s; light-curve variability about 10 Hz. Not detected by radar, "
+                 "asteroid surveys, or the military; visible only in daytime by reflected sunlight, "
+                 "implying anomalously low albedo. An instrument-measured UAP, uninterpreted.")
+    },
+    {
+        "id": "UA-KYIV-OBS-phantom-9252", "date": "2018-08-24", "site": KYIV, "city": "Kyiv",
+        "arxiv": "2211.17085",
+        "desc": ("Dark object ('Phantom') 9252 recorded over the Goloseevo district of Kyiv on "
+                 "2018-08-24 ~09:00 during daytime sky monitoring (30 fps DSLR). Visible only 0.17 s. "
+                 "Colorimetric distance 8.5 km rising to 13.3 km; altitude 9.6 to 13.6 km; angular size "
+                 "comparable to the Moon; estimated size about 94 m; speed about 31.8 km/s along a 5.4 km "
+                 "track. Appears as a dark spot because it shields sky radiation (near-zero albedo). "
+                 "Observed the same day as a military parade for Ukraine Independence anniversary.")
+    },
+    {
+        "id": "UA-KYIV-OBS-arrival-2", "date": "2018-08-24", "site": KYIV, "city": "Kyiv",
+        "arxiv": "2211.17085",
+        "desc": ("Dark UAP 'Arrival 2': an object appeared suddenly at 11 km distance and ~2 km altitude, "
+                 "approached to about 4 km, then turned around and departed. Duration 0.72 s; size 79 m; "
+                 "speed about 10 km/s; altitude 2.4 km falling to 1.9 km. The evolution of the object's "
+                 "shape during motion was clearly visible; seen with the naked eye as a black object at "
+                 "~4 km. Instrument-measured, uninterpreted.")
+    },
+    {
+        "id": "UA-KYIV-OBS-arrival-3", "date": "2018-08-24", "site": KYIV, "city": "Kyiv",
+        "arxiv": "2211.17085",
+        "desc": ("Dark UAP 'Arrival 3' over Kyiv, 2018-08-24 ~09:00. An object about 45 m in size "
+                 "descended from the stratosphere to ~7 km near Kyiv airport at ~30 km/s, then dropped "
+                 "from 7 to 1 km in about one second without approaching the observer, then rose and left. "
+                 "Whole episode 2.2 s; colorimetric distance ~12 km.")
+    },
+    {
+        "id": "UA-KYIV-OBS-arrival-4", "date": "2018-09-26", "site": KYIV, "city": "Kyiv",
+        "arxiv": "2211.17085",
+        "desc": ("Dark UAP 'Arrival 4' over Kyiv, 2018-09-26. Distance 10 km, height 4.5 km, size 79 m. "
+                 "An ellipsoidal-shape object performed a maneuver in 0.13 s. Whole episode 0.2 s. "
+                 "Instrument-measured with a multi-color DSLR at 30 fps.")
+    },
+    {
+        "id": "UA-KYIV-OBS-arrival-5", "date": "2022-10-15", "site": VINARIVKA, "city": "Vinarivka",
+        "arxiv": "2211.17085",
+        "desc": ("Dark UAP 'Arrival 5' from Vinarivka, 2022-10-15. Duration 0.128 s; colorimetric distance "
+                 "about 13.7 km; speed 2.3 km/s (about Mach 7.2); size 20 m. A fast, low-albedo object "
+                 "captured by CMOS meteor-station camera.")
+    },
+    {
+        "id": "UA-KYIV-OBS-variable-1170", "date": "2022-01-01", "site": VINARIVKA, "city": "Kyiv region",
+        "arxiv": "2208.11215",
+        "desc": ("From the first Kyiv Observatory UAP paper: two-site observations at a 120 km baseline "
+                 "detected a variable object at an altitude of 1170 km that flashes for one-hundredth of "
+                 "a second at an average of 20 Hz. Flights of single objects and groups were detected "
+                 "moving at 3 to 15 degrees per second; some bright objects show regular brightness "
+                 "variability of 10-20 Hz.")
+    }
+]
+
+
+def main():
+    recs = []
+    for e in EVENTS:
+        lat, lng = e["site"]
+        recs.append({
+            "id": e["id"],
+            "source": "UA-KYIV-OBS",
+            "date": e["date"],
+            "description": e["desc"],
+            "city": e["city"],
+            "district": "",
+            "country": "UA",
+            "lat": lat, "lng": lng,
+            "arxiv": e["arxiv"],
+        })
+    doc = {
+        "source": "Main Astronomical Observatory, NAS of Ukraine (Kyiv) — Zhilyaev et al. UAP study",
+        "licence": "Public preprints (arXiv 2208.11215, 2211.17085, 2503.05627)",
+        "note": ("Instrument-based (not eyewitness) UAP measurements: synchronized meteor-station "
+                 "cameras in Kyiv + Vinarivka. Altitudes, speeds, sizes and colorimetric distances are "
+                 "KNOWN measured values; the authors explicitly do not interpret the objects."),
+        "count": len(recs),
+        "reports": recs,
+    }
+    os.makedirs(OUT_DIR, exist_ok=True)
+    json.dump(doc, open(os.path.join(OUT_DIR, "ukraine_uap.json"), "w", encoding="utf-8"),
+              ensure_ascii=False, indent=2)
+    print(f"Built {len(recs)} UA-KYIV-OBS records -> docs/ukraine-uap/ukraine_uap.json")
+    for r in recs:
+        print(f"  {r['id']}  {r['date']}  {r['city']}")
+
+
+if __name__ == "__main__":
+    main()
