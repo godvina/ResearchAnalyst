@@ -1,0 +1,103 @@
+{
+  "source": "Official government UAP committees (BE/CL/BR/AR/PE/UY), documented public cases",
+  "licence": "summaries of public historical events with source links",
+  "count": 8,
+  "reports": [
+    {
+      "id": "BE-SOBEPS-1990-eupen",
+      "source": "BE-SOBEPS",
+      "date": "1989-11-29",
+      "description": "During the Belgian UFO wave of 1989-1990, numerous witnesses including gendarmes reported large silent black triangular craft with a light at each corner and a central light, moving slowly at low altitude over the Eupen region. The Belgian civilian UFO study group SOBEPS collected hundreds of reports and cooperated with the Belgian Air Force, which acknowledged the events. The wave is one of the best-documented mass triangle cases in Europe.",
+      "city": "Eupen",
+      "district": "",
+      "country": "BE",
+      "lat": 50.628,
+      "lng": 6.036,
+      "source_url": "https://en.wikipedia.org/wiki/Belgian_UFO_wave"
+    },
+    {
+      "id": "BE-SOBEPS-1990-f16",
+      "source": "BE-SOBEPS",
+      "date": "1990-03-30",
+      "description": "On the night of 30-31 March 1990, the Belgian Air Force scrambled two F-16 fighters to intercept unidentified targets reported visually by police and tracked on ground radar. The pilots reported radar locks on objects performing rapid changes in speed and altitude that they could not match, though no visual confirmation was achieved. The Belgian Air Force released the radar and mission data publicly — a rare official military engagement record.",
+      "city": "Petit-Rechain area (F-16 intercept)",
+      "district": "",
+      "country": "BE",
+      "lat": 50.6,
+      "lng": 5.68,
+      "source_url": "https://en.wikipedia.org/wiki/Belgian_UFO_wave"
+    },
+    {
+      "id": "CL-CEFAA-elbosque-2010",
+      "source": "CL-CEFAA",
+      "date": "2010-11-05",
+      "description": "During an air-force anniversary parade at El Bosque Air Base near Santiago, multiple cameras independently recorded a fast disc/dome-shaped object crossing the sky, invisible to spectators at the time but captured on video. Chile's official UAP committee CEFAA (under the DGAC civil aviation authority) analysed the footage with engineers and meteorologists and classified it as an unexplained object displaying high speed with no wings or exhaust.",
+      "city": "El Bosque Air Base (Santiago)",
+      "district": "",
+      "country": "CL",
+      "lat": -33.541,
+      "lng": -70.688,
+      "source_url": "https://en.wikipedia.org/wiki/Comit%C3%A9_de_Estudios_de_Fen%C3%B3menos_A%C3%A9reos_An%C3%B3malos"
+    },
+    {
+      "id": "CL-CEFAA-helicopter-2014",
+      "source": "CL-CEFAA",
+      "date": "2014-11-11",
+      "description": "A Chilean Navy helicopter crew filmed an unidentified object in infrared (FLIR) that paced the aircraft, appeared to twice eject a hot plume or liquid, and was not detected on radar nor correlated with any registered traffic. CEFAA studied the nine-minute IR footage with multiple technical panels over two years and could not identify the object, releasing the analysis publicly.",
+      "city": "off Santiago (Navy helicopter)",
+      "district": "",
+      "country": "CL",
+      "lat": -33.45,
+      "lng": -70.66,
+      "source_url": "https://en.wikipedia.org/wiki/Comit%C3%A9_de_Estudios_de_Fen%C3%B3menos_A%C3%A9reos_An%C3%B3malos"
+    },
+    {
+      "id": "BR-COLARES-1977",
+      "source": "BR-CENIMAR",
+      "date": "1977-10-01",
+      "description": "On Colares island in northern Brazil in 1977, residents reported beams of light descending from luminous objects at night that caused burns, puncture marks, and anaemia-like symptoms in victims. The Brazilian Air Force launched an official investigation, Operação Prato (Operation Saucer), collecting photographs, film, and medical reports over months. The declassified dossier is one of the most extensive government UAP field investigations on record.",
+      "city": "Colares (Pará)",
+      "district": "",
+      "country": "BR",
+      "lat": -0.935,
+      "lng": -48.283,
+      "source_url": "https://en.wikipedia.org/wiki/Operation_Saucer"
+    },
+    {
+      "id": "AR-CEFORA-2010s",
+      "source": "AR-CEFAe",
+      "date": "2011-01-01",
+      "description": "Argentina's Air Force established an official UAP study commission (CEFAe, prompted in part by the civilian federation CEFORA) to collect and technically analyse reports of unidentified aerospace phenomena from pilots, radar operators and civilians nationwide. Cases include disc and light objects paralleling aircraft and appearing near airports, investigated with meteorological and radar cross-checks.",
+      "city": "Buenos Aires (national reporting)",
+      "district": "",
+      "country": "AR",
+      "lat": -34.603,
+      "lng": -58.381,
+      "source_url": "https://en.wikipedia.org/wiki/CEFAe"
+    },
+    {
+      "id": "PE-DIFAA-2000s",
+      "source": "PE-DIFAA",
+      "date": "2013-01-01",
+      "description": "Peru's Air Force operates an official office for the investigation of anomalous aerial phenomena (DIFAA), staffed by scientists, sociologists and air-force officers, to catalogue and analyse UAP reports. Peru has a long history of pilot and civilian sightings, including the 1980 Arequipa incident in which a fighter reportedly fired on a balloon-like object without effect.",
+      "city": "Lima (national reporting)",
+      "district": "",
+      "country": "PE",
+      "lat": -12.046,
+      "lng": -77.043,
+      "source_url": "https://en.wikipedia.org/wiki/Direcci%C3%B3n_de_Investigaci%C3%B3n_de_Fen%C3%B3menos_A%C3%A9reos_An%C3%B3malos"
+    },
+    {
+      "id": "UY-CRIDOVNI-decades",
+      "source": "UY-CRIDOVNI",
+      "date": "1989-01-01",
+      "description": "Uruguay's Air Force has maintained an official UFO investigation commission, CRIDOVNI, since 1979, one of the longest-running government UAP bodies in the world. Over decades it has investigated hundreds of reports, concluding that a residual fraction remain unexplained after ruling out conventional causes, including cases of objects affecting livestock and appearing over rural areas.",
+      "city": "Montevideo (national reporting)",
+      "district": "",
+      "country": "UY",
+      "lat": -34.905,
+      "lng": -56.191,
+      "source_url": "https://en.wikipedia.org/wiki/CRIDOVNI"
+    }
+  ]
+}
