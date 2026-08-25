@@ -1,0 +1,683 @@
+{
+  "generated_at": "2026-08-22T21:50:45.427570+00:00",
+  "source": "docs/updb/updb_reports.json",
+  "total_scored": 278360,
+  "fired_any_signature": 205921,
+  "coverage_pct": 73.98,
+  "signatures_never_fired_on_updb": [],
+  "per_typology_fire": {
+    "craft_morphology": 169871,
+    "flight_kinematics": 98950,
+    "encounter_typology": 96564,
+    "sensor_em_signatures": 91439,
+    "witness_reliability": 16798,
+    "institutional_response": 4115
+  },
+  "per_signature_fire": {
+    "uap-cm-disc-002": 142025,
+    "uap-et-ce-001": 87904,
+    "uap-em-int-001": 74772,
+    "uap-fk-slow-002": 67833,
+    "uap-cm-tri-002": 62535,
+    "uap-cm-tri-001": 59380,
+    "uap-cm-disc-001": 58293,
+    "uap-fk-slow-001": 36110,
+    "uap-cm-orb-001": 31711,
+    "uap-fk-hov-001": 31164,
+    "uap-em-rv-002": 27628,
+    "uap-et-ce-002": 20531,
+    "uap-em-int-002": 15161,
+    "uap-wr-cred-001": 12586,
+    "uap-et-landing-001": 12191,
+    "uap-fk-acc-002": 12121,
+    "uap-fk-acc-001": 9162,
+    "uap-em-rv-001": 8297,
+    "uap-fk-tm-001": 7400,
+    "uap-et-mass-001": 6317,
+    "uap-et-ce-003": 6120,
+    "uap-ir-off-001": 3517,
+    "uap-wr-hoax-002": 2792,
+    "uap-wr-hoax-001": 2202,
+    "uap-wr-cred-002": 1570,
+    "uap-ir-sup-001": 823,
+    "uap-em-phys-002": 464,
+    "uap-em-phys-001": 171
+  },
+  "gap_high_t1_no_signature": 10391,
+  "gap_by_source": {
+    "MUFON": 5258,
+    "NUFORC": 2924,
+    "UFODNA": 1690,
+    "NICAP": 336,
+    "BLUEBOOK": 82,
+    "NIDS": 57,
+    "UKGOV": 32,
+    "CANADAGOV": 9,
+    "PILOTS": 3
+  },
+  "gap_by_country": {
+    "US": 7947,
+    "CA": 537,
+    "GB": 410,
+    "?": 177,
+    "AU": 168,
+    "FR": 136,
+    "BR": 91,
+    "ES": 68,
+    "AR": 64,
+    "IT": 60,
+    "MX": 54,
+    "IN": 43,
+    "DE": 41,
+    "ZA": 32,
+    "JP": 29,
+    "SE": 29,
+    "RU": 25,
+    "CL": 23,
+    "KR": 22,
+    "RO": 20
+  },
+  "gap_keyword_categories": {
+    "structured_craft": 7416,
+    "impossible_kinematics": 5013,
+    "radar_visual": 3254,
+    "encounter_quality": 2797,
+    "credible_witness": 1440,
+    "institutional": 1208,
+    "em_physical_effects": 609
+  },
+  "gap_samples": [
+    {
+      "source": "NICAP",
+      "country": "",
+      "t1": 3,
+      "cats": [
+        "impossible_kinematics",
+        "structured_craft"
+      ],
+      "text": "Midnight. A huge sphere of fire was observed rising out of the ocean by witnesses\raboard the \"Siberian.\" It rose to an altitude of 16 m, flew against the wind, and\rcame close to the ship, then \"dashed"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 5,
+      "cats": [
+        "em_physical_effects",
+        "structured_craft",
+        "encounter_quality"
+      ],
+      "text": "Two farm workers, Adolph Winkle and John Hulle, saw a strange craft in a field.\rThey had a discussion with its occupants, a woman and two men, and were told the\rship-had flown from Quincy to Springfie"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "structured_craft",
+        "encounter_quality",
+        "credible_witness"
+      ],
+      "text": "Morning. At least a dozen farmers saw an object maneuver in the sky for an hour\rbefore it landed. A strange man near 3 m tall, almost naked and suffering from the\rheat, was the pilot of the craft."
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "structured_craft",
+        "encounter_quality",
+        "credible_witness"
+      ],
+      "text": "Morning. At least a dozen farmers saw an object maneuver in the sky for an hour\rbefore it landed. A strange man near 3 m tall, almost naked and suffering from the\rheat, was the pilot of the craft."
+    },
+    {
+      "source": "NICAP",
+      "country": "AU",
+      "t1": 4,
+      "cats": [
+        "impossible_kinematics",
+        "structured_craft",
+        "credible_witness"
+      ],
+      "text": "11:00 p.m. Several witnesses among them the vicar, the Mayor, and a policeman\rsaw a cigar-shaped object hovering at 30 m altitude. A man appeared at a lateral\rdoor and was heard shouting some words in"
+    },
+    {
+      "source": "NICAP",
+      "country": "CA",
+      "t1": 3,
+      "cats": [
+        "impossible_kinematics",
+        "encounter_quality"
+      ],
+      "text": "Five persons among them Einar Rostivold, saw a huge ball of light giving off fiery\rcolors, 25 km from Robsart. It landed slowly, vanished gradually after illuminating\rthe whole countryside for 30 min."
+    },
+    {
+      "source": "NICAP",
+      "country": "ES",
+      "t1": 3,
+      "cats": [
+        "impossible_kinematics",
+        "encounter_quality"
+      ],
+      "text": "Soldiers at the Spanish Civil War battlefront were illuminated by a bright glow,\rthen saw an oval object about 10-12 meters in diameter shaped like “two inverted\rplates” hovering near the ground. A cy"
+    },
+    {
+      "source": "NICAP",
+      "country": "UK",
+      "t1": 5,
+      "cats": [
+        "radar_visual",
+        "structured_craft"
+      ],
+      "text": "On a bright sunny day an anti-aircraft unit member focused a height- and range-\rfinder on a flattened sphere moving rapidly on a horizontal course and tracked it\rfor 10 seconds. It's height was comput"
+    },
+    {
+      "source": "NICAP",
+      "country": "AU",
+      "t1": 3,
+      "cats": [],
+      "text": "At 2:30 a.m.  a bomber crew at 4,500 feet altitude saw a dark shape pull alongside\rthe plane and pace it at a distance of about 100 feet for about 18-20 minutes.  (Ref.\r3; Bill Chalker, The Oz Files, "
+    },
+    {
+      "source": "NICAP",
+      "country": "NL",
+      "t1": 3,
+      "cats": [
+        "impossible_kinematics",
+        "credible_witness"
+      ],
+      "text": "Field Artillery officer and men saw a brilliant object moving from NW to SW,\rcrossing an arc of about 90 degrees in about 45 minutes. [NICAP UFO Evidence,\r1964, Hall, IV]"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "encounter_quality",
+        "credible_witness"
+      ],
+      "text": "unidentified woman who saw an occupant inside an object who looked like \"a\rNavy officer.\""
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 5,
+      "cats": [
+        "credible_witness"
+      ],
+      "text": "9:10 a.m. (MST?).  2 gray, circular objects about 8 or 10 ft diameterBrad Sparks:\nJune 30, 1947; Nr. rim of Grand Canyon, Arizona (BBU)\n9:10 a.m. (MST?). Navy Lt. William G. McGinty flying P-80\nfrom W"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "structured_craft",
+        "encounter_quality"
+      ],
+      "text": "Area of a sighting of a landed disc and two occupants. (Bloecher)"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 7,
+      "cats": [
+        "impossible_kinematics",
+        "structured_craft",
+        "credible_witness"
+      ],
+      "text": "30-50' Circular Object Paces B-25, AcceleratesBrad\nSparks:\nJuly 6, 1947; Clay Center, Kansas (BBU)\n1:45 p.m. AAF pilot Major A. B. Browning and crew flying\nB-25 E to Kansas City saw a silvery circular"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 4,
+      "cats": [
+        "structured_craft",
+        "credible_witness",
+        "institutional"
+      ],
+      "text": "Military aircraft pilot Harston saw a bright silver object"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "radar_visual"
+      ],
+      "text": "Man watched an orange object varied in shape, as it made jerky upward sweeps\rwith 10-15 sec pauses. 3-5 mins. (Berliner)"
+    },
+    {
+      "source": "NICAP",
+      "country": "PH",
+      "t1": 3,
+      "cats": [
+        "credible_witness"
+      ],
+      "text": "pilot saw a half-moon shaped \"flying wing\" about 30 ft wide 20 ft long"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [],
+      "text": "3 objects seen - 300 to 400 feet in size, silvery-gold in color, and traveling at well\rover 500 MPH\n[This NICAP entry had a details link to /monroe480528dir.htm, but the URL couldn't be loaded. -ed]"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 5,
+      "cats": [
+        "structured_craft",
+        "credible_witness"
+      ],
+      "text": "Two Air Force officers reported approximately 20 discs or spheres milling around\rin formation and making a jet-like sound. (Fund Report * C-7; 2 pp.)"
+    },
+    {
+      "source": "UFODNA",
+      "country": "US",
+      "t1": 4,
+      "cats": [
+        "radar_visual",
+        "structured_craft",
+        "institutional"
+      ],
+      "text": "Pro baseball star hitter and wife watch 30 feet wide triangular UFO over their backyard, 100 yards away."
+    },
+    {
+      "source": "NICAP",
+      "country": "PH",
+      "t1": 3,
+      "cats": [
+        "structured_craft"
+      ],
+      "text": "very large 300 ft long 140 ft wingspan snow-white aircraft"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 4,
+      "cats": [
+        "structured_craft",
+        "credible_witness"
+      ],
+      "text": "2 thin, illuminated cylinders, one dropped a fireball, both maneuvered together\rthen disappeared high and fast. (Berliner) 5 minsForm: 97BB\nDate: Thu, 29 Dec 2005 16:51:06 +0000 (GMT)\nFrom: daniel wil"
+    },
+    {
+      "source": "NICAP",
+      "country": "KR",
+      "t1": 3,
+      "cats": [
+        "radar_visual",
+        "structured_craft",
+        "credible_witness"
+      ],
+      "text": "Navy planes on mission approached by two large discs, radar jammed, radio\rtransmitter blocked by buzzing noise each time new frequency tried"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "structured_craft",
+        "credible_witness"
+      ],
+      "text": "Red Lights On Collision Course With AircraftBrad Sparks:\nSept. 13, 1950; 5 miles SW of Effingham, Illinois (BBU)\n7:30 p.m. (CST). Private plane pilot Frye saw 3 dull red\nlights in triangle formation o"
+    },
+    {
+      "source": "UFODNA",
+      "country": "IT",
+      "t1": 3,
+      "cats": [
+        "structured_craft",
+        "encounter_quality"
+      ],
+      "text": "Close encounter with a an unidentified craft and its occupants. An unidentifiable object and its occupants were observed at close range."
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 4,
+      "cats": [
+        "impossible_kinematics",
+        "radar_visual",
+        "credible_witness"
+      ],
+      "text": "Two Air Force pilots, while watching a large balloon, saw a flat, round white\robject hovering at high altitude. [III]"
+    },
+    {
+      "source": "NICAP",
+      "country": "",
+      "t1": 3,
+      "cats": [
+        "radar_visual"
+      ],
+      "text": "Radar tracking of unidentified target at 3,755 mph.Brad\nSparks:\nApril 14, 1951; Yellow Sea (BBU)\n1:22 p.m. Radar tracking of unidentified target at 3,755 mph. (Jan\nAldrich)\n\nDan Wilson:\n\nThere is noth"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "impossible_kinematics",
+        "radar_visual",
+        "structured_craft"
+      ],
+      "text": "Wright-Patterson AFB official watched disc make sharp turn. [III]"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "structured_craft",
+        "credible_witness"
+      ],
+      "text": "Mining engineer sighted two discs with \"portholes.\" [VI]"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "structured_craft"
+      ],
+      "text": "30 ft disk-shaped flying object in the SW, 10 ft thick, blue green"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "radar_visual",
+        "structured_craft",
+        "credible_witness"
+      ],
+      "text": "An engineering metals inspector watched two dark wing (or hemisphere) shaped\robjects pass overhead, swaying back and forth like a pendulum. (NICAP report.)"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 7,
+      "cats": [
+        "impossible_kinematics",
+        "structured_craft",
+        "credible_witness"
+      ],
+      "text": "4:30 p.m. (MST). (McDonald list; BB Rpt 7) Flattened Oval As Large As B-29Category: 01; Distant\nEncounters\n\nSubject:\nFlattened Oval Object As Large As B-29\n\nDate:\n\nMarch 15, 1952\n\nLocation:\nSandia Mou"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 7,
+      "cats": [
+        "impossible_kinematics",
+        "structured_craft",
+        "credible_witness"
+      ],
+      "text": "2 shining orange spheresForm: 97 BB\nDate: Sun, 21 May 2006 12:41:24 +0100 (BST)\nFrom: daniel wilson\n<daniejon2000@yahoo.co.uk>\nSubject: May 14, 1952;\nMayaquez, Puerto Rico (BBU 1213) To: Francis Ridge"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 4,
+      "cats": [
+        "radar_visual",
+        "credible_witness"
+      ],
+      "text": "Air Force radar tracked up to 10 UFOs for 15-20 minutesDan\nWilson:\nJuly 20, 1952; Andrews AFB, Maryland (BB)\nAt 4:15 a.m. Approach Control picked up one\nunidentified target on radar. The target was on"
+    },
+    {
+      "source": "NUFORC",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "encounter_quality"
+      ],
+      "text": "Large, bright green fireball\n\nMy sister reported to me that she saw a large bright green fireball in the northwestern sky. The fireball was about the size of a ping pong ball held at arm's length. It "
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "credible_witness"
+      ],
+      "text": "bright tubular object tilt from horizontal to verticalForm 97-BB\nDate: Wed, 28 Sep 2005 16:00:48 +0100 (BST)\nFrom: daniel wilson\n<daniejon2000@yahoo.co.uk>\nSubject: May 29, 1952, 1900\nto 1914 hours CS"
+    },
+    {
+      "source": "NUFORC",
+      "country": "US",
+      "t1": 4,
+      "cats": [],
+      "text": "october 12th sunday 2003  6:35pm. /distorted airway/sky perhaps portle 15/20feet high same width on our land facing westnorthwest\n\nwhat i am about to tell you is the \"third time\" i did witness this ha"
+    },
+    {
+      "source": "NICAP",
+      "country": "MA",
+      "t1": 5,
+      "cats": [
+        "radar_visual"
+      ],
+      "text": "unidentified target at 650 knots at 60,000+ ft altitudeupated: 11 June 2009\nBrad Sparks:\nJune 12, 1952; Marrakech, Morocco (BBU 1270)\n11:26 a.m. T/Sgt. H. D. Adams, using an SCR-584 radar set,\ntracked"
+    },
+    {
+      "source": "NICAP",
+      "country": "CA",
+      "t1": 3,
+      "cats": [
+        "impossible_kinematics",
+        "radar_visual"
+      ],
+      "text": "One red light turned white while wobbling. Radar tracked a stationary object G,V\n[This NICAP entry had a details link to /520619goosedir.htm, but the URL couldn't be loaded. -ed]"
+    },
+    {
+      "source": "UFODNA",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "structured_craft",
+        "encounter_quality"
+      ],
+      "text": "Close encounter with a craft and its occupants. An unidentifiable object and its occupants were observed at close range (Menger)."
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "radar_visual"
+      ],
+      "text": "radars had picked up strange objects in several areas heading west and north at\rdifferent altitudes, 3000 mph and above.Brad\nSparks:\nJuly 12, 1952; Williams Bay, Wisconsin\n8:30 p.m. Air Intelligence I"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 6,
+      "cats": [],
+      "text": "State Highway Patrolmen observed two or three round blue flourescent colored\robjects approximately 100 feet in diamter. The objects were observed for\rapproximately 30 minutes.Form: 97 BB\nDate: Sun, 9 "
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 4,
+      "cats": [
+        "radar_visual",
+        "credible_witness"
+      ],
+      "text": "Air Force radar tracked up to 10 UFOs for 15-20 minutes"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "radar_visual"
+      ],
+      "text": "USN radar tracked high speed target heading N at 42,000 ft\n[This NICAP entry had a details link to /520723jamestown_01_dir.htm, but the URL couldn't be loaded. -ed]"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "impossible_kinematics",
+        "radar_visual",
+        "institutional"
+      ],
+      "text": "Numerous witnesses observed four (4) objects hovering in the vicinity of the\rLockbourne AFB, Columbus, Ohio. Two F-84 jets were dispatched from\rLockbourne AFB, but were unable to identify the objects."
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "structured_craft"
+      ],
+      "text": "light flying at 500 mph and 15,000 ft pass his aircraft"
+    },
+    {
+      "source": "NICAP",
+      "country": "JP",
+      "t1": 3,
+      "cats": [
+        "structured_craft"
+      ],
+      "text": "orange light fly a left orbit at 8,000 ft and 230 mph"
+    },
+    {
+      "source": "UFODNA",
+      "country": "RU",
+      "t1": 3,
+      "cats": [
+        "impossible_kinematics"
+      ],
+      "text": "Giant black cross appeared from nowhere in sky, hovered for 40 minutes, vanished suddenly."
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [],
+      "text": "3 objects 50 ft in diameter, 10 ft high, aluminum"
+    },
+    {
+      "source": "NICAP",
+      "country": "JP",
+      "t1": 3,
+      "cats": [
+        "credible_witness"
+      ],
+      "text": "Air Force pilot and engineer saw round object in cloud formation; object became\relliptical in appearance, sped away disappearing in seconds. [UFOE, III]"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "radar_visual",
+        "structured_craft",
+        "credible_witness"
+      ],
+      "text": "Hundreds of people saw a huge disc, watched through binoculars by air-traffic\rcontroller. (UFOE)"
+    },
+    {
+      "source": "NUFORC",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "structured_craft"
+      ],
+      "text": "Between 8:15 and 9:00 I saw an object that seemed to hover over the Ocuirrh mountains just west of Salt Lake or further out It started at about 250 degrees west at about 20 degrees alt.\nShape: Triangl"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 6,
+      "cats": [
+        "impossible_kinematics",
+        "radar_visual",
+        "structured_craft",
+        "encounter_quality",
+        "credible_witness"
+      ],
+      "text": "(McDonald list; FUFOR Index) Unidentified Return For 19 MinutesBrad\nSparks:\nJan. 23, 1953; Bergstrom AFB, Texas (BBU)\n3:40 p.m. (CST). (McDonald list; FUFOR Index)\n\n02 Aug 2009 20:10:39 -0400\nDan Wils"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 5,
+      "cats": [
+        "impossible_kinematics",
+        "structured_craft",
+        "credible_witness",
+        "institutional"
+      ],
+      "text": "Air Force officers at a gunnery meet observed about 12 disc-shaped objects that\rdove down and hovered over the base during the meet. [AP story, Mar. 9th; UFOE,\rIII]"
+    },
+    {
+      "source": "NUFORC",
+      "country": "US",
+      "t1": 5,
+      "cats": [
+        "impossible_kinematics",
+        "structured_craft",
+        "encounter_quality"
+      ],
+      "text": "Rectangular object hovering over I-696 in Ferndale, Michigan\n\nI saw the object as I drove Eastbound on I-696 towards the Woodward exit. At first, I thought that it was a banner being pulled by a plane"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 5,
+      "cats": [
+        "impossible_kinematics",
+        "structured_craft",
+        "credible_witness",
+        "institutional"
+      ],
+      "text": "Air Force officers at a gunnery meet observed about 12 disc-shaped objects that\rdove down and hovered over the base during the meet. [AP story, Mar. 9th; UFOE,\rIII]"
+    },
+    {
+      "source": "NICAP",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "radar_visual",
+        "structured_craft",
+        "credible_witness"
+      ],
+      "text": "A veteran private pilot watched as eight disc-like objects \"swooped around in\rformation, peeled off, and shot directly up and down in a manner that could not be\rduplicated by a plane.\" The objects man"
+    },
+    {
+      "source": "NICAP",
+      "country": "DZ",
+      "t1": 4,
+      "cats": [
+        "credible_witness",
+        "institutional"
+      ],
+      "text": "1:30 p.m. Many persons in Saint Arnaud observed an object leaving a double trail\rof white smoke, describing an immense circle over the town. Several officers at La\rRemonte Military base nearby even he"
+    },
+    {
+      "source": "NUFORC",
+      "country": "US",
+      "t1": 3,
+      "cats": [
+        "impossible_kinematics"
+      ],
+      "text": "Three round, orange, reddish balls hovering, moving, but not advancing forward. After 5 mins, one moved slowly off the the left.\nShape: Fireball\nDuration: 10 mins"
+    },
+    {
+      "source": "UFODNA",
+      "country": "RU",
+      "t1": 3,
+      "cats": [
+        "impossible_kinematics",
+        "structured_craft"
+      ],
+      "text": "Orange sphere flies into town, stops for 6 seconds, makes 90 degree turn."
+    }
+  ]
+}
