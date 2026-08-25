@@ -60,3 +60,17 @@ State clearly:
 - ❌ Process administrative/legal/liturgical texts for mythology patterns
 - ❌ Add more Greek heroes when the pattern is already confirmed from 8 traditions
 - ❌ Enrich without first asking "will this change what patterns fire?"
+
+
+## MANDATORY: Step D after EVERY dataset (do not skip)
+After merging ANY new dataset (national source, NGO, scientific corpus, seed), you MUST return to
+the gap-mining step BEFORE adding the next dataset:
+1. Re-run the global scan (re-does Tier 1 + fires all signatures over the whole combined corpus).
+2. **Step D — gap-mine the firing corpus:** isolate Tier-1 survivors that fire 0–1 signatures
+   (near-misses), cluster their recurring vocabulary, and author the data-supported NEW signatures
+   (frequency + cited example required; no "looks right" signatures).
+3. Re-score existing seeds (no regressions), re-run the global scan, record the firing-count/country
+   delta (the compounding lift).
+Only THEN move to the next dataset. Tool: `scripts/mine_signature_gaps.py`.
+Canonical detail lives in `taxonomy-enrichment-master-loop.md` (step 3/4). This is the step that
+produced the "iteration 3/4" gold in the money-laundering work.
