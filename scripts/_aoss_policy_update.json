@@ -1,0 +1,36 @@
+[
+  {
+    "Rules": [
+      {
+        "Resource": ["index/research-analyst-search/*"],
+        "Permission": [
+          "aoss:CreateIndex",
+          "aoss:DeleteIndex",
+          "aoss:UpdateIndex",
+          "aoss:DescribeIndex",
+          "aoss:ReadDocument",
+          "aoss:WriteDocument"
+        ],
+        "ResourceType": "index"
+      },
+      {
+        "Resource": ["collection/research-analyst-search"],
+        "Permission": [
+          "aoss:CreateCollectionItems",
+          "aoss:DeleteCollectionItems",
+          "aoss:UpdateCollectionItems",
+          "aoss:DescribeCollectionItems"
+        ],
+        "ResourceType": "collection"
+      }
+    ],
+    "Principal": [
+      "arn:aws:iam::974220725866:root",
+      "arn:aws:iam::974220725866:user/eyreaws-local",
+      "arn:aws:iam::974220725866:role/ResearchAnalystStack-CaseFilesLambdaServiceRoleC1B8-rCJotA0lmPum",
+      "arn:aws:iam::974220725866:role/ResearchAnalystStack-CaseFilesLambdaServiceRole7F1E-0rLmjCQvPaVR",
+      "arn:aws:iam::974220725866:role/ResearchAnalystStack-IngestionEmbedLambdaServiceRol-ZtdncOb4IBqC"
+    ],
+    "Description": "Full access for Research Analyst platform - added IngestionEmbed role to fix enterprise-tier OpenSearch write 403"
+  }
+]
