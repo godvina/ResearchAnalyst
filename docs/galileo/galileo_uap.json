@@ -1,0 +1,44 @@
+{
+  "source": "Galileo Project (Harvard) all-sky IR camera array — Domine, Loeb et al.",
+  "licence": "Public preprint arXiv:2411.07956 = Sensors 2025 25(3) 783 (open access)",
+  "note": "NGO scientific INSTRUMENT source. ~500,000 trajectories in 5 months; 144 ambiguous outliers after review that the authors call LIKELY MUNDANE (not anomalous). KNOWN instrument facts recorded; interpretation kept as the authors framed it.",
+  "count": 3,
+  "reports": [
+    {
+      "id": "GALILEO-commissioning-2024",
+      "source": "GALILEO",
+      "date": "2024-11-12",
+      "description": "Galileo Project (Harvard) all-sky infrared camera array commissioning study. Eight uncooled long-wave infrared FLIR Boson 640 cameras continuously monitor the whole sky. Calibrated using aircraft positions from ADS-B transponder data. Over five months of field operation the system reconstructed approximately 500,000 trajectories of aerial objects. This is a rigorous long-term instrument census of ALL aerial phenomena, natural and human-made — a multi-band, ground-based scientific observatory, not eyewitness reports.",
+      "city": "Harvard Observatory (Massachusetts)",
+      "district": "",
+      "country": "US",
+      "lat": 42.377,
+      "lng": -71.1167,
+      "arxiv": "2411.07956"
+    },
+    {
+      "id": "GALILEO-outlier-search-2024",
+      "source": "GALILEO",
+      "date": "2024-11-12",
+      "description": "Galileo Project outlier analysis: a toy search focused on large sinuosity of the 2-D reconstructed trajectories flagged about 16 percent of trajectories as outliers. After manual review, 144 trajectories remained ambiguous — the authors state these are LIKELY MUNDANE objects that simply cannot be elucidated at this stage without distance and kinematics estimation or additional sensor modalities. Combined with systematic uncertainties this yields an upper limit of 18,271 ambiguous outliers over the five-month interval at 95 percent confidence. The project explicitly does NOT claim these are anomalous.",
+      "city": "Harvard Observatory (Massachusetts)",
+      "district": "",
+      "country": "US",
+      "lat": 42.377,
+      "lng": -71.1167,
+      "arxiv": "2411.07956"
+    },
+    {
+      "id": "GALILEO-infrared-methodology",
+      "source": "GALILEO",
+      "date": "2024-11-12",
+      "description": "Instrument methodology: infrared-only detection of airborne objects, tracked across an eight-camera all-sky array with ADS-B extrinsic calibration, reporting acceptance rates and detection efficiencies by weather, range and aircraft size. Objects detected in the long-wave infrared, some without a correlated ADS-B transponder return, are logged and measured for trajectory sinuosity and kinematics — a repeatable, sensor-based census designed to separate mundane traffic from genuine unknowns using data, not testimony.",
+      "city": "Harvard Observatory (Massachusetts)",
+      "district": "",
+      "country": "US",
+      "lat": 42.377,
+      "lng": -71.1167,
+      "arxiv": "2411.07956"
+    }
+  ]
+}
