@@ -1,0 +1,156 @@
+{
+  "generated_at": "2026-08-22T22:24:09.324098+00:00",
+  "source": "docs/geipan/geipan_reports.json",
+  "total": 3381,
+  "case_types": {
+    "Observation terrestre": 3313,
+    "Observation aéronautique": 62,
+    "Observation maritime": 6
+  },
+  "top_phenomena": {
+    "Manque d'informations fiables": 970,
+    "Lanterne thai": 421,
+    "Phénomène identifié non indiqué": 396,
+    "Avion": 106,
+    "ISS": 81,
+    "Vénus": 76,
+    "Bolide": 73,
+    "Phénomène étrange à très étrange/ de consistance moyenne à forte": 71,
+    "Ballon": 70,
+    "Avion de ligne": 62,
+    "Rentrée atmosphérique": 57,
+    "Satellite": 49
+  },
+  "d_class_unexplained": 106,
+  "aeronautical_cases": 0,
+  "d_typology_concept_hits": {
+    "flight_kinematics": 52,
+    "institutional_response": 38,
+    "craft_morphology": 28,
+    "sensor_em_signatures": 23,
+    "encounter_typology": 2
+  },
+  "d_cases_no_typology_concept": 22,
+  "d_gap_samples": [
+    {
+      "id": "1952-06-00004",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange à très étrange/ de consistance moyenne à forte",
+      "text": "Le 1er juin 1952 à 2h40 du matin, deux personnes d'un équipage d'un navire au mouillage en rade de Port-Gentil (Gabon), observent un phénomène lumineux dans le ciel. Dans un premier temps le second ca"
+    },
+    {
+      "id": "1978-02-00491",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange à très étrange/ de consistance moyenne à forte",
+      "text": "Le 28 février 1978 entre 19h 30 et19h 40 une automobiliste et son fils aperçoivent un objet très lumineux orangé se déplaçant à vive allure dans le ciel du Nord au Sud. L'observation a duré trois minu"
+    },
+    {
+      "id": "1978-12-00584",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange à très étrange/ de consistance moyenne à forte",
+      "text": "Le 26 décembre 1978 vers 22h45 un témoin observe les déplacements d'un objet lumineux dans le ciel. Passant dans un nuage, cet objet émet un phénomène lumineux et monte à vitesse rapide dans le ciel e"
+    },
+    {
+      "id": "1979-09-00659",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange à très étrange/ de consistance moyenne à forte",
+      "text": "Le 19 septembre 1979 à 22h deux témoins lors de leur jooging observent dans le ciel une lueur rouge en forme de boule qui scintille comme une étoile. Soudain cette lueur se déplace à une vitesse verti"
+    },
+    {
+      "id": "1979-09-00661",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange à très étrange/ de consistance moyenne à forte",
+      "text": "Le 23 septembre 1979 vers 6h plusieurs personnes observent dans le ciel un point lumineux se déplaçant sans bruit dans la direction Nord-Est. Ce point émet des couleurs vertes et rouges. Quelques inst"
+    },
+    {
+      "id": "1981-01-00847",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange à très étrange/ de consistance moyenne à forte",
+      "text": "Le 01 janvier 1981 vers 21h 40 deux gardiens de la paix aperçoivent un phénomène lumineux qui les intrigue. Entre 100 et 150 mètres dans le ciel, une lueur jaune-orangée scintille. Tout en observant l"
+    },
+    {
+      "id": "1987-07-01107",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange à très étrange/ de consistance moyenne à forte",
+      "text": "Le 29 juillet 1987 vers 6h 45 deux témoins en voiture vont apercevoir une masse blanche volumineuse et brillante qui se déplace rapidement au-dessus de la forêt communale. Cette masse a la couleur du "
+    },
+    {
+      "id": "1988-01-01123",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange à très étrange/ de consistance moyenne à forte",
+      "text": "Le 26 janvier 1988 à 21h15 un témoin observe plusieurs fois un objet imposant, volant à basse altitude, dont la forme lui fait penser à un casque avec deux ailes. Aucun bruit n'est entendu lors des dé"
+    },
+    {
+      "id": "1989-01-01162",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange à très étrange/ de consistance moyenne à forte",
+      "text": "Le 12 janvier 1989, une femme au volant de sa voiture observe à 30 mètres environ au-dessus des marais une forme cylindrique \"énorme\" comportant au sommet une coupole émettant une lumière jaune et une"
+    },
+    {
+      "id": "1989-03-01170",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange à très étrange/ de consistance moyenne à forte",
+      "text": "Dans la nuit du 2 au 3 mars 1989, deux témoins sont au volant de leur voiture quand celle-ci s'arrête et les phares s'éteignent brutalement. Les témoins observent alors une boule de feu émettant une l"
+    },
+    {
+      "id": "1990-09-01217",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange à très étrange/ de consistance moyenne à forte",
+      "text": "Le 26 septembre 1990 à 17 heures un femme regarde sa télévision et son attention est attirée à travers sa fenêtre par une boule lumineuse qui se dirige vers la maison. Elle est effrayée et appelle ses"
+    },
+    {
+      "id": "1992-11-01273",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange à très étrange/ de consistance moyenne à forte",
+      "text": "Le 12 novembre 1992 vers 17h, un témoin circulant en voiture est effrayé par une grosse masse rouge clignotante qui s'est approchée rapidement du témoin sans bruit. L'observation n'a duré que quelques"
+    },
+    {
+      "id": "1998-09-01518",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange à très étrange/ de consistance moyenne à forte",
+      "text": "Le 27 septembre 1998 à 3h un témoin observe dans le ciel un objet rond et lumineux de couleur jaunâtre. L'objet est à flanc de colline et se déplace très lentement. Au bout de cinq bonnes minutes, l'o"
+    },
+    {
+      "id": "2001-06-01569",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange à très étrange/ de consistance moyenne à forte",
+      "text": "Le 24 juin 2001 vers 19 heures un témoin observe un objet cylindrique vertical se déplaçant lentement. Le témoin filme le phénomène en le suivant en moto pour mieux le voir dans ses déplacements. L'al"
+    },
+    {
+      "id": "2004-10-01631",
+      "type": "Observation aéronautique",
+      "phenom": "Phénomène étrange à très étrange/ de consistance moyenne à forte",
+      "text": "Le 15 octobre 2004 le leader d'une patrouille de mirage 4 est alerté par un de ses coéquipiers qui signale être \"suivi\" par un aéronef dans les 5 heures. Le leader acquiert également le visuel du poin"
+    },
+    {
+      "id": "2008-07-02443",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange de consistance moyenne ou forte",
+      "text": "Le 8 juillet 2008 à 21h25 depuis le sommet de la montagne de Bergiès, des témoins sont intrigués par un point lumineux de forte magnitude qui apparait et disparait plusieurs fois dans le ciel. Les tém"
+    },
+    {
+      "id": "2012-04-08222",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange de consistance moyenne ou forte",
+      "text": "Le mercredi 4 avril 2012 à 20h15, un témoin est intrigué par les évolutions dans le ciel de deux points lumineux jaunes ou blancs qui traversent le ciel de l'Est vers le Nord à une vitesse importante."
+    },
+    {
+      "id": "2012-08-08284",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange de consistance moyenne ou forte",
+      "text": "Le 08 août 2012 un témoin allongé sur une terrasse regarde le ciel étoilé lorsqu'il suit durant 5 secondes le déplacement rectiligne d'un objet qu'il ne reconnaît pas. Ce dernier a la forme d'une \"nav"
+    },
+    {
+      "id": "2013-05-08459",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange de consistance moyenne ou forte",
+      "text": "Le 29 mai 2013 (et non le 30 mai comme indiqué par le témoin dans son questionnaire) à 23h45, un automobiliste observe à plusieurs dizaines de mètres du sol la présence d'un phénomène noir en forme de"
+    },
+    {
+      "id": "2014-01-08689",
+      "type": "Observation terrestre",
+      "phenom": "Phénomène étrange à très étrange/ de consistance moyenne à forte",
+      "text": "Le 28 janvier 2014 aux alentours de 22h15 un témoin à l'extérieur observe durant 2 à 3 minutes le déplacement d'un PAN lumineux en forme de halo puis de boule très lumineuse rouge avec une petite queu"
+    }
+  ]
+}
