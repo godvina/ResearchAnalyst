@@ -1,0 +1,47 @@
+{
+  "generated_at": "2026-08-22T22:30:46.453533+00:00",
+  "documents": 120,
+  "kept": 96,
+  "per_signature_fire": {
+    "uap-et-ce-001": 81,
+    "uap-cm-disc-001": 66,
+    "uap-fk-slow-002": 57,
+    "uap-em-rv-001": 54,
+    "uap-em-int-001": 54,
+    "uap-cm-orb-001": 50,
+    "uap-et-ce-002": 48,
+    "uap-et-landing-001": 47,
+    "uap-em-rv-002": 45,
+    "uap-cm-disc-002": 42,
+    "uap-wr-cred-001": 42,
+    "uap-fk-acc-002": 39,
+    "uap-fk-hov-001": 37,
+    "uap-cm-tri-001": 37,
+    "uap-et-ce-003": 34,
+    "uap-wr-cred-002": 34,
+    "uap-cm-tri-002": 32,
+    "uap-fk-slow-001": 29,
+    "uap-em-int-002": 29,
+    "uap-et-mass-001": 29,
+    "uap-ir-sup-001": 28,
+    "uap-ir-off-001": 25,
+    "uap-fk-tm-001": 24,
+    "uap-fk-acc-001": 18,
+    "uap-wr-hoax-002": 15,
+    "uap-em-phys-002": 8,
+    "uap-wr-hoax-001": 8
+  },
+  "per_typology_fire": {
+    "encounter_typology": 83,
+    "flight_kinematics": 75,
+    "craft_morphology": 73,
+    "sensor_em_signatures": 73,
+    "witness_reliability": 61,
+    "institutional_response": 36
+  },
+  "never_fired": [
+    "uap-em-phys-001"
+  ],
+  "gap_high_t1_no_signature": 0,
+  "gap_samples": []
+}
