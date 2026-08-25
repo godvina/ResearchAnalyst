@@ -1,0 +1,68 @@
+{
+  "source": "Japan documented-precedent cases (public, source-cited)",
+  "licence": "summaries of public historical events with source links",
+  "note": "Japan has no licence-clean BULK dataset; contribution is documented cases. NGO/instrument candidates for later: Galileo Project, Sol Foundation, Enigma Labs.",
+  "count": 5,
+  "reports": [
+    {
+      "id": "JP-SEED-jal1628-1986",
+      "source": "JP-SEED",
+      "date": "1986-11-17",
+      "description": "On 17 November 1986, Japan Air Lines Cargo Flight 1628, a Boeing 747 en route to Tokyo-Narita, was over eastern Alaska when veteran captain Kenju Terauchi (a former fighter pilot with over 10,000 flight hours) and his crew reported three unidentified objects, two small craft and a very large 'mothership'. The objects paced the aircraft for roughly an hour, pulling alongside and displaying arrays of lights. The unidentified objects were reported to appear on both the aircraft's radar and, at times, on FAA ground radar in Anchorage. The FAA opened an investigation; the case became one of the most documented pilot-radar UAP encounters on record.",
+      "city": "Anchorage (JAL1628 en route to Tokyo)",
+      "district": "",
+      "country": "US",
+      "lat": 61.174,
+      "lng": -149.996,
+      "source_url": "https://en.wikipedia.org/wiki/Japan_Air_Lines_Cargo_Flight_1628"
+    },
+    {
+      "id": "JP-SEED-kofu-1975",
+      "source": "JP-SEED",
+      "date": "1975-02-23",
+      "description": "On 23 February 1975 in Kofu, Yamanashi Prefecture, two schoolboys reported seeing an orange disc-shaped craft descend and land in a vineyard. They described a small occupant/being emerging near the landed object. Physical impressions were reportedly found at the site. The case drew significant Japanese media attention and is one of Japan's best-known close-encounter/landing reports.",
+      "city": "Kofu",
+      "district": "",
+      "country": "JP",
+      "lat": 35.664,
+      "lng": 138.568,
+      "source_url": "https://thediplomat.com/2021/07/a-brief-history-of-ufos-in-japan/"
+    },
+    {
+      "id": "JP-SEED-senganmori-cluster",
+      "source": "JP-SEED",
+      "date": "1990-01-01",
+      "description": "Mount Senganmori, a pyramid-shaped hill near Fukushima with a reportedly strong local magnetic anomaly, has been the focus of recurring UFO sightings over decades. The area is associated with a research laboratory and drew enough repeat reports that a local UFO interest center and museum were established. Witnesses describe luminous objects and lights recurring around the magnetic hill, forming a geographic sighting cluster rather than a single event.",
+      "city": "Mount Senganmori (Fukushima)",
+      "district": "",
+      "country": "JP",
+      "lat": 37.508,
+      "lng": 140.3,
+      "source_url": "https://thediplomat.com/2021/07/a-brief-history-of-ufos-in-japan/"
+    },
+    {
+      "id": "JP-SEED-sdf-nuclear-watch",
+      "source": "JP-SEED",
+      "date": "2000-01-01",
+      "description": "Published accounts attributed to Japan Air Self-Defense Force pilots describe repeated encounters with unidentified luminous objects, including sightings in the vicinity of nuclear power facilities. The accounts (collected in Japanese-language books) frame the objects as appearing to observe or loiter near sensitive energy infrastructure, paralleling the wider pattern of UAP interest in nuclear sites reported in other countries.",
+      "city": "various (Japan Air Self-Defense Force)",
+      "district": "",
+      "country": "JP",
+      "lat": 35.6895,
+      "lng": 139.6917,
+      "source_url": "https://ci.nii.ac.jp/ncid/BB17516905"
+    },
+    {
+      "id": "JP-SEED-kera-1975",
+      "source": "JP-SEED",
+      "date": "1975-01-01",
+      "description": "A widely-circulated 1970s Japanese report describes a small landed object and close-range encounter in a rural area, with multiple young witnesses and a described small occupant. It is frequently cited alongside Kofu as part of a mid-1970s wave of Japanese close-encounter reports.",
+      "city": "Kera (Nagano region)",
+      "district": "",
+      "country": "JP",
+      "lat": 36.0,
+      "lng": 138.1,
+      "source_url": "https://thediplomat.com/2021/07/a-brief-history-of-ufos-in-japan/"
+    }
+  ]
+}
