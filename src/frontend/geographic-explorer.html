@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Geographic Explorer — Irish Sacred Sites · AI Investigation Platform</title>
 <link rel="stylesheet" href="common.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://d3js.org/d3.v7.min.js"></script>
+<link rel="stylesheet" href="vendor/leaflet.css?v=30"/>
+<script src="vendor/leaflet.js?v=30"></script>
+<script src="vendor/d3.v7.min.js?v=30"></script>
 <script src="config.js"></script>
-<script src="geographic-explorer-data.js"></script>
-<script src="geographic-explorer-narratives.js"></script>
+<script src="geographic-explorer-data.js?v=30"></script>
+<script src="geographic-explorer-narratives.js?v=30"></script>
 <style>
 /* === Geographic Explorer — Module-Specific Styles === */
 
@@ -261,6 +261,22 @@
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Documentary hand-off CTA */
+.dossier-cta {
+    display: block;
+    background: linear-gradient(135deg, rgba(99,179,237,0.16), rgba(180,120,255,0.12));
+    border: 1px solid rgba(99,179,237,0.4);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    color: #cfe6ff;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+.dossier-cta:hover { border-color: #63b3ed; background: linear-gradient(135deg, rgba(99,179,237,0.24), rgba(180,120,255,0.18)); }
+.dossier-cta.muted { background: rgba(120,120,120,0.08); border-color: rgba(120,120,120,0.25); color: #9aa4b2; font-weight: 500; cursor: default; }
 
 /* AI Brief panel */
 .ai-brief {
@@ -658,6 +674,9 @@
         <!-- Site Detail Panel (hidden initially) -->
         <div class="site-detail hidden" id="siteDetail">
 
+            <!-- Documentary hand-off (populated by selectSite when a chapter exists) -->
+            <div id="siteDossierCta"></div>
+
             <!-- AI Intelligence Brief -->
             <div class="ai-brief" id="aiBrief">
                 <div class="ai-brief-header">🤖 Intelligence Brief</div>
@@ -802,6 +821,7 @@ function addSiteMarkers() {
                 <div style="font-size:0.7rem;color:#666;margin-bottom:6px;">${categoryDisplay} · ${site.date_built}</div>
                 <div style="font-size:0.7rem;margin-bottom:4px;">Top score: <strong>${maxScore.toFixed(2)}</strong></div>
                 ${crossDomainBadge}
+                ${(typeof SITE_TO_DOSSIER!=='undefined'&&SITE_TO_DOSSIER[site.id])?`<div style="font-size:0.65rem;background:#63b3ed20;border:1px solid #63b3ed;color:#63b3ed;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:4px;">🎧 Documentary chapter</div>`:''}
                 <button onclick="selectSite('${site.id}')" style="margin-top:8px;background:#63b3ed;color:#fff;border:none;padding:5px 12px;border-radius:5px;font-size:0.7rem;cursor:pointer;font-weight:600;">Select</button>
             </div>
         `;
@@ -1044,6 +1064,10 @@ function loadDocumentaryChapter(regionName) {
 
     let html = '';
 
+    // Point at the REAL narrated documentary (Pattern Dossier) instead of duplicating it here.
+    html += `<a class="dossier-cta" href="uap-command-center.html?dossier=boyne-valley&chapter=bv-hook">🎬 Open the full narrated documentary — The Boyne Valley (audio, 12 chapters, deep dives)</a>
+      <p style="font-size:0.82rem;color:#9aa4b2;margin:-6px 0 14px">The text below is a quick data-driven overview. For the produced, narrated documentary with per-site deep dives, use the button above.</p>`;
+
     // Opening hook
     const oldestSite = sortedSites[0];
     const totalAge = oldestSite ? oldestSite.age_years : 5000;
@@ -1247,7 +1271,7 @@ function populateCards(sortBy) {
         html += `<div class="site-card" onclick="selectSite('${site.id}')" style="border-top-color: ${borderColor}">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
                 <div>
-                    <div class="card-name">${site.name}</div>
+                    <div class="card-name">${site.name} ${(typeof SITE_TO_DOSSIER!=='undefined'&&SITE_TO_DOSSIER[site.id])?'<span title="Has a narrated documentary chapter" style="font-size:0.8rem;">🎧</span>':''}</div>
                     <div class="card-category">${categoryDisplay} · ${site.date_built} · ${site.county}</div>
                 </div>
                 ${crossDomainBadge}
@@ -1438,11 +1462,38 @@ function hideTimelineTooltip() {
 // ------------------------------------------------------------------
 // Site Selection
 // ------------------------------------------------------------------
+// Explorer site -> narrated Pattern Dossier chapter (the real documentary).
+// Sites grouped under a chapter share it; sites without a chapter are omitted.
+var SITE_TO_DOSSIER = {
+    'irl-001': { dossier: 'boyne-valley', chapter: 'bv-newgrange',  label: 'Newgrange' },
+    'irl-002': { dossier: 'boyne-valley', chapter: 'bv-knowth',     label: 'Knowth' },
+    'irl-003': { dossier: 'boyne-valley', chapter: 'bv-dowth',      label: 'Dowth' },
+    'irl-004': { dossier: 'boyne-valley', chapter: 'bv-tara',       label: 'the Hill of Tara' },
+    'irl-006': { dossier: 'boyne-valley', chapter: 'bv-loughcrew',  label: 'Loughcrew' },
+    'irl-009': { dossier: 'boyne-valley', chapter: 'bv-beyond',     label: 'Beyond the Boyne' },
+    'irl-010': { dossier: 'boyne-valley', chapter: 'bv-knocknarea', label: 'Knocknarea' },
+    'irl-011': { dossier: 'boyne-valley', chapter: 'bv-beyond',     label: 'Beyond the Boyne' },
+    'irl-008': { dossier: 'boyne-valley', chapter: 'bv-beyond',     label: 'Beyond the Boyne' }
+};
+function dossierHref(siteId){
+    const d = SITE_TO_DOSSIER[siteId];
+    return d ? `uap-command-center.html?dossier=${d.dossier}&chapter=${d.chapter}` : null;
+}
+
 function selectSite(siteId) {
     selectedSiteId = siteId;
 
     const site = GEO_SITES.find(s => s.id === siteId);
     if (!site) return;
+
+    // Documentary hand-off CTA (only when this site maps to a narrated chapter)
+    const ctaEl = document.getElementById('siteDossierCta');
+    if (ctaEl) {
+        const d = SITE_TO_DOSSIER[siteId];
+        ctaEl.innerHTML = d
+            ? `<a class="dossier-cta" href="${dossierHref(siteId)}">🎬 Watch the documentary chapter — ${d.label}</a>`
+            : `<div class="dossier-cta muted">🎧 No narrated chapter for this site yet — see the Boyne Valley dossier for the region.</div>`;
+    }
 
     // Highlight active site in sidebar (remove .active from others)
     document.querySelectorAll('.site-item').forEach(el => el.classList.remove('active'));
