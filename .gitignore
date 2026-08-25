@@ -112,3 +112,10 @@ src/nest_asyncio*
 src/bin/
 src/*.dist-info/
 src/*-*.dist-info/
+
+# Generated mobile offline pack (regenerable from src/frontend + scripts/zip_mobile_dossiers.py)
+mobile-dossiers/
+mobile-dossiers.zip
+# Third-party cloned UFO repos (nested git repos, not our source)
+docs/pursue/UFO-USA/
+docs/pursue/the-ufo-files/
