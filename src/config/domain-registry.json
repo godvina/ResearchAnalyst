@@ -1,0 +1,240 @@
+{
+  "_comment": "TALOS domain/demo registry. Source of truth for (a) the DEMO_TIER frontend toggle and (b) scripts/package_poc.py customer carve-outs. Generated from the codebase 2026-08; entries marked needs_owner_confirmation were inferred and should be verified/labeled by the platform owner. tiers: 'serious' = real client/mission use cases (safe for customer POCs + serious colleague demos); 'reference' = harmless prove-the-approach demos (great for colleagues, EXCLUDE from customer packages); 'internal' = dev/experimental, not for external audiences.",
+  "shared_engine": {
+    "_comment": "Always included in every POC package and always visible. The domain-agnostic platform.",
+    "infra": ["infra/"],
+    "backend": ["src/lambdas/", "src/services/", "src/db/", "src/config/"],
+    "frontend_generic": [
+      "src/frontend/index.html",
+      "src/frontend/investigator.html",
+      "src/frontend/prosecutor.html",
+      "src/frontend/pattern-library.html",
+      "src/frontend/workbench.html",
+      "src/frontend/network_discovery.html",
+      "src/frontend/document_assembly.html",
+      "src/frontend/case-backlog.html",
+      "src/frontend/admin.html",
+      "src/frontend/chatbot.html",
+      "src/frontend/deployment-wizard.html",
+      "src/frontend/portfolio.html",
+      "src/frontend/config.js",
+      "src/frontend/common.css",
+      "src/frontend/api_client.py",
+      "src/frontend/vendor/"
+    ],
+    "shared_data": [
+      "src/data/pattern-library-taxonomy.json"
+    ],
+    "domain_specific_services_note": "These services are lazily imported by route in src/lambdas/api/case_files.py (audit 2026-08: NO unconditional top-level imports in the shared router), so excluding a domain's services does not break the engine."
+  },
+  "domains": [
+    {
+      "id": "asylum-fraud",
+      "title": "Asylum Fraud",
+      "tier": "serious",
+      "audience": ["customer", "colleague"],
+      "status": "planned",
+      "needs_owner_confirmation": true,
+      "tenant_config": "src/config/tenants/crime.json",
+      "taxonomy": ["src/data/asylum-fraud-taxonomy.json (TO CREATE)"],
+      "seed_globs": ["src/data/asylum-seed/** (TO CREATE)"],
+      "frontend_globs": [],
+      "services": [],
+      "notes": "Sits under the 'crime' tenant (proof standard: criminal_legal). Not yet built. Create tenant config asylum_fraud.json (or reuse crime.json), taxonomy, and seed cases. This is the model customer POC."
+    },
+    {
+      "id": "hsi",
+      "title": "HSI (Homeland Security Investigations)",
+      "tier": "serious",
+      "audience": ["customer", "colleague"],
+      "status": "needs_owner_confirmation",
+      "needs_owner_confirmation": true,
+      "tenant_config": "src/config/tenants/crime.json",
+      "taxonomy": [],
+      "seed_globs": [],
+      "frontend_globs": [],
+      "services": [],
+      "notes": "Referenced in nav/discussion but not clearly isolated in code yet. OWNER: confirm which files/taxonomy belong to HSI, or whether it's a view over the crime tenant."
+    },
+    {
+      "id": "brand-counterfeiting",
+      "title": "Brand / Counterfeiting",
+      "tier": "serious",
+      "audience": ["customer", "colleague"],
+      "status": "needs_owner_confirmation",
+      "needs_owner_confirmation": true,
+      "tenant_config": "src/config/tenants/crime.json",
+      "taxonomy": [],
+      "seed_globs": ["docs/Counterfeit/**"],
+      "frontend_globs": [],
+      "services": [],
+      "notes": "Counterfeit-seller screen shown in nav (Ellcos OLP-1 etc.). OWNER: confirm the taxonomy + seed + any dedicated frontend page for this use case."
+    },
+    {
+      "id": "compass",
+      "title": "Compass",
+      "tier": "serious",
+      "audience": ["customer", "colleague"],
+      "status": "needs_owner_confirmation",
+      "needs_owner_confirmation": true,
+      "tenant_config": "",
+      "taxonomy": [],
+      "seed_globs": [],
+      "frontend_globs": [],
+      "services": [],
+      "notes": "Mentioned by owner as a real use case. NOT found in code. OWNER: identify its files, or confirm it lives in the connected Finding Fentanyl / TALOS frontend project rather than this backend repo."
+    },
+    {
+      "id": "antitrust",
+      "title": "Antitrust / Pre-Case Intelligence",
+      "tier": "serious",
+      "audience": ["customer", "colleague"],
+      "status": "built",
+      "tenant_config": "",
+      "taxonomy": ["src/data/pattern-library-taxonomy.json (antitrust subtree)"],
+      "seed_globs": ["src/frontend/antitrust-cases-data.json"],
+      "frontend_globs": ["src/frontend/antitrust-report.html", "src/frontend/pre-case-intelligence.html"],
+      "services": [
+        "src/services/pre_case_intelligence_service.py",
+        "src/services/pre_case_trawler.py",
+        "src/services/osint_data_gatherer.py",
+        "src/services/prosecution_readiness_assessment.py",
+        "src/services/investigative_brief_service.py",
+        "src/services/investigator_search_service.py",
+        "src/services/iov_taxonomy_service.py",
+        "src/services/antitrust_legal_reasoning.py",
+        "src/services/antitrust_scoring_service.py",
+        "src/services/collusion_detection_service.py"
+      ],
+      "api_handlers": ["src/lambdas/api/pre_case_handler.py", "src/lambdas/api/collusion_analysis.py"],
+      "route_prefixes": ["/pre-case/"],
+      "notes": "Fully built serious domain. DOJ Antitrust Division pre-case workflow (Sherman/Clayton/FTC). Good real-domain example of a clean pack."
+    },
+    {
+      "id": "sex-trafficking",
+      "title": "Sex-Trafficking Typology",
+      "tier": "serious",
+      "audience": ["customer", "colleague"],
+      "status": "built",
+      "tenant_config": "src/config/tenants/crime.json",
+      "taxonomy": [],
+      "seed_globs": [],
+      "frontend_globs": ["src/frontend/sex-trafficking-typology.html"],
+      "services": ["src/services/sex_trafficking_typology.py"],
+      "notes": "Sensitive real-crime typology. Serious tier. Ship only to relevant customers."
+    },
+    {
+      "id": "conspiracy-theories",
+      "title": "Conspiracy Theory Research",
+      "tier": "reference",
+      "audience": ["colleague"],
+      "status": "built",
+      "tenant_config": "src/config/tenants/conspiracy_theories.json",
+      "taxonomy": [],
+      "seed_globs": [
+        "src/data/conspiracy-seed/bermuda_triangle/**",
+        "src/data/conspiracy-seed/jfk_assassination/**",
+        "src/data/conspiracy-seed/flat_earth/**",
+        "src/data/conspiracy-seed/flat-earth-farm-dataset/**",
+        "src/data/conspiracy-seed/flat_earth_evidence/**",
+        "src/data/conspiracy-seed/flat_earth_reddit/**",
+        "src/data/conspiracy-seed/covid_lab_leak/**",
+        "src/data/conspiracy-seed/nine_eleven/**",
+        "src/data/conspiracy-seed/vaers/**",
+        "src/data/conspiracy-seed/voat_annotations/**",
+        "src/data/conspiracy-seed/voat_conspiracy/**"
+      ],
+      "frontend_globs": ["src/frontend/theory-registry.html", "src/frontend/theory-registry-data.js", "src/frontend/theory-investigation.html"],
+      "api_handlers": ["src/lambdas/api/theory_handler.py", "src/lambdas/api/conspiracy_coverage.py"],
+      "route_prefixes": ["/theories"],
+      "notes": "10-theory conspiracy research corpus. Reference/prove-the-approach tier. EXCLUDE from customer packages. Great for colleague demos of the cross-domain pattern engine."
+    },
+    {
+      "id": "ufo-uap",
+      "title": "UAP / Unidentified Anomalous Phenomena",
+      "tier": "reference",
+      "audience": ["colleague"],
+      "status": "built",
+      "tenant_config": "src/config/tenants/conspiracy_theories.json (ufos_uaps)",
+      "taxonomy": ["src/data/ufo-uap-taxonomy.json", "src/data/taxonomy-expansion-ufo-vaers.json"],
+      "seed_globs": [
+        "src/data/conspiracy-seed/ufos_uaps/**",
+        "src/data/conspiracy-seed/ufo_sightings/**",
+        "src/data/conspiracy-seed/japan_uap/**",
+        "src/data/conspiracy-seed/russia_soviet_uap/**"
+      ],
+      "frontend_globs": [
+        "src/frontend/uap-command-center.html",
+        "src/frontend/uap-command-data.js",
+        "src/frontend/uap-case-store.js",
+        "src/frontend/uap-geo.js",
+        "src/frontend/uap-convergence.js",
+        "src/frontend/uap-leyline-convergence.js",
+        "src/frontend/uap-dossiers.js",
+        "src/frontend/uap-investigator.js",
+        "src/frontend/uap-command-center-narratives.js",
+        "src/frontend/audio/dossiers/**"
+      ],
+      "builders": [
+        "scripts/build_nuclear_sentinel_dossier.py",
+        "scripts/build_silent_triangle_dossier.py",
+        "scripts/build_radar_visual_dossier.py",
+        "scripts/build_recurring_hotspot_dossier.py",
+        "scripts/build_transmedium_dossier.py",
+        "scripts/build_trace_dossier.py",
+        "scripts/build_occupant_dossier.py",
+        "scripts/generate_dossier_audio.py"
+      ],
+      "notes": "The UAP demo — 8 Pattern Dossiers, live investigator, Polly audio. Reference tier: harmless, memorable, proves the pattern approach. EXCLUDE from all customer packages. Visible to colleagues only when DEMO_TIER=all."
+    },
+    {
+      "id": "ancient-mysteries",
+      "title": "Ancient Mysteries / UVG Grid",
+      "tier": "reference",
+      "audience": ["colleague"],
+      "status": "built",
+      "tenant_config": "src/config/tenants/ancient_mysteries.json",
+      "taxonomy": ["src/data/ancient-mysteries-taxonomy.json", "src/data/grid-investigation-taxonomy.json", "src/data/ley-line-taxonomy-presentation.json", "src/data/uvg-grid-taxonomy-guided-results.json"],
+      "seed_globs": [
+        "src/data/conspiracy-seed/ancient_mysteries_theories/**",
+        "src/data/conspiracy-seed/irish_sacred_sites/**"
+      ],
+      "frontend_globs": [
+        "src/frontend/ancient-mysteries.html",
+        "src/frontend/grid-globe.html",
+        "src/frontend/grid-globe-3d.html",
+        "src/frontend/archon.html",
+        "src/frontend/archon-data.js",
+        "src/frontend/archon-crosswalk.js",
+        "src/frontend/archon-dialogues.js",
+        "src/frontend/archon-scores.js",
+        "src/frontend/archon-audio.js",
+        "src/frontend/orion-correlation.html",
+        "src/frontend/geographic-explorer.html",
+        "src/frontend/geographic-explorer-data.js",
+        "src/frontend/geographic-explorer-narratives.js"
+      ],
+      "api_handlers": ["src/lambdas/api/grid_investigation.py"],
+      "route_prefixes": ["/pattern-library/grid/"],
+      "notes": "Ancient sites x mythology x UVG grid. Includes the Boyne Valley field companion (in uap-dossiers.js, shared with UAP page). Reference tier. EXCLUDE from customer packages. NOTE: geographic-explorer.html links to uap-command-center.html dossiers, so if shipping ancient-mysteries alone, that cross-link needs the UAP page too or graceful degradation."
+    },
+    {
+      "id": "succession",
+      "title": "Executive Succession Planning",
+      "tier": "internal",
+      "audience": ["colleague"],
+      "status": "built",
+      "needs_owner_confirmation": true,
+      "tenant_config": "",
+      "taxonomy": [],
+      "seed_globs": [],
+      "frontend_globs": [
+        "src/frontend/succession-dashboard.html",
+        "src/frontend/succession-comp-data.js",
+        "src/frontend/succession-cultural-profiles.js"
+      ],
+      "services": [],
+      "notes": "Separate product (talent selection, comp intelligence, 25-country cultural calibration). OWNER: confirm tier — is this a serious product line (move to 'serious') or an experiment ('internal')? Not law-enforcement; likely ships separately."
+    }
+  ]
+}
